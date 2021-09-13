@@ -1,0 +1,29 @@
+# See the OWNERS_ALIASES docs: https://git.k8s.io/community/contributors/guide/owners.md#OWNERS_ALIASES
+
+aliases:
+  openstack-approvers:
+    - EmilienM
+    - adduarte
+    - iamemilio
+    - mandre
+    - mdbooth
+    - pierreprinetti
+    - stephenfin
+  openstack-reviewers:
+    - EmilienM
+    - adduarte
+    - iamemilio
+    - mandre
+    - mdbooth
+    - pierreprinetti
+    - stephenfin
+  kuryr-approvers:
+    - MaysaMacedo
+    - dulek
+    - gryf
+    - luis5tb
+  kuryr-reviewers:
+    - MaysaMacedo
+    - dulek
+    - gryf
+    - luis5tb
