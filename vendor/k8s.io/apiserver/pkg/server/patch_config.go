@@ -16,6 +16,10 @@ limitations under the License.
 
 package server
 
+import (
+	genericfilters "k8s.io/apiserver/pkg/server/filters"
+)
+
 // newIsTerminatingFunc returns a 'func() bool' that relies on the
 // 'ShutdownInitiated' life cycle signal of answer if the apiserver
 // has started the termination process.
@@ -38,13 +42,17 @@ func (c *Config) newIsTerminatingFunc() func() bool {
 	}
 }
 
-func (c *Config) newServerFullyInitializedFunc() func() bool {
-	return func() bool {
+func (c *Config) newNotReadyRetryAfterFunc() genericfilters.ShouldRespondWithRetryAfterFunc {
+	params := &genericfilters.RetryAfterParams{
+		Message: "The apiserver hasn't been fully initialized yet, please try again later.",
+	}
+
+	return func() (*genericfilters.RetryAfterParams, bool) {
 		select {
 		case <-c.lifecycleSignals.HasBeenReady.Signaled():
-			return true
+			return nil, false
 		default:
-			return false
+			return params, true
 		}
 	}
 }
