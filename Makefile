@@ -99,3 +99,8 @@ test: test-tools
 # It will generate targets {update,verify}-bindata-$(1) logically grouping them in unsuffixed versions of these targets
 # and also hooked into {update,verify}-generated for broader integration.
 $(call add-bindata,bindata,-ignore ".*\.(go|md)$$$$" examples/db-templates examples/image-streams examples/sample-app examples/quickstarts/... examples/hello-openshift examples/jenkins/... examples/quickstarts/cakephp-mysql.json test/extended/testdata/... e2echart,testextended,testdata,test/extended/testdata/bindata.go)
+
+openstack-test:
+	go build -o openstack-test ./cmd/openshift-tests
+	./openstack-test run --run '\[Feature:openstack\]' openshift/conformance
+.PHONY: openstack-test
