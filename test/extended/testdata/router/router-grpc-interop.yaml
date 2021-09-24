@@ -1,0 +1,54 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+parameters:
+- name: IMAGE
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: grpc-interop
+    annotations:
+      service.beta.openshift.io/serving-cert-secret-name: service-cert-grpc-interop
+  spec:
+    selector:
+      app: grpc-interop
+    ports:
+      - port: 8443
+        name: https
+        targetPort: 8443
+        protocol: TCP
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    name: grpc-interop
+    labels:
+      app: grpc-interop
+  spec:
+    containers:
+    - image: ${IMAGE}
+      name: server
+      command: ["ingress-operator", "serve-grpc-test-server"]
+      ports:
+      - containerPort: 8443
+        protocol: TCP
+      volumeMounts:
+      - mountPath: /etc/serving-cert
+        name: cert
+      readinessProbe:
+        failureThreshold: 3
+        tcpSocket:
+          port: 8443
+        initialDelaySeconds: 10
+        periodSeconds: 30
+        successThreshold: 1
+      livenessProbe:
+        failureThreshold: 3
+        tcpSocket:
+          port: 8443
+        initialDelaySeconds: 10
+        periodSeconds: 30
+        successThreshold: 1
+    volumes:
+    - name: cert
+      secret:
+        secretName: service-cert-grpc-interop
