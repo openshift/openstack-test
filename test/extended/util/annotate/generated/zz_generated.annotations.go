@@ -1649,7 +1649,7 @@ var annotations = map[string]string{
 
 	"[Top Level] [sig-installer][Feature:baremetal] Baremetal platform should have baremetalhost resources": "have baremetalhost resources [Suite:openshift/conformance/parallel]",
 
-	"[Top Level] [sig-installer][Feature:openstack] OpenStack platform should create Control plane nodes in a server group": "create Control plane nodes in a server group [Suite:openshift/conformance/parallel]",
+	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes in a server group": "creates Control plane nodes in a server group [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-instrumentation] Events API should delete a collection of events [Conformance]": "should delete a collection of events [Conformance] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
@@ -13379,7 +13379,7 @@ var annotations = map[string]string{
 
 	"[Top Level] [sig-storage] Mounted volume expand Should verify mounted devices can be resized": "Should verify mounted devices can be resized [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[Top Level] [sig-storage] Multi-AZ Cluster Volumes should schedule pods in the same zones as statically provisioned PVs": "should schedule pods in the same zones as statically provisioned PVs [Disabled:Broken] [Suite:k8s]",
+	"[Top Level] [sig-storage] Multi-AZ Cluster Volumes should schedule pods in the same zones as statically provisioned PVs": "should schedule pods in the same zones as statically provisioned PVs [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
 	"[Top Level] [sig-storage] NFSPersistentVolumes[Disruptive][Flaky] when kube-controller-manager restarts should delete a bound PVC from a clientPod, restart the kube-control-manager, and ensure the kube-controller-manager does not crash": "should delete a bound PVC from a clientPod, restart the kube-control-manager, and ensure the kube-controller-manager does not crash [Serial] [Suite:k8s]",
 
