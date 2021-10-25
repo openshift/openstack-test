@@ -28,14 +28,17 @@ func SkipUnlessVersion(ctx context.Context, oc *exutil.CLI, version semver.Versi
 	cv, err := oc.AdminConfigClient().ConfigV1().ClusterVersions().Get(ctx, "version", metav1.GetOptions{})
 	o.Expect(cv.Status.History, err).NotTo(o.BeZero())
 
-	g.By("checking that the version is at least" + version.String())
+	g.By("checking that the version is at least " + version.String())
+	var highestClusterVersion semver.Version
 	for _, v := range cv.Status.History {
 		clusterVersion, err := semver.Parse(v.Version)
 		o.Expect(err).NotTo(o.HaveOccurred())
-
-		if clusterVersion.GE(version) {
-			return
+		if clusterVersion.GT(highestClusterVersion) {
+			highestClusterVersion = clusterVersion
 		}
 	}
-	e2eskipper.Skipf("This test only applies to %q and higher versions", version)
+
+	if highestClusterVersion.LT(version) {
+		e2eskipper.Skipf("This test only applies to %q and higher versions (found %q)", version, highestClusterVersion)
+	}
 }
