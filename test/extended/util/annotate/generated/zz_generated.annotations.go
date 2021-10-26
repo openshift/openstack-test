@@ -2,6 +2,7 @@ package generated
 
 import (
 	"fmt"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/types"
 )
@@ -1650,6 +1651,8 @@ var annotations = map[string]string{
 	"[Top Level] [sig-installer][Feature:baremetal] Baremetal platform should have baremetalhost resources": "have baremetalhost resources [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes in a server group": "creates Control plane nodes in a server group [Suite:openshift/conformance/parallel]",
+
+	"[Top Level] [Feature:openstack][Serial] Machines should grow and decrease again when scaling machineSets": "decrease and grow when scaling machineSets [Suite:openshift/conformance/serial]",
 
 	"[Top Level] [sig-instrumentation] Events API should delete a collection of events [Conformance]": "should delete a collection of events [Conformance] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
