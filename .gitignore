@@ -12,4 +12,4 @@
 *.out
 
 /_output
-/openstack-test
+/openstack-tests
