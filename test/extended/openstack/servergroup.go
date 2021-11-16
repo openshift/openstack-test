@@ -4,12 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/blang/semver"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/servergroups"
 	g "github.com/onsi/ginkgo"
 	o "github.com/onsi/gomega"
-	exutil "github.com/openshift/origin/test/extended/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -20,15 +18,9 @@ import (
 var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", func() {
 	defer g.GinkgoRecover()
 
-	oc := exutil.NewCLI("openstack")
-
-	g.BeforeEach(func() {
-		SkipUnlessOpenStack(context.TODO(), oc)
-	})
-
+	// OCP 4.5: https://issues.redhat.com/browse/OSASINFRA-1300
 	g.It("creates Control plane nodes in a server group", func() {
 		ctx := context.TODO()
-		SkipUnlessVersion(ctx, oc, semver.Version{Major: 4, Minor: 8})
 
 		g.By("preparing a dynamic client")
 		cfg, err := e2e.LoadConfig()
