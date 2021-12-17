@@ -1653,6 +1653,8 @@ var annotations = map[string]string{
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform on instance creation should follow machineset specs": "should follow machineset specs [Suite:openshift/conformance/parallel]",
 
+	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform on instance creation should include the addresses on the machine specs": "should include the addresses on the machine specs [Suite:openshift/conformance/parallel]",
+
 	"[Top Level] [sig-instrumentation] Events API should delete a collection of events [Conformance]": "should delete a collection of events [Conformance] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
 	"[Top Level] [sig-instrumentation] Events API should ensure that an event can be fetched, patched, deleted, and listed [Conformance]": "should ensure that an event can be fetched, patched, deleted, and listed [Conformance] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
