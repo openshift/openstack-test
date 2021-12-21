@@ -3,7 +3,6 @@
 aliases:
   openstack-approvers:
     - EmilienM
-    - adduarte
     - iamemilio
     - mandre
     - mdbooth
@@ -11,7 +10,6 @@ aliases:
     - stephenfin
   openstack-reviewers:
     - EmilienM
-    - adduarte
     - iamemilio
     - mandre
     - mdbooth
