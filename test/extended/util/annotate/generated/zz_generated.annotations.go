@@ -2,6 +2,7 @@ package generated
 
 import (
 	"fmt"
+
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/types"
 )
@@ -1650,6 +1651,8 @@ var annotations = map[string]string{
 	"[Top Level] [sig-installer][Feature:baremetal] Baremetal platform should have baremetalhost resources": "have baremetalhost resources [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes in a server group": "creates Control plane nodes in a server group [Suite:openshift/conformance/parallel]",
+
+	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity": "creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform on instance creation should follow machineset specs": "should follow machineset specs [Suite:openshift/conformance/parallel]",
 
