@@ -3,9 +3,13 @@ package openstack
 import (
 	"context"
 	"fmt"
+	"net"
+	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/flavors"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/images"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
@@ -17,6 +21,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	coreclient "k8s.io/client-go/kubernetes/typed/core/v1"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
@@ -32,27 +37,34 @@ const (
 var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", func() {
 	defer g.GinkgoRecover()
 
-	g.Context("on instance creation", func() {
-		g.It("should follow machineset specs", func() {
+	var dc dynamic.Interface
+	var clientSet *kubernetes.Clientset
+	var computeClient *gophercloud.ServiceClient
 
+	g.Context("on instance creation", func() {
+
+		g.BeforeEach(func() {
 			g.By("preparing openshift dynamic client")
 			cfg, err := e2e.LoadConfig()
 			o.Expect(err).NotTo(o.HaveOccurred())
-			dc, err := dynamic.NewForConfig(cfg)
+			dc, err = dynamic.NewForConfig(cfg)
 			o.Expect(err).NotTo(o.HaveOccurred())
-			clientSet, err := e2e.LoadClientset()
+			clientSet, err = e2e.LoadClientset()
 			o.Expect(err).NotTo(o.HaveOccurred())
-			skipUnlessMachineAPIOperator(dc, clientSet.CoreV1().Namespaces())
+			g.By("preparing openstack client")
+			computeClient, err = client(serviceCompute)
+			o.Expect(err).NotTo(o.HaveOccurred())
+		})
 
+		g.It("should follow machineset specs", func() {
+
+			skipUnlessMachineAPIOperator(dc, clientSet.CoreV1().Namespaces())
 			g.By("fetching worker machineSets")
 			machineSets, err := listWorkerMachineSets(dc)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			if len(machineSets) == 0 {
 				e2eskipper.Skipf("Expects at least one worker machineset. Found none.")
 			}
-			g.By("preparing openstack client")
-			computeClient, err := client(serviceCompute)
-			o.Expect(err).NotTo(o.HaveOccurred())
 
 			for _, machineSet := range machineSets {
 				nameMachineSet := machineSet.Get("metadata.name").String()
@@ -83,6 +95,24 @@ var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", 
 				}
 			}
 		})
+
+		// https://bugzilla.redhat.com/show_bug.cgi?id=2022627
+		g.It("should include the addresses on the machine specs", func() {
+
+			skipUnlessMachineAPIOperator(dc, clientSet.CoreV1().Namespaces())
+			g.By("fetching machines")
+			machines, err := getMachines(dc)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			for _, machine := range machines {
+				g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machine.Get("metadata.name")))
+				instance, err := servers.Get(computeClient, machine.Get("metadata.annotations.openstack-resourceId").String()).Extract()
+				o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machine.Get("metadata.name"))
+				g.By(fmt.Sprintf("Compare addresses with openstack interfaces for machine %q", instance.Name))
+				o.Expect(parseInstanceAddresses(instance.Addresses)).To(o.Equal(getAddressesFromMachine(machine)), "Addresses not matching for instance %q", instance.Name)
+			}
+		})
+
 	})
 })
 
@@ -110,8 +140,8 @@ func listWorkerMachineSets(dc dynamic.Interface) ([]objx.Map, error) {
 	return machineSets, nil
 }
 
-// getMachinesFromMachineSet lists all worker machines beloging to msName machineset
-func getMachinesFromMachineSet(dc dynamic.Interface, msName string) ([]objx.Map, error) {
+// getMachines lists all machines in the cluster
+func getMachines(dc dynamic.Interface) ([]objx.Map, error) {
 	mc := dc.Resource(schema.GroupVersionResource{
 		Group:    machineAPIGroup,
 		Version:  "v1beta1",
@@ -121,8 +151,17 @@ func getMachinesFromMachineSet(dc dynamic.Interface, msName string) ([]objx.Map,
 	if err != nil {
 		return nil, err
 	}
+	return objects(objx.Map(obj.UnstructuredContent()).Get("items")), nil
+}
+
+// getMachinesFromMachineSet lists all worker machines beloging to msName machineset
+func getMachinesFromMachineSet(dc dynamic.Interface, msName string) ([]objx.Map, error) {
+	machines, err := getMachines(dc)
+	if err != nil {
+		return nil, err
+	}
 	result := []objx.Map{}
-	for _, machine := range objects(objx.Map(obj.UnstructuredContent()).Get("items")) {
+	for _, machine := range machines {
 		labels := (*machine.Get("metadata.labels")).Data().(map[string]interface{})
 		if val, ok := labels[machineSetOwningLabel]; ok {
 			if val == msName {
@@ -172,11 +211,44 @@ func parseInstanceSgs(securityGroups []map[string]interface{}) []string {
 				add = false
 			}
 		}
-		if add == true {
+		if add {
 			result = append(result, fmt.Sprintf("%v", item["name"]))
 		}
 	}
 	return result
+}
+
+// returns the list of addresses
+func getAddressesFromMachine(item objx.Map) []string {
+	listAddresses := objects(item.Get("status.addresses"))
+	result := make([]string, 0, len(listAddresses))
+	for _, item := range listAddresses {
+		if strings.Contains(fmt.Sprintf("%v", item["type"]), "IP") {
+			result = append(result, fmt.Sprintf("%v", item["address"]))
+		}
+	}
+	return result
+}
+
+// parse instance.Addresses object and return a slice of found IPs
+func parseInstanceAddresses(addresses map[string]interface{}) ([]string, error) {
+	result := make([]string, 0, len(addresses))
+	s := fmt.Sprintf("%v", reflect.ValueOf(addresses))
+
+	for _, entry := range strings.Split(s, " ") {
+		if strings.HasPrefix(entry, "addr") {
+			addrLine := strings.SplitN(entry, ":", 2)
+			if len(addrLine) > 1 {
+				addr := net.ParseIP(addrLine[1])
+				if addr == nil {
+					err := fmt.Errorf("invalid ip format: %v", addrLine[1])
+					return nil, err
+				}
+				result = append(result, addr.String())
+			}
+		}
+	}
+	return result, nil
 }
 
 // skipUnlessMachineAPI is used to determine if the Machine API is installed and running in a cluster.
