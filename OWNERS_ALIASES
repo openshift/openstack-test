@@ -25,3 +25,9 @@ aliases:
     - dulek
     - gryf
     - luis5tb
+  qe-approvers:
+    - itzikb-redhat
+    - rlobillo
+  qe-reviewers:
+    - itzikb-redhat
+    - rlobillo

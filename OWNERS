@@ -4,6 +4,8 @@
 approvers:
   - kuryr-reviewers
   - openstack-reviewers
+  - qe-approvers
 reviewers:
   - kuryr-reviewers
   - openstack-reviewers
+  - qe-reviewers
