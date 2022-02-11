@@ -109,7 +109,7 @@ var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", 
 				instance, err := servers.Get(computeClient, machine.Get("metadata.annotations.openstack-resourceId").String()).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machine.Get("metadata.name"))
 				g.By(fmt.Sprintf("Compare addresses with openstack interfaces for machine %q", instance.Name))
-				o.Expect(parseInstanceAddresses(instance.Addresses)).To(o.Equal(getAddressesFromMachine(machine)), "Addresses not matching for instance %q", instance.Name)
+				o.Expect(parseInstanceAddresses(instance.Addresses)).To(o.ConsistOf(getAddressesFromMachine(machine)), "Addresses not matching for instance %q", instance.Name)
 			}
 		})
 
