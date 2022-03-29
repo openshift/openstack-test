@@ -29,9 +29,12 @@ var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", 
 	var dc dynamic.Interface
 	var oc *exutil.CLI
 	var masterInstanceUUIDs []interface{}
-	var nodeList *corev1.NodeList
+	var workerInstanceUUIDs []interface{}
+	var masterNodeList *corev1.NodeList
+	var workerNodeList *corev1.NodeList
 	var ms dynamic.NamespaceableResourceInterface
-	var serverGroupName string
+	var controlPlaneGroupName string
+	var workerGroupName string
 
 	oc = exutil.NewCLI("openstack")
 
@@ -44,14 +47,19 @@ var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", 
 		dc, err = dynamic.NewForConfig(cfg)
 		o.Expect(err).NotTo(o.HaveOccurred())
 
-		g.By("getting the IDs of the Control plane instances")
+		g.By("getting the IDs of the Control plane and Worker instances")
 		{
 			masterInstanceUUIDs = make([]interface{}, 0, 3)
 			clientSet, err := e2e.LoadClientset()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			nodeList, err = clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{
+			masterNodeList, err = clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{
 				LabelSelector: "node-role.kubernetes.io/master",
+			})
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			workerNodeList, err = clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{
+				LabelSelector: "node-role.kubernetes.io/worker",
 			})
 			o.Expect(err).NotTo(o.HaveOccurred())
 
@@ -60,9 +68,14 @@ var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", 
 				Resource: "machines",
 				Version:  "v1beta1",
 			})
-			for _, item := range nodeList.Items {
+			for _, item := range masterNodeList.Items {
 				uuid := strings.TrimPrefix(item.Spec.ProviderID, "openstack:///")
 				masterInstanceUUIDs = append(masterInstanceUUIDs, uuid)
+
+			}
+			for _, item := range workerNodeList.Items {
+				uuid := strings.TrimPrefix(item.Spec.ProviderID, "openstack:///")
+				workerInstanceUUIDs = append(workerInstanceUUIDs, uuid)
 
 			}
 			computeClient, err = client(serviceCompute)
@@ -74,28 +87,28 @@ var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", 
 	g.It("creates Control plane nodes in a server group", func() {
 		g.By("Getting the the Control instances' Server groups")
 		{
-			for _, item := range nodeList.Items {
+			for _, item := range masterNodeList.Items {
 				machineAnnotation := strings.SplitN(item.Annotations["machine.openshift.io/machine"], "/", 2)
 				o.Expect(machineAnnotation).To(o.HaveLen(2))
 
 				res, err := ms.Namespace(machineAnnotation[0]).Get(ctx, machineAnnotation[1], metav1.GetOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred())
 
-				instanceServerGroupNameField := getFromUnstructured(res, "spec", "providerSpec", "value", "serverGroupName")
-				o.Expect(instanceServerGroupNameField).NotTo(o.BeNil(), "the Server group name should be present in the Machine definition")
+				instancecontrolPlaneGroupNameField := getFromUnstructured(res, "spec", "providerSpec", "value", "serverGroupName")
+				o.Expect(instancecontrolPlaneGroupNameField).NotTo(o.BeNil(), "the Server group name should be present in the Machine definition")
 
-				instanceServerGroupName := instanceServerGroupNameField.(string)
-				o.Expect(instanceServerGroupName).NotTo(o.BeEmpty(), "the Server group name should not be the empty string")
-				if serverGroupName == "" {
-					serverGroupName = instanceServerGroupName
+				instancecontrolPlaneGroupName := instancecontrolPlaneGroupNameField.(string)
+				o.Expect(instancecontrolPlaneGroupName).NotTo(o.BeEmpty(), "the Server group name should not be the empty string")
+				if controlPlaneGroupName == "" {
+					controlPlaneGroupName = instancecontrolPlaneGroupName
 				} else {
-					o.Expect(instanceServerGroupName).To(o.Equal(serverGroupName), "two Control plane Machines have different serverGroupName set")
+					o.Expect(instancecontrolPlaneGroupName).To(o.Equal(controlPlaneGroupName), "two Control plane Machines have different controlPlaneGroupName set")
 				}
 			}
 		}
 		g.By("Checking the actual members of the Server group")
 		{
-			serverGroupsWithThatName, err := serverGroupIDsFromName(computeClient, serverGroupName)
+			serverGroupsWithThatName, err := serverGroupIDsFromName(computeClient, controlPlaneGroupName)
 			o.Expect(serverGroupsWithThatName, err).To(o.HaveLen(1), "the server group name either was not found or is not unique")
 
 			serverGroup, err := servergroups.Get(computeClient, serverGroupsWithThatName[0]).Extract()
@@ -121,8 +134,60 @@ var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", 
 		}
 		o.Expect(host_ids).To(o.HaveLen(len(masterInstanceUUIDs)),
 			"Master nodes should be on different hosts when anti-affinity policy is used")
+	})
+
+	g.It("creates Worker nodes in a server group", func() {
+		g.By("Getting the Worker instances' Server groups")
+		{
+			for _, item := range workerNodeList.Items {
+				machineAnnotation := strings.SplitN(item.Annotations["machine.openshift.io/machine"], "/", 2)
+				o.Expect(machineAnnotation).To(o.HaveLen(2))
+
+				res, err := ms.Namespace(machineAnnotation[0]).Get(ctx, machineAnnotation[1], metav1.GetOptions{})
+				o.Expect(err).NotTo(o.HaveOccurred())
+
+				instanceWorkerGroupNameField := getFromUnstructured(res, "spec", "providerSpec", "value", "serverGroupName")
+				o.Expect(instanceWorkerGroupNameField).NotTo(o.BeNil(), "the Server group name should be present in the Machine definition")
+
+				instanceWorkerGroupName := instanceWorkerGroupNameField.(string)
+				o.Expect(instanceWorkerGroupName).NotTo(o.BeEmpty(), "the Server group name should not be the empty string")
+				if workerGroupName == "" {
+					workerGroupName = instanceWorkerGroupName
+				} else {
+					o.Expect(instanceWorkerGroupName).To(o.Equal(workerGroupName), "two Worker Machines have different workerGroupName set")
+				}
+			}
+		}
+		g.By("Checking the actual members of the Server group")
+		{
+			serverGroupsWithThatName, err := serverGroupIDsFromName(computeClient, workerGroupName)
+			o.Expect(serverGroupsWithThatName, err).To(o.HaveLen(1), "the server group name either was not found or is not unique")
+
+			serverGroup, err := servergroups.Get(computeClient, serverGroupsWithThatName[0]).Extract()
+			o.Expect(serverGroup.Members, err).To(o.ContainElements(workerInstanceUUIDs...))
+		}
 
 	})
+
+	// OCP 4.10: https://issues.redhat.com/browse/OSASINFRA-2570
+	g.It("creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity", func() {
+		installConfig, err := installConfigFromCluster(oc.AdminKubeClient().CoreV1())
+		o.Expect(err).NotTo(o.HaveOccurred())
+		serverGroupPolicy := installConfig.Compute[0].Platform.OpenStack.ServerGroupPolicy
+		if serverGroupPolicy != "anti-affinity" {
+			e2eskipper.Skipf("This test only applies when serverGroupPolicy is set to anti-affinity")
+		}
+		host_ids := make(map[string]int)
+
+		for _, server_id := range workerInstanceUUIDs {
+			server, err := servers.Get(computeClient, server_id.(string)).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			host_ids[server.HostID] += 1
+		}
+		o.Expect(host_ids).To(o.HaveLen(len(workerInstanceUUIDs)),
+			"Worker nodes should be on different hosts when anti-affinity policy is used")
+	})
+
 })
 
 func getFromUnstructured(unstr *unstructured.Unstructured, keys ...string) interface{} {
@@ -164,6 +229,13 @@ type installConfig struct {
 			} `yaml:"openstack"`
 		} `yaml:"platform"`
 	} `yaml:"controlPlane"`
+	Compute []struct {
+		Platform struct {
+			OpenStack struct {
+				ServerGroupPolicy string `yaml:"serverGroupPolicy"`
+			} `yaml:"openstack"`
+		} `yaml:"platform"`
+	} `yaml:"compute"`
 }
 
 func installConfigFromCluster(client clientcorev1.ConfigMapsGetter) (installConfig, error) {
