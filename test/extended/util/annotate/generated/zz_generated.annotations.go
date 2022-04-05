@@ -1652,8 +1652,11 @@ var annotations = map[string]string{
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes in a server group": "creates Control plane nodes in a server group [Suite:openshift/conformance/parallel]",
 
+	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Worker nodes in a server group": "creates Worker nodes in a server group [Suite:openshift/conformance/parallel]",
+
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity": "creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity [Suite:openshift/conformance/parallel]",
 
+	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity": "creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity [Suite:openshift/conformance/parallel]",
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform on instance creation should follow machineset specs": "should follow machineset specs [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform on instance creation should include the addresses on the machine specs": "should include the addresses on the machine specs [Suite:openshift/conformance/parallel]",
