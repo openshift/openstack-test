@@ -9,6 +9,7 @@ import (
 
 const (
 	serviceCompute = "compute"
+	serviceNetwork = "network"
 )
 
 // client generates a Gophercloud client for the given service. Available

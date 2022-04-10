@@ -1652,6 +1652,8 @@ var annotations = map[string]string{
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes in a server group": "creates Control plane nodes in a server group [Suite:openshift/conformance/parallel]",
 
+	"[Top Level] [sig-installer][Feature:openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace [Suite:openshift/conformance/parallel]",
+
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Worker nodes in a server group": "creates Worker nodes in a server group [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity": "creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity [Suite:openshift/conformance/parallel]",
