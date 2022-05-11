@@ -2,7 +2,6 @@ package generated
 
 import (
 	"fmt"
-
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/types"
 )
@@ -1652,16 +1651,19 @@ var annotations = map[string]string{
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes in a server group": "creates Control plane nodes in a server group [Suite:openshift/conformance/parallel]",
 
-	"[Top Level] [sig-installer][Feature:openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace [Suite:openshift/conformance/parallel]",
+	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity": "creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Worker nodes in a server group": "creates Worker nodes in a server group [Suite:openshift/conformance/parallel]",
 
-	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity": "creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity [Suite:openshift/conformance/parallel]",
-
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity": "creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity [Suite:openshift/conformance/parallel]",
-	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform on instance creation should follow machineset specs":                            "should follow machineset specs [Suite:openshift/conformance/parallel]",
+
+	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform on instance creation should follow machineset specs": "should follow machineset specs [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform on instance creation should include the addresses on the machine specs": "should include the addresses on the machine specs [Suite:openshift/conformance/parallel]",
+
+	"[Top Level] [sig-installer][Feature:openstack] The OpenStack platform on volume creation should follow PVC specs during resizing for prometheus": "should follow PVC specs during resizing for prometheus [Suite:openshift/conformance/parallel]",
+
+	"[Top Level] [sig-installer][Feature:openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-instrumentation] Events API should delete a collection of events [Conformance]": "should delete a collection of events [Conformance] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
