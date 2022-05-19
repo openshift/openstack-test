@@ -79,8 +79,8 @@ var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", 
 					"Number of replicas not matching for machineset %q", nameMachineSet)
 
 				for _, machine := range machines {
-                                        machine_name := machine.Get("metadata.name")
-                                        machine_phase := machine.Get("status.phase").String()
+					machine_name := machine.Get("metadata.name")
+					machine_phase := machine.Get("status.phase").String()
 					g.By(fmt.Sprintf("Get machine status for machine %q", machine_name))
 					o.Expect(machine_phase).To(o.Equal("Running"), "machine status is %q instead of Running", machine_name)
 					g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machine_name))
