@@ -13,3 +13,5 @@ The machinery is ported from [openshift/origin][1].
 
 [1]: https://github.com/openshift/origin
 [2]: test/extended/openstack
+
+IGNORE ME
