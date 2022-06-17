@@ -32,6 +32,7 @@ import (
 	e2epv "k8s.io/kubernetes/test/e2e/framework/pv"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	"k8s.io/kubernetes/test/e2e/storage/utils"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 // verifyGCEDiskAttached performs a sanity check to verify the PD attached to the node
@@ -46,7 +47,7 @@ func verifyGCEDiskAttached(diskName string, nodeName types.NodeName) bool {
 // initializeGCETestSpec creates a PV, PVC, and ClientPod that will run until killed by test or clean up.
 func initializeGCETestSpec(c clientset.Interface, t *framework.TimeoutContext, ns string, pvConfig e2epv.PersistentVolumeConfig, pvcConfig e2epv.PersistentVolumeClaimConfig, isPrebound bool) (*v1.Pod, *v1.PersistentVolume, *v1.PersistentVolumeClaim) {
 	ginkgo.By("Creating the PV and PVC")
-	pv, pvc, err := e2epv.CreatePVPVC(c, pvConfig, pvcConfig, ns, isPrebound)
+	pv, pvc, err := e2epv.CreatePVPVC(c, t, pvConfig, pvcConfig, ns, isPrebound)
 	framework.ExpectNoError(err)
 	framework.ExpectNoError(e2epv.WaitOnPVandPVC(c, t, ns, pv, pvc))
 
@@ -57,7 +58,7 @@ func initializeGCETestSpec(c clientset.Interface, t *framework.TimeoutContext, n
 }
 
 // Testing configurations of single a PV/PVC pair attached to a GCE PD
-var _ = utils.SIGDescribe("PersistentVolumes GCEPD", func() {
+var _ = utils.SIGDescribe("PersistentVolumes GCEPD [Feature:StorageProvider]", func() {
 	var (
 		c         clientset.Interface
 		diskName  string
@@ -74,6 +75,7 @@ var _ = utils.SIGDescribe("PersistentVolumes GCEPD", func() {
 	)
 
 	f := framework.NewDefaultFramework("pv")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	ginkgo.BeforeEach(func() {
 		c = f.ClientSet
 		ns = f.Namespace.Name

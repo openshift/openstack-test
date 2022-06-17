@@ -48,6 +48,7 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	"k8s.io/kubernetes/test/e2e/storage/utils"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 const (
@@ -59,7 +60,7 @@ const (
 	minNodes            = 2
 )
 
-var _ = utils.SIGDescribe("Pod Disks", func() {
+var _ = utils.SIGDescribe("Pod Disks [Feature:StorageProvider]", func() {
 	var (
 		ns         string
 		cs         clientset.Interface
@@ -70,6 +71,7 @@ var _ = utils.SIGDescribe("Pod Disks", func() {
 		nodes      *v1.NodeList
 	)
 	f := framework.NewDefaultFramework("pod-disks")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 
 	ginkgo.BeforeEach(func() {
 		e2eskipper.SkipUnlessNodeCountIsAtLeast(minNodes)

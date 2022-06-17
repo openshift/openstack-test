@@ -96,10 +96,6 @@ func getTargetPath(uid types.UID, specVolumeID string, host volume.VolumeHost) s
 // volume.Mounter methods
 var _ volume.Mounter = &csiMountMgr{}
 
-func (c *csiMountMgr) CanMount() error {
-	return nil
-}
-
 func (c *csiMountMgr) SetUp(mounterArgs volume.MounterArgs) error {
 	return c.SetUpAt(c.GetPath(), mounterArgs)
 }
@@ -276,7 +272,8 @@ func (c *csiMountMgr) SetUpAt(dir string, mounterArgs volume.MounterArgs) error 
 
 	c.supportsSELinux, err = c.kubeVolHost.GetHostUtil().GetSELinuxSupport(dir)
 	if err != nil {
-		klog.V(2).Info(log("error checking for SELinux support: %s", err))
+		// The volume is mounted. Return UncertainProgressError, so kubelet will unmount it when user deletes the pod.
+		return volumetypes.NewUncertainProgressError(fmt.Sprintf("error checking for SELinux support: %s", err))
 	}
 
 	if !driverSupportsCSIVolumeMountGroup && c.supportsFSGroup(fsType, mounterArgs.FsGroup, c.fsGroupPolicy) {
@@ -351,9 +348,9 @@ func (c *csiMountMgr) podServiceAccountTokenAttrs() (map[string]string, error) {
 
 func (c *csiMountMgr) GetAttributes() volume.Attributes {
 	return volume.Attributes{
-		ReadOnly:        c.readOnly,
-		Managed:         !c.readOnly,
-		SupportsSELinux: c.supportsSELinux,
+		ReadOnly:       c.readOnly,
+		Managed:        !c.readOnly,
+		SELinuxRelabel: c.supportsSELinux,
 	}
 }
 
@@ -364,12 +361,12 @@ func (c *csiMountMgr) TearDown() error {
 	return c.TearDownAt(c.GetPath())
 }
 func (c *csiMountMgr) TearDownAt(dir string) error {
-	klog.V(4).Infof(log("Unmounter.TearDown(%s)", dir))
+	klog.V(4).Infof(log("Unmounter.TearDownAt(%s)", dir))
 
 	volID := c.volumeID
 	csi, err := c.csiClientGetter.Get()
 	if err != nil {
-		return errors.New(log("mounter.SetUpAt failed to get CSI client: %v", err))
+		return errors.New(log("Unmounter.TearDownAt failed to get CSI client: %v", err))
 	}
 
 	// Could not get spec info on whether this is a migrated operation because c.spec is nil
@@ -377,7 +374,7 @@ func (c *csiMountMgr) TearDownAt(dir string) error {
 	defer cancel()
 
 	if err := csi.NodeUnpublishVolume(ctx, volID, dir); err != nil {
-		return errors.New(log("mounter.TearDownAt failed: %v", err))
+		return errors.New(log("Unmounter.TearDownAt failed: %v", err))
 	}
 
 	// Deprecation: Removal of target_path provided in the NodePublish RPC call
@@ -386,9 +383,9 @@ func (c *csiMountMgr) TearDownAt(dir string) error {
 	// by the kubelet in the future. Kubelet will only be responsible for
 	// removal of json data files it creates and parent directories.
 	if err := removeMountDir(c.plugin, dir); err != nil {
-		return errors.New(log("mounter.TearDownAt failed to clean mount dir [%s]: %v", dir, err))
+		return errors.New(log("Unmounter.TearDownAt failed to clean mount dir [%s]: %v", dir, err))
 	}
-	klog.V(4).Infof(log("mounter.TearDownAt successfully unmounted dir [%s]", dir))
+	klog.V(4).Infof(log("Unmounter.TearDownAt successfully unmounted dir [%s]", dir))
 
 	return nil
 }
@@ -407,19 +404,27 @@ func (c *csiMountMgr) supportsFSGroup(fsType string, fsGroup *int64, driverPolic
 		return false
 	}
 
-	if c.spec.PersistentVolume == nil {
-		klog.V(4).Info(log("mounter.SetupAt Warning: skipping fsGroup permission change, no access mode available. The volume may only be accessible to root users."))
-		return false
+	if c.spec.PersistentVolume != nil {
+		if c.spec.PersistentVolume.Spec.AccessModes == nil {
+			klog.V(4).Info(log("mounter.SetupAt WARNING: skipping fsGroup, access modes not provided"))
+			return false
+		}
+		if !hasReadWriteOnce(c.spec.PersistentVolume.Spec.AccessModes) {
+			klog.V(4).Info(log("mounter.SetupAt WARNING: skipping fsGroup, only support ReadWriteOnce access mode"))
+			return false
+		}
+		return true
+	} else if c.spec.Volume != nil && c.spec.Volume.CSI != nil {
+		if !utilfeature.DefaultFeatureGate.Enabled(features.CSIInlineVolume) {
+			klog.V(4).Info(log("mounter.SetupAt WARNING: skipping fsGroup, CSIInlineVolume feature required"))
+			return false
+		}
+		// Inline CSI volumes are always mounted with RWO AccessMode by SetUpAt
+		return true
 	}
-	if c.spec.PersistentVolume.Spec.AccessModes == nil {
-		klog.V(4).Info(log("mounter.SetupAt WARNING: skipping fsGroup, access modes not provided"))
-		return false
-	}
-	if !hasReadWriteOnce(c.spec.PersistentVolume.Spec.AccessModes) {
-		klog.V(4).Info(log("mounter.SetupAt WARNING: skipping fsGroup, only support ReadWriteOnce access mode"))
-		return false
-	}
-	return true
+
+	klog.V(4).Info(log("mounter.SetupAt WARNING: skipping fsGroup, unsupported volume type"))
+	return false
 }
 
 // isDirMounted returns the !notMounted result from IsLikelyNotMountPoint check
@@ -474,7 +479,7 @@ func makeVolumeHandle(podUID, volSourceSpecName string) string {
 }
 
 func mergeMap(first, second map[string]string) map[string]string {
-	if first == nil && second != nil {
+	if first == nil {
 		return second
 	}
 	for k, v := range second {

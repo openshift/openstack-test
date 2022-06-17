@@ -42,10 +42,12 @@ import (
 	"k8s.io/client-go/util/certificate/csr"
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/kubernetes/test/utils"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 var _ = SIGDescribe("Certificates API [Privileged:ClusterAdmin]", func() {
 	f := framework.NewDefaultFramework("certificates")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 
 	/*
 		Release: v1.19
@@ -166,7 +168,10 @@ var _ = SIGDescribe("Certificates API [Privileged:ClusterAdmin]", func() {
 		framework.ExpectNoError(err)
 		framework.ExpectEqual(len(certs), 1, "expected a single cert, got %#v", certs)
 		cert := certs[0]
-		framework.ExpectEqual(cert.NotAfter.Sub(cert.NotBefore), time.Hour+5*time.Minute, "unexpected cert duration: %s", dynamiccertificates.GetHumanCertDetail(cert))
+		// make sure the cert is not valid for longer than our requested time (plus allowance for backdating)
+		if e, a := time.Hour+5*time.Minute, cert.NotAfter.Sub(cert.NotBefore); a > e {
+			framework.Failf("expected cert valid for %s or less, got %s: %s", e, a, dynamiccertificates.GetHumanCertDetail(cert))
+		}
 
 		newClient, err := certificatesclient.NewForConfig(rcfg)
 		framework.ExpectNoError(err)
@@ -214,11 +219,10 @@ var _ = SIGDescribe("Certificates API [Privileged:ClusterAdmin]", func() {
 		csrTemplate := &certificatesv1.CertificateSigningRequest{
 			ObjectMeta: metav1.ObjectMeta{GenerateName: "e2e-example-csr-"},
 			Spec: certificatesv1.CertificateSigningRequestSpec{
-				Request:    csrData,
-				SignerName: signerName,
-				// TODO(enj): check for expirationSeconds field persistence once the feature is GA
-				//  ExpirationSeconds: csr.DurationToExpirationSeconds(time.Hour),
-				Usages: []certificatesv1.KeyUsage{certificatesv1.UsageDigitalSignature, certificatesv1.UsageKeyEncipherment, certificatesv1.UsageServerAuth},
+				Request:           csrData,
+				SignerName:        signerName,
+				ExpirationSeconds: csr.DurationToExpirationSeconds(time.Hour),
+				Usages:            []certificatesv1.KeyUsage{certificatesv1.UsageDigitalSignature, certificatesv1.UsageKeyEncipherment, certificatesv1.UsageServerAuth},
 			},
 		}
 
@@ -291,8 +295,7 @@ var _ = SIGDescribe("Certificates API [Privileged:ClusterAdmin]", func() {
 		gottenCSR, err := csrClient.Get(context.TODO(), createdCSR.Name, metav1.GetOptions{})
 		framework.ExpectNoError(err)
 		framework.ExpectEqual(gottenCSR.UID, createdCSR.UID)
-		// TODO(enj): check for expirationSeconds field persistence once the feature is GA
-		//  framework.ExpectEqual(gottenCSR.Spec.ExpirationSeconds, csr.DurationToExpirationSeconds(time.Hour))
+		framework.ExpectEqual(gottenCSR.Spec.ExpirationSeconds, csr.DurationToExpirationSeconds(time.Hour))
 
 		ginkgo.By("listing")
 		csrs, err := csrClient.List(context.TODO(), metav1.ListOptions{FieldSelector: "spec.signerName=" + signerName})

@@ -22,7 +22,7 @@ import (
 	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
+	admissionapi "k8s.io/pod-security-admission/api"
 
 	"github.com/onsi/ginkgo"
 	imageutils "k8s.io/kubernetes/test/utils/image"
@@ -52,7 +53,7 @@ func testingPod(name, value string) v1.Pod {
 					Image: imageutils.GetE2EImage(imageutils.Nginx),
 					Ports: []v1.ContainerPort{{ContainerPort: 80}},
 					LivenessProbe: &v1.Probe{
-						Handler: v1.Handler{
+						ProbeHandler: v1.ProbeHandler{
 							HTTPGet: &v1.HTTPGetAction{
 								Path: "/index.html",
 								Port: intstr.FromInt(8080),
@@ -100,6 +101,7 @@ func observerUpdate(w watch.Interface, expectedUpdate func(runtime.Object) bool)
 
 var _ = SIGDescribe("Generated clientset", func() {
 	f := framework.NewDefaultFramework("clientset")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelBaseline
 	ginkgo.It("should create pods, set the deletionTimestamp and deletionGracePeriodSeconds of the pod", func() {
 		podClient := f.ClientSet.CoreV1().Pods(f.Namespace.Name)
 		ginkgo.By("constructing the pod")
@@ -212,6 +214,7 @@ func newTestingCronJob(name string, value string) *batchv1.CronJob {
 
 var _ = SIGDescribe("Generated clientset", func() {
 	f := framework.NewDefaultFramework("clientset")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 
 	ginkgo.It("should create v1 cronJobs, delete cronJobs, watch cronJobs", func() {
 		cronJobClient := f.ClientSet.BatchV1().CronJobs(f.Namespace.Name)

@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 /*
@@ -21,16 +22,18 @@ package winkernel
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/Microsoft/hcsshim"
 	"k8s.io/klog/v2"
-	"net"
-	"strings"
+	netutils "k8s.io/utils/net"
 )
 
 type HostNetworkService interface {
 	getNetworkByName(name string) (*hnsNetworkInfo, error)
 	getEndpointByID(id string) (*endpointsInfo, error)
 	getEndpointByIpAddress(ip string, networkName string) (*endpointsInfo, error)
+	getEndpointByName(id string) (*endpointsInfo, error)
 	createEndpoint(ep *endpointsInfo, networkName string) (*endpointsInfo, error)
 	deleteEndpoint(hnsID string) error
 	getLoadBalancer(endpoints []endpointsInfo, flags loadBalancerFlags, sourceVip string, vip string, protocol uint16, internalPort uint16, externalPort uint16) (*loadBalancerInfo, error)
@@ -43,7 +46,7 @@ type hnsV1 struct{}
 func (hns hnsV1) getNetworkByName(name string) (*hnsNetworkInfo, error) {
 	hnsnetwork, err := hcsshim.GetHNSNetworkByName(name)
 	if err != nil {
-		klog.Errorf("%v", err)
+		klog.ErrorS(err, "failed to get HNS network by name", "name", name)
 		return nil, err
 	}
 
@@ -56,12 +59,13 @@ func (hns hnsV1) getNetworkByName(name string) (*hnsNetworkInfo, error) {
 func (hns hnsV1) getEndpointByID(id string) (*endpointsInfo, error) {
 	hnsendpoint, err := hcsshim.GetHNSEndpointByID(id)
 	if err != nil {
-		klog.Errorf("%v", err)
+		klog.ErrorS(err, "failed to get HNS endpoint by id", "id", id)
 		return nil, err
 	}
 	return &endpointsInfo{
-		ip:         hnsendpoint.IPAddress.String(),
-		isLocal:    !hnsendpoint.IsRemoteEndpoint, //TODO: Change isLocal to isRemote
+		ip: hnsendpoint.IPAddress.String(),
+		//TODO: Change isLocal to isRemote
+		isLocal:    !hnsendpoint.IsRemoteEndpoint,
 		macAddress: hnsendpoint.MacAddress,
 		hnsID:      hnsendpoint.Id,
 		hns:        hns,
@@ -75,13 +79,13 @@ func (hns hnsV1) getEndpointByID(id string) (*endpointsInfo, error) {
 func (hns hnsV1) getEndpointByIpAddress(ip string, networkName string) (*endpointsInfo, error) {
 	hnsnetwork, err := hcsshim.GetHNSNetworkByName(networkName)
 	if err != nil {
-		klog.Errorf("%v", err)
+		klog.ErrorS(err, "failed to get HNS network by name", "name", networkName)
 		return nil, err
 	}
 
 	endpoints, err := hcsshim.HNSListEndpointRequest()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to list endpoints: %v", err)
+		return nil, fmt.Errorf("failed to list endpoints: %w", err)
 	}
 	for _, endpoint := range endpoints {
 		equal := false
@@ -106,6 +110,23 @@ func (hns hnsV1) getEndpointByIpAddress(ip string, networkName string) (*endpoin
 
 	return nil, fmt.Errorf("Endpoint %v not found on network %s", ip, networkName)
 }
+
+func (hns hnsV1) getEndpointByName(name string) (*endpointsInfo, error) {
+	hnsendpoint, err := hcsshim.GetHNSEndpointByName(name)
+	if err != nil {
+		klog.ErrorS(err, "failed to get HNS endpoint by name", "name", name)
+		return nil, err
+	}
+	return &endpointsInfo{
+		ip: hnsendpoint.IPAddress.String(),
+		//TODO: Change isLocal to isRemote
+		isLocal:    !hnsendpoint.IsRemoteEndpoint,
+		macAddress: hnsendpoint.MacAddress,
+		hnsID:      hnsendpoint.Id,
+		hns:        hns,
+	}, nil
+}
+
 func (hns hnsV1) createEndpoint(ep *endpointsInfo, networkName string) (*endpointsInfo, error) {
 	hnsNetwork, err := hcsshim.GetHNSNetworkByName(networkName)
 	if err != nil {
@@ -113,7 +134,7 @@ func (hns hnsV1) createEndpoint(ep *endpointsInfo, networkName string) (*endpoin
 	}
 	hnsEndpoint := &hcsshim.HNSEndpoint{
 		MacAddress: ep.macAddress,
-		IPAddress:  net.ParseIP(ep.ip),
+		IPAddress:  netutils.ParseIPSloppy(ep.ip),
 	}
 
 	var createdEndpoint *hcsshim.HNSEndpoint
@@ -137,7 +158,7 @@ func (hns hnsV1) createEndpoint(ep *endpointsInfo, networkName string) (*endpoin
 	} else {
 		createdEndpoint, err = hnsNetwork.CreateEndpoint(hnsEndpoint)
 		if err != nil {
-			return nil, fmt.Errorf("Local endpoint creation failed: %v", err)
+			return nil, fmt.Errorf("local endpoint creation failed: %w", err)
 		}
 	}
 	return &endpointsInfo{
@@ -160,7 +181,7 @@ func (hns hnsV1) deleteEndpoint(hnsID string) error {
 	}
 	_, err = hnsendpoint.Delete()
 	if err == nil {
-		klog.V(3).Infof("Remote endpoint resource deleted id %s", hnsID)
+		klog.V(3).InfoS("Remote endpoint resource deleted id", "id", hnsID)
 	}
 	return err
 }
@@ -172,7 +193,7 @@ func (hns hnsV1) getLoadBalancer(endpoints []endpointsInfo, flags loadBalancerFl
 	}
 
 	if flags.isDSR {
-		klog.V(3).Info("DSR is not supported in V1. Using non DSR instead")
+		klog.V(3).InfoS("DSR is not supported in V1. Using non DSR instead")
 	}
 
 	for _, plist := range plists {
@@ -192,7 +213,7 @@ func (hns hnsV1) getLoadBalancer(endpoints []endpointsInfo, flags loadBalancerFl
 			} else if len(elbPolicy.VIPs) != 0 {
 				continue
 			}
-			LogJson("policyList", plist, "Found existing Hns loadbalancer policy resource", 1)
+			klog.V(1).InfoS("Found existing Hns loadbalancer policy resource", "policies", plist)
 			return &loadBalancerInfo{
 				hnsID: plist.ID,
 			}, nil
@@ -218,7 +239,7 @@ func (hns hnsV1) getLoadBalancer(endpoints []endpointsInfo, flags loadBalancerFl
 	)
 
 	if err == nil {
-		LogJson("policyList", lb, "Hns loadbalancer policy resource", 1)
+		klog.V(1).InfoS("Hns loadbalancer policy resource", "policies", lb)
 	} else {
 		return nil, err
 	}
@@ -237,7 +258,7 @@ func (hns hnsV1) deleteLoadBalancer(hnsID string) error {
 	if err != nil {
 		return err
 	}
-	LogJson("policyList", hnsloadBalancer, "Removing Policy", 2)
+	klog.V(2).InfoS("Removing Policy", "policies", hnsloadBalancer)
 
 	_, err = hnsloadBalancer.Delete()
 	return err

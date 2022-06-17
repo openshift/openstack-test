@@ -1,3 +1,4 @@
+//go:build !linux
 // +build !linux
 
 /*
@@ -38,6 +39,10 @@ func NewCgroupManager(_ interface{}) CgroupManager {
 
 func (m *unsupportedCgroupManager) Name(_ CgroupName) string {
 	return ""
+}
+
+func (m *unsupportedCgroupManager) Validate(_ CgroupName) error {
+	return errNotSupported
 }
 
 func (m *unsupportedCgroupManager) Exists(_ CgroupName) bool {

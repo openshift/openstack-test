@@ -47,6 +47,7 @@ import (
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	"k8s.io/kubernetes/test/utils/crd"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	admissionapi "k8s.io/pod-security-admission/api"
 
 	"github.com/onsi/ginkgo"
 
@@ -78,6 +79,7 @@ const (
 var _ = SIGDescribe("AdmissionWebhook [Privileged:ClusterAdmin]", func() {
 	var certCtx *certContext
 	f := framework.NewDefaultFramework("webhook")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelBaseline
 	servicePort := int32(8443)
 	containerPort := int32(8444)
 
@@ -767,7 +769,6 @@ func deployWebhookAndService(f *framework.Framework, image string, certCtx *cert
 	// Create the deployment of the webhook
 	podLabels := map[string]string{"app": "sample-webhook", "webhook": "true"}
 	replicas := int32(1)
-	zero := int64(0)
 	mounts := []v1.VolumeMount{
 		{
 			Name:      "webhook-certs",
@@ -797,7 +798,7 @@ func deployWebhookAndService(f *framework.Framework, image string, certCtx *cert
 				fmt.Sprintf("--port=%d", containerPort),
 			},
 			ReadinessProbe: &v1.Probe{
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Scheme: v1.URISchemeHTTPS,
 						Port:   intstr.FromInt(int(containerPort)),
@@ -812,31 +813,10 @@ func deployWebhookAndService(f *framework.Framework, image string, certCtx *cert
 			Ports: []v1.ContainerPort{{ContainerPort: containerPort}},
 		},
 	}
-	d := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   deploymentName,
-			Labels: podLabels,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: podLabels,
-			},
-			Strategy: appsv1.DeploymentStrategy{
-				Type: appsv1.RollingUpdateDeploymentStrategyType,
-			},
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: podLabels,
-				},
-				Spec: v1.PodSpec{
-					TerminationGracePeriodSeconds: &zero,
-					Containers:                    containers,
-					Volumes:                       volumes,
-				},
-			},
-		},
-	}
+	d := e2edeployment.NewDeployment(deploymentName, replicas, podLabels, "", "", appsv1.RollingUpdateDeploymentStrategyType)
+	d.Spec.Template.Spec.Containers = containers
+	d.Spec.Template.Spec.Volumes = volumes
+
 	deployment, err := client.AppsV1().Deployments(namespace).Create(context.TODO(), d, metav1.CreateOptions{})
 	framework.ExpectNoError(err, "creating deployment %s in namespace %s", deploymentName, namespace)
 	ginkgo.By("Wait for the deployment to be ready")
@@ -1177,6 +1157,8 @@ func testWebhook(f *framework.Framework) {
 		Labels: map[string]string{
 			skipNamespaceLabelKey: skipNamespaceLabelValue,
 			f.UniqueName:          "true",
+			// TODO(https://github.com/kubernetes/kubernetes/issues/108298): route namespace creation via framework.Framework.CreateNamespace in 1.24
+			admissionapi.EnforceLevelLabel: string(admissionapi.LevelRestricted),
 		},
 	}})
 	framework.ExpectNoError(err, "creating namespace %q", skippedNamespaceName)
@@ -2391,8 +2373,12 @@ func newMutateConfigMapWebhookFixture(f *framework.Framework, certCtx *certConte
 func createWebhookConfigurationReadyNamespace(f *framework.Framework) {
 	ns, err := f.ClientSet.CoreV1().Namespaces().Create(context.TODO(), &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   f.Namespace.Name + "-markers",
-			Labels: map[string]string{f.UniqueName + "-markers": "true"},
+			Name: f.Namespace.Name + "-markers",
+			Labels: map[string]string{
+				f.UniqueName + "-markers": "true",
+				// TODO(https://github.com/kubernetes/kubernetes/issues/108298): route namespace creation via framework.Framework.CreateNamespace in 1.24
+				admissionapi.EnforceLevelLabel: string(admissionapi.LevelRestricted),
+			},
 		},
 	}, metav1.CreateOptions{})
 	framework.ExpectNoError(err, "creating namespace for webhook configuration ready markers")

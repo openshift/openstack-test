@@ -31,6 +31,7 @@ import (
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2enode "k8s.io/kubernetes/test/e2e/framework/node"
 	testutils "k8s.io/kubernetes/test/utils"
+	admissionapi "k8s.io/pod-security-admission/api"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -39,6 +40,7 @@ import (
 var _ = SIGDescribe("NodeLease", func() {
 	var nodeName string
 	f := framework.NewDefaultFramework("node-lease-test")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 
 	ginkgo.BeforeEach(func() {
 		node, err := e2enode.GetRandomReadySchedulableNode(f.ClientSet)
@@ -46,7 +48,7 @@ var _ = SIGDescribe("NodeLease", func() {
 		nodeName = node.Name
 	})
 
-	ginkgo.Context("when the NodeLease feature is enabled", func() {
+	ginkgo.Context("NodeLease", func() {
 		ginkgo.It("the kubelet should create and update a lease in the kube-node-lease namespace", func() {
 			leaseClient := f.ClientSet.CoordinationV1().Leases(v1.NamespaceNodeLease)
 			var (

@@ -1,0 +1,11 @@
+# See the OWNERS docs at https://go.k8s.io/owners
+reviewers:
+- smarterclayton
+- soltysh
+- sttts
+approvers:
+- smarterclayton
+- soltysh
+- sttts
+labels:
+- "e2e-images-update"

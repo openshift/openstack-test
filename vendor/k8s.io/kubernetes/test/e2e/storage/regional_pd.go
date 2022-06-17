@@ -48,6 +48,7 @@ import (
 	"k8s.io/kubernetes/test/e2e/storage/testsuites"
 	"k8s.io/kubernetes/test/e2e/storage/utils"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 const (
@@ -60,6 +61,7 @@ const (
 
 var _ = utils.SIGDescribe("Regional PD", func() {
 	f := framework.NewDefaultFramework("regional-pd")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 
 	// filled in BeforeEach
 	var c clientset.Interface
@@ -154,16 +156,15 @@ func testVolumeProvisioning(c clientset.Interface, t *framework.TimeoutContext, 
 
 	for _, test := range tests {
 		test.Client = c
-		test.Class = newStorageClass(test, ns, "" /* suffix */)
+		computedStorageClass, clearStorageClass := testsuites.SetupStorageClass(test.Client, newStorageClass(test, ns, "" /* suffix */))
+		defer clearStorageClass()
+		test.Class = computedStorageClass
 		test.Claim = e2epv.MakePersistentVolumeClaim(e2epv.PersistentVolumeClaimConfig{
 			ClaimSize:        test.ClaimSize,
 			StorageClassName: &(test.Class.Name),
 			VolumeMode:       &test.VolumeMode,
 		}, ns)
-		sc, clearStorageClass := testsuites.SetupStorageClass(test.Client, test.Class)
-		defer clearStorageClass()
 
-		test.Class = sc
 		test.TestDynamicProvisioning()
 	}
 }
@@ -344,7 +345,10 @@ func testRegionalDelayedBinding(c clientset.Interface, ns string, pvcCount int) 
 	}
 
 	suffix := "delayed-regional"
-	test.Class = newStorageClass(test, ns, suffix)
+
+	computedStorageClass, clearStorageClass := testsuites.SetupStorageClass(test.Client, newStorageClass(test, ns, suffix))
+	defer clearStorageClass()
+	test.Class = computedStorageClass
 	var claims []*v1.PersistentVolumeClaim
 	for i := 0; i < pvcCount; i++ {
 		claim := e2epv.MakePersistentVolumeClaim(e2epv.PersistentVolumeClaimConfig{
@@ -382,7 +386,9 @@ func testRegionalAllowedTopologies(c clientset.Interface, ns string) {
 
 	suffix := "topo-regional"
 	test.Client = c
-	test.Class = newStorageClass(test, ns, suffix)
+	computedStorageClass, clearStorageClass := testsuites.SetupStorageClass(test.Client, newStorageClass(test, ns, suffix))
+	defer clearStorageClass()
+	test.Class = computedStorageClass
 	zones := getTwoRandomZones(c)
 	addAllowedTopologiesToStorageClass(c, test.Class, zones)
 	test.Claim = e2epv.MakePersistentVolumeClaim(e2epv.PersistentVolumeClaimConfig{
@@ -392,10 +398,6 @@ func testRegionalAllowedTopologies(c clientset.Interface, ns string) {
 		VolumeMode:       &test.VolumeMode,
 	}, ns)
 
-	sc, clearStorageClass := testsuites.SetupStorageClass(test.Client, test.Class)
-	defer clearStorageClass()
-
-	test.Class = sc
 	pv := test.TestDynamicProvisioning()
 	checkZonesFromLabelAndAffinity(pv, sets.NewString(zones...), true)
 }
@@ -415,7 +417,9 @@ func testRegionalAllowedTopologiesWithDelayedBinding(c clientset.Interface, ns s
 	}
 
 	suffix := "topo-delayed-regional"
-	test.Class = newStorageClass(test, ns, suffix)
+	computedStorageClass, clearStorageClass := testsuites.SetupStorageClass(test.Client, newStorageClass(test, ns, suffix))
+	defer clearStorageClass()
+	test.Class = computedStorageClass
 	topoZones := getTwoRandomZones(c)
 	addAllowedTopologiesToStorageClass(c, test.Class, topoZones)
 	var claims []*v1.PersistentVolumeClaim

@@ -34,15 +34,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
-	"k8s.io/apimachinery/pkg/util/clock"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 	credentialproviderapi "k8s.io/kubelet/pkg/apis/credentialprovider"
 	"k8s.io/kubelet/pkg/apis/credentialprovider/install"
 	credentialproviderv1alpha1 "k8s.io/kubelet/pkg/apis/credentialprovider/v1alpha1"
+	credentialproviderv1beta1 "k8s.io/kubelet/pkg/apis/credentialprovider/v1beta1"
 	"k8s.io/kubernetes/pkg/credentialprovider"
 	kubeletconfig "k8s.io/kubernetes/pkg/kubelet/apis/config"
 	kubeletconfigv1alpha1 "k8s.io/kubernetes/pkg/kubelet/apis/config/v1alpha1"
+	kubeletconfigv1beta1 "k8s.io/kubernetes/pkg/kubelet/apis/config/v1beta1"
+	"k8s.io/utils/clock"
 )
 
 const (
@@ -56,6 +58,7 @@ var (
 
 	apiVersions = map[string]schema.GroupVersion{
 		credentialproviderv1alpha1.SchemeGroupVersion.String(): credentialproviderv1alpha1.SchemeGroupVersion,
+		credentialproviderv1beta1.SchemeGroupVersion.String():  credentialproviderv1beta1.SchemeGroupVersion,
 	}
 )
 
@@ -63,6 +66,7 @@ func init() {
 	install.Install(scheme)
 	kubeletconfig.AddToScheme(scheme)
 	kubeletconfigv1alpha1.AddToScheme(scheme)
+	kubeletconfigv1beta1.AddToScheme(scheme)
 }
 
 // RegisterCredentialProviderPlugins is called from kubelet to register external credential provider
@@ -85,6 +89,9 @@ func RegisterCredentialProviderPlugins(pluginConfigFile, pluginBinDir string) er
 	if len(errs) > 0 {
 		return fmt.Errorf("failed to validate credential provider config: %v", errs.ToAggregate())
 	}
+
+	// Register metrics for credential providers
+	registerMetrics()
 
 	for _, provider := range credentialProviderConfig.Providers {
 		pluginBin := filepath.Join(pluginBinDir, provider.Name)
@@ -135,6 +142,7 @@ func newPluginProvider(pluginBinDir string, provider kubeletconfig.CredentialPro
 			pluginBinDir: pluginBinDir,
 			args:         provider.Args,
 			envVars:      provider.Env,
+			environ:      os.Environ,
 		},
 	}, nil
 }
@@ -354,6 +362,7 @@ type execPlugin struct {
 	args         []string
 	envVars      []kubeletconfig.ExecEnvVar
 	pluginBinDir string
+	environ      func() []string
 }
 
 // ExecPlugin executes the plugin binary with arguments and environment variables specified in CredentialProviderConfig:
@@ -385,19 +394,19 @@ func (e *execPlugin) ExecPlugin(ctx context.Context, image string) (*credentialp
 	cmd := exec.CommandContext(ctx, filepath.Join(e.pluginBinDir, e.name), e.args...)
 	cmd.Stdout, cmd.Stderr, cmd.Stdin = stdout, stderr, stdin
 
-	cmd.Env = []string{}
-	for _, envVar := range e.envVars {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", envVar.Name, envVar.Value))
+	var configEnvVars []string
+	for _, v := range e.envVars {
+		configEnvVars = append(configEnvVars, fmt.Sprintf("%s=%s", v.Name, v.Value))
 	}
 
-	err = cmd.Run()
-	if ctx.Err() != nil {
-		return nil, fmt.Errorf("error execing credential provider plugin %s for image %s: %w", e.name, image, ctx.Err())
-	}
+	// Append current system environment variables, to the ones configured in the
+	// credential provider file. Failing to do so may result in unsuccessful execution
+	// of the provider binary, see https://github.com/kubernetes/kubernetes/issues/102750
+	// also, this behaviour is inline with Credential Provider Config spec
+	cmd.Env = mergeEnvVars(e.environ(), configEnvVars)
 
-	if err != nil {
-		klog.V(2).Infof("Error execing credential provider plugin, stderr: %v", stderr.String())
-		return nil, fmt.Errorf("error execing credential provider plugin %s for image %s: %w", e.name, image, err)
+	if err = e.runPlugin(ctx, cmd, image); err != nil {
+		return nil, err
 	}
 
 	data = stdout.Bytes()
@@ -418,6 +427,22 @@ func (e *execPlugin) ExecPlugin(ctx context.Context, image string) (*credentialp
 	}
 
 	return response, nil
+}
+
+func (e *execPlugin) runPlugin(ctx context.Context, cmd *exec.Cmd, image string) error {
+	startTime := time.Now()
+	defer kubeletCredentialProviderPluginDuration.WithLabelValues(e.name).Observe(time.Since(startTime).Seconds())
+
+	err := cmd.Run()
+	if ctx.Err() != nil {
+		kubeletCredentialProviderPluginErrors.WithLabelValues(e.name).Inc()
+		return fmt.Errorf("error execing credential provider plugin %s for image %s: %w", e.name, image, ctx.Err())
+	}
+	if err != nil {
+		kubeletCredentialProviderPluginErrors.WithLabelValues(e.name).Inc()
+		return fmt.Errorf("error execing credential provider plugin %s for image %s: %w", e.name, image, err)
+	}
+	return nil
 }
 
 // encodeRequest encodes the internal CredentialProviderRequest type into the v1alpha1 version in json
@@ -456,4 +481,15 @@ func (e *execPlugin) decodeResponse(data []byte) (*credentialproviderapi.Credent
 func parseRegistry(image string) string {
 	imageParts := strings.Split(image, "/")
 	return imageParts[0]
+}
+
+// mergedEnvVars overlays system defined env vars with credential provider env vars,
+// it gives priority to the credential provider vars allowing user to override system
+// env vars
+func mergeEnvVars(sysEnvVars, credProviderVars []string) []string {
+	mergedEnvVars := sysEnvVars
+	for _, credProviderVar := range credProviderVars {
+		mergedEnvVars = append(mergedEnvVars, credProviderVar)
+	}
+	return mergedEnvVars
 }

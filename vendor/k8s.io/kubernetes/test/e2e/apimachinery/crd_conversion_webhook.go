@@ -38,6 +38,7 @@ import (
 	e2edeployment "k8s.io/kubernetes/test/e2e/framework/deployment"
 	"k8s.io/kubernetes/test/utils/crd"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	admissionapi "k8s.io/pod-security-admission/api"
 	"k8s.io/utils/pointer"
 
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -117,6 +118,7 @@ var alternativeAPIVersions = []apiextensionsv1.CustomResourceDefinitionVersion{
 var _ = SIGDescribe("CustomResourceConversionWebhook [Privileged:ClusterAdmin]", func() {
 	var certCtx *certContext
 	f := framework.NewDefaultFramework("crd-webhook")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelBaseline
 	servicePort := int32(9443)
 	containerPort := int32(9444)
 
@@ -266,7 +268,6 @@ func deployCustomResourceWebhookAndService(f *framework.Framework, image string,
 	// Create the deployment of the webhook
 	podLabels := map[string]string{"app": "sample-crd-conversion-webhook", "crd-webhook": "true"}
 	replicas := int32(1)
-	zero := int64(0)
 	mounts := []v1.VolumeMount{
 		{
 			Name:      "crd-conversion-webhook-certs",
@@ -296,7 +297,7 @@ func deployCustomResourceWebhookAndService(f *framework.Framework, image string,
 				fmt.Sprintf("--port=%d", containerPort),
 			},
 			ReadinessProbe: &v1.Probe{
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Scheme: v1.URISchemeHTTPS,
 						Port:   intstr.FromInt(int(containerPort)),
@@ -311,31 +312,10 @@ func deployCustomResourceWebhookAndService(f *framework.Framework, image string,
 			Ports: []v1.ContainerPort{{ContainerPort: containerPort}},
 		},
 	}
-	d := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   deploymentCRDName,
-			Labels: podLabels,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: podLabels,
-			},
-			Strategy: appsv1.DeploymentStrategy{
-				Type: appsv1.RollingUpdateDeploymentStrategyType,
-			},
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: podLabels,
-				},
-				Spec: v1.PodSpec{
-					TerminationGracePeriodSeconds: &zero,
-					Containers:                    containers,
-					Volumes:                       volumes,
-				},
-			},
-		},
-	}
+	d := e2edeployment.NewDeployment(deploymentCRDName, replicas, podLabels, "", "", appsv1.RollingUpdateDeploymentStrategyType)
+	d.Spec.Template.Spec.Containers = containers
+	d.Spec.Template.Spec.Volumes = volumes
+
 	deployment, err := client.AppsV1().Deployments(namespace).Create(context.TODO(), d, metav1.CreateOptions{})
 	framework.ExpectNoError(err, "creating deployment %s in namespace %s", deploymentCRDName, namespace)
 

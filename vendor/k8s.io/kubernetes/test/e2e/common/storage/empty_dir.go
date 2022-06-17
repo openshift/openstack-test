@@ -26,12 +26,12 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/uuid"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 const (
@@ -44,6 +44,7 @@ var (
 
 var _ = SIGDescribe("EmptyDir volumes", func() {
 	f := framework.NewDefaultFramework("emptydir")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelBaseline
 
 	ginkgo.Context("when FSGroup is specified [LinuxOnly] [NodeFeature:FSGroup]", func() {
 
@@ -297,9 +298,7 @@ var _ = SIGDescribe("EmptyDir volumes", func() {
 	*/
 	ginkgo.It("pod should support memory backed volumes of specified size", func() {
 		// skip if feature gate is not enabled, this could be elevated to conformance in future if on Linux.
-		if !utilfeature.DefaultFeatureGate.Enabled(features.SizeMemoryBackedVolumes) {
-			return
-		}
+		e2eskipper.SkipUnlessFeatureGateEnabled(features.SizeMemoryBackedVolumes)
 
 		var (
 			volumeName                 = "shared-data"

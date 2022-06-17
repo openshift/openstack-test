@@ -158,7 +158,7 @@ func newEndpointSliceInfo(endpointSlice *discovery.EndpointSlice, remove bool) *
 }
 
 // standardEndpointInfo is the default makeEndpointFunc.
-func standardEndpointInfo(ep *BaseEndpointInfo) Endpoint {
+func standardEndpointInfo(ep *BaseEndpointInfo, _ *ServicePortName) Endpoint {
 	return ep
 }
 
@@ -166,7 +166,7 @@ func standardEndpointInfo(ep *BaseEndpointInfo) Endpoint {
 func (cache *EndpointSliceCache) updatePending(endpointSlice *discovery.EndpointSlice, remove bool) bool {
 	serviceKey, sliceKey, err := endpointSliceCacheKeys(endpointSlice)
 	if err != nil {
-		klog.Warningf("Error getting endpoint slice cache keys: %v", err)
+		klog.ErrorS(err, "Error getting endpoint slice cache keys")
 		return false
 	}
 
@@ -235,12 +235,12 @@ func (cache *EndpointSliceCache) endpointInfoByServicePort(serviceNN types.Names
 	for _, sliceInfo := range sliceInfoByName {
 		for _, port := range sliceInfo.Ports {
 			if port.Name == nil {
-				klog.Warningf("ignoring port with nil name %v", port)
+				klog.ErrorS(nil, "Ignoring port with nil name", "portName", port.Name)
 				continue
 			}
 			// TODO: handle nil ports to mean "all"
 			if port.Port == nil || *port.Port == int32(0) {
-				klog.Warningf("ignoring invalid endpoint port %s", *port.Name)
+				klog.ErrorS(nil, "Ignoring invalid endpoint port", "portName", *port.Name)
 				continue
 			}
 
@@ -250,7 +250,7 @@ func (cache *EndpointSliceCache) endpointInfoByServicePort(serviceNN types.Names
 				Protocol:       *port.Protocol,
 			}
 
-			endpointInfoBySP[svcPortName] = cache.addEndpoints(serviceNN, int(*port.Port), endpointInfoBySP[svcPortName], sliceInfo.Endpoints)
+			endpointInfoBySP[svcPortName] = cache.addEndpoints(&svcPortName, int(*port.Port), endpointInfoBySP[svcPortName], sliceInfo.Endpoints)
 		}
 	}
 
@@ -258,7 +258,7 @@ func (cache *EndpointSliceCache) endpointInfoByServicePort(serviceNN types.Names
 }
 
 // addEndpoints adds endpointInfo for each unique endpoint.
-func (cache *EndpointSliceCache) addEndpoints(serviceNN types.NamespacedName, portNum int, endpointSet map[string]Endpoint, endpoints []*endpointInfo) map[string]Endpoint {
+func (cache *EndpointSliceCache) addEndpoints(svcPortName *ServicePortName, portNum int, endpointSet map[string]Endpoint, endpoints []*endpointInfo) map[string]Endpoint {
 	if endpointSet == nil {
 		endpointSet = map[string]Endpoint{}
 	}
@@ -266,7 +266,7 @@ func (cache *EndpointSliceCache) addEndpoints(serviceNN types.NamespacedName, po
 	// iterate through endpoints to add them to endpointSet.
 	for _, endpoint := range endpoints {
 		if len(endpoint.Addresses) == 0 {
-			klog.Warningf("ignoring invalid endpoint port %s with empty addresses", endpoint)
+			klog.ErrorS(nil, "Ignoring invalid endpoint port with empty address", "endpoint", endpoint)
 			continue
 		}
 
@@ -275,7 +275,7 @@ func (cache *EndpointSliceCache) addEndpoints(serviceNN types.NamespacedName, po
 		if (cache.ipFamily == v1.IPv6Protocol) != utilnet.IsIPv6String(endpoint.Addresses[0]) {
 			// Emit event on the corresponding service which had a different IP
 			// version than the endpoint.
-			utilproxy.LogAndEmitIncorrectIPVersionEvent(cache.recorder, "endpointslice", endpoint.Addresses[0], serviceNN.Namespace, serviceNN.Name, "")
+			utilproxy.LogAndEmitIncorrectIPVersionEvent(cache.recorder, "endpointslice", endpoint.Addresses[0], svcPortName.NamespacedName.Namespace, svcPortName.NamespacedName.Name, "")
 			continue
 		}
 
@@ -298,7 +298,7 @@ func (cache *EndpointSliceCache) addEndpoints(serviceNN types.NamespacedName, po
 		// isLocal should not vary between matching endpoints, but if it does, we
 		// favor a true value here if it exists.
 		if _, exists := endpointSet[endpointInfo.String()]; !exists || isLocal {
-			endpointSet[endpointInfo.String()] = cache.makeEndpointInfo(endpointInfo)
+			endpointSet[endpointInfo.String()] = cache.makeEndpointInfo(endpointInfo, svcPortName)
 		}
 	}
 
@@ -355,7 +355,7 @@ func endpointsMapFromEndpointInfo(endpointInfoBySP map[ServicePortName]map[strin
 			// Ensure endpoints are always returned in the same order to simplify diffing.
 			sort.Sort(byEndpoint(endpointsMap[svcPortName]))
 
-			klog.V(3).Infof("Setting endpoints for %q to %+v", svcPortName, formatEndpointsList(endpointsMap[svcPortName]))
+			klog.V(3).InfoS("Setting endpoints for service port name", "portName", svcPortName, "endpoints", formatEndpointsList(endpointsMap[svcPortName]))
 		}
 	}
 
@@ -376,9 +376,9 @@ func endpointSliceCacheKeys(endpointSlice *discovery.EndpointSlice) (types.Names
 	var err error
 	serviceName, ok := endpointSlice.Labels[discovery.LabelServiceName]
 	if !ok || serviceName == "" {
-		err = fmt.Errorf("No %s label set on endpoint slice: %s", discovery.LabelServiceName, endpointSlice.Name)
+		err = fmt.Errorf("no %s label set on endpoint slice: %s", discovery.LabelServiceName, endpointSlice.Name)
 	} else if endpointSlice.Namespace == "" || endpointSlice.Name == "" {
-		err = fmt.Errorf("Expected EndpointSlice name and namespace to be set: %v", endpointSlice)
+		err = fmt.Errorf("expected EndpointSlice name and namespace to be set: %v", endpointSlice)
 	}
 	return types.NamespacedName{Namespace: endpointSlice.Namespace, Name: serviceName}, endpointSlice.Name, err
 }
