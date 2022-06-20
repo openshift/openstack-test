@@ -10,8 +10,8 @@ import (
 	exutil "github.com/openshift/origin/test/extended/util"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	_ "github.com/openshift/origin/test/extended"
-	_ "github.com/openshift/origin/test/extended/util/annotate/generated"
+	_ "github.com/openshift/openstack-test/test/extended"
+	_ "github.com/openshift/openstack-test/test/extended/util/annotate/generated"
 )
 
 func isDisabled(name string) bool {
