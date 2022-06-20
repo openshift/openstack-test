@@ -38,6 +38,7 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	"k8s.io/kubernetes/test/e2e/storage/testsuites"
 	"k8s.io/kubernetes/test/e2e/storage/utils"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 const (
@@ -61,6 +62,7 @@ var _ = utils.SIGDescribe("[Feature:Flexvolumes] Mounted flexvolume expand[Slow]
 	)
 
 	f := framework.NewDefaultFramework("mounted-flexvolume-expand")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	ginkgo.BeforeEach(func() {
 		e2eskipper.SkipUnlessProviderIs("aws", "gce", "local")
 		e2eskipper.SkipUnlessMasterOSDistroIs("debian", "ubuntu", "gci", "custom")
@@ -142,7 +144,7 @@ var _ = utils.SIGDescribe("[Feature:Flexvolumes] Mounted flexvolume expand[Slow]
 			VolumeMode:       pvc.Spec.VolumeMode,
 		})
 
-		_, err = e2epv.CreatePV(c, pv)
+		_, err = e2epv.CreatePV(c, f.Timeouts, pv)
 		framework.ExpectNoError(err, "Error creating pv %v", err)
 
 		ginkgo.By("Waiting for PVC to be in bound phase")

@@ -36,6 +36,7 @@ import (
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	imageutils "k8s.io/kubernetes/test/utils/image"
 	dnsclient "k8s.io/kubernetes/third_party/forked/golang/net"
+	admissionapi "k8s.io/pod-security-admission/api"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -59,8 +60,10 @@ type dnsTestCommon struct {
 }
 
 func newDNSTestCommon() dnsTestCommon {
+	framework := framework.NewDefaultFramework("dns-config-map")
+	framework.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	return dnsTestCommon{
-		f:  framework.NewDefaultFramework("dns-config-map"),
+		f:  framework,
 		ns: "kube-system",
 	}
 }
@@ -406,27 +409,16 @@ func createProbeCommand(namesToResolve []string, hostEntries []string, ptrLookup
 		probeCmd += fmt.Sprintf(`check="$$(dig +tcp +noall +answer +search %s)" && test -n "$$check" && echo OK > /results/%s;`, lookup, fileName)
 	}
 
+	hostEntryCmd := `test -n "$$(getent hosts %s)" && echo OK > /results/%s;`
+	if framework.NodeOSDistroIs("windows") {
+		// We don't have getent on Windows, but we can still check the hosts file.
+		hostEntryCmd = `test -n "$$(grep '%s' C:/Windows/System32/drivers/etc/hosts)" && echo OK > /results/%s;`
+	}
 	for _, name := range hostEntries {
 		fileName := fmt.Sprintf("%s_hosts@%s", fileNamePrefix, name)
 		fileNames = append(fileNames, fileName)
-		probeCmd += fmt.Sprintf(`test -n "$$(getent hosts %s)" && echo OK > /results/%s;`, name, fileName)
+		probeCmd += fmt.Sprintf(hostEntryCmd, name, fileName)
 	}
-
-	podARecByUDPFileName := fmt.Sprintf("%s_udp@PodARecord", fileNamePrefix)
-	podARecByTCPFileName := fmt.Sprintf("%s_tcp@PodARecord", fileNamePrefix)
-
-	// getent doesn't work properly on Windows hosts and hostname -i doesn't return an IPv6 address
-	// so we  have to use a different command per IP family
-	if isIPv6 {
-		probeCmd += fmt.Sprintf(`podARec=$$(getent hosts $$(hostname -s) | tr ":." "-" | awk '{print $$1".%s.pod.%s"}');`, namespace, dnsDomain)
-	} else {
-		probeCmd += fmt.Sprintf(`podARec=$$(hostname -i| awk -F. '{print $$1"-"$$2"-"$$3"-"$$4".%s.pod.%s"}');`, namespace, dnsDomain)
-	}
-
-	probeCmd += fmt.Sprintf(`check="$$(dig +notcp +noall +answer +search $${podARec} %s)" && test -n "$$check" && echo OK > /results/%s;`, dnsRecord, podARecByUDPFileName)
-	probeCmd += fmt.Sprintf(`check="$$(dig +tcp +noall +answer +search $${podARec} %s)" && test -n "$$check" && echo OK > /results/%s;`, dnsRecord, podARecByTCPFileName)
-	fileNames = append(fileNames, podARecByUDPFileName)
-	fileNames = append(fileNames, podARecByTCPFileName)
 
 	if len(ptrLookupIP) > 0 {
 		ptrLookup, err := dnsclient.Reverseaddr(ptrLookupIP)

@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/component-helpers/storage/ephemeral"
 	"k8s.io/klog/v2"
 	stats "k8s.io/kubelet/pkg/apis/stats/v1alpha1"
 	"k8s.io/kubernetes/pkg/features"
@@ -148,6 +149,11 @@ func (s *volumeStatCalculator) calcAndStoreStats() {
 				Name:      pvcSource.ClaimName,
 				Namespace: s.pod.GetNamespace(),
 			}
+		} else if volSpec.Ephemeral != nil {
+			pvcRef = &stats.PVCReference{
+				Name:      ephemeral.VolumeClaimName(s.pod, &volSpec),
+				Namespace: s.pod.GetNamespace(),
+			}
 		}
 		volumeStats := s.parsePodVolumeStats(name, pvcRef, metric, volSpec)
 		if util.IsLocalEphemeralVolume(volSpec) {
@@ -171,7 +177,10 @@ func (s *volumeStatCalculator) calcAndStoreStats() {
 // parsePodVolumeStats converts (internal) volume.Metrics to (external) stats.VolumeStats structures
 func (s *volumeStatCalculator) parsePodVolumeStats(podName string, pvcRef *stats.PVCReference, metric *volume.Metrics, volSpec v1.Volume) stats.VolumeStats {
 
-	var available, capacity, used, inodes, inodesFree, inodesUsed uint64
+	var (
+		available, capacity, used, inodes, inodesFree, inodesUsed uint64
+	)
+
 	if metric.Available != nil {
 		available = uint64(metric.Available.Value())
 	}
@@ -191,10 +200,18 @@ func (s *volumeStatCalculator) parsePodVolumeStats(podName string, pvcRef *stats
 		inodesUsed = uint64(metric.InodesUsed.Value())
 	}
 
-	return stats.VolumeStats{
+	volumeStats := stats.VolumeStats{
 		Name:   podName,
 		PVCRef: pvcRef,
 		FsStats: stats.FsStats{Time: metric.Time, AvailableBytes: &available, CapacityBytes: &capacity,
 			UsedBytes: &used, Inodes: &inodes, InodesFree: &inodesFree, InodesUsed: &inodesUsed},
 	}
+
+	if metric.Abnormal != nil {
+		volumeStats.VolumeHealthStats = &stats.VolumeHealthStats{
+			Abnormal: *metric.Abnormal,
+		}
+	}
+
+	return volumeStats
 }

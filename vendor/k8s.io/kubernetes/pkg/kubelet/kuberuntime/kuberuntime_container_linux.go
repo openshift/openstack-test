@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 /*
@@ -23,10 +24,10 @@ import (
 	"time"
 
 	libcontainercgroups "github.com/opencontainers/runc/libcontainer/cgroups"
-	cgroupfs "github.com/opencontainers/runc/libcontainer/cgroups/fs"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
-	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
+	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1"
 	"k8s.io/klog/v2"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
 	kubefeatures "k8s.io/kubernetes/pkg/features"
@@ -61,42 +62,10 @@ func (m *kubeGenericRuntimeManager) generateLinuxContainerConfig(container *v1.C
 	}
 
 	// set linux container resources
-	var cpuShares int64
-	cpuRequest := container.Resources.Requests.Cpu()
-	cpuLimit := container.Resources.Limits.Cpu()
-	memoryLimit := container.Resources.Limits.Memory().Value()
-	memoryRequest := container.Resources.Requests.Memory().Value()
-	oomScoreAdj := int64(qos.GetContainerOOMScoreAdjust(pod, container,
-		int64(m.machineInfo.MemoryCapacity)))
-	// If request is not specified, but limit is, we want request to default to limit.
-	// API server does this for new containers, but we repeat this logic in Kubelet
-	// for containers running on existing Kubernetes clusters.
-	if cpuRequest.IsZero() && !cpuLimit.IsZero() {
-		cpuShares = milliCPUToShares(cpuLimit.MilliValue())
-	} else {
-		// if cpuRequest.Amount is nil, then milliCPUToShares will return the minimal number
-		// of CPU shares.
-		cpuShares = milliCPUToShares(cpuRequest.MilliValue())
-	}
-	lc.Resources.CpuShares = cpuShares
-	if memoryLimit != 0 {
-		lc.Resources.MemoryLimitInBytes = memoryLimit
-	}
-	// Set OOM score of the container based on qos policy. Processes in lower-priority pods should
-	// be killed first if the system runs out of memory.
-	lc.Resources.OomScoreAdj = oomScoreAdj
+	lc.Resources = m.calculateLinuxResources(container.Resources.Requests.Cpu(), container.Resources.Limits.Cpu(), container.Resources.Limits.Memory())
 
-	if m.cpuCFSQuota {
-		// if cpuLimit.Amount is nil, then the appropriate default value is returned
-		// to allow full usage of cpu resource.
-		cpuPeriod := int64(quotaPeriod)
-		if utilfeature.DefaultFeatureGate.Enabled(kubefeatures.CPUCFSQuotaPeriod) {
-			cpuPeriod = int64(m.cpuCFSQuotaPeriod.Duration / time.Microsecond)
-		}
-		cpuQuota := milliCPUToQuota(cpuLimit.MilliValue(), cpuPeriod)
-		lc.Resources.CpuQuota = cpuQuota
-		lc.Resources.CpuPeriod = cpuPeriod
-	}
+	lc.Resources.OomScoreAdj = int64(qos.GetContainerOOMScoreAdjust(pod, container,
+		int64(m.machineInfo.MemoryCapacity)))
 
 	lc.Resources.HugepageLimits = GetHugepageLimitsFromResources(container.Resources)
 
@@ -120,7 +89,8 @@ func (m *kubeGenericRuntimeManager) generateLinuxContainerConfig(container *v1.C
 	// Set memory.min and memory.high to enforce MemoryQoS
 	if enforceMemoryQoS {
 		unified := map[string]string{}
-
+		memoryRequest := container.Resources.Requests.Memory().Value()
+		memoryLimit := container.Resources.Limits.Memory().Value()
 		if memoryRequest != 0 {
 			unified[cm.MemoryMin] = strconv.FormatInt(memoryRequest, 10)
 		}
@@ -157,12 +127,49 @@ func (m *kubeGenericRuntimeManager) generateLinuxContainerConfig(container *v1.C
 	return lc
 }
 
+// calculateLinuxResources will create the linuxContainerResources type based on the provided CPU and memory resource requests, limits
+func (m *kubeGenericRuntimeManager) calculateLinuxResources(cpuRequest, cpuLimit, memoryLimit *resource.Quantity) *runtimeapi.LinuxContainerResources {
+	resources := runtimeapi.LinuxContainerResources{}
+	var cpuShares int64
+
+	memLimit := memoryLimit.Value()
+
+	// If request is not specified, but limit is, we want request to default to limit.
+	// API server does this for new containers, but we repeat this logic in Kubelet
+	// for containers running on existing Kubernetes clusters.
+	if cpuRequest.IsZero() && !cpuLimit.IsZero() {
+		cpuShares = int64(cm.MilliCPUToShares(cpuLimit.MilliValue()))
+	} else {
+		// if cpuRequest.Amount is nil, then MilliCPUToShares will return the minimal number
+		// of CPU shares.
+		cpuShares = int64(cm.MilliCPUToShares(cpuRequest.MilliValue()))
+	}
+	resources.CpuShares = cpuShares
+	if memLimit != 0 {
+		resources.MemoryLimitInBytes = memLimit
+	}
+
+	if m.cpuCFSQuota {
+		// if cpuLimit.Amount is nil, then the appropriate default value is returned
+		// to allow full usage of cpu resource.
+		cpuPeriod := int64(quotaPeriod)
+		if utilfeature.DefaultFeatureGate.Enabled(kubefeatures.CPUCFSQuotaPeriod) {
+			cpuPeriod = int64(m.cpuCFSQuotaPeriod.Duration / time.Microsecond)
+		}
+		cpuQuota := milliCPUToQuota(cpuLimit.MilliValue(), cpuPeriod)
+		resources.CpuQuota = cpuQuota
+		resources.CpuPeriod = cpuPeriod
+	}
+
+	return &resources
+}
+
 // GetHugepageLimitsFromResources returns limits of each hugepages from resources.
 func GetHugepageLimitsFromResources(resources v1.ResourceRequirements) []*runtimeapi.HugepageLimit {
 	var hugepageLimits []*runtimeapi.HugepageLimit
 
 	// For each page size, limit to 0.
-	for _, pageSize := range cgroupfs.HugePageSizes {
+	for _, pageSize := range libcontainercgroups.HugePageSizes() {
 		hugepageLimits = append(hugepageLimits, &runtimeapi.HugepageLimit{
 			PageSize: pageSize,
 			Limit:    uint64(0),

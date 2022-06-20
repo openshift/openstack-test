@@ -41,6 +41,7 @@ import (
 	e2evolume "k8s.io/kubernetes/test/e2e/framework/volume"
 	storageframework "k8s.io/kubernetes/test/e2e/storage/framework"
 	storageutils "k8s.io/kubernetes/test/e2e/storage/utils"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 const (
@@ -107,6 +108,7 @@ func (t *volumeModeTestSuite) DefineTests(driver storageframework.TestDriver, pa
 	// Beware that it also registers an AfterEach which renders f unusable. Any code using
 	// f must run inside an It or Context callback.
 	f := framework.NewFrameworkWithCustomTimeouts("volumemode", storageframework.GetDriverTimeouts(driver))
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 
 	init := func() {
 		l = local{}
@@ -275,7 +277,8 @@ func (t *volumeModeTestSuite) DefineTests(driver storageframework.TestDriver, pa
 					"involvedObject.namespace": l.ns.Name,
 					"reason":                   volevents.ProvisioningFailed,
 				}.AsSelector().String()
-				msg := "does not support block volume provisioning"
+				// The error message is different for each storage driver
+				msg := ""
 
 				err = e2eevents.WaitTimeoutForEvent(l.cs, l.ns.Name, eventSelector, msg, f.Timeouts.ClaimProvision)
 				// Events are unreliable, don't depend on the event. It's used only to speed up the test.

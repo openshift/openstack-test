@@ -21,7 +21,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -558,7 +558,7 @@ func (config *NetworkingTestConfig) createNetShellPodSpec(podName, hostname stri
 		PeriodSeconds:       10,
 		SuccessThreshold:    1,
 		FailureThreshold:    3,
-		Handler: v1.Handler{
+		ProbeHandler: v1.ProbeHandler{
 			HTTPGet: &v1.HTTPGetAction{
 				Path: "/healthz",
 				Port: intstr.IntOrString{IntVal: EndpointHTTPPort},
@@ -848,6 +848,11 @@ func (config *NetworkingTestConfig) createNetProxyPods(podName string, selector 
 		pod := config.createNetShellPodSpec(podName, hostname)
 		pod.ObjectMeta.Labels = selector
 		pod.Spec.HostNetwork = config.EndpointsHostNetwork
+
+		// NOTE(claudiub): In order to use HostNetwork on Windows, we need to use Privileged Containers.
+		if pod.Spec.HostNetwork && framework.NodeOSDistroIs("windows") {
+			e2epod.WithWindowsHostProcess(pod, "")
+		}
 		createdPod := config.createPod(pod)
 		createdPods = append(createdPods, createdPod)
 	}
@@ -1003,7 +1008,7 @@ func PokeHTTP(host string, port int, path string, params *HTTPPokeParams) HTTPPo
 	ret.Code = resp.StatusCode
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		ret.Status = HTTPError
 		ret.Error = fmt.Errorf("error reading HTTP body: %v", err)

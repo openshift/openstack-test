@@ -28,6 +28,7 @@ import (
 	e2eautoscaling "k8s.io/kubernetes/test/e2e/framework/autoscaling"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	instrumentation "k8s.io/kubernetes/test/e2e/instrumentation/common"
+	admissionapi "k8s.io/pod-security-admission/api"
 
 	"github.com/onsi/ginkgo"
 	"golang.org/x/oauth2/google"
@@ -65,6 +66,7 @@ var _ = instrumentation.SIGDescribe("Stackdriver Monitoring", func() {
 	})
 
 	f := framework.NewDefaultFramework("stackdriver-monitoring")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 
 	ginkgo.It("should have cluster metrics [Feature:StackdriverMonitoring]", func() {
 		testStackdriverMonitoring(f, 1, 100, 200)
@@ -103,7 +105,7 @@ func testStackdriverMonitoring(f *framework.Framework, pods, allPodsCPU int, per
 
 	framework.ExpectNoError(err)
 
-	rc := e2eautoscaling.NewDynamicResourceConsumer(rcName, f.Namespace.Name, e2eautoscaling.KindDeployment, pods, allPodsCPU, memoryUsed, 0, perPodCPU, memoryLimit, f.ClientSet, f.ScalesGetter)
+	rc := e2eautoscaling.NewDynamicResourceConsumer(rcName, f.Namespace.Name, e2eautoscaling.KindDeployment, pods, allPodsCPU, memoryUsed, 0, perPodCPU, memoryLimit, f.ClientSet, f.ScalesGetter, e2eautoscaling.Disable, e2eautoscaling.Idle)
 	defer rc.CleanUp()
 
 	rc.WaitForReplicas(pods, 15*time.Minute)

@@ -22,6 +22,12 @@ import (
 	// Initialize kubevirt as a provider
 	_ "github.com/openshift/origin/test/extended/util/kubevirt"
 
+	// Initialize alibabacloud as a provider
+	_ "github.com/openshift/origin/test/extended/util/alibabacloud"
+
+	// Initialize nutanix as a provider
+	_ "github.com/openshift/origin/test/extended/util/nutanix"
+
 	// these are loading important global flags that we need to get and set
 	_ "k8s.io/kubernetes/test/e2e"
 	_ "k8s.io/kubernetes/test/e2e/lifecycle"
@@ -84,7 +90,7 @@ func decodeProvider(provider string, dryRun, discover bool, clusterState *exutil
 		}
 		fallthrough
 
-	case "azure", "aws", "baremetal", "gce", "vsphere":
+	case "azure", "aws", "baremetal", "gce", "vsphere", "alibabacloud":
 		if clusterState == nil {
 			clientConfig, err := e2e.LoadConfig(true)
 			if err != nil {

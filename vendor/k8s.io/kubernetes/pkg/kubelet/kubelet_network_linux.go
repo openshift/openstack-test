@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 /*
@@ -23,31 +24,50 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/wait"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/klog/v2"
-	"k8s.io/kubernetes/pkg/features"
 	utiliptables "k8s.io/kubernetes/pkg/util/iptables"
 	utilexec "k8s.io/utils/exec"
 	utilnet "k8s.io/utils/net"
 )
 
+const (
+	// KubeIPTablesHintChain is the chain whose existence in either iptables-legacy
+	// or iptables-nft indicates which version of iptables the system is using
+	KubeIPTablesHintChain utiliptables.Chain = "KUBE-IPTABLES-HINT"
+
+	// KubeMarkMasqChain is the mark-for-masquerade chain
+	// TODO: clean up this logic in kube-proxy
+	KubeMarkMasqChain utiliptables.Chain = "KUBE-MARK-MASQ"
+
+	// KubeMarkDropChain is the mark-for-drop chain
+	KubeMarkDropChain utiliptables.Chain = "KUBE-MARK-DROP"
+
+	// KubePostroutingChain is kubernetes postrouting rules
+	KubePostroutingChain utiliptables.Chain = "KUBE-POSTROUTING"
+
+	// KubeFirewallChain is kubernetes firewall rules
+	KubeFirewallChain utiliptables.Chain = "KUBE-FIREWALL"
+)
+
 func (kl *Kubelet) initNetworkUtil() {
 	exec := utilexec.New()
-
-	// At this point in startup we don't know the actual node IPs, so we configure dual stack iptables
-	// rules if the node _might_ be dual-stack, and single-stack based on requested nodeIPs[0] otherwise.
-	maybeDualStack := utilfeature.DefaultFeatureGate.Enabled(features.IPv6DualStack)
+	// TODO: @khenidak review when there is no IPv6 iptables exec  what should happen here (note: no error returned from this func)
 	ipv6Primary := kl.nodeIPs != nil && utilnet.IsIPv6(kl.nodeIPs[0])
 
 	var iptClients []utiliptables.Interface
 	var protocols []utiliptables.Protocol
-	if maybeDualStack || !ipv6Primary {
-		protocols = append(protocols, utiliptables.ProtocolIPv4)
-		iptClients = append(iptClients, utiliptables.New(exec, utiliptables.ProtocolIPv4))
-	}
-	if maybeDualStack || ipv6Primary {
-		protocols = append(protocols, utiliptables.ProtocolIPv6)
-		iptClients = append(iptClients, utiliptables.New(exec, utiliptables.ProtocolIPv6))
+
+	// assume 4,6
+	protocols = append(protocols, utiliptables.ProtocolIPv4)
+	iptClients = append(iptClients, utiliptables.New(exec, utiliptables.ProtocolIPv4))
+
+	protocols = append(protocols, utiliptables.ProtocolIPv6)
+	iptClients = append(iptClients, utiliptables.New(exec, utiliptables.ProtocolIPv6))
+
+	// and if they are not
+	if ipv6Primary {
+		protocols[0], protocols[1] = protocols[1], protocols[0]
+		iptClients[0], iptClients[1] = iptClients[1], iptClients[0]
 	}
 
 	for i := range iptClients {
@@ -165,6 +185,13 @@ func (kl *Kubelet) syncNetworkUtil(iptClient utiliptables.Interface) bool {
 	}
 	if _, err := iptClient.EnsureRule(utiliptables.Append, utiliptables.TableNAT, KubePostroutingChain, masqRule...); err != nil {
 		klog.ErrorS(err, "Failed to ensure SNAT rule for packets marked by KUBE-MARK-MASQ chain in nat table KUBE-POSTROUTING chain")
+		return false
+	}
+
+	// Create hint chain so other components can see whether we are using iptables-legacy
+	// or iptables-nft.
+	if _, err := iptClient.EnsureChain(utiliptables.TableMangle, KubeIPTablesHintChain); err != nil {
+		klog.ErrorS(err, "Failed to ensure that iptables hint chain exists")
 		return false
 	}
 

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build linux
 // +build linux
 
 // Provides Filesystem Stats
@@ -30,10 +31,11 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/google/cadvisor/devicemapper"
-	"github.com/google/cadvisor/utils"
 	zfs "github.com/mistifyio/go-zfs"
 	mount "github.com/moby/sys/mountinfo"
+
+	"github.com/google/cadvisor/devicemapper"
+	"github.com/google/cadvisor/utils"
 
 	"k8s.io/klog/v2"
 )
@@ -279,15 +281,17 @@ func (i *RealFsInfo) addSystemRootLabel(mounts []*mount.Info) {
 
 // addDockerImagesLabel attempts to determine which device contains the mount for docker images.
 func (i *RealFsInfo) addDockerImagesLabel(context Context, mounts []*mount.Info) {
-	dockerDev, dockerPartition, err := i.getDockerDeviceMapperInfo(context.Docker)
-	if err != nil {
-		klog.Warningf("Could not get Docker devicemapper device: %v", err)
-	}
-	if len(dockerDev) > 0 && dockerPartition != nil {
-		i.partitions[dockerDev] = *dockerPartition
-		i.labels[LabelDockerImages] = dockerDev
-	} else {
-		i.updateContainerImagesPath(LabelDockerImages, mounts, getDockerImagePaths(context))
+	if context.Docker.Driver != "" {
+		dockerDev, dockerPartition, err := i.getDockerDeviceMapperInfo(context.Docker)
+		if err != nil {
+			klog.Warningf("Could not get Docker devicemapper device: %v", err)
+		}
+		if len(dockerDev) > 0 && dockerPartition != nil {
+			i.partitions[dockerDev] = *dockerPartition
+			i.labels[LabelDockerImages] = dockerDev
+		} else {
+			i.updateContainerImagesPath(LabelDockerImages, mounts, getDockerImagePaths(context))
+		}
 	}
 }
 
@@ -582,15 +586,20 @@ func (i *RealFsInfo) GetDirFsDevice(dir string) (*DeviceInfo, error) {
 	}
 
 	mnt, found := i.mountInfoFromDir(dir)
-	if found && mnt.FSType == "btrfs" && mnt.Major == 0 && strings.HasPrefix(mnt.Source, "/dev/") {
-		major, minor, err := getBtrfsMajorMinorIds(mnt)
-		if err != nil {
-			klog.Warningf("%s", err)
-		} else {
-			return &DeviceInfo{mnt.Source, uint(major), uint(minor)}, nil
+	if found && strings.HasPrefix(mnt.Source, "/dev/") {
+		major, minor := mnt.Major, mnt.Minor
+
+		if mnt.FSType == "btrfs" && major == 0 {
+			major, minor, err = getBtrfsMajorMinorIds(mnt)
+			if err != nil {
+				klog.Warningf("Unable to get btrfs mountpoint IDs: %v", err)
+			}
 		}
+
+		return &DeviceInfo{mnt.Source, uint(major), uint(minor)}, nil
 	}
-	return nil, fmt.Errorf("could not find device with major: %d, minor: %d in cached partitions map", major, minor)
+
+	return nil, fmt.Errorf("with major: %d, minor: %d: %w", major, minor, ErrDeviceNotInPartitionsMap)
 }
 
 func GetDirUsage(dir string) (UsageInfo, error) {

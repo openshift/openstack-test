@@ -1,6 +1,7 @@
 package main
 
 import (
+	"regexp"
 	"strings"
 	"time"
 
@@ -9,12 +10,46 @@ import (
 	exutil "github.com/openshift/origin/test/extended/util"
 	"k8s.io/kubectl/pkg/util/templates"
 
-	_ "github.com/openshift/origin/test/extended"
-	_ "github.com/openshift/origin/test/extended/util/annotate/generated"
+	_ "github.com/openshift/openstack-test/test/extended"
+	_ "github.com/openshift/openstack-test/test/extended/util/annotate/generated"
 )
 
 func isDisabled(name string) bool {
-	return strings.Contains(name, "[Disabled")
+	if strings.Contains(name, "[Disabled") {
+		return true
+	}
+
+	return shouldSkipUntil(name)
+}
+
+// shouldSkipUntil allows a test to be skipped with a time limit.
+// the test should be annotated with the 'SkippedUntil' tag, as shown below.
+//   [SkippedUntil:05092022:blocker-bz/123456]
+// - the specified date should conform to the 'MMDDYYYY' format.
+// - a valid blocker BZ must be specified
+// if the specified date in the tag has not passed yet, the test
+// will be skipped by the runner.
+func shouldSkipUntil(name string) bool {
+	re, err := regexp.Compile(`\[SkippedUntil:(\d{8}):blocker-bz\/([a-zA-Z0-9]+)\]`)
+	if err != nil {
+		// it should only happen with a programmer error and unit
+		// test will prevent that
+		return false
+	}
+	matches := re.FindStringSubmatch(name)
+	if len(matches) != 3 {
+		return false
+	}
+
+	skipUntil, err := time.Parse("01022006", matches[1])
+	if err != nil {
+		return false
+	}
+
+	if skipUntil.After(time.Now()) {
+		return true
+	}
+	return false
 }
 
 type testSuite struct {
@@ -85,6 +120,8 @@ var staticSuites = testSuites{
 				}
 				return strings.Contains(name, "[Suite:openshift/conformance/serial") || isStandardEarlyOrLateTest(name)
 			},
+			// etcd's vertical scaling test is expensive
+			TestTimeout:         60 * time.Minute,
 			SyntheticEventTests: ginkgo.JUnitForEventsFunc(synthetictests.StableSystemEventInvariants),
 		},
 		PreSuite: suiteWithProviderPreSuite,
@@ -298,6 +335,13 @@ var staticSuites = testSuites{
 				if isDisabled(name) {
 					return false
 				}
+
+				if strings.Contains(name, `provisioning should provision storage with any volume data source`) {
+					// TODO: these CSI tests are disabled since Pods created by these tests
+					//  pull image directly: https://bugzilla.redhat.com/show_bug.cgi?id=2093339
+					return false
+				}
+
 				return strings.Contains(name, "External Storage [Driver:") && !strings.Contains(name, "[Disruptive]")
 			},
 			SyntheticEventTests: ginkgo.JUnitForEventsFunc(synthetictests.StableSystemEventInvariants),
@@ -319,6 +363,10 @@ var staticSuites = testSuites{
 				}
 				// Skip NetworkPolicy tests for https://bugzilla.redhat.com/show_bug.cgi?id=1980141
 				if strings.Contains(name, "[Feature:NetworkPolicy]") {
+					return false
+				}
+				// Serial:Self are tests that can't be run in parallel with a copy of itself
+				if strings.Contains(name, "[Serial:Self]") {
 					return false
 				}
 				return (strings.Contains(name, "[Suite:openshift/conformance/") && strings.Contains(name, "[sig-network]")) || isStandardEarlyOrLateTest(name)
@@ -357,7 +405,7 @@ var staticSuites = testSuites{
 				if !exists {
 					return false
 				}
-				return !isDisabled(name) && strings.Contains(name, "[Suite:openshift/conformance")
+				return !isDisabled(name) && strings.Contains(name, "[Suite:openshift/conformance/parallel")
 			},
 			Parallelism:          20,
 			MaximumAllowedFlakes: 15,

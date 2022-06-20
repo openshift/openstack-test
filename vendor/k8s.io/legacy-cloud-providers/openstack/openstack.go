@@ -1,3 +1,4 @@
+//go:build !providerless
 // +build !providerless
 
 /*
@@ -25,7 +26,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
 	"reflect"
@@ -46,12 +46,15 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	netutil "k8s.io/apimachinery/pkg/util/net"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/informers"
 	corelistersv1 "k8s.io/client-go/listers/core/v1"
 	certutil "k8s.io/client-go/util/cert"
+	"k8s.io/client-go/util/retry"
 	cloudprovider "k8s.io/cloud-provider"
 	nodehelpers "k8s.io/cloud-provider/node/helpers"
 	"k8s.io/klog/v2"
+	netutils "k8s.io/utils/net"
 )
 
 const (
@@ -279,7 +282,22 @@ func (os *OpenStack) setConfigFromSecret() error {
 		return fmt.Errorf("secret lister is not initialized")
 	}
 
-	secret, err := os.secretLister.Secrets(os.secretNamespace).Get(os.secretName)
+	var secret *v1.Secret
+	err := retry.OnError(
+		wait.Backoff{
+			Duration: time.Second,
+			Factor:   1.5,
+			Jitter:   1,
+			Steps:    10,
+		},
+		func(_ error) bool {
+			return true
+		},
+		func() (err error) {
+			secret, err = os.secretLister.Secrets(os.secretNamespace).Get(os.secretName)
+			return err
+		},
+	)
 	if err != nil {
 		klog.Errorf("cannot get secret %s in namespace %s. error: %q", os.secretName, os.secretNamespace, err)
 		return err
@@ -656,14 +674,14 @@ func getAddressByName(client *gophercloud.ServiceClient, name types.NodeName, ne
 	}
 
 	for _, addr := range addrs {
-		isIPv6 := net.ParseIP(addr.Address).To4() == nil
+		isIPv6 := netutils.ParseIPSloppy(addr.Address).To4() == nil
 		if (addr.Type == v1.NodeInternalIP) && (isIPv6 == needIPv6) {
 			return addr.Address, nil
 		}
 	}
 
 	for _, addr := range addrs {
-		isIPv6 := net.ParseIP(addr.Address).To4() == nil
+		isIPv6 := netutils.ParseIPSloppy(addr.Address).To4() == nil
 		if (addr.Type == v1.NodeExternalIP) && (isIPv6 == needIPv6) {
 			return addr.Address, nil
 		}

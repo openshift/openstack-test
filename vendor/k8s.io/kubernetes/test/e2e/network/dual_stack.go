@@ -38,12 +38,14 @@ import (
 	e2eservice "k8s.io/kubernetes/test/e2e/framework/service"
 	"k8s.io/kubernetes/test/e2e/network/common"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	admissionapi "k8s.io/pod-security-admission/api"
 	netutils "k8s.io/utils/net"
 )
 
 // Tests for ipv4-ipv6 dual-stack feature
 var _ = common.SIGDescribe("[Feature:IPv6DualStack]", func() {
 	f := framework.NewDefaultFramework("dualstack")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 
 	var cs clientset.Interface
 	var podClient *framework.PodClient
@@ -64,23 +66,9 @@ var _ = common.SIGDescribe("[Feature:IPv6DualStack]", func() {
 
 			framework.ExpectEqual(len(internalIPs), 2)
 			// assert 2 ips belong to different families
-			framework.ExpectEqual(netutils.IsIPv4String(internalIPs[0]) != netutils.IsIPv4String(internalIPs[1]), true)
-		}
-	})
-
-	// Marking this as LinuxOnly because windows tests run against Azure CNI which doesn't publish
-	// a podCIDR for each family.
-	ginkgo.It("should have ipv4 and ipv6 node podCIDRs [LinuxOnly]", func() {
-		// TODO (aramase) can switch to new function to get all nodes
-		nodeList, err := e2enode.GetReadySchedulableNodes(cs)
-		framework.ExpectNoError(err)
-
-		for _, node := range nodeList.Items {
-			framework.ExpectEqual(len(node.Spec.PodCIDRs), 2)
-			// assert podCIDR is same as podCIDRs[0]
-			framework.ExpectEqual(node.Spec.PodCIDR, node.Spec.PodCIDRs[0])
-			// assert one is ipv4 and other is ipv6
-			framework.ExpectEqual(netutils.IsIPv4CIDRString(node.Spec.PodCIDRs[0]) != netutils.IsIPv4CIDRString(node.Spec.PodCIDRs[1]), true)
+			if netutils.IsIPv4String(internalIPs[0]) == netutils.IsIPv4String(internalIPs[1]) {
+				framework.Failf("both internalIPs %s and %s belong to the same families", internalIPs[0], internalIPs[1])
+			}
 		}
 	})
 
@@ -113,7 +101,9 @@ var _ = common.SIGDescribe("[Feature:IPv6DualStack]", func() {
 		// validate first ip in PodIPs is same as PodIP
 		framework.ExpectEqual(p.Status.PodIP, p.Status.PodIPs[0].IP)
 		// assert 2 pod ips belong to different families
-		framework.ExpectEqual(netutils.IsIPv4String(p.Status.PodIPs[0].IP) != netutils.IsIPv4String(p.Status.PodIPs[1].IP), true)
+		if netutils.IsIPv4String(p.Status.PodIPs[0].IP) == netutils.IsIPv4String(p.Status.PodIPs[1].IP) {
+			framework.Failf("both internalIPs %s and %s belong to the same families", p.Status.PodIPs[0].IP, p.Status.PodIPs[1].IP)
+		}
 
 		ginkgo.By("deleting the pod")
 		err := podClient.Delete(context.TODO(), pod.Name, *metav1.NewDeleteOptions(30))
@@ -121,7 +111,6 @@ var _ = common.SIGDescribe("[Feature:IPv6DualStack]", func() {
 	})
 
 	// takes close to 140s to complete, so doesn't need to be marked [SLOW]
-	// TODO (aramase) remove phase 2 tag once phase 2 of dual stack is merged
 	ginkgo.It("should be able to reach pod on ipv4 and ipv6 ip", func() {
 		serverDeploymentName := "dualstack-server"
 		clientDeploymentName := "dualstack-client"
@@ -367,7 +356,7 @@ var _ = common.SIGDescribe("[Feature:IPv6DualStack]", func() {
 		expectedPolicy := v1.IPFamilyPolicyRequireDualStack
 		expectedFamilies := []v1.IPFamily{v1.IPv4Protocol, v1.IPv6Protocol}
 
-		service := createService(t.ServiceName, t.Namespace, t.Labels, nil, expectedFamilies)
+		service := createService(t.ServiceName, t.Namespace, t.Labels, &expectedPolicy, expectedFamilies)
 
 		jig.Labels = t.Labels
 		err := jig.CreateServicePods(2)
@@ -412,7 +401,7 @@ var _ = common.SIGDescribe("[Feature:IPv6DualStack]", func() {
 		expectedPolicy := v1.IPFamilyPolicyRequireDualStack
 		expectedFamilies := []v1.IPFamily{v1.IPv6Protocol, v1.IPv4Protocol}
 
-		service := createService(t.ServiceName, t.Namespace, t.Labels, nil, expectedFamilies)
+		service := createService(t.ServiceName, t.Namespace, t.Labels, &expectedPolicy, expectedFamilies)
 
 		jig.Labels = t.Labels
 		err := jig.CreateServicePods(2)

@@ -19,6 +19,7 @@ package storage
 import (
 	"context"
 	"fmt"
+
 	"github.com/onsi/ginkgo"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,10 +30,12 @@ import (
 	e2epv "k8s.io/kubernetes/test/e2e/framework/pv"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	"k8s.io/kubernetes/test/e2e/storage/utils"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 var _ = utils.SIGDescribe("Multi-AZ Cluster Volumes", func() {
 	f := framework.NewDefaultFramework("multi-az")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	var zoneCount int
 	var err error
 	image := framework.ServeHostnameImage
@@ -110,7 +113,7 @@ func PodsUseStaticPVsOrFail(f *framework.Framework, podCount int, image string) 
 		className := ""
 		pvcConfig := e2epv.PersistentVolumeClaimConfig{StorageClassName: &className}
 
-		config.pv, config.pvc, err = e2epv.CreatePVPVC(c, pvConfig, pvcConfig, ns, true)
+		config.pv, config.pvc, err = e2epv.CreatePVPVC(c, f.Timeouts, pvConfig, pvcConfig, ns, true)
 		framework.ExpectNoError(err)
 	}
 

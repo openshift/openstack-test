@@ -12,6 +12,9 @@ var (
 			`\[Feature:StorageVersionAPI\]`,
 			`\[Feature:StatefulSetMinReadySeconds\]`,
 			`\[Feature:PodSecurityPolicy\]`,
+			`\[Feature:StatefulSetAutoDeletePVC\]`,
+			`\[Feature:CustomResourceValidationExpressions\]`,
+			`\[Feature:ProxyTerminatingEndpoints\]`,
 		},
 		// tests for features that are not implemented in openshift
 		"[Disabled:Unimplemented]": {
@@ -42,6 +45,9 @@ var (
 			`Advanced Audit should audit API calls`, // expects to be able to call /logs
 
 			`Firewall rule should have correct firewall rules for e2e cluster`, // Upstream-install specific
+
+			// https://bugzilla.redhat.com/show_bug.cgi?id=2079958
+			`\[sig-network\] \[Feature:Topology Hints\] should distribute endpoints evenly`,
 		},
 		// tests that are known broken and need to be fixed upstream or in openshift
 		// always add an issue here
@@ -85,13 +91,8 @@ var (
 			// https://bugzilla.redhat.com/show_bug.cgi?id=1854379
 			`\[sig-storage\].*\[Driver: nfs\] \[Testpattern: Dynamic PV \(default fs\)\].*subPath should be able to unmount after the subpath directory is deleted`,
 
-			// https://bugzilla.redhat.com/show_bug.cgi?id=1945329
-			`should drop INVALID conntrack entries`,
-
-			// https://bugzilla.redhat.com/show_bug.cgi?id=1993845
-			`Services should respect internalTrafficPolicy=Local Pod to Pod \(hostNetwork: true\)`,
-			`Services should respect internalTrafficPolicy=Local Pod \(hostNetwork: true\) to Pod \(hostNetwork: true\)`,
-			`Services should respect internalTrafficPolicy=Local Pod \(hostNetwork: true\) to Pod`,
+			// https://bugzilla.redhat.com/show_bug.cgi?id=1986306
+			`\[sig-cli\] Kubectl client kubectl wait should ignore not found error with --for=delete`,
 
 			// https://bugzilla.redhat.com/show_bug.cgi?id=1980141
 			`Netpol NetworkPolicy between server and client should enforce policy to allow traffic only from a pod in a different namespace based on PodSelector and NamespaceSelector`,
@@ -107,6 +108,8 @@ var (
 			`Netpol \[LinuxOnly\] NetworkPolicy between server and client using UDP should support a 'default-deny-ingress' policy`,
 			`Netpol \[LinuxOnly\] NetworkPolicy between server and client using UDP should enforce policy based on Ports`,
 			`Netpol \[LinuxOnly\] NetworkPolicy between server and client using UDP should enforce policy to allow traffic only from a pod in a different namespace based on PodSelector and NamespaceSelector`,
+
+			`Topology Hints should distribute endpoints evenly`,
 		},
 		// tests that may work, but we don't support them
 		"[Disabled:Unsupported]": {
@@ -151,6 +154,10 @@ var (
 		},
 		"[Skipped:azure]": {
 			"Networking should provide Internet connection for containers", // Azure does not allow ICMP traffic to internet.
+			// Azure CSI migration changed how we treat regions without zones.
+			// See https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=2066865
+			`\[sig-storage\] In-tree Volumes \[Driver: azure-disk\] \[Testpattern: Dynamic PV \(immediate binding\)\] topology should provision a volume and schedule a pod with AllowedTopologies`,
+			`\[sig-storage\] In-tree Volumes \[Driver: azure-disk\] \[Testpattern: Dynamic PV \(delayed binding\)\] topology should provision a volume and schedule a pod with AllowedTopologies`,
 		},
 		"[Skipped:gce]": {
 			// Requires creation of a different compute instance in a different zone and is not compatible with volumeBindingMode of WaitForFirstConsumer which we use in 4.x

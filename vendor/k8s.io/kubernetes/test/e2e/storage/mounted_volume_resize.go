@@ -28,6 +28,7 @@ import (
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	admissionapi "k8s.io/pod-security-admission/api"
 
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -43,7 +44,7 @@ import (
 	"k8s.io/kubernetes/test/e2e/storage/utils"
 )
 
-var _ = utils.SIGDescribe("Mounted volume expand", func() {
+var _ = utils.SIGDescribe("Mounted volume expand [Feature:StorageProvider]", func() {
 	var (
 		c                 clientset.Interface
 		ns                string
@@ -58,6 +59,7 @@ var _ = utils.SIGDescribe("Mounted volume expand", func() {
 	)
 
 	f := framework.NewDefaultFramework("mounted-volume-expand")
+	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
 	ginkgo.BeforeEach(func() {
 		e2eskipper.SkipUnlessProviderIs("aws", "gce")
 		c = f.ClientSet
