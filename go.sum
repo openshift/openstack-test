@@ -713,8 +713,8 @@ github.com/openshift/library-go v0.0.0-20220525173854-9b950a41acdc h1:j+upvKc1uL
 github.com/openshift/library-go v0.0.0-20220525173854-9b950a41acdc/go.mod h1:AMZwYwSdbvALDl3QobEzcJ2IeDO7DYLsr42izKzh524=
 github.com/openshift/onsi-ginkgo v4.7.0-origin.0+incompatible h1:6XSBotNi58b4MwVV4F9o/jd4BaQd+uJyz+s5TR0/ot8=
 github.com/openshift/onsi-ginkgo v4.7.0-origin.0+incompatible/go.mod h1:azqkkH4Vpp9A579CC26hicol/wViXag9rOwElif6v9E=
-github.com/openshift/origin v1.5.0-alpha.3.0.20220617093948-f9553b6c0d79 h1:3TQgCYAG6cLW8SomwBLSMUlF1oswG9mdYwZPJ6sw/hg=
-github.com/openshift/origin v1.5.0-alpha.3.0.20220617093948-f9553b6c0d79/go.mod h1:uSwDjRlIsjsEZuKO4p8mwhosXBoq6vsTLGGFxUOpGZA=
+github.com/openshift/origin v1.5.0-alpha.3.0.20220624131706-a946e2b9cd8a h1:4zJpPZZz+MJ8ch+cPZu6aOT2yZK1Z+cd7U8W6GGUkVQ=
+github.com/openshift/origin v1.5.0-alpha.3.0.20220624131706-a946e2b9cd8a/go.mod h1:uSwDjRlIsjsEZuKO4p8mwhosXBoq6vsTLGGFxUOpGZA=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pborman/uuid v1.2.0 h1:J7Q5mO4ysT1dv8hyrUGHb9+ooztCXu1D8MY8DZYsu3g=
