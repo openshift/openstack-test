@@ -31,7 +31,3 @@ openstack-tests: test/extended/openstack/*
 run: openstack-tests
 	./$< run --run '\[Feature:openstack\]' openshift/conformance
 .PHONY: run
-
-# For backwards compatibility
-openstack-test: run
-.PHONY: openstack-test
