@@ -15,7 +15,7 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
-var _ = g.Describe("[sig-installer][Feature:openstack][Kuryr] Kuryr", func() {
+var _ = g.Describe("[sig-installer][Suite:openshift/openstack][Feature:openstack][Kuryr] Kuryr", func() {
 	var networkClient *gophercloud.ServiceClient
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset

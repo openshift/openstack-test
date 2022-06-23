@@ -29,9 +29,5 @@ openstack-tests: test/extended/openstack/*
 	go build -o $@ ./cmd/openshift-tests
 
 run: openstack-tests
-	./$< run --run '\[Feature:openstack\]' openshift/conformance
+	./$< run openshift/openstack
 .PHONY: run
-
-# For backwards compatibility
-openstack-test: run
-.PHONY: openstack-test

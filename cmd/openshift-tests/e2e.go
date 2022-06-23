@@ -75,6 +75,22 @@ func (s testSuites) TestSuites() []*ginkgo.TestSuite {
 var staticSuites = testSuites{
 	{
 		TestSuite: ginkgo.TestSuite{
+			Name: "openshift/openstack",
+			Description: templates.LongDesc(`
+		Tests that verify OpenStack-specific invariants.
+		`),
+			Matches: func(name string) bool {
+				if isDisabled(name) {
+					return false
+				}
+				return strings.Contains(name, "[Suite:openshift/openstack")
+			},
+			Parallelism: 30,
+		},
+		PreSuite: suiteWithProviderPreSuite,
+	},
+	{
+		TestSuite: ginkgo.TestSuite{
 			Name: "openshift/conformance",
 			Description: templates.LongDesc(`
 		Tests that ensure an OpenShift cluster and components are working properly.
