@@ -22,7 +22,11 @@ else
 endif
 .PHONY: verify-gofmt
 
-verify: verify-gofmt verify-generated
+verify-govet:
+	go vet ./...
+.PHONY: verify-govet
+
+verify: verify-gofmt verify-govet verify-generated
 .PHONY: verify
 
 openstack-tests: test/extended/openstack/*
