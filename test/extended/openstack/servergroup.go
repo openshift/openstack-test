@@ -15,7 +15,7 @@ import (
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 )
 
-var _ = g.Describe("[sig-installer][Feature:openstack] The OpenStack platform", func() {
+var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack platform", func() {
 	defer g.GinkgoRecover()
 
 	// OCP 4.5: https://issues.redhat.com/browse/OSASINFRA-1300
