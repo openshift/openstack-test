@@ -24,7 +24,7 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack][Feature:openstack] The OpenStack platform", func() {
+var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack platform", func() {
 	defer g.GinkgoRecover()
 
 	var dc dynamic.Interface
