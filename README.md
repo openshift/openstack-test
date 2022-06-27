@@ -13,7 +13,10 @@ Run the tests by exporting both OpenShift and OpenStack credentials, then runnin
 
 ## Implementation details
 
-Origin is referenced as a dependency in `go.mod`. Regularly update it with `go get -d github.com/openshift/origin@<latest-commit-sha>`.
+Origin is referenced as a dependency in `go.mod`. Regularly update it with:
+```sh
+GONOPROXY=* GONOSUMDB=* go get -d github.com/openshift/origin@<latest-commit-sha>
+```
 
 Two Origin packages remain vendored and require manual update:
 
