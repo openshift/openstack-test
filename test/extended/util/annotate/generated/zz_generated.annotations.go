@@ -729,6 +729,8 @@ var annotations = map[string]string{
 
 	"[Top Level] [sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should haul the user config to the expected config maps": "should haul the user config to the expected config maps [Suite:openshift/conformance/parallel]",
 
+	"[Top Level] [sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should set use-octavia and enabled properties in CCM depending on the NetworkType": "should set use-octavia and enabled properties in CCM depending on the NetworkType [Suite:openshift/conformance/parallel]",
+
 	"[Top Level] [sig-installer][Suite:openshift/openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-instrumentation] Events API should delete a collection of events [Conformance]": "should delete a collection of events [Conformance] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
