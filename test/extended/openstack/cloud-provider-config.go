@@ -46,23 +46,23 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 			}
 
 			internalConfigMaps := []config_params{
-				config_params{
+				{
 					namespace: "openshift-config-managed",
 					name:      "kube-cloud-config",
 					key:       "cloud.conf",
-					skip:      nil,
+					skip:      []string{"use-octavia"},
 				},
-				config_params{
+				{
 					namespace: "openshift-cloud-controller-manager",
 					name:      "cloud-conf",
 					key:       "cloud.conf",
-					skip:      []string{"secret-name", "secret-namespace"},
+					skip:      []string{"secret-name", "secret-namespace", "use-octavia"},
 				},
-				config_params{
+				{
 					namespace: "openshift-cluster-csi-drivers",
 					name:      "cloud-conf",
 					key:       "cloud.conf",
-					skip:      []string{"secret-name", "secret-namespace"},
+					skip:      []string{"secret-name", "secret-namespace", "use-octavia"},
 				},
 			}
 
