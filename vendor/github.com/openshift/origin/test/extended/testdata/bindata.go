@@ -34797,7 +34797,7 @@ var _testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson = []byte(`
     "containers": [
       {
         "name": "hello-openshift",
-        "image": "k8s.gcr.io/e2e-test-images/agnhost:2.36",
+        "image": "k8s.gcr.io/e2e-test-images/agnhost:2.39",
         "args": ["netexec"],
         "ports": [
           {
@@ -38926,7 +38926,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+                image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -43162,7 +43162,7 @@ items:
           replicationcontroller: idling-echo
       spec:
         containers:
-        - image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+        - image: k8s.gcr.io/e2e-test-images/agnhost:2.39
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675" ]
           ports:
@@ -43228,7 +43228,7 @@ items:
           deploymentconfig: idling-echo
       spec:
         containers:
-        - image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+        - image: k8s.gcr.io/e2e-test-images/agnhost:2.39
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -46612,8 +46612,8 @@ spec:
       - name: openldap-server
         securityContext:
           privileged: true
-        # This image is built from the images/openldap directory. Temporary repo location.
-        image: docker.io/mrogers950/origin-openldap-test:fedora29
+        # This image is built from the openshift/openldap directory.
+        image: quay.io/openshifttest/ldap:1.2
         ports:
         # StartTLS works over 389
         - containerPort: 389
@@ -46758,7 +46758,7 @@ data:
     fi
 
     # Start the slapd service
-    exec slapd -h "ldap:///${HOSTNAME} ldapi:/// ldaps:///${HOSTNAME}" -d $OPENLDAP_DEBUG_LEVEL
+    exec slapd -h "ldap:/// ldapi:/// ldaps:///" -d $OPENLDAP_DEBUG_LEVEL
 `)
 
 func testExtendedTestdataLdapLdapserverScriptsCmYamlBytes() ([]byte, error) {
@@ -48215,7 +48215,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -48233,7 +48233,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -48472,7 +48472,7 @@ objects:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -48634,7 +48634,7 @@ objects:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -49687,7 +49687,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -49705,7 +49705,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50308,7 +50308,7 @@ objects:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50326,7 +50326,7 @@ objects:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50344,7 +50344,7 @@ objects:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -51747,7 +51747,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+                image: k8s.gcr.io/e2e-test-images/agnhost:2.39
 `)
 
 func testExtendedTestdataTemplatesTemplateinstance_badobjectYamlBytes() ([]byte, error) {
@@ -51807,7 +51807,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: k8s.gcr.io/e2e-test-images/agnhost:2.36
+                image: k8s.gcr.io/e2e-test-images/agnhost:2.39
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -52739,6 +52739,13 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         return false
     }
 
+    function isKubeletReadinessCheck(eventInterval) {
+        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/ReadinessFailed") || eventInterval.message.includes("reason/ReadinessErrored"))) {
+            return true
+        }
+        return false
+    }
+
     function isE2EFailed(eventInterval) {
         if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Failed")) {
             return true
@@ -52761,7 +52768,7 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
     }
 
     function isEndpointConnectivity(eventInterval) {
-        if (!eventInterval.message.includes("stopped responding to GET requests")){
+        if (!eventInterval.message.includes("reason/DisruptionBegan") && !eventInterval.message.includes("reason/DisruptionSamplerOutageBegan")){
             return false
         }
         if (eventInterval.locator.includes("disruption/")) {
@@ -52822,6 +52829,15 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
                 return [item.locator, ` + "`" + ` (container readiness)` + "`" + `, "ContainerReady"];
             }
         }
+        if (m && isKubeletReadinessCheck(item)){
+            if (m[2] == "ReadinessFailed") {
+                return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessFailed"];
+            }
+            if (m[2] == "ReadinessErrored") {
+                return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessErrored"];
+            }
+        }
+
         return [item.locator, "", "Unknown"];
     }
 
@@ -53029,21 +53045,22 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
                 'OperatorUnavailable', 'OperatorDegraded', 'OperatorProgressing', // operators
                 'Update', 'Drain', 'Reboot', 'OperatingSystemUpdate', 'NodeNotReady', // nodes
                 'Passed', 'Skipped', 'Flaked', 'Failed',  // tests
-                'PodCreated', 'PodScheduled', 'PodTerminating','ContainerWait', 'ContainerStart', 'ContainerNotReady', 'ContainerReady',  // pods
+                'PodCreated', 'PodScheduled', 'PodTerminating','ContainerWait', 'ContainerStart', 'ContainerNotReady', 'ContainerReady', 'ContainerReadinessFailed', 'ContainerReadinessErrored',  // pods
                 'Degraded', 'Upgradeable', 'False', 'Unknown'])
             .range([
-                '#fada5e','#fada5e','#ffa500','#d0312d',  // alerts
+                '#fada5e','#fada5e','#ffa500', '#d0312d',  // alerts
                 '#d0312d', '#ffa500', '#fada5e', // operators
                 '#1e7bd9', '#4294e6', '#6aaef2', '#96cbff', '#fada5e', // nodes
                 '#3cb043', '#ceba76', '#ffa500', '#d0312d', // tests
-                '#96cbff', '#1e7bd9', '#ffa500', '#ca8dfd', '#9300ff', '#fada5e','#3cb043', // pods
+                '#96cbff', '#1e7bd9', '#ffa500', '#ca8dfd', '#9300ff', '#fada5e','#3cb043', '#d0312d', '#d0312d', // pods
                 '#b65049', '#32b8b6', '#ffffff', '#bbbbbb']);
         myChart.
         data(timelineGroups).
+        useUtc(true).
         zQualitative(true).
         enableAnimations(false).
         leftMargin(240).
-        rightMargin(550).
+        rightMargin(1550).
         maxLineHeight(20).
         maxHeight(10000).
         zColorScale(ordinalScale).
@@ -53053,7 +53070,7 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
 
         // force a minimum width for smaller devices (which otherwise get an unusable display)
-        setTimeout(() => { if (myChart.width() < 1300) { myChart.width(1300) }}, 1)
+        setTimeout(() => { if (myChart.width() < 3100) { myChart.width(3100) }}, 1)
     }
 
     renderChart(null)
