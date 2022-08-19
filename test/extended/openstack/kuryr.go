@@ -36,7 +36,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][Kuryr] Kuryr", fu
 	g.It("should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace", func() {
 		g.By("Creating a Namespace and pods")
 		{
-			ns := CreateNamespace(clientSet, "kuryr-hostnetwork")
+			ns := CreateNamespace(clientSet, "kuryr-hostnetwork", true)
 			defer DeleteNamespace(clientSet, ns)
 			g.By("Creating a Pod with hostNetwork=true")
 			command := []string{"/bin/sleep", "120"}

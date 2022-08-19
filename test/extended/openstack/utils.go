@@ -13,6 +13,7 @@ import (
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	imageutils "k8s.io/kubernetes/test/utils/image"
+	psapi "k8s.io/pod-security-admission/api"
 )
 
 type KuryrNetwork struct {
@@ -54,14 +55,24 @@ func GetSubnetIDfromKuryrNetwork(clientSet *kubernetes.Clientset, namespace stri
 	return kn.Status.SubnetID, nil
 }
 
-func CreateNamespace(clientSet *kubernetes.Clientset, baseName string) *v1.Namespace {
+func CreateNamespace(clientSet *kubernetes.Clientset, baseName string, privileged bool) *v1.Namespace {
 	nsName := fmt.Sprintf("%v-%v", baseName, RandomSuffix())
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: nsName,
 		},
 	}
-	clientSet.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+	if privileged {
+		ns.Labels = map[string]string{
+			psapi.EnforceLevelLabel:                          string(psapi.LevelPrivileged),
+			"security.openshift.io/scc.podSecurityLabelSync": "false",
+		}
+	}
+	_, err := clientSet.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+	if err != nil {
+		e2e.Failf("unable to create namespace %v: %v", ns.Name, err)
+		return nil
+	}
 	e2e.Logf("Namespace %v was created", nsName)
 
 	return ns
