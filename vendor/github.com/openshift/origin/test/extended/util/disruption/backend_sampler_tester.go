@@ -36,7 +36,7 @@ func NewBackendDisruptionTest(testName string, backend BackendSampler) *backendD
 		testName: testName,
 		backend:  backend,
 	}
-	ret.getAllowedDisruption = alwaysAllowOneSecond(ret.historicalP95Disruption)
+	ret.getAllowedDisruption = alwaysAllowOneSecond(ret.historicalAllowedDisruption)
 	return ret
 }
 
@@ -88,7 +88,7 @@ func alwaysAllowOneSecond(delegateFn AllowedDisruptionFunc) AllowedDisruptionFun
 	}
 }
 
-func (t *backendDisruptionTest) historicalP95Disruption(f *framework.Framework) (*time.Duration, string, error) {
+func (t *backendDisruptionTest) historicalAllowedDisruption(f *framework.Framework) (*time.Duration, string, error) {
 	backendName := t.backend.GetDisruptionBackendName() + "-" + string(t.backend.GetConnectionType()) + "-connections"
 	jobType, err := platformidentification.GetJobType(context.TODO(), f.ClientConfig())
 	if err != nil {
@@ -178,12 +178,14 @@ func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{
 	allowedDisruption, disruptionDetails, err := t.getAllowedDisruption(f)
 	framework.ExpectNoError(err)
 
+	fromTime, endTime := time.Time{}, time.Time{}
+	events := m.Intervals(fromTime, endTime)
 	ginkgo.By(fmt.Sprintf("writing results: %s", t.backend.GetLocator()))
 	ExpectNoDisruptionForDuration(
 		f,
 		*allowedDisruption,
 		end.Sub(start),
-		m.Intervals(time.Time{}, time.Time{}),
+		events,
 		fmt.Sprintf("%s was unreachable during disruption: %v", t.backend.GetLocator(), disruptionDetails),
 	)
 

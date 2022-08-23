@@ -353,7 +353,7 @@ func (b *BackendSampler) checkConnection(ctx context.Context) error {
 	case getErr != nil:
 		sampleErr = getErr
 	case bodyReadErr != nil:
-		sampleErr = getErr
+		sampleErr = bodyReadErr
 	case resp.StatusCode < 200 || resp.StatusCode > 399:
 		sampleErr = fmt.Errorf("error running request: %v: %v", resp.Status, string(body))
 	default:
@@ -584,7 +584,7 @@ func (b *disruptionSampler) consumeSamples(ctx context.Context, interval time.Du
 			framework.Logf(message)
 			eventRecorder.Eventf(
 				&v1.ObjectReference{Kind: "OpenShiftTest", Namespace: "kube-system", Name: b.backendSampler.GetDisruptionBackendName()}, nil,
-				v1.EventTypeNormal, "DisruptionEnded", "detected", message)
+				v1.EventTypeNormal, DisruptionEndedEventReason, "detected", message)
 			currCondition := monitorapi.Condition{
 				Level:   monitorapi.Info,
 				Locator: b.backendSampler.GetLocator(),

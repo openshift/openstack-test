@@ -1,11 +1,15 @@
 # See the OWNERS docs at https://go.k8s.io/owners
 reviewers:
-- smarterclayton
+- ingvagabund
 - soltysh
 - sttts
+- tkashem
 approvers:
-- smarterclayton
+- ingvagabund
 - soltysh
 - sttts
+- tkashem
 labels:
 - "e2e-images-update"
+options:
+  no_parent_owners: true

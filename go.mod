@@ -1,6 +1,6 @@
 module github.com/openshift/openstack-test
 
-go 1.17
+go 1.18
 
 require (
 	github.com/gophercloud/gophercloud v0.24.0
@@ -10,7 +10,7 @@ require (
 	github.com/openshift/api v0.0.0-20220525145417-ee5b62754c68
 	github.com/openshift/client-go v0.0.0-20220525160904-9e1acff93e4a
 	github.com/openshift/library-go v0.0.0-20220525173854-9b950a41acdc
-	github.com/openshift/origin v1.5.0-alpha.3.0.20220624131706-a946e2b9cd8a
+	github.com/openshift/origin v1.5.0-alpha.3.0.20220815155142-e6728e5e1d97
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/objx v0.2.0
@@ -244,7 +244,6 @@ require (
 
 replace (
 	github.com/google/cadvisor => github.com/google/cadvisor v0.44.1
-	github.com/gophercloud/gophercloud => github.com/gophercloud/gophercloud v0.9.0
 	github.com/onsi/ginkgo => github.com/openshift/onsi-ginkgo v4.7.0-origin.0+incompatible
 	k8s.io/api => github.com/openshift/kubernetes/staging/src/k8s.io/api v0.0.0-20220601165048-899fd9fb835c
 	k8s.io/apiextensions-apiserver => github.com/openshift/kubernetes/staging/src/k8s.io/apiextensions-apiserver v0.0.0-20220601165048-899fd9fb835c
@@ -266,7 +265,7 @@ replace (
 	k8s.io/kube-scheduler => github.com/openshift/kubernetes/staging/src/k8s.io/kube-scheduler v0.0.0-20220601165048-899fd9fb835c
 	k8s.io/kubectl => github.com/openshift/kubernetes/staging/src/k8s.io/kubectl v0.0.0-20220601165048-899fd9fb835c
 	k8s.io/kubelet => github.com/openshift/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20220601165048-899fd9fb835c
-	k8s.io/kubernetes => github.com/openshift/kubernetes v1.24.0-alpha.3.0.20220601165048-899fd9fb835c
+	k8s.io/kubernetes => github.com/openshift/kubernetes v1.24.1-0.20220726222740-a6c02f3f6663
 	k8s.io/legacy-cloud-providers => github.com/openshift/kubernetes/staging/src/k8s.io/legacy-cloud-providers v0.0.0-20220601165048-899fd9fb835c
 	k8s.io/metrics => github.com/openshift/kubernetes/staging/src/k8s.io/metrics v0.0.0-20220601165048-899fd9fb835c
 	k8s.io/mount-utils => github.com/openshift/kubernetes/staging/src/k8s.io/mount-utils v0.0.0-20220601165048-899fd9fb835c
@@ -275,3 +274,5 @@ replace (
 	k8s.io/sample-cli-plugin => github.com/openshift/kubernetes/staging/src/k8s.io/sample-cli-plugin v0.0.0-20220601165048-899fd9fb835c
 	k8s.io/sample-controller => github.com/openshift/kubernetes/staging/src/k8s.io/sample-controller v0.0.0-20220601165048-899fd9fb835c
 )
+
+replace github.com/gophercloud/gophercloud => github.com/gophercloud/gophercloud v0.9.0

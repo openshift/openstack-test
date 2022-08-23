@@ -17,10 +17,10 @@ func init() {
 		"quay.io/redhat-developer/nfs-server:1.1": -1,
 
 		// used by open ldap tests
-		"docker.io/mrogers950/origin-openldap-test:fedora29": -1,
+		"quay.io/openshifttest/ldap:1.2": -1,
 
-		// used by multicast test, should be moved to publish to quay
-		"docker.io/openshift/test-multicast:latest": -1,
+		// used by multicast test
+		"quay.io/openshifttest/multicast:1.1": -1,
 
 		// used by oc mirror test, should be moved to publish to quay
 		"docker.io/library/registry:2.8.0-beta.1": -1,
@@ -53,7 +53,7 @@ func init() {
 
 		// allowed upstream kube images - index and value must match upstream or
 		// tests will fail (vendor/k8s.io/kubernetes/test/utils/image/manifest.go)
-		"k8s.gcr.io/e2e-test-images/agnhost:2.36": 1,
+		"k8s.gcr.io/e2e-test-images/agnhost:2.39": 1,
 		"k8s.gcr.io/e2e-test-images/nginx:1.15-2": 23,
 	}
 
@@ -137,7 +137,7 @@ func LimitedShellImage() string {
 
 // OpenLDAPTestImage returns the LDAP test image.
 func OpenLDAPTestImage() string {
-	return LocationFor("docker.io/mrogers950/origin-openldap-test:fedora29")
+	return LocationFor("quay.io/openshifttest/ldap:1.2")
 }
 
 // OriginalImages returns a map of the original image names.
