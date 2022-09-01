@@ -13,6 +13,7 @@ import (
 	operatorv1client "github.com/openshift/client-go/operator/clientset/versioned/typed/operator/v1"
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -114,6 +115,13 @@ var allowedRepeatedEventPatterns = []*regexp.Regexp{
 
 	// Separated out in testBackoffStartingFailedContainer
 	regexp.MustCompile(backoffRestartingFailedRegEx),
+
+	// Separated out in testErrorUpdatingEndpointSlices
+	regexp.MustCompile(errorUpdatingEndpointSlicesRegex),
+
+	// If you see this error, it means enough was working to get this event which implies enough retries happened to allow initial openshift
+	// installation to succeed. Hence, we can ignore it.
+	regexp.MustCompile(`reason/FailedCreate .* error creating EC2 instance: InsufficientInstanceCapacity: We currently do not have sufficient .* capacity in the Availability Zone you requested`),
 }
 
 var allowedRepeatedEventFns = []isRepeatedEventOKFunc{
@@ -181,9 +189,16 @@ var knownEventsBugs = []knownProblem{
 		BZ:       "https://bugzilla.redhat.com/show_bug.cgi?id=2017435",
 		Topology: topologyPointer(v1.SingleReplicaTopologyMode),
 	},
+	// builds tests trigger many changes in the config which creates new rollouts -> event for each pod
+	// working as intended (not a bug) and needs to be tolerated
+	{
+		Regexp:    regexp.MustCompile(`ns/openshift-route-controller-manager deployment/route-controller-manager - reason/ScalingReplicaSet \(combined from similar events\): Scaled (down|up) replica set route-controller-manager-[a-z0-9-]+ to [0-9]+`),
+		TestSuite: stringPointer("openshift/build"),
+	},
+	// builds tests trigger many changes in the config which creates new rollouts -> event for each pod
+	// working as intended (not a bug) and needs to be tolerated
 	{
 		Regexp:    regexp.MustCompile(`ns/openshift-controller-manager daemonset/controller-manager - reason/SuccessfulDelete \(combined from similar events\): Deleted pod: controller-manager-[a-z0-9-]+`),
-		BZ:        "https://bugzilla.redhat.com/show_bug.cgi?id=2034984",
 		TestSuite: stringPointer("openshift/build"),
 	},
 	//{ TODO this should only be skipped for single-node
@@ -597,7 +612,13 @@ func (a *etcdRevisionChangeAllowance) allowEtcdGuardReadinessProbeFailure(monito
 func getBiggestRevisionForEtcdOperator(ctx context.Context, operatorClient operatorv1client.OperatorV1Interface) (int, error) {
 	etcd, err := operatorClient.Etcds().Get(ctx, "cluster", metav1.GetOptions{})
 	if err != nil {
-		return 0, err
+		// instead of panicking when there no etcd operator (e.g. microshift), just estimate the biggest revision to be 0
+		if apierrors.IsNotFound(err) {
+			return 0, nil
+		} else {
+			return 0, err
+		}
+
 	}
 	biggestRevision := 0
 	for _, nodeStatus := range etcd.Status.NodeStatuses {

@@ -6,17 +6,22 @@ import (
 	"regexp"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
 )
 
 const (
-	imagePullRedhatRegEx                  = `reason/[a-zA-Z]+ .*Back-off pulling image .*registry.redhat.io`
-	imagePullRedhatFlakeThreshold         = 5
-	requiredResourcesMissingRegEx         = `reason/RequiredInstallerResourcesMissing secrets: etcd-all-certs-[0-9]+`
-	requiredResourceMissingFlakeThreshold = 10
-	backoffRestartingFailedRegEx          = `reason/BackOff Back-off restarting failed container`
-	backoffRestartingFlakeThreshold       = 10
+	imagePullRedhatRegEx                       = `reason/[a-zA-Z]+ .*Back-off pulling image .*registry.redhat.io`
+	imagePullRedhatFlakeThreshold              = 5
+	requiredResourcesMissingRegEx              = `reason/RequiredInstallerResourcesMissing secrets: etcd-all-certs-[0-9]+`
+	requiredResourceMissingFlakeThreshold      = 10
+	backoffRestartingFailedRegEx               = `reason/BackOff Back-off restarting failed container`
+	backoffRestartingFlakeThreshold            = 10
+	errorUpdatingEndpointSlicesRegex           = `reason/FailedToUpdateEndpointSlices Error updating Endpoint Slices`
+	errorUpdatingEndpointSlicesFailedThreshold = -1 // flake only
+	errorUpdatingEndpointSlicesFlakeThreshold  = 10
 )
 
 type eventRecognizerFunc func(event monitorapi.EventInterval) bool
@@ -38,7 +43,7 @@ type singleEventCheckRegex struct {
 // test goes through the events, looks for a match using the s.recognizer function,
 // if a match is found, marks it as failure or flake depending on if the pattern occurs
 // above the fail/flake thresholds (this allows us to track the occurence as a specific
-// test.
+// test. If the fail threshold is set to -1, the test will only flake.
 //
 func (s *singleEventCheckRegex) test(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	success := &junitapi.JUnitTestCase{Name: s.testName}
@@ -49,7 +54,7 @@ func (s *singleEventCheckRegex) test(events monitorapi.Intervals) []*junitapi.JU
 			msg := fmt.Sprintf("%s - %s", e.Locator, e.Message)
 			eventDisplayMessage, times := getTimesAnEventHappened(msg)
 			switch {
-			case times > s.failThreshold:
+			case s.failThreshold > 0 && times > s.failThreshold:
 				failureOutput = append(failureOutput, fmt.Sprintf("event [%s] happened %d times", eventDisplayMessage, times))
 			case times > s.flakeThreshold:
 				flakeOutput = append(flakeOutput, fmt.Sprintf("event [%s] happened %d times", eventDisplayMessage, times))
@@ -128,4 +133,11 @@ func testBackoffStartingFailedContainerForE2ENamespaces(events monitorapi.Interv
 	// always flake for now
 	return newSingleEventCheckRegex(testName, backoffRestartingFailedRegEx, math.MaxInt, backoffRestartingFlakeThreshold).
 		test(events.Filter(monitorapi.IsInE2ENamespace))
+}
+
+func testErrorUpdatingEndpointSlices(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	testName := "[sig-networking] should not see excessive FailedToUpdateEndpointSlices Error updating Endpoint Slices"
+
+	return newSingleEventCheckRegex(testName, errorUpdatingEndpointSlicesRegex, errorUpdatingEndpointSlicesFailedThreshold, errorUpdatingEndpointSlicesFlakeThreshold).
+		test(events.Filter(monitorapi.IsInNamespaces(sets.NewString("openshift-ovn-kubernetes"))))
 }

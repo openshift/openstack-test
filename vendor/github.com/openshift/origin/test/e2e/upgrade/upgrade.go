@@ -16,14 +16,11 @@ import (
 	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
 	"github.com/openshift/origin/test/e2e/upgrade/adminack"
 	"github.com/openshift/origin/test/e2e/upgrade/alert"
-	"github.com/openshift/origin/test/e2e/upgrade/cidisruptiontester"
 	"github.com/openshift/origin/test/e2e/upgrade/dns"
 	"github.com/openshift/origin/test/e2e/upgrade/manifestdelete"
 	"github.com/openshift/origin/test/e2e/upgrade/service"
 	"github.com/openshift/origin/test/extended/prometheus"
 	"github.com/openshift/origin/test/extended/util/disruption"
-	"github.com/openshift/origin/test/extended/util/disruption/controlplane"
-	"github.com/openshift/origin/test/extended/util/disruption/frontends"
 	"github.com/openshift/origin/test/extended/util/disruption/imageregistry"
 	"github.com/openshift/origin/test/extended/util/operator"
 	"github.com/pborman/uuid"
@@ -54,22 +51,17 @@ func NoTests() []upgrades.Test {
 func AllTests() []upgrades.Test {
 	return []upgrades.Test{
 		&adminack.UpgradeTest{},
-		controlplane.NewKubeAvailableWithNewConnectionsTest(),
-		controlplane.NewOpenShiftAvailableNewConnectionsTest(),
-		controlplane.NewOAuthAvailableNewConnectionsTest(),
-		controlplane.NewKubeAvailableWithConnectionReuseTest(),
-		controlplane.NewOpenShiftAvailableWithConnectionReuseTest(),
-		controlplane.NewOAuthAvailableWithConnectionReuseTest(),
 		&manifestdelete.UpgradeTest{},
 		&alert.UpgradeTest{},
-		frontends.NewOAuthRouteAvailableWithNewConnectionsTest(),
-		frontends.NewOAuthRouteAvailableWithConnectionReuseTest(),
-		frontends.NewConsoleRouteAvailableWithNewConnectionsTest(),
-		frontends.NewConsoleRouteAvailableWithConnectionReuseTest(),
+
+		// These two tests require complex setup and thus are a poor fit for our current invariant/synthetic
+		// disruption tests, so they remain separate. They output AdditionalEvents json files as artifacts which
+		// are merged into our main e2e-events.
 		service.NewServiceLoadBalancerWithNewConnectionsTest(),
 		service.NewServiceLoadBalancerWithReusedConnectionsTest(),
-		cidisruptiontester.NewCIDisruptionWithNewConnectionsTest(),
-		cidisruptiontester.NewCIDisruptionWithReusedConnectionsTest(),
+		imageregistry.NewImageRegistryAvailableWithNewConnectionsTest(),
+		imageregistry.NewImageRegistryAvailableWithReusedConnectionsTest(),
+
 		&node.SecretUpgradeTest{},
 		&apps.ReplicaSetUpgradeTest{},
 		&apps.StatefulSetUpgradeTest{},
@@ -77,8 +69,6 @@ func AllTests() []upgrades.Test {
 		&apps.JobUpgradeTest{},
 		&node.ConfigMapUpgradeTest{},
 		&apps.DaemonSetUpgradeTest{},
-		imageregistry.NewImageRegistryAvailableWithNewConnectionsTest(),
-		imageregistry.NewImageRegistryAvailableWithReusedConnectionsTest(),
 		&prometheus.ImagePullsAreFast{},
 		&prometheus.MetricsAvailableAfterUpgradeTest{},
 		&dns.UpgradeTest{},
@@ -269,6 +259,37 @@ func getUpgradeContext(c configv1client.Interface, upgradeImage string) (*upgrad
 }
 
 var errControlledAbort = fmt.Errorf("beginning abort")
+
+// PreUpgradeResourceCounts stores a map of resource type to a count of the number of
+// resources of that type in the entire cluster, gathered prior to launching the upgrade.
+var PreUpgradeResourceCounts = map[string]int{}
+
+func GatherPreUpgradeResourceCounts() error {
+	config, err := framework.LoadConfig(true)
+	if err != nil {
+		return err
+	}
+	kubeClient := kubernetes.NewForConfigOrDie(config)
+	// Store resource counts we're interested in monitoring from before upgrade to after.
+	// Used to test for excessive resource growth during upgrade in the invariants.
+	ctx := context.Background()
+	secrets, err := kubeClient.CoreV1().Secrets("").List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	PreUpgradeResourceCounts["secrets"] = len(secrets.Items)
+	framework.Logf("found %d Secrets prior to upgrade at %s\n", len(secrets.Items),
+		time.Now().UTC().Format(time.RFC3339))
+
+	configMaps, err := kubeClient.CoreV1().ConfigMaps("").List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	PreUpgradeResourceCounts["configmaps"] = len(configMaps.Items)
+	framework.Logf("found %d ConfigMaps prior to upgrade at %s\n", len(configMaps.Items),
+		time.Now().UTC().Format(time.RFC3339))
+	return nil
+}
 
 func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynamic.Interface, config *rest.Config, version upgrades.VersionContext) error {
 	fmt.Fprintf(os.Stderr, "\n\n\n")

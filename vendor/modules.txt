@@ -805,7 +805,7 @@ github.com/openshift/machine-api-operator/pkg/webhooks
 # github.com/openshift/machine-api-provider-openstack v0.0.0-20220707045855-23e8c4523dac
 ## explicit; go 1.18
 github.com/openshift/machine-api-provider-openstack/pkg/apis/openstackproviderconfig/v1alpha1
-# github.com/openshift/origin v1.5.0-alpha.3.0.20220815155142-e6728e5e1d97
+# github.com/openshift/origin v1.5.0-alpha.3.0.20220920202425-199ad942ed2d
 ## explicit; go 1.18
 github.com/openshift/origin/pkg/monitor
 github.com/openshift/origin/pkg/monitor/backenddisruption
@@ -832,7 +832,6 @@ github.com/openshift/origin/pkg/version
 github.com/openshift/origin/test/e2e/upgrade
 github.com/openshift/origin/test/e2e/upgrade/adminack
 github.com/openshift/origin/test/e2e/upgrade/alert
-github.com/openshift/origin/test/e2e/upgrade/cidisruptiontester
 github.com/openshift/origin/test/e2e/upgrade/dns
 github.com/openshift/origin/test/e2e/upgrade/manifestdelete
 github.com/openshift/origin/test/e2e/upgrade/service
@@ -846,6 +845,7 @@ github.com/openshift/origin/test/extended/util/baremetal
 github.com/openshift/origin/test/extended/util/cluster
 github.com/openshift/origin/test/extended/util/disruption
 github.com/openshift/origin/test/extended/util/disruption/controlplane
+github.com/openshift/origin/test/extended/util/disruption/externalservice
 github.com/openshift/origin/test/extended/util/disruption/frontends
 github.com/openshift/origin/test/extended/util/disruption/imageregistry
 github.com/openshift/origin/test/extended/util/image

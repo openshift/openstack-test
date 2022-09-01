@@ -29,6 +29,7 @@ import (
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	admissionapi "k8s.io/pod-security-admission/api"
+	"sigs.k8s.io/yaml"
 
 	configv1 "github.com/openshift/api/config/v1"
 
@@ -39,7 +40,17 @@ import (
 	helper "github.com/openshift/origin/test/extended/util/prometheus"
 )
 
-var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules", func() {
+// ClusterMonitoringConfiguration is a subset of https://github.com/openshift/cluster-monitoring-operator/blob/8d331d78b22948d36c20da0552763ddd8a4e2093/pkg/manifests/config.go#L124-L136
+type ClusterMonitoringConfiguration struct {
+	TelemeterClientConfig *TelemeterClientConfig `json:"telemeterClient"`
+}
+
+// TelemeterClientConfig is a subset of https://github.com/openshift/cluster-monitoring-operator/blob/8d331d78b22948d36c20da0552763ddd8a4e2093/pkg/manifests/config.go#L335-L342
+type TelemeterClientConfig struct {
+	Enabled *bool `json:"enabled"`
+}
+
+var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigroup:image.openshift.io]", func() {
 	defer g.GinkgoRecover()
 
 	// These alerts are known to be missing the summary and/or description
@@ -186,11 +197,12 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules", func(
 
 var _ = g.Describe("[sig-instrumentation][Late] Alerts", func() {
 	defer g.GinkgoRecover()
+	ctx := context.TODO()
 	var (
 		oc = exutil.NewCLIWithoutNamespace("prometheus")
 	)
 
-	g.It("shouldn't report any unexpected alerts in firing or pending state", func() {
+	g.It("shouldn't report any unexpected alerts in firing or pending state [apigroup:config.openshift.io]", func() {
 		// Watchdog and AlertmanagerReceiversNotConfigured are expected.
 		if len(os.Getenv("TEST_UNSUPPORTED_ALLOW_VERSION_SKEW")) > 0 {
 			e2eskipper.Skipf("Test is disabled to allow cluster components to have different versions, and skewed versions trigger multiple other alerts")
@@ -382,8 +394,10 @@ sort_desc(
 	})
 
 	g.It("shouldn't exceed the 650 series limit of total series sent via telemetry from each cluster", func() {
-		if !hasPullSecret(oc.AdminKubeClient(), "cloud.openshift.com") {
-			e2eskipper.Skipf("Telemetry is disabled")
+		if enabled, err := telemetryIsEnabled(ctx, oc.AdminKubeClient()); err != nil {
+			e2e.Failf("could not determine if Telemetry is enabled: %v", err)
+		} else {
+			e2eskipper.Skipf("Telemetry is disabled: %v", enabled)
 		}
 
 		// we only consider series sent since the beginning of the test
@@ -419,6 +433,7 @@ sort_desc(
 
 var _ = g.Describe("[sig-instrumentation] Prometheus", func() {
 	defer g.GinkgoRecover()
+	ctx := context.TODO()
 	var (
 		oc = exutil.NewCLIWithPodSecurityLevel("prometheus", admissionapi.LevelBaseline)
 
@@ -439,9 +454,11 @@ var _ = g.Describe("[sig-instrumentation] Prometheus", func() {
 	})
 
 	g.Describe("when installed on the cluster", func() {
-		g.It("should report telemetry if a cloud.openshift.com token is present [Late]", func() {
-			if !hasPullSecret(oc.AdminKubeClient(), "cloud.openshift.com") {
-				e2eskipper.Skipf("Telemetry is disabled")
+		g.It("should report telemetry [Late]", func() {
+			if enabled, err := telemetryIsEnabled(ctx, oc.AdminKubeClient()); err != nil {
+				e2e.Failf("could not determine if Telemetry is enabled: %v", err)
+			} else {
+				e2eskipper.Skipf("Telemetry is disabled: %v", enabled)
 			}
 
 			tests := map[string]bool{}
@@ -467,7 +484,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus", func() {
 			e2e.Logf("Telemetry is enabled: %s", bearerToken)
 		})
 
-		g.It("should start and expose a secured proxy and unsecured metrics", func() {
+		g.It("should start and expose a secured proxy and unsecured metrics [apigroup:config.openshift.io]", func() {
 			ns := oc.Namespace()
 			execPod := exutil.CreateExecPodOrFail(oc.AdminKubeClient(), ns, "execpod")
 			defer func() {
@@ -607,7 +624,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus", func() {
 			e2e.Logf("AlertmanagerReceiversNotConfigured alert is firing")
 		})
 
-		g.It("should have important platform topology metrics", func() {
+		g.It("should have important platform topology metrics [apigroup:config.openshift.io]", func() {
 			exutil.SkipIfExternalControlplaneTopology(oc, "topology metrics are not available for clusters with external controlPlaneTopology")
 
 			tests := map[string]bool{
@@ -659,7 +676,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus", func() {
 			})
 		})
 
-		g.It("shouldn't report any alerts in firing state apart from Watchdog and AlertmanagerReceiversNotConfigured [Early]", func() {
+		g.It("shouldn't report any alerts in firing state apart from Watchdog and AlertmanagerReceiversNotConfigured [Early][apigroup:config.openshift.io]", func() {
 			if len(os.Getenv("TEST_UNSUPPORTED_ALLOW_VERSION_SKEW")) > 0 {
 				e2eskipper.Skipf("Test is disabled to allow cluster components to have different versions, and skewed versions trigger multiple other alerts")
 			}
@@ -729,7 +746,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 		})
 
-		g.It("should provide named network metrics", func() {
+		g.It("should provide named network metrics [apigroup:project.openshift.io]", func() {
 			ns := oc.SetupProject()
 
 			cs, err := newDynClientSet()
@@ -900,17 +917,26 @@ func getBearerTokenURLViaPod(ns, execPodName, url, bearer string) (string, error
 	return output, nil
 }
 
-func hasPullSecret(client clientset.Interface, name string) bool {
-	scrt, err := client.CoreV1().Secrets("openshift-config").Get(context.Background(), "pull-secret", metav1.GetOptions{})
+// telemetryIsEnabled returns (nil, nil) if Telemetry is enabled,
+// (error, nil) if Telemetry is not enabled, and (_, error) if it fails
+// to determine whether or not Telemetry is enabled.
+func telemetryIsEnabled(ctx context.Context, client clientset.Interface) (enabled error, err error) {
+	domain := "cloud.openshift.com"
+	if hasSecret, err := hasPullSecret(ctx, client, domain); err != nil || hasSecret != nil {
+		return hasSecret, err
+	}
+
+	return isTelemeterClientEnabled(ctx, client)
+}
+
+func hasPullSecret(ctx context.Context, client clientset.Interface, name string) (enabled error, err error) {
+	scrt, err := client.CoreV1().Secrets("openshift-config").Get(ctx, "pull-secret", metav1.GetOptions{})
 	if err != nil {
-		if kapierrs.IsNotFound(err) {
-			return false
-		}
-		e2e.Failf("could not retrieve pull-secret: %v", err)
+		return nil, fmt.Errorf("could not retrieve pull-secret: %w", err)
 	}
 
 	if scrt.Type != v1.SecretTypeDockerConfigJson {
-		e2e.Failf("error expecting secret type %s got %s", v1.SecretTypeDockerConfigJson, scrt.Type)
+		return nil, fmt.Errorf("error expecting openshift-config/pull-secret type %s got %s", v1.SecretTypeDockerConfigJson, scrt.Type)
 	}
 
 	ps := struct {
@@ -920,9 +946,37 @@ func hasPullSecret(client clientset.Interface, name string) bool {
 	}{}
 
 	if err := json.Unmarshal(scrt.Data[v1.DockerConfigJsonKey], &ps); err != nil {
-		e2e.Failf("could not unmarshal pullSecret from openshift-config/pull-secret: %v", err)
+		return nil, fmt.Errorf("could not unmarshal pullSecret from openshift-config/pull-secret: %w", err)
 	}
-	return len(ps.Auths[name].Auth) > 0
+
+	if len(ps.Auths[name].Auth) == 0 {
+		return fmt.Errorf("openshift-config/pull-secret does not contain auth for %s", name), nil
+	}
+
+	return nil, nil
+}
+
+func isTelemeterClientEnabled(ctx context.Context, client clientset.Interface) (enabled error, err error) {
+	config, err := client.CoreV1().ConfigMaps("openshift-monitoring").Get(ctx, "cluster-monitoring-config", metav1.GetOptions{})
+	if err != nil {
+		if kapierrs.IsNotFound(err) {
+			return nil, nil // Telemetry is enabled by default
+		}
+		return nil, fmt.Errorf("could not retrieve monitoring configuration: %w", err)
+	}
+	var structuredConfig ClusterMonitoringConfiguration
+	if yamlConfig, ok := config.Data["config.yaml"]; !ok {
+		return nil, fmt.Errorf("openshift-monitoring/cluster-monitoring-config data lacks a config.yaml key: %v", config.Data)
+	} else if err := yaml.Unmarshal([]byte(yamlConfig), &structuredConfig); err != nil {
+		return nil, fmt.Errorf("error unmarshalling openshift-monitoring/cluster-monitoring-config config.yaml: %w", err)
+	}
+	if structuredConfig.TelemeterClientConfig == nil || structuredConfig.TelemeterClientConfig.Enabled == nil {
+		return nil, nil // Telemetry is enabled by default
+	}
+	if !*structuredConfig.TelemeterClientConfig.Enabled {
+		return fmt.Errorf("openshift-monitoring/cluster-monitoring-config telemeterClient enabled is: %t", *structuredConfig.TelemeterClientConfig.Enabled), nil
+	}
+	return nil, nil
 }
 
 func isTechPreviewCluster(oc *exutil.CLI) bool {
