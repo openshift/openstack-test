@@ -2,6 +2,7 @@ package openstack
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"reflect"
@@ -16,7 +17,7 @@ import (
 	g "github.com/onsi/ginkgo"
 	o "github.com/onsi/gomega"
 	"github.com/stretchr/objx"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -108,15 +109,20 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			machines, err := getMachines(dc)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
+			foundMachines := 0
 			for _, machine := range machines {
 				g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machine.Get("metadata.name")))
 				instance, err := servers.Get(computeClient, machine.Get("metadata.annotations.openstack-resourceId").String()).Extract()
-				o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machine.Get("metadata.name"))
-				g.By(fmt.Sprintf("Compare addresses with openstack interfaces for machine %q", instance.Name))
-				o.Expect(parseInstanceAddresses(instance.Addresses)).To(o.ConsistOf(getAddressesFromMachine(machine)), "Addresses not matching for instance %q", instance.Name)
+				var gerr gophercloud.ErrDefault404
+				if !errors.As(err, &gerr) {
+					o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machine.Get("metadata.name"))
+					g.By(fmt.Sprintf("Compare addresses with openstack interfaces for machine %q", instance.Name))
+					o.Expect(parseInstanceAddresses(instance.Addresses)).To(o.ConsistOf(getAddressesFromMachine(machine)), "Addresses not matching for instance %q", instance.Name)
+					foundMachines++
+				}
 			}
+			o.Expect(foundMachines).NotTo(o.Equal(0))
 		})
-
 	})
 })
 
@@ -273,7 +279,7 @@ func skipUnlessMachineAPIOperator(dc dynamic.Interface, c coreclient.NamespaceIn
 		if err == nil {
 			return true, nil
 		}
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			e2eskipper.Skipf("The cluster does not support machine instances")
 		}
 		e2e.Logf("Unable to check for machine api operator: %v", err)
@@ -286,7 +292,7 @@ func skipUnlessMachineAPIOperator(dc dynamic.Interface, c coreclient.NamespaceIn
 		if err == nil {
 			return true, nil
 		}
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			e2eskipper.Skipf("The cluster machines are not managed by machine api operator")
 		}
 		e2e.Logf("Unable to check for machine api operator: %v", err)
