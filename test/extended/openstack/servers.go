@@ -82,7 +82,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 					machine_name := machine.Get("metadata.name")
 					machine_phase := machine.Get("status.phase").String()
 					g.By(fmt.Sprintf("Get machine status for machine %q", machine_name))
-					o.Expect(machine_phase).To(o.Equal("Running"), "machine status is %q instead of Running", machine_name)
+					o.Expect(machine_phase).To(o.Equal("Running"), "machine status is %q instead of Running", machine_phase)
 					g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machine_name))
 					instance, err := servers.Get(computeClient, machine.Get("metadata.annotations.openstack-resourceId").String()).Extract()
 					o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machine_name)
