@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"time"
 
+	machinev1 "github.com/openshift/api/machine/v1beta1"
+	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -14,6 +17,7 @@ import (
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	imageutils "k8s.io/kubernetes/test/utils/image"
 	psapi "k8s.io/pod-security-admission/api"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type KuryrNetwork struct {
@@ -108,6 +112,13 @@ func CreatePod(clientSet *kubernetes.Clientset, nsName string, baseName string, 
 	return p, err
 }
 
+func DeleteMachinesetsDefer(client runtimeclient.Client, ms *machinev1.MachineSet) {
+	err := framework.DeleteMachineSets(client, ms)
+	if err != nil {
+		e2e.Logf("Error occured: %v", err)
+	}
+}
+
 // difference returns the elements in `a` that aren't in `b`.
 func difference(a []string, b []string) []string {
 	mb := make(map[string]struct{}, len(b))
@@ -121,4 +132,22 @@ func difference(a []string, b []string) []string {
 		}
 	}
 	return diff
+}
+
+func GetMachinesetRetry(client runtimeclient.Client, ms *machinev1.MachineSet, shouldExist bool) error {
+	var err error
+	const maxRetries = 5
+	const delay = 10
+	retries := 1
+	for retries < maxRetries {
+		_, err = framework.GetMachineSet(client, ms.Name)
+
+		if err != nil == shouldExist {
+			retries += 1
+			time.Sleep(time.Second * delay)
+		} else {
+			break
+		}
+	}
+	return err
 }

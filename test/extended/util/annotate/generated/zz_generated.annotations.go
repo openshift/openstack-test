@@ -713,6 +713,8 @@ var annotations = map[string]string{
 
 	"[Top Level] [sig-cli] Kubectl client kubectl wait should ignore not found error with --for=delete": "should ignore not found error with --for=delete [Disabled:Broken] [Suite:k8s]",
 
+	"[Top Level] [sig-installer][Suite:openshift/openstack] The OpenStack platform after deletion of a machineset should not have leftovers ports": "should not have leftovers ports [Suite:openshift/conformance/parallel]",
+
 	"[Top Level] [sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes in a server group": "creates Control plane nodes in a server group [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity": "creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity [Suite:openshift/conformance/parallel]",
