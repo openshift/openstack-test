@@ -722,8 +722,8 @@ github.com/openshift/machine-api-provider-openstack v0.0.0-20220707045855-23e8c4
 github.com/openshift/machine-api-provider-openstack v0.0.0-20220707045855-23e8c4523dac/go.mod h1:bv5dBm+HCaQk3RBWcOxPrcB0827II0skENz5eV6YJ7g=
 github.com/openshift/onsi-ginkgo v4.7.0-origin.0+incompatible h1:6XSBotNi58b4MwVV4F9o/jd4BaQd+uJyz+s5TR0/ot8=
 github.com/openshift/onsi-ginkgo v4.7.0-origin.0+incompatible/go.mod h1:azqkkH4Vpp9A579CC26hicol/wViXag9rOwElif6v9E=
-github.com/openshift/origin v1.5.0-alpha.3.0.20220815155142-e6728e5e1d97 h1:XhfU6ebHifrYY2QODInPRBp6ObXQLxdUg0TUPqhiNeE=
-github.com/openshift/origin v1.5.0-alpha.3.0.20220815155142-e6728e5e1d97/go.mod h1:FVqPxTjSRO5muYi2o70OqHAzSKCvao+OSb+q2l3Z8+k=
+github.com/openshift/origin v1.5.0-alpha.3.0.20220920202425-199ad942ed2d h1:V/WXZx1KRmMfxh4Lhcg8kzZtxZDscHP4Uqh46nazWDI=
+github.com/openshift/origin v1.5.0-alpha.3.0.20220920202425-199ad942ed2d/go.mod h1:Z7bebxkP6GVZV8C6k9MM7uKBZ+FJlACzGWBAeMbCva0=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pborman/uuid v1.2.0 h1:J7Q5mO4ysT1dv8hyrUGHb9+ooztCXu1D8MY8DZYsu3g=

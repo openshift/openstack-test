@@ -1,4 +1,7 @@
 
+openstack-tests: test/extended/openstack/*
+	go build -o $@ ./cmd/openshift-tests
+
 # Update generated artifacts.
 update:
 	go generate ./test/extended
@@ -7,9 +10,6 @@ update:
 verify:
 	./hack/verify.sh
 .PHONY: verify
-
-openstack-tests: test/extended/openstack/*
-	go build -o $@ ./cmd/openshift-tests
 
 run: openstack-tests
 	./$< run openshift/openstack

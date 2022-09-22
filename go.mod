@@ -12,7 +12,8 @@ require (
 	github.com/openshift/cluster-api-actuator-pkg v0.0.0-20220726100012-d4179aa1372d
 	github.com/openshift/library-go v0.0.0-20220525173854-9b950a41acdc
 	github.com/openshift/machine-api-provider-openstack v0.0.0-20220707045855-23e8c4523dac
-	github.com/openshift/origin v1.5.0-alpha.3.0.20220815155142-e6728e5e1d97
+	github.com/openshift/origin v1.5.0-alpha.3.0.20220920202425-199ad942ed2d
+	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/objx v0.2.0
@@ -26,6 +27,7 @@ require (
 	k8s.io/klog/v2 v2.60.1
 	k8s.io/kubectl v0.24.1
 	k8s.io/kubernetes v1.24.0
+	k8s.io/pod-security-admission v0.24.0
 	sigs.k8s.io/controller-runtime v0.12.3
 )
 
@@ -154,7 +156,6 @@ require (
 	github.com/openshift/machine-api-operator v0.2.1-0.20220608065814-f76a8f3ab734 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pkg/profile v1.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
@@ -236,7 +237,6 @@ require (
 	k8s.io/legacy-cloud-providers v0.24.0 // indirect
 	k8s.io/metrics v0.0.0 // indirect
 	k8s.io/mount-utils v0.0.0 // indirect
-	k8s.io/pod-security-admission v0.24.0 // indirect
 	k8s.io/sample-apiserver v0.0.0 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.30 // indirect

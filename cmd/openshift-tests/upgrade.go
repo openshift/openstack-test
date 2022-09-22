@@ -10,8 +10,10 @@ import (
 	"github.com/openshift/origin/pkg/synthetictests"
 	"github.com/openshift/origin/pkg/test/ginkgo"
 	"github.com/openshift/origin/test/e2e/upgrade"
-	"github.com/openshift/origin/test/extended/util/disruption/controlplane"
+	exutil "github.com/openshift/origin/test/extended/util"
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	"k8s.io/klog/v2"
 	"k8s.io/kubectl/pkg/util/templates"
 	"k8s.io/kubernetes/test/e2e/upgrades"
 )
@@ -71,8 +73,25 @@ var upgradeSuites = testSuites{
 	},
 }
 
-// upgradeTestPreSuite validates the test options.
+// upgradeTestPreSuite validates the test options and gathers data useful prior to launching the upgrade and it's
+// related tests.
 func upgradeTestPreSuite(opt *runOptions) error {
+	if !opt.DryRun {
+		testOpt := ginkgo.NewTestOptions(os.Stdout, os.Stderr)
+		config, err := decodeProvider(os.Getenv("TEST_PROVIDER"), testOpt.DryRun, false, nil)
+		if err != nil {
+			return err
+		}
+		if err := initializeTestFramework(exutil.TestContext, config, testOpt.DryRun); err != nil {
+			return err
+		}
+		klog.V(4).Infof("Loaded test configuration: %#v", exutil.TestContext)
+
+		if err := upgrade.GatherPreUpgradeResourceCounts(); err != nil {
+			return errors.Wrap(err, "error gathering preupgrade resource counts")
+		}
+	}
+
 	// Upgrade test output is important for debugging because it shows linear progress
 	// and when the CVO hangs.
 	opt.IncludeSuccessOutput = true
@@ -98,7 +117,7 @@ func upgradeTestPreTest() error {
 		return filterUpgrade(upgrade.NoTests(), func(string) bool { return true })
 	case "platform":
 		return filterUpgrade(upgrade.AllTests(), func(name string) bool {
-			return name == controlplane.NewKubeAvailableWithNewConnectionsTest().Name() || name == controlplane.NewKubeAvailableWithConnectionReuseTest().Name()
+			return false
 		})
 	default:
 		return filterUpgrade(upgrade.AllTests(), func(string) bool { return true })
