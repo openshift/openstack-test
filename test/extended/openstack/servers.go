@@ -85,12 +85,14 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 					g.By(fmt.Sprintf("Compare specs with openstack attributes for machine %q", instance.Name))
 					instanceFlavor, err := flavors.Get(computeClient, fmt.Sprintf("%v", instance.Flavor["id"])).Extract()
 					o.Expect(err).NotTo(o.HaveOccurred())
-					instanceImage, err := images.Get(computeClient, fmt.Sprintf("%v", instance.Image["id"])).Extract()
-					o.Expect(err).NotTo(o.HaveOccurred())
-					instanceSgs := parseInstanceSgs(instance.SecurityGroups)
-
 					o.Expect(instanceFlavor.Name).To(o.Equal(flavorMachineSet), "Flavor not matching for instance %q", instance.Name)
-					o.Expect(instanceImage.Name).To(o.Equal(imageMachineSet), "Image not matching for instance %q", instance.Name)
+					// Instance don't reference an image when using root volumes
+					if instance.Image["id"] != nil {
+						instanceImage, err := images.Get(computeClient, fmt.Sprintf("%v", instance.Image["id"])).Extract()
+						o.Expect(err).NotTo(o.HaveOccurred())
+						o.Expect(instanceImage.Name).To(o.Equal(imageMachineSet), "Image not matching for instance %q", instance.Name)
+					}
+					instanceSgs := parseInstanceSgs(instance.SecurityGroups)
 					o.Expect(instanceSgs).To(o.Equal(sgMachineSets), "SGs not matching for %q", instance.Name)
 				}
 			}
