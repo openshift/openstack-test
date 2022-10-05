@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
+	ini "gopkg.in/ini.v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
@@ -150,4 +153,40 @@ func GetMachinesetRetry(client runtimeclient.Client, ms *machinev1.MachineSet, s
 		}
 	}
 	return err
+}
+
+// return *ini.File from the 'key' section in the 'cmName' configMap of the specified 'namespace'.
+// oc get cm -n {{namespace}} {{cmName}} -o json | jq .data.{{key}}
+func getConfig(kubeClient kubernetes.Interface, namespace string, cmName string,
+	key string) (*ini.File, error) {
+
+	var cfg *ini.File
+	cmClient := kubeClient.CoreV1().ConfigMaps(namespace)
+	config, err := cmClient.Get(context.TODO(), cmName, metav1.GetOptions{})
+	if errors.IsNotFound(err) {
+		return nil, err
+	}
+	cfg, err = ini.Load([]byte(config.Data[key]))
+	if errors.IsNotFound(err) {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// return an harmonized string with the value of a property defined inside a section.
+// return string "#UNDEFINED#" if the property is not defined on the section.
+func getPropertyValue(sectionName string, propertyName string, cfg *ini.File) (string, error) {
+	section, err := cfg.GetSection(sectionName)
+	if err != nil {
+		return "", err
+	}
+	if section.HasKey(propertyName) {
+		property, err := section.GetKey(propertyName)
+		if err != nil {
+			return "", err
+		}
+		return strings.ToLower(property.Value()), nil
+	} else {
+		return "#UNDEFINED#", nil
+	}
 }
