@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	serviceCompute = "compute"
-	serviceNetwork = "network"
+	serviceCompute      = "compute"
+	serviceNetwork      = "network"
+	serviceLoadBalancer = "load-balancer"
 )
 
 // client generates a Gophercloud client for the given service. Available
