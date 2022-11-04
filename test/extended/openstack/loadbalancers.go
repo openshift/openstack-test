@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/gophercloud/gophercloud"
@@ -69,7 +70,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 		}
 
 		g.By("Creating Openshift resources")
-		// Reference on test/extended/testdata/openstack/udplb-default-manifests.yaml
 		labels := map[string]string{"app": "udp-lb-default-dep"}
 		depName := "udp-lb-default-dep"
 		svcName := "udp-lb-default-svc"
@@ -123,7 +123,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 		//o.Expect(pool.OperatingStatus).Should(o.Equal("ONLINE"), "Unexpected Operating Status on Openstack Pool: %q", pool.Name)
 		lbMethod, err := getClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
 		o.Expect(err).NotTo(o.HaveOccurred())
-		o.Expect(pool.LBMethod).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", pool.LBMethod)
+		o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", strings.ToLower(pool.LBMethod))
 
 		g.By("accessing the service 100 times from outside and storing the name of the pods answering")
 		results := make(map[string]int)
@@ -148,7 +148,7 @@ func getClusterLoadBalancerSetting(setting string, config *ini.File) (string, er
 
 	defaultLoadBalancerSettings := map[string]string{
 		"lb-provider": "amphora",
-		"lb-method":   "ROUND_ROBIN",
+		"lb-method":   "round_robin",
 	}
 
 	result, err := getPropertyValue("LoadBalancer", setting, config)
@@ -159,7 +159,7 @@ func getClusterLoadBalancerSetting(setting string, config *ini.File) (string, er
 		result = defaultLoadBalancerSettings[setting]
 		e2e.Logf("%q is not set on LoadBalancer section in cloud-provider-config, considering default value %q", setting, result)
 	}
-	return result, nil
+	return strings.ToLower(result), nil
 }
 
 // Return the FloatingIP assigned to a provided IP and return error if it is not found.
@@ -214,11 +214,11 @@ func getPodNameThroughUdpLb(ip string, port string, message string) (string, err
 
 // Check if the provided lbMethod is applied considering the
 // result map (<pod name>: <number of accesses>) and the list of pods provided.
-// TO DO: Only 'ROUND_ROBIN' method implement for the moment.
+// TO DO: Only 'round_robin' method implement for the moment.
 func isLbMethodApplied(lbMethod string, results map[string]int, pods *v1.PodList) bool {
 
 	safeguard := 20
-	if lbMethod == "ROUND_ROBIN" {
+	if lbMethod == "round_robin" {
 		minAccesses := int(100/len(pods.Items) - safeguard)
 		for _, pod := range pods.Items {
 			e2e.Logf("Checking if pod %q has been accessed at least %v number of times...", pod.Name, minAccesses)
