@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/gophercloud/gophercloud"
@@ -33,6 +34,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 	var loadBalancerClient *gophercloud.ServiceClient
 	var networkClient *gophercloud.ServiceClient
 	var clientSet *kubernetes.Clientset
+	availableLbProvidersUnderTests := [2]string{"Amphora", "OVN"}
 
 	g.BeforeEach(func() {
 
@@ -54,93 +56,96 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 	})
 
 	// https://issues.redhat.com/browse/OSASINFRA-2753
-	g.It("should create an UDP Amphora LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift", func() {
+	for _, i := range availableLbProvidersUnderTests {
+		lbProviderUnderTest := i
+		g.It(fmt.Sprintf("should create an UDP %s LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift", lbProviderUnderTest), func() {
 
-		g.By("Checking loadBalancer provider")
-		cloudProviderConfig, err := getConfig(oc.AdminKubeClient(),
-			"openshift-config",
-			"cloud-provider-config",
-			"config")
-		o.Expect(err).NotTo(o.HaveOccurred())
-		lbProvider, err := getClusterLoadBalancerSetting("lb-provider", cloudProviderConfig)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		if lbProvider != "amphora" {
-			e2eskipper.Skipf("Test not applicable for LoadBalancer provider different than Amphora: %q", lbProvider)
-		}
-
-		g.By("Creating Openshift resources")
-		// Reference on test/extended/testdata/openstack/udplb-default-manifests.yaml
-		labels := map[string]string{"app": "udp-lb-default-dep"}
-		depName := "udp-lb-default-dep"
-		svcName := "udp-lb-default-svc"
-		testDeployment := e2edeployment.NewDeployment(depName, 2, labels, "udp-test",
-			imageutils.GetE2EImage(imageutils.Agnhost), appsv1.RollingUpdateDeploymentStrategyType)
-		testDeployment.Spec.Template.Spec.SecurityContext = e2epod.GetRestrictedPodSecurityContext()
-		testDeployment.Spec.Template.Spec.Containers[0].SecurityContext = e2epod.GetRestrictedContainerSecurityContext()
-		testDeployment.Spec.Template.Spec.Containers[0].Args = []string{"netexec", "--udp-port=8081"}
-		testDeployment.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{{
-			ContainerPort: 8081,
-			Protocol:      "UDP",
-		}}
-		deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
-			testDeployment, metav1.CreateOptions{})
-		o.Expect(err).NotTo(o.HaveOccurred())
-		err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
-		o.Expect(err).NotTo(o.HaveOccurred())
-
-		jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName)
-		jig.Labels = labels
-		svc, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
-			svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: 8082, TargetPort: intstr.FromInt(8081)}}
-			svc.Spec.Selector = labels
-		})
-		o.Expect(err).NotTo(o.HaveOccurred())
-
-		g.By("Checks from openshift perspective")
-		o.Expect(svc.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]).ShouldNot(o.BeEmpty(),
-			"load-balancer-id annotation missing")
-		loadBalancerId := svc.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]
-		o.Expect(svc.Status.LoadBalancer.Ingress[0].IP).ShouldNot(o.BeEmpty(), "FIP missing on svc Status")
-		o.Expect(svc.Spec.ExternalTrafficPolicy).Should(o.Equal(v1.ServiceExternalTrafficPolicyTypeCluster),
-			"Unexpected ExternalTrafficPolicy on svc specs")
-
-		g.By("Checks from openstack perspective")
-		lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
-		o.Expect(err).NotTo(o.HaveOccurred())
-		o.Expect(lb.Provider).Should(o.Equal("amphora"), "Unexpected provider in the Openstack LoadBalancer")
-
-		svcIp := svc.Status.LoadBalancer.Ingress[0].IP
-		svcPort := fmt.Sprint(svc.Spec.Ports[0].Port)
-		fip, err := getFipbyFixedIP(networkClient, lb.VipAddress)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		o.Expect(fip.FloatingIP).Should(o.Equal(svcIp), "Unexpected floatingIp in the Openstack LoadBalancer")
-		o.Expect(lb.Pools).Should(o.HaveLen(1), "Unexpected number of pools on Openstack LoadBalancer %q", lb.Name)
-
-		pool, err := pools.Get(loadBalancerClient, lb.Pools[0].ID).Extract()
-		o.Expect(err).NotTo(o.HaveOccurred())
-		o.Expect(pool.Protocol).Should(o.Equal("UDP"), "Unexpected protocol on Openstack LoadBalancer Pool: %q", pool.Name)
-		//Set as OFFLINE in vexxhost despite the lb is operative
-		//o.Expect(pool.OperatingStatus).Should(o.Equal("ONLINE"), "Unexpected Operating Status on Openstack Pool: %q", pool.Name)
-		lbMethod, err := getClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		o.Expect(pool.LBMethod).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", pool.LBMethod)
-
-		g.By("accessing the service 100 times from outside and storing the name of the pods answering")
-		results := make(map[string]int)
-		for i := 0; i < 100; i++ {
-			// https://github.com/kubernetes/kubernetes/blob/master/test/images/agnhost/README.md#netexec
-			podName, err := getPodNameThroughUdpLb(svcIp, svcPort, "hostname")
-			if err != nil {
-				e2e.Logf("Error detected while accessing the LoadBalancer service on try %d: %q", i, err)
-			} else {
-				results[podName]++
+			g.By("Checking loadBalancer provider")
+			cloudProviderConfig, err := getConfig(oc.AdminKubeClient(),
+				"openshift-config",
+				"cloud-provider-config",
+				"config")
+			o.Expect(err).NotTo(o.HaveOccurred())
+			lbProvider, err := getClusterLoadBalancerSetting("lb-provider", cloudProviderConfig)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			if lbProvider != strings.ToLower(lbProviderUnderTest) {
+				e2eskipper.Skipf("Test not applicable for LoadBalancer provider different than %s. Cluster is configured with %q", lbProviderUnderTest, lbProvider)
 			}
-		}
-		e2e.Logf("Pods accessed after 100 UDP requests:\n%v\n", results)
-		pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(context.Background(), metav1.ListOptions{})
-		o.Expect(err).NotTo(o.HaveOccurred())
-		o.Expect(isLbMethodApplied(lbMethod, results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
-	})
+
+			g.By("Creating Openshift deployment")
+			labels := map[string]string{"app": "udp-lb-default-dep"}
+			depName := "udp-lb-default-dep"
+			svcName := "udp-lb-default-svc"
+			svcPort := int32(8082)
+			testDeployment := e2edeployment.NewDeployment(depName, 2, labels, "udp-test",
+				imageutils.GetE2EImage(imageutils.Agnhost), appsv1.RollingUpdateDeploymentStrategyType)
+			testDeployment.Spec.Template.Spec.SecurityContext = e2epod.GetRestrictedPodSecurityContext()
+			testDeployment.Spec.Template.Spec.Containers[0].SecurityContext = e2epod.GetRestrictedContainerSecurityContext()
+			testDeployment.Spec.Template.Spec.Containers[0].Args = []string{"netexec", "--udp-port=8081"}
+			testDeployment.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{{
+				ContainerPort: 8081,
+				Protocol:      "UDP",
+			}}
+			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+				testDeployment, metav1.CreateOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Creating Openshift LoadBalancer Service")
+			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName)
+			jig.Labels = labels
+			svc, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort, TargetPort: intstr.FromInt(8081)}}
+				svc.Spec.Selector = labels
+			})
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Checks from openshift perspective")
+			loadBalancerId := svc.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]
+			o.Expect(loadBalancerId).ShouldNot(o.BeEmpty(), "load-balancer-id annotation missing")
+			o.Expect(svc.Status.LoadBalancer.Ingress).ShouldNot(o.BeEmpty(), "svc.Status.LoadBalancer.Ingress should not be empty")
+			svcIp := svc.Status.LoadBalancer.Ingress[0].IP
+			o.Expect(svcIp).ShouldNot(o.BeEmpty(), "FIP missing on svc Status")
+			o.Expect(svc.Spec.ExternalTrafficPolicy).Should(o.Equal(v1.ServiceExternalTrafficPolicyTypeCluster),
+				"Unexpected ExternalTrafficPolicy on svc specs")
+
+			g.By("Checks from openstack perspective")
+			lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(lb.Provider).Should(o.Equal(strings.ToLower(lbProviderUnderTest)), "Unexpected provider in the Openstack LoadBalancer")
+
+			fip, err := getFipbyFixedIP(networkClient, lb.VipAddress)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(fip.FloatingIP).Should(o.Equal(svcIp), "Unexpected floatingIp in the Openstack LoadBalancer")
+			o.Expect(lb.Pools).Should(o.HaveLen(1), "Unexpected number of pools on Openstack LoadBalancer %q", lb.Name)
+
+			pool, err := pools.Get(loadBalancerClient, lb.Pools[0].ID).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(pool.Protocol).Should(o.Equal("UDP"), "Unexpected protocol on Openstack LoadBalancer Pool: %q", pool.Name)
+			//Set as OFFLINE in vexxhost despite the lb is operative
+			//o.Expect(pool.OperatingStatus).Should(o.Equal("ONLINE"), "Unexpected Operating Status on Openstack Pool: %q", pool.Name)
+			lbMethod, err := getClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", strings.ToLower(pool.LBMethod))
+
+			g.By("accessing the service 100 times from outside and storing the name of the pods answering")
+			results := make(map[string]int)
+			for i := 0; i < 100; i++ {
+				// https://github.com/kubernetes/kubernetes/blob/master/test/images/agnhost/README.md#netexec
+				podName, err := getPodNameThroughUdpLb(svcIp, fmt.Sprintf("%d", svcPort), "hostname")
+				if err != nil {
+					e2e.Logf("Error detected while accessing the LoadBalancer service on try %d: %q", i, err)
+				} else {
+					results[podName]++
+				}
+			}
+			e2e.Logf("Pods accessed after 100 UDP requests:\n%v\n", results)
+			pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(context.Background(), metav1.ListOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(isLbMethodApplied(lbMethod, results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
+		})
+	}
 })
 
 // get the LoadBalancer setting based on the provided CloudProviderConfig INI file and the default values
@@ -148,7 +153,7 @@ func getClusterLoadBalancerSetting(setting string, config *ini.File) (string, er
 
 	defaultLoadBalancerSettings := map[string]string{
 		"lb-provider": "amphora",
-		"lb-method":   "ROUND_ROBIN",
+		"lb-method":   "round_robin",
 	}
 
 	result, err := getPropertyValue("LoadBalancer", setting, config)
@@ -159,7 +164,7 @@ func getClusterLoadBalancerSetting(setting string, config *ini.File) (string, er
 		result = defaultLoadBalancerSettings[setting]
 		e2e.Logf("%q is not set on LoadBalancer section in cloud-provider-config, considering default value %q", setting, result)
 	}
-	return result, nil
+	return strings.ToLower(result), nil
 }
 
 // Return the FloatingIP assigned to a provided IP and return error if it is not found.
@@ -214,11 +219,11 @@ func getPodNameThroughUdpLb(ip string, port string, message string) (string, err
 
 // Check if the provided lbMethod is applied considering the
 // result map (<pod name>: <number of accesses>) and the list of pods provided.
-// TO DO: Only 'ROUND_ROBIN' method implement for the moment.
 func isLbMethodApplied(lbMethod string, results map[string]int, pods *v1.PodList) bool {
 
 	safeguard := 20
-	if lbMethod == "ROUND_ROBIN" {
+	// https://github.com/openstack/octavia/blob/master/releasenotes/notes/add-lb-algorithm-source-ip-port-ff86433143e43136.yaml
+	if lbMethod == "round_robin" || lbMethod == "source_ip_port" {
 		minAccesses := int(100/len(pods.Items) - safeguard)
 		for _, pod := range pods.Items {
 			e2e.Logf("Checking if pod %q has been accessed at least %v number of times...", pod.Name, minAccesses)
