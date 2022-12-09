@@ -175,7 +175,6 @@
 // test/extended/testdata/builds/webhook/github/testdata/pushevent.json
 // test/extended/testdata/builds/webhook/gitlab/testdata/pushevent-not-master-branch.json
 // test/extended/testdata/builds/webhook/gitlab/testdata/pushevent.json
-// test/extended/testdata/cli/pod-with-two-containers.yaml
 // test/extended/testdata/cluster/master-vert.yaml
 // test/extended/testdata/cluster/quickstarts/cakephp-mysql.json
 // test/extended/testdata/cluster/quickstarts/dancer-mysql.json
@@ -203,26 +202,16 @@
 // test/extended/testdata/cmd/test/cmd/env.sh
 // test/extended/testdata/cmd/test/cmd/framework-test.sh
 // test/extended/testdata/cmd/test/cmd/get.sh
-// test/extended/testdata/cmd/test/cmd/idle.sh
 // test/extended/testdata/cmd/test/cmd/image-lookup.sh
 // test/extended/testdata/cmd/test/cmd/images.sh
-// test/extended/testdata/cmd/test/cmd/login.sh
-// test/extended/testdata/cmd/test/cmd/migrate.sh
-// test/extended/testdata/cmd/test/cmd/newapp.sh
-// test/extended/testdata/cmd/test/cmd/policy.sh
 // test/extended/testdata/cmd/test/cmd/printer.sh
 // test/extended/testdata/cmd/test/cmd/quota.sh
-// test/extended/testdata/cmd/test/cmd/registry.sh
-// test/extended/testdata/cmd/test/cmd/routes.sh
-// test/extended/testdata/cmd/test/cmd/run.sh
 // test/extended/testdata/cmd/test/cmd/secrets.sh
-// test/extended/testdata/cmd/test/cmd/services.sh
 // test/extended/testdata/cmd/test/cmd/set-data.sh
 // test/extended/testdata/cmd/test/cmd/set-image.sh
 // test/extended/testdata/cmd/test/cmd/set-liveness-probe.sh
 // test/extended/testdata/cmd/test/cmd/setbuildhook.sh
 // test/extended/testdata/cmd/test/cmd/setbuildsecret.sh
-// test/extended/testdata/cmd/test/cmd/status.sh
 // test/extended/testdata/cmd/test/cmd/templates.sh
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json
@@ -347,7 +336,6 @@
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json
-// test/extended/testdata/jobs/v1.yaml
 // test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt
 // test/extended/testdata/ldap/groupsync/ad/blacklist_openshift.txt
 // test/extended/testdata/ldap/groupsync/ad/ldapgroupuids.txt
@@ -443,21 +431,8 @@
 // test/extended/testdata/router/ingress.yaml
 // test/extended/testdata/router/reencrypt-serving-cert.yaml
 // test/extended/testdata/router/router-common.yaml
-// test/extended/testdata/router/router-config-manager.yaml
-// test/extended/testdata/router/router-grpc-interop-routes.yaml
-// test/extended/testdata/router/router-grpc-interop.yaml
-// test/extended/testdata/router/router-h2spec-routes.yaml
-// test/extended/testdata/router/router-h2spec.yaml
 // test/extended/testdata/router/router-http-echo-server.yaml
-// test/extended/testdata/router/router-http2-routes.yaml
-// test/extended/testdata/router/router-http2.yaml
-// test/extended/testdata/router/router-idle.yaml
 // test/extended/testdata/router/router-metrics.yaml
-// test/extended/testdata/router/router-override-domains.yaml
-// test/extended/testdata/router/router-override.yaml
-// test/extended/testdata/router/router-scoped.yaml
-// test/extended/testdata/router/router-shard.yaml
-// test/extended/testdata/router/weighted-router.yaml
 // test/extended/testdata/run_policy/parallel-bc.yaml
 // test/extended/testdata/run_policy/serial-bc.yaml
 // test/extended/testdata/run_policy/serial-latest-only-bc.yaml
@@ -485,6 +460,7 @@
 // test/extended/testdata/test-secret.json
 // test/extended/testdata/verifyservice-pipeline-template.yaml
 // e2echart/e2e-chart-template.html
+// e2echart/test-risk-analysis.html
 package testdata
 
 import (
@@ -2802,8 +2778,8 @@ func examplesDbTemplatesRedisPersistentTemplateJson() (*asset, error) {
 }
 
 var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
-  "kind": "List",
-  "apiVersion": "v1",
+  "kind": "ImageStreamList",
+  "apiVersion": "image.openshift.io/v1",
   "items": [
     {
       "kind": "ImageStream",
@@ -24147,57 +24123,6 @@ func testExtendedTestdataBuildsWebhookGitlabTestdataPusheventJson() (*asset, err
 	return a, nil
 }
 
-var _testExtendedTestdataCliPodWithTwoContainersYaml = []byte(`kind: Pod
-apiVersion: v1
-metadata:
-  name: doublecontainers
-  labels:
-    name: hello-centos
-spec:
-  containers:
-  - name: hello-centos
-    image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
-    command:
-      - /bin/sleep
-      - infinity
-    resources:
-      limits:
-        memory: 256Mi
-    terminationMessagePath: "/dev/termination-log"
-    imagePullPolicy: IfNotPresent
-    securityContext: {}
-  - name: hello-centos-2
-    image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
-    command:
-      - /bin/sleep
-      - infinity
-    resources:
-      limits:
-        memory: 256Mi
-    terminationMessagePath: "/dev/termination-log1"
-    imagePullPolicy: IfNotPresent
-    securityContext: {}
-  restartPolicy: Always
-  dnsPolicy: ClusterFirst
-  serviceAccount: ''
-status: {}
-`)
-
-func testExtendedTestdataCliPodWithTwoContainersYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataCliPodWithTwoContainersYaml, nil
-}
-
-func testExtendedTestdataCliPodWithTwoContainersYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataCliPodWithTwoContainersYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cli/pod-with-two-containers.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _testExtendedTestdataClusterMasterVertYaml = []byte(`provider: local
 ClusterLoader:
   cleanup: true
@@ -30346,89 +30271,6 @@ func testExtendedTestdataCmdTestCmdGetSh() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataCmdTestCmdIdleSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete all,templates --all
-  exit 0
-) &>/dev/null
-
-project="$(oc project -q)"
-idled_at_annotation='idling.alpha.openshift.io/idled-at'
-unidle_target_annotation='idling.alpha.openshift.io/unidle-targets'
-prev_scale_annotation='idling.alpha.openshift.io/previous-scale'
-idled_at_template="{{index .metadata.annotations \"${idled_at_annotation}\"}}"
-unidle_target_template="{{index .metadata.annotations \"${unidle_target_annotation}\"}}"
-prev_scale_template="{{index .metadata.annotations \"${prev_scale_annotation}\"}}"
-dc_name=""
-
-setup_idling_resources() {
-    os::cmd::expect_success 'oc delete all --all'
-
-    # set up resources for the idle command
-    os::cmd::expect_success 'oc create -f ${TEST_DATA}/idling-svc-route.yaml'
-    dc_name=$(basename $(oc create -f ${TEST_DATA}/idling-dc.yaml -o name))  # ` + "`" + `basename type/name` + "`" + ` --> name
-    os::cmd::expect_success "oc describe deploymentconfigs '${dc_name}'"
-    os::cmd::try_until_success 'oc describe endpoints idling-echo'
-
-    # deployer pod won't work, so just scale up the rc ourselves
-    os::cmd::try_until_success "oc get replicationcontroller ${dc_name}-1"
-    os::cmd::expect_success "oc scale replicationcontroller ${dc_name}-1 --replicas=2"
-    os::cmd::try_until_text "oc get pod -l app=idling-echo -o go-template='{{ len .items }}'" "2"
-
-    # wait for endpoints to populate. Ensure subset exists first to avoid nil dereference.
-    os::cmd::try_until_success "oc get endpoints idling-echo -o go-template='{{ index .subsets 0 }}'"
-    os::cmd::try_until_text "oc get endpoints idling-echo -o go-template='{{ len (index .subsets 0).addresses }}'" "2"
-}
-
-os::test::junit::declare_suite_start "cmd/idle/by-name"
-setup_idling_resources
-os::cmd::expect_failure "oc idle dc/${dc_name}" # make sure manually passing non-endpoints resources fails
-os::cmd::expect_success_and_text 'oc idle idling-echo' "The service will unidle DeploymentConfig \"${project}/${dc_name}\" to 2 replicas once it receives traffic"
-os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${idled_at_template}'" '.'
-#os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${unidle_target_template}' | jq '.[] | select(.name == \"${dc_name}\") | (.replicas == 2 and .kind == \"DeploymentConfig\")'" 'true'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/idle/by-label"
-setup_idling_resources
-os::cmd::expect_success_and_text 'oc idle -l app=idling-echo' "The service will unidle DeploymentConfig \"${project}/${dc_name}\" to 2 replicas once it receives traffic"
-os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${idled_at_template}'" '.'
-#os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${unidle_target_template}' | jq '.[] | select(.name == \"${dc_name}\") | (.replicas == 2 and .kind == \"DeploymentConfig\")'" 'true'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/idle/all"
-setup_idling_resources
-os::cmd::expect_success_and_text 'oc idle --all' "The service will unidle DeploymentConfig \"${project}/${dc_name}\" to 2 replicas once it receives traffic"
-os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${idled_at_template}'" '.'
-#os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${unidle_target_template}' | jq '.[] | select(.name == \"${dc_name}\") | (.replicas == 2 and .kind == \"DeploymentConfig\")'" 'true'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/idle/check-previous-scale"
-setup_idling_resources  # scales up to 2 replicas
-os::cmd::expect_success_and_text 'oc idle idling-echo' "The service will unidle DeploymentConfig \"${project}/${dc_name}\" to 2 replicas once it receives traffic"
-os::cmd::expect_success_and_text "oc get dc ${dc_name}  -o go-template='${prev_scale_template}'" '2'  # we see the result of the initial scale as the previous scale
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdIdleShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdIdleSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdIdleSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdIdleShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/idle.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _testExtendedTestdataCmdTestCmdImageLookupSh = []byte(`#!/bin/bash
 source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
 trap os::test::junit::reconcile_output EXIT
@@ -30846,1178 +30688,6 @@ func testExtendedTestdataCmdTestCmdImagesSh() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataCmdTestCmdLoginSh = []byte(`#!/bin/bash
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
-OS_ROOT=$(dirname "${BASH_SOURCE}")/../..
-source "${OS_ROOT}/hack/lib/init.sh"
-os::log::stacktrace::install
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete project project-foo
-  exit 0
-) &>/dev/null
-
-os::test::junit::declare_suite_start "cmd/login"
-# This test validates login functionality for the client
-# we want this test to run without $KUBECONFIG or $KUBERNETES_MASTER as it tests that functionality
-# ` + "`" + `oc` + "`" + ` will use in-cluster config if KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT
-# are set, as well as /var/run/secrets/kubernetes.io/serviceaccount/token exists. we
-# therefore can be sure that we are picking up no client configuration if we unset these variables
-login_kubeconfig="${ARTIFACT_DIR}/login.kubeconfig"
-CA_CERT=${MASTER_CONFIG_DIR}/server-ca.crt
-cp "${KUBECONFIG}" "${login_kubeconfig}"
-unset KUBECONFIG
-unset KUBERNETES_MASTER
-# test client not configured
-os::cmd::expect_failure_and_text "env -u KUBERNETES_SERVICE_HOST oc get services" 'Missing or incomplete configuration info.  Please login'
-unused_port="33333"
-# setting env bypasses the not configured message
-os::cmd::expect_failure_and_text "env -u KUBERNETES_SERVICE_HOST KUBERNETES_MASTER=http://${API_HOST}:${unused_port} oc get services" 'did you specify the right host or port'
-# setting --server bypasses the not configured message
-os::cmd::expect_failure_and_text "env -u KUBERNETES_SERVICE_HOST oc get services --server=http://${API_HOST}:${unused_port}" 'did you specify the right host or port'
-
-# Set KUBERNETES_MASTER for oc from now on
-export KUBERNETES_MASTER="${API_SCHEME}://${API_HOST}:${API_PORT}"
-
-# Set certificates for oc from now on
-if [[ "${API_SCHEME}" == "https" ]]; then
-    # test bad certificate
-    os::cmd::expect_failure_and_text "env -u KUBERNETES_SERVICE_HOST oc get services" 'certificate signed by unknown authority'
-fi
-
-# remove self-provisioner role from user and test login prompt before creating any projects
-os::cmd::expect_success "oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth --kubeconfig='${login_kubeconfig}'"
-os::cmd::expect_success_and_text "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${CA_CERT}' -u no-project-test-user -p anything" "You don't have any projects. Contact your system administrator to request a project"
-# make sure standard login prompt is printed once self-provisioner status is restored
-os::cmd::expect_success "oc adm policy add-cluster-role-to-group self-provisioner system:authenticated:oauth --kubeconfig='${login_kubeconfig}'"
-os::cmd::try_until_text "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${CA_CERT}' -u no-project-test-user -p anything" "You don't have any projects. You can try to create a new project, by running" $(( 30 * second )) 0.25
-# make sure ` + "`" + `oc login` + "`" + ` fails with unauthorized error
-os::cmd::expect_failure_and_text 'oc login <<< \n' 'Login failed \(401 Unauthorized\)'
-os::cmd::expect_success 'oc logout'
-echo "login and status messages: ok"
-
-# login and logout tests
-# bad token should error
-os::cmd::expect_failure_and_text "oc login ${KUBERNETES_MASTER} --certificate-authority='${CA_CERT}' --token=badvalue" 'The token provided is invalid or expired'
-# --token and --username are mutually exclusive
-os::cmd::expect_failure_and_text "oc login ${KUBERNETES_MASTER} -u test-user --token=tmp --insecure-skip-tls-verify" 'mutually exclusive'
-# must only accept one arg (server)
-os::cmd::expect_failure_and_text "oc login https://server1 https://server2.com" 'Only the server URL may be specified'
-# logs in with a valid certificate authority
-os::cmd::expect_success "oc login ${KUBERNETES_MASTER} --certificate-authority='${CA_CERT}' -u test-user -p anything"
-os::cmd::expect_success_and_text "cat ${HOME}/.kube/config" "v1"
-os::cmd::expect_success 'oc logout'
-# logs in skipping certificate check
-os::cmd::expect_success "oc login ${KUBERNETES_MASTER} --insecure-skip-tls-verify -u test-user -p anything"
-# logs in by an existing and valid token
-temp_token="$(oc whoami -t)"
-os::cmd::expect_success_and_text "oc login --token=${temp_token}" 'using the token provided'
-os::cmd::expect_success 'oc logout'
-# properly parse server port
-os::cmd::expect_failure_and_text 'oc login https://server1:844333' 'Not a valid port'
-# properly handle trailing slash
-os::cmd::expect_success "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${CA_CERT}' -u test-user -p anything"
-# create a new project
-os::cmd::expect_success "oc new-project project-foo --display-name='my project' --description='boring project description'"
-os::cmd::expect_success_and_text "oc project" 'Using project "project-foo"'
-# new user should get default context
-os::cmd::expect_success "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${CA_CERT}' -u new-and-unknown-user -p anything"
-os::cmd::expect_success_and_text 'oc config view' "current-context.+/${API_HOST}:${API_PORT}/new-and-unknown-user"
-# denies access after logging out
-os::cmd::expect_success 'oc logout'
-os::cmd::expect_failure_and_text 'oc get pods' '"system:anonymous" cannot list resource "pods" in API group ""'
-
-# make sure we report an error if the config file we pass is not writable
-# Does not work inside of a container, determine why and reenable
-# os::cmd::expect_failure_and_text "oc login '${KUBERNETES_MASTER}' -u test -p test '--kubeconfig=${templocation}/file' --insecure-skip-tls-verify" 'KUBECONFIG is set to a file that cannot be created or modified'
-echo "login warnings: ok"
-
-# login and create serviceaccount and test login and logout with a service account token
-os::cmd::expect_success "oc login ${KUBERNETES_MASTER} --certificate-authority='${CA_CERT}' -u test-user -p anything"
-os::cmd::expect_success_and_text "oc create sa testserviceaccount" "serviceaccount/testserviceaccount created"
-os::cmd::try_until_success "oc sa get-token testserviceaccount"
-os::cmd::expect_success_and_text "oc login --token=$(oc sa get-token testserviceaccount)" "system:serviceaccount:project-foo:testserviceaccount"
-# attempt to logout successfully
-os::cmd::expect_success_and_text "oc logout" "Logged \"system:serviceaccount:project-foo:testserviceaccount\" out"
-# verify that the token is no longer present in our local config
-os::cmd::expect_failure_and_text "oc whoami" 'User "system:anonymous" cannot get resource "users" in API group "user.openshift.io"'
-
-# log in and set project to use from now on
-os::cmd::expect_success "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${CA_CERT}' -u test-user -p anything"
-os::cmd::expect_success 'oc get projects'
-os::cmd::expect_success 'oc project project-foo'
-os::cmd::expect_success_and_text 'oc config view' "current-context.+project-foo/${API_HOST}:${API_PORT}/test-user"
-os::cmd::expect_success_and_text 'oc whoami' 'test-user'
-os::cmd::expect_success_and_text "oc whoami --kubeconfig='${login_kubeconfig}'" 'system:admin'
-os::cmd::expect_success_and_text 'oc whoami -t' '.'
-os::cmd::expect_success_and_text 'oc whoami -c' '.'
-
-# test config files from the --kubeconfig flag
-os::cmd::expect_success "oc get services --kubeconfig='${login_kubeconfig}'"
-# test config files from env vars
-os::cmd::expect_success "KUBECONFIG='${login_kubeconfig}' oc get services"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdLoginShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdLoginSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdLoginSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdLoginShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/login.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdMigrateSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete all --all
-  exit 0
-) &>/dev/null
-
-os::test::junit::declare_suite_start "cmd/migrate"
-# This test validates storage migration
-
-os::cmd::expect_success 'oc login -u system:admin'
-# ensure all namespaces have been deleted before attempting to perform global action
-os::cmd::try_until_not_text 'oc get ns --template "{{ range .items }}{{ if not (eq .status.phase \"Active\") }}1{{ end }}{{ end }}"' '1'
-
-project="$( oc project -q )"
-
-os::test::junit::declare_suite_start "cmd/migrate/storage"
-os::cmd::expect_success_and_text     'oc adm migrate storage' 'summary'
-os::cmd::expect_success_and_text     'oc adm migrate storage --loglevel=2' ": -n ${project} serviceaccounts/deployer"
-os::cmd::expect_success_and_not_text 'oc adm migrate storage --loglevel=2 --include=pods' ": -n ${project} serviceaccounts/deployer"
-os::cmd::expect_success_and_text     'oc adm migrate storage --loglevel=2 --include=sa --from-key=default/ --to-key=default/\xFF' ": -n default serviceaccounts/deployer"
-os::cmd::expect_success_and_not_text 'oc adm migrate storage --loglevel=2 --include=sa --from-key=default/ --to-key=default/deployer' ": -n default serviceaccounts/deployer"
-os::cmd::expect_success_and_text     'oc adm migrate storage --loglevel=2' 'unchanged:'
-os::cmd::expect_success_and_text     'oc adm migrate storage --bandwidth=20' 'summary:'
-os::cmd::expect_success_and_text     'oc adm migrate storage --confirm' 'storage migration does not support dry run, this flag is ignored'
-os::cmd::expect_success_and_text     'oc adm migrate storage -o=yaml' 'storage migration does not support dry run, this flag is ignored'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/migrate/storage_oauthclientauthorizations"
-# Create valid OAuth client
-os::cmd::expect_success_and_text     'oc create -f test/testdata/oauth/client.yaml' 'oauthclient.oauth.openshift.io/test-oauth-client created'
-# Create OAuth client authorization for client
-os::cmd::expect_success_and_text     'oc create -f test/testdata/oauth/clientauthorization.yaml' 'oauthclientauthorization.oauth.openshift.io/user1:test-oauth-client created'
-# Delete client
-os::cmd::expect_success_and_text     'oc delete oauthclient test-oauth-client' 'oauthclient.oauth.openshift.io "test-oauth-client" deleted'
-# Assert that migration/update still works even though the client authorization is no longer valid
-os::cmd::expect_success_and_text 'oc adm migrate storage --loglevel=6 --include=oauthclientauthorizations' 'PUT.*oauthclientauthorizations/user1:test-oauth-client'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/migrate/imagereferences"
-# create alternating items in history
-os::cmd::expect_success 'oc import-image --from=mysql:latest test:1 --confirm'
-os::cmd::expect_success 'oc import-image --from=php:latest test:2 --confirm'
-os::cmd::expect_success 'oc tag --source=docker php:latest test:1'
-os::cmd::expect_success 'oc tag --source=docker mysql:latest test:1'
-os::cmd::expect_success 'oc tag --source=docker mysql:latest test:2'
-os::cmd::expect_success 'oc tag --source=docker php:latest test:2'
-os::cmd::expect_success 'oc tag --source=docker myregistry.com/php:latest test:3'
-# verify error cases
-os::cmd::expect_failure_and_text     'oc adm migrate image-references' 'at least one mapping argument must be specified: REGISTRY/NAME=REGISTRY/NAME'
-os::cmd::expect_failure_and_text     'oc adm migrate image-references my.docker.io=docker.io/* --loglevel=1' 'all arguments'
-os::cmd::expect_failure_and_text     'oc adm migrate image-references my.docker.io/=docker.io/* --loglevel=1' 'not a valid source'
-os::cmd::expect_failure_and_text     'oc adm migrate image-references /*=docker.io/* --loglevel=1' 'not a valid source'
-os::cmd::expect_failure_and_text     'oc adm migrate image-references my.docker.io/*=docker.io --loglevel=1' 'all arguments'
-os::cmd::expect_failure_and_text     'oc adm migrate image-references my.docker.io/*=docker.io/ --loglevel=1' 'not a valid target'
-os::cmd::expect_failure_and_text     'oc adm migrate image-references my.docker.io/*=/x --loglevel=1' 'not a valid target'
-os::cmd::expect_failure_and_text     'oc adm migrate image-references my.docker.io/*=*/* --loglevel=1' 'at least one change'
-os::cmd::expect_failure_and_text     'oc adm migrate image-references a/b=a/b --loglevel=1' 'at least one field'
-os::cmd::expect_failure_and_text     'oc adm migrate image-references */*=*/* --loglevel=1' 'at least one change'
-# verify dry run
-os::cmd::expect_success_and_text     'oc adm migrate image-references my.docker.io/*=docker.io/* --loglevel=1' 'migrated=0'
-os::cmd::expect_success_and_text     'oc adm migrate image-references --include=imagestreams docker.io/*=my.docker.io/* --loglevel=1' "migrated \(dry run\): -n ${project} imagestreams.image.openshift.io/test"
-os::cmd::expect_success_and_text     'oc adm migrate image-references --include=imagestreams docker.io/mysql=my.docker.io/* --all-namespaces=false --loglevel=1' 'migrated=1'
-os::cmd::expect_success_and_text     'oc adm migrate image-references --include=imagestreams docker.io/mysql=my.docker.io/* --all-namespaces=false --loglevel=1 -o yaml' 'dockerImageReference: my.docker.io/mysql@sha256:'
-os::cmd::expect_success_and_text     'oc adm migrate image-references --include=imagestreams docker.io/other=my.docker.io/* --all-namespaces=false --loglevel=1' 'migrated=0'
-# only mysql references are changed
-os::cmd::expect_success_and_text     'oc adm migrate image-references --include=imagestreams docker.io/mysql=my.docker.io/mysql2 --all-namespaces=false --loglevel=1 --confirm' 'migrated=1'
-os::cmd::expect_success_and_text     'oc get istag test:1 --template "{{ .image.dockerImageReference }}"' '^my.docker.io/mysql2@sha256:'
-os::cmd::expect_success_and_text     'oc get istag test:2 --template "{{ .image.dockerImageReference }}"' '^php@sha256:'
-# all items in history are changed
-os::cmd::expect_success_and_text     'oc adm migrate image-references --include=imagestreams docker.io/*=my.docker.io/* --all-namespaces=false --loglevel=1 --confirm' 'migrated=1'
-os::cmd::expect_success_and_not_text 'oc get is test --template "{{ range .status.tags }}{{ range .items }}{{ .dockerImageReference }}{{ \"\n\" }}{{ end }}{{ end }}"' '^php'
-os::cmd::expect_success_and_not_text 'oc get is test --template "{{ range .status.tags }}{{ range .items }}{{ .dockerImageReference }}{{ \"\n\" }}{{ end }}{{ end }}"' '^mysql'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/migrate/legacyhpa"
-# create a legacy and a normal HPA
-os::cmd::expect_success 'oc create -f test/testdata/hpa/legacy-and-normal-hpa.yaml'
-# verify dry run
-os::cmd::expect_success_and_text 'oc adm migrate legacy-hpa' 'migrated=1'
-# confirm...
-os::cmd::expect_success_and_text 'oc adm migrate legacy-hpa --confirm' 'migrated=1'
-# verify that all HPAs are as they should be
-os::cmd::expect_success_and_text 'oc get hpa legacy-hpa -o jsonpath="{.spec.scaleTargetRef.apiVersion}.{.spec.scaleTargetRef.kind} {.spec.scaleTargetRef.name}"' 'apps.openshift.io/v1.DeploymentConfig legacy-target'
-os::cmd::expect_success_and_text 'oc get hpa other-hpa -o jsonpath="{.spec.scaleTargetRef.apiVersion}.{.spec.scaleTargetRef.kind} {.spec.scaleTargetRef.name}"' 'apps/v1.Deployment other-target'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdMigrateShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdMigrateSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdMigrateSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdMigrateShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/migrate.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdNewappSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc login -u system:admin
-  oc delete all,templates --all
-  oc delete all,templates --all -n openshift
-  oc delete project template-substitute
-  oc delete project prefix-template-substitute
-  oc delete project test-imagestreams
-  oc delete project new-app-syntax
-  rm -rf ./test/testdata/testapp
-  exit 0
-) &>/dev/null
-
-os::util::environment::setup_time_vars
-
-os::test::junit::declare_suite_start "cmd/newapp"
-
-default_project=$(oc project -q)
-#os::cmd::expect_success 'git clone https://github.com/openshift/ruby-hello-world.git ./test/testdata/testapp'
-
-# imagestream/tag creation and reuse
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/image-streams/image-streams-centos7.json -n openshift'
-os::cmd::expect_success 'oc delete istag php:latest -n openshift'
-os::cmd::expect_success 'oc new-project test-imagestreams'
-os::cmd::try_until_failure 'oc get istag php:latest -n openshift'
-
-# should fail due to missing php:latest tag
-os::cmd::expect_failure 'oc new-app --image-stream=openshift/php https://github.com/sclorg/cakephp-ex'
-
-# should succeed and create the php:latest tag in the current namespace
-os::cmd::expect_success 'oc new-app --docker-image=library/php https://github.com/sclorg/cakephp-ex --strategy=source'
-os::cmd::try_until_success 'oc get istag php:latest -n test-imagestreams'
-os::cmd::expect_success 'oc create istag php:latest --from=openshift/php:7.1 -n openshift'
-
-# create a new tag for an existing imagestream in the current namespace
-os::cmd::expect_success 'oc create istag perl:5.30 --from=openshift/perl:5.30'
-os::cmd::expect_success 'oc new-app --docker-image=library/perl https://github.com/sclorg/dancer-ex --strategy=source'
-os::cmd::try_until_success 'oc get istag perl:latest -n test-imagestreams'
-
-# remove redundant imagestream tag before creating objects
-os::cmd::expect_success_and_text 'oc new-app  openshift/ruby-27-centos7 https://github.com/openshift/ruby-hello-world  --strategy=docker --loglevel=5' 'Removing duplicate tag from object list'
-
-# create imagestream in the correct namespace
-os::cmd::expect_success 'oc new-app --name=mytest --image-stream=mysql --env=MYSQL_USER=test --env=MYSQL_PASSWORD=redhat --env=MYSQL_DATABASE=testdb -l app=mytest'
-os::cmd::try_until_success 'oc get is mytest -n test-imagestreams'
-
-# don't create an unnecessary imagestream
-os::cmd::expect_success 'oc new-app https://github.com/sclorg/nodejs-ex'
-os::cmd::expect_failure_and_text 'oc get is nodejs -n test-imagestreams' 'not found'
-
-# check reuse imagestreams
-os::cmd::expect_success "oc new-build -D $'FROM node:8\nRUN echo \"Test\"' --name=node8"
-os::cmd::try_until_success 'oc get istag node:8'
-os::cmd::expect_success "oc new-build -D $'FROM node:10\nRUN echo \"Test\"' --name=node10"
-os::cmd::try_until_success 'oc get istag node:10'
-
-# cleanup and reset to default namespace
-os::cmd::expect_success 'oc delete is --all -n openshift'
-os::cmd::expect_success 'oc delete project test-imagestreams'
-
-# This test validates the new-app command
-os::cmd::expect_success 'oc project ${default_project}'
-os::cmd::expect_success_and_text 'oc new-app library/php mysql -o yaml' '3306'
-os::cmd::expect_success_and_text 'oc new-app library/php mysql --dry-run' "Image \"library/php\" runs as the 'root' user which may not be permitted by your cluster administrator"
-os::cmd::expect_failure 'oc new-app unknownhubimage -o yaml'
-os::cmd::expect_failure_and_text 'oc new-app docker.io/node~https://github.com/sclorg/nodejs-ex' 'the image match \"docker.io/node\" for source repository \"https://github.com/sclorg/nodejs-ex\" does not appear to be a source-to-image builder.'
-os::cmd::expect_failure_and_text 'oc new-app https://github.com/sclorg/rails-ex' 'the image match \"ruby\" for source repository \"https://github.com/sclorg/rails-ex\" does not appear to be a source-to-image builder.'
-os::cmd::expect_success 'oc new-app https://github.com/sclorg/rails-ex --strategy=source --dry-run'
-# verify we can generate a container image based component "mongodb" directly
-os::cmd::expect_success_and_text 'oc new-app mongo -o yaml' 'image:\s*mongo'
-# the local image repository takes precedence over the Docker Hub "mysql" image
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/image-streams/image-streams-centos7.json'
-os::cmd::try_until_success 'oc get imagestreamtags mysql:latest' $((2*TIME_MIN))
-os::cmd::try_until_success 'oc get imagestreamtags mysql:5.6'    $((2*TIME_MIN))
-os::cmd::try_until_success 'oc get imagestreamtags mysql:5.7'    $((2*TIME_MIN))
-os::cmd::expect_success_and_not_text 'oc new-app mysql -o yaml' 'image:\s*mysql'
-os::cmd::expect_success_and_not_text 'oc new-app mysql --dry-run' "runs as the 'root' user which may not be permitted by your cluster administrator"
-# trigger and output should say 5.6
-os::cmd::expect_success_and_text 'oc new-app mysql -o yaml' 'mysql:5.7'
-os::cmd::expect_success_and_text 'oc new-app mysql --dry-run' 'tag "5.7" for "mysql"'
-# test deployments are created with the boolean flag and printed in the UI
-os::cmd::expect_success_and_text 'oc new-app mysql --dry-run --as-test' 'This image will be test deployed'
-os::cmd::expect_success_and_text 'oc new-app mysql -o yaml --as-test' 'test: true'
-os::cmd::expect_success_and_text 'oc new-app ${TEST_DATA}/new-app/template-minimal-expose.json --as-test' 'Access your application via route'
-os::cmd::expect_success 'oc delete all -l app=expose-output'
-os::cmd::expect_success_and_text 'oc new-app mysql --as-test' 'Application is not exposed'
-os::cmd::expect_success 'oc delete all -l app=mysql'
-
-# ensure that oc new-app does not emit a BuildConfigInstantiateFailed event when creating a new application
-os::cmd::expect_success 'oc new-app https://github.com/sclorg/ruby-ex'
-os::cmd::expect_success_and_not_text 'oc describe bc/ruby-ex' 'BuildConfigInstantiateFailed'
-os::cmd::expect_success 'oc delete all -l app=ruby-ex'
-
-# Ensure that an invalid build strategy in a template does not throw a segmentation fault
-os::cmd::expect_success_and_not_text 'oc new-app --file ${TEST_DATA}/new-app/invalid-build-strategy.yaml --dry-run' 'invalid memory address or nil pointer dereference'
-
-# test that imagestream references across imagestreams do not cause an error
-os::cmd::try_until_success 'oc get imagestreamtags ruby:2.7'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/new-app/imagestream-ref.yaml'
-os::cmd::try_until_success 'oc get imagestreamtags myruby:latest'
-os::cmd::expect_success 'oc new-app myruby~https://github.com/openshift/ruby-hello-world.git --dry-run'
-os::cmd::expect_success 'oc delete is myruby'
-
-# Ensure clear error message wrt templates container CRDs and new-app appears
-os::cmd::expect_failure_and_text 'oc new-app -f ${TEST_DATA}/new-app/template-with-crd.yaml' 'error: The template contained an object type unknown to '
-
-# docker strategy with repo that has no dockerfile
-os::cmd::expect_failure_and_text 'oc new-app https://github.com/sclorg/nodejs-ex --strategy=docker' 'No Dockerfile was found'
-
-# repo related error message validation
-os::cmd::expect_success 'oc create -f examples/db-templates/mysql-persistent-template.json'
-os::cmd::expect_failure_and_text 'oc new-app mysql-persisten mysql' 'only a partial match was found for'
-os::cmd::expect_success 'oc delete template/mysql-persistent'
-os::cmd::expect_failure_and_text 'oc new-app --strategy=docker https://192.30.253.113/openshift/ruby-hello-world.git' 'none of the arguments provided could be classified as a source code location'
-os::cmd::expect_failure_and_text 'oc new-app https://www.google.com/openshift/nodejs-e' 'unable to load template file'
-os::cmd::expect_failure_and_text 'oc new-app https://www.google.com/openshift/nodejs-e' 'unable to locate any'
-os::cmd::expect_failure_and_text 'oc new-app https://www.google.com/openshift/nodejs-e' 'was classified as an image, image~source, or loaded template reference.'
-os::cmd::expect_failure_and_text 'oc new-app https://examplegit.com/openshift/nodejs-e' 'unable to load template file'
-os::cmd::expect_failure_and_text 'oc new-app https://examplegit.com/openshift/nodejs-e' 'unable to locate any'
-os::cmd::expect_failure_and_text 'oc new-app https://examplegit.com/openshift/nodejs-e' 'was classified as an image, image~source, or loaded template reference.'
-os::cmd::expect_failure_and_text 'oc new-build --strategy=docker https://192.30.253.113/openshift/ruby-hello-world.git' 'none of the arguments provided could be classified as a source code location'
-os::cmd::expect_failure_and_text 'oc new-build https://www.google.com/openshift/nodejs-e' 'unable to load template file'
-os::cmd::expect_failure_and_text 'oc new-build https://www.google.com/openshift/nodejs-e' 'unable to locate any'
-os::cmd::expect_failure_and_text 'oc new-build https://www.google.com/openshift/nodejs-e' 'was classified as an image, image~source, or loaded template reference.'
-os::cmd::expect_failure_and_text 'oc new-build https://examplegit.com/openshift/nodejs-e' 'unable to load template file'
-os::cmd::expect_failure_and_text 'oc new-build https://examplegit.com/openshift/nodejs-e' 'unable to locate any'
-os::cmd::expect_failure_and_text 'oc new-build https://examplegit.com/openshift/nodejs-e' 'was classified as an image, image~source, or loaded template reference.'
-os::cmd::expect_failure_and_text 'oc new-build --name imagesourcetest python~https://github.com/openshift-katacoda/blog-django-py --source-image xxx --source-image-path=yyy --dry-run' 'unable to locate any '
-os::cmd::expect_failure_and_text 'oc new-app ~java' 'you must specify a image name'
-
-# setting source secret via the --source-secret flag
-os::cmd::expect_success_and_text 'oc new-app https://github.com/sclorg/cakephp-ex --source-secret=mysecret -o yaml' 'name: mysecret'
-os::cmd::expect_success_and_text 'oc new-build https://github.com/sclorg/cakephp-ex --source-secret=mynewsecret -o yaml' 'name: mynewsecret'
-os::cmd::expect_failure_and_text 'oc new-app https://github.com/sclorg/cakephp-ex --source-secret=InvalidSecretName -o yaml' 'error: source secret name "InvalidSecretName" is invalid'
-os::cmd::expect_success_and_text 'oc new-app -f examples/quickstarts/cakephp-mysql.json --source-secret=mysecret -o yaml' 'name: mysecret'
-os::cmd::expect_success 'oc new-app https://github.com/sclorg/cakephp-ex --source-secret=mysecret'
-os::cmd::expect_success 'oc delete all --selector="label=cakephp-ex"'
-# setting push secret via the --push-secret flag
-os::cmd::expect_success_and_text 'oc new-build https://github.com/sclorg/cakephp-ex --push-secret=mynewsecret -o yaml' 'name: mynewsecret'
-os::cmd::expect_failure_and_text 'oc new-build https://github.com/sclorg/cakephp-ex --push-secret=InvalidSecretName -o yaml' 'error: push secret name "InvalidSecretName" is invalid'
-
-
-# check label creation
-os::cmd::try_until_success 'oc get imagestreamtags php:latest'
-os::cmd::try_until_success 'oc get imagestreamtags php:5.5'
-os::cmd::try_until_success 'oc get imagestreamtags php:5.6'
-os::cmd::expect_success 'oc new-app php mysql -l no-source=php-mysql'
-os::cmd::expect_success 'oc delete all -l no-source=php-mysql'
-os::cmd::expect_success 'oc new-app php mysql'
-os::cmd::expect_success 'oc delete all -l app=php'
-os::cmd::expect_failure 'oc get dc/mysql'
-os::cmd::expect_failure 'oc get dc/php'
-os::cmd::expect_success_and_text 'oc new-app -f ${TEST_DATA}/new-app/template-without-app-label.json -o yaml' 'app: ruby-helloworld-sample'
-
-# check object namespace handling
-# hardcoded values should be stripped
-os::cmd::expect_success_and_not_text 'oc new-app -f ${TEST_DATA}/new-app/template-with-namespaces.json -o jsonpath="{.items[?(@.metadata.name==\"stripped\")].metadata.namespace}"' 'STRIPPED'
-# normal parameterized values should be substituted and retained
-os::cmd::expect_success_and_text 'oc new-app -f ${TEST_DATA}/new-app/template-with-namespaces.json -o jsonpath="{.items[?(@.metadata.name==\"route-edge-substituted\")].metadata.namespace}"' 'substituted'
-os::cmd::expect_success_and_text 'oc new-app -f ${TEST_DATA}/new-app/template-with-namespaces.json -o jsonpath="{.items[?(@.metadata.name==\"route-edge-prefix-substituted\")].metadata.namespace}"' 'prefix-substituted'
-# non-string parameterized values should be stripped
-os::cmd::expect_failure_and_text 'oc new-app -f ${TEST_DATA}/new-app/template-with-namespaces.json -o jsonpath="{.items[?(@.metadata.name==\"route-edge-refstripped\")].metadata.namespace}"' 'namespace is not found'
-os::cmd::expect_failure_and_text 'oc new-app -f ${TEST_DATA}/new-app/template-with-namespaces.json -o jsonpath="{.items[?(@.metadata.name==\"route-edge-prefix-refstripped\")].metadata.namespace}"' 'namespace is not found'
-# ensure --build-env environment variables get added to the buildconfig
-os::cmd::expect_success_and_text 'oc new-app -f ${TEST_DATA}/new-app/template-with-app-label.json --build-env FOO=bar -o yaml' 'FOO'
-# ensure the objects can actually get created with a namespace specified
-os::cmd::expect_success 'oc new-project template-substitute'
-os::cmd::expect_success 'oc new-project prefix-template-substitute'
-os::cmd::expect_success 'oc project ${default_project}'
-os::cmd::expect_success 'oc new-app -f ${TEST_DATA}/new-app/template-with-namespaces.json -p SUBSTITUTED=template-substitute'
-os::cmd::expect_success 'oc delete all -l app=ruby-helloworld-sample'
-
-# ensure non-duplicate invalid label errors show up
-os::cmd::expect_failure_and_text 'oc new-app docker.io/library/wordpress -l qwer1345%$$#=self' 'error: ImageStream.image.openshift.io "wordpress" is invalid'
-os::cmd::expect_failure_and_text 'oc new-app docker.io/library/wordpress -l qwer1345%$$#=self' 'DeploymentConfig.apps.openshift.io "wordpress" is invalid'
-os::cmd::expect_failure_and_text 'oc new-app docker.io/library/wordpress -l qwer1345%$$#=self' 'Service "wordpress" is invalid'
-
-# check if we can create from a stored template
-os::cmd::expect_success 'oc create -f examples/sample-app/application-template-stibuild.json'
-os::cmd::expect_success 'oc get template ruby-helloworld-sample'
-os::cmd::expect_success_and_text 'oc new-app ruby-helloworld-sample -o yaml' 'MYSQL_USER'
-os::cmd::expect_success_and_text 'oc new-app ruby-helloworld-sample -o yaml' 'MYSQL_PASSWORD'
-os::cmd::expect_success_and_text 'oc new-app ruby-helloworld-sample --param MYSQL_PASSWORD=hello -o yaml' 'hello'
-os::cmd::expect_success_and_text  'oc new-app -e FOO=BAR -f examples/jenkins/jenkins-ephemeral-template.json -o jsonpath="{.items[?(@.kind==\"DeploymentConfig\")].spec.template.spec.containers[0].env[?(@.name==\"FOO\")].value}" ' '^BAR$'
-os::cmd::expect_success_and_text  'oc new-app -e OPENSHIFT_ENABLE_OAUTH=false -f examples/jenkins/jenkins-ephemeral-template.json -o jsonpath="{.items[?(@.kind==\"DeploymentConfig\")].spec.template.spec.containers[0].env[?(@.name==\"OPENSHIFT_ENABLE_OAUTH\")].value}" ' 'false'
-
-# check that multiple resource groups are printed with their respective external version
-os::cmd::expect_success_and_text 'oc new-app -f ${TEST_DATA}/new-app/template_multiple_resource_gvs.yaml -o yaml' 'apiVersion: apps/v1'
-
-# check that an error is produced when using --context-dir with a template
-os::cmd::expect_failure_and_text 'oc new-app -f examples/sample-app/application-template-stibuild.json --context-dir=example' '\-\-context-dir is not supported when using a template'
-
-# check that values are not split on commas
-os::cmd::expect_success_and_text 'oc new-app ruby-helloworld-sample --param MYSQL_DATABASE=hello,MYSQL_USER=fail -o yaml' 'value: hello,MYSQL_USER=fail'
-# check that warning is printed when --param PARAM1=VAL1,PARAM2=VAL2 is used
-os::cmd::expect_success_and_text 'oc new-app ruby-helloworld-sample --param MYSQL_DATABASE=hello,MYSQL_USER=fail -o yaml' 'no longer accepts comma-separated list'
-# check that env vars are not split on commas
-os::cmd::expect_success_and_text 'oc new-app php --env PASS=one,two=three -o yaml' 'value: one,two=three'
-# check that warning is printed when --env PARAM1=VAL1,PARAM2=VAL2 is used
-os::cmd::expect_success_and_text 'oc new-app php --env PASS=one,two=three -o yaml' 'no longer accepts comma-separated list'
-# check that warning is not printed when --param/env doesn't contain two k-v pairs
-os::cmd::expect_success_and_not_text 'oc new-app php --env DEBUG=disabled -o yaml' 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_not_text 'oc new-app php --env LEVELS=INFO,WARNING -o yaml' 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_not_text 'oc new-app ruby-helloworld-sample --param MYSQL_USER=mysql -o yaml' 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_not_text 'oc new-app ruby-helloworld-sample --param MYSQL_PASSWORD=com,ma -o yaml' 'no longer accepts comma-separated list'
-# check that warning is not printed when env vars are passed positionally
-os::cmd::expect_success_and_text 'oc new-app php PASS=one,two=three -o yaml' 'value: one,two=three'
-os::cmd::expect_success_and_not_text 'oc new-app php PASS=one,two=three -o yaml' 'no longer accepts comma-separated list'
-
-# check that we can populate template parameters from file
-param_file="${TEST_DATA}/new-app/test-cmd-newapp-params.env"
-os::cmd::expect_success_and_text "oc new-app ruby-helloworld-sample --param-file ${param_file} -o jsonpath='{.items[?(@.kind==\"DeploymentConfig\")].spec.template.spec.containers[0].env[?(@.name==\"MYSQL_DATABASE\")].value}'" 'thisisadatabase'
-os::cmd::expect_success_and_text "oc new-app ruby-helloworld-sample --param-file ${param_file} --param MYSQL_DATABASE=otherdatabase -o jsonpath='{.items[?(@.kind==\"DeploymentConfig\")].spec.template.spec.containers[0].env[?(@.name==\"MYSQL_DATABASE\")].value}'" 'otherdatabase'
-os::cmd::expect_success_and_text "oc new-app ruby-helloworld-sample --param-file ${param_file} --param MYSQL_DATABASE=otherdatabase -o yaml" 'ignoring value from file'
-os::cmd::expect_success_and_text "cat ${param_file} | oc new-app ruby-helloworld-sample --param-file - -o jsonpath='{.items[?(@.kind==\"DeploymentConfig\")].spec.template.spec.containers[0].env[?(@.name==\"MYSQL_DATABASE\")].value}'" 'thisisadatabase'
-
-os::cmd::expect_failure_and_text "oc new-app ruby-helloworld-sample --param-file does/not/exist" 'no such file or directory'
-os::cmd::expect_failure_and_text "oc new-app ruby-helloworld-sample --param-file ${TEST_DATA}"  'is a directory'
-os::cmd::expect_success "oc new-app ruby-helloworld-sample --param-file /dev/null -o yaml"
-os::cmd::expect_success "oc new-app ruby-helloworld-sample --param-file /dev/null --param-file ${param_file} -o yaml"
-os::cmd::expect_failure_and_text "echo 'fo%(o=bar' | oc new-app ruby-helloworld-sample --param-file -" 'invalid parameter assignment'
-os::cmd::expect_failure_and_text "echo 'S P A C E S=test' | oc new-app ruby-helloworld-sample --param-file -" 'invalid parameter assignment'
-
-os::cmd::expect_failure_and_text 'oc new-app ruby-helloworld-sample --param ABSENT_PARAMETER=absent -o yaml' 'unexpected parameter name'
-os::cmd::expect_success 'oc new-app ruby-helloworld-sample --param ABSENT_PARAMETER=absent -o yaml --ignore-unknown-parameters'
-
-# check that we can set environment variables from env file
-env_file="${TEST_DATA}/new-app/test-cmd-newapp-env.env"
-os::cmd::expect_success_and_text "oc new-app php --env-file ${env_file} -o jsonpath='{.items[?(@.kind==\"DeploymentConfig\")].spec.template.spec.containers[0].env[?(@.name==\"SOME_VAR\")].value}'" 'envvarfromfile'
-os::cmd::expect_success_and_text "oc new-app php --env-file ${env_file} --env SOME_VAR=fromcmdline -o jsonpath='{.items[?(@.kind==\"DeploymentConfig\")].spec.template.spec.containers[0].env[?(@.name==\"SOME_VAR\")].value}'" 'fromcmdline'
-os::cmd::expect_success_and_text "oc new-app php --env-file ${env_file} --env SOME_VAR=fromcmdline -o yaml" 'ignoring value from file'
-os::cmd::expect_success_and_text "cat ${env_file} | oc new-app php --env-file - -o jsonpath='{.items[?(@.kind==\"DeploymentConfig\")].spec.template.spec.containers[0].env[?(@.name==\"SOME_VAR\")].value}'" 'envvarfromfile'
-
-os::cmd::expect_failure_and_text "oc new-app php --env-file does/not/exist" 'no such file or directory'
-os::cmd::expect_failure_and_text "oc new-app php --env-file ${TEST_DATA}/new-app"  'is a directory'
-os::cmd::expect_success "oc new-app php --env-file /dev/null -o yaml"
-os::cmd::expect_success "oc new-app php --env-file /dev/null --env-file ${env_file} -o yaml"
-os::cmd::expect_failure_and_text "echo 'fo%(o=bar' | oc new-app php --env-file -" 'invalid parameter assignment'
-os::cmd::expect_failure_and_text "echo 'S P A C E S=test' | oc new-app php --env-file -" 'invalid parameter assignment'
-
-# new-build
-# check that env vars are not split on commas and warning is printed where they previously have
-os::cmd::expect_success_and_text 'oc new-build --binary php --env X=Y,Z=W -o yaml' 'value: Y,Z=W'
-os::cmd::expect_success_and_text 'oc new-build --binary php --env X=Y,Z=W -o yaml' 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_text 'oc new-build --binary php --env X=Y,Z,W -o yaml' 'value: Y,Z,W'
-os::cmd::expect_success_and_not_text 'oc new-build --binary php --env X=Y,Z,W -o yaml' 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_not_text 'oc new-build --binary php --env X=Y -o yaml' 'no longer accepts comma-separated list'
-
-# new-build - load envvars from file
-os::cmd::expect_success_and_text "oc new-build --binary php --env-file ${env_file} -o jsonpath='{.items[?(@.kind==\"BuildConfig\")].spec.strategy.sourceStrategy.env[?(@.name==\"SOME_VAR\")].value}'" 'envvarfromfile'
-os::cmd::expect_success_and_text "oc new-build --binary php --env-file ${env_file} --env SOME_VAR=fromcmdline -o jsonpath='{.items[?(@.kind==\"BuildConfig\")].spec.strategy.sourceStrategy.env[?(@.name==\"SOME_VAR\")].value}'" 'fromcmdline'
-os::cmd::expect_success_and_text "oc new-build --binary php --env-file ${env_file} --env SOME_VAR=fromcmdline -o yaml" 'ignoring value from file'
-os::cmd::expect_success_and_text "cat ${env_file} | oc new-build --binary php --env-file ${env_file} -o jsonpath='{.items[?(@.kind==\"BuildConfig\")].spec.strategy.sourceStrategy.env[?(@.name==\"SOME_VAR\")].value}'" 'envvarfromfile'
-
-os::cmd::expect_failure_and_text "oc new-build --binary php --env-file does/not/exist" 'no such file or directory'
-os::cmd::expect_failure_and_text "oc new-build --binary php --env-file ${TEST_DATA}/new-app"  'is a directory'
-os::cmd::expect_success "oc new-build --binary php --env-file /dev/null -o yaml"
-os::cmd::expect_success "oc new-build --binary php --env-file /dev/null --env-file ${env_file} -o yaml"
-os::cmd::expect_failure_and_text "echo 'fo%(o=bar' | oc new-build --binary php --env-file -" 'invalid parameter assignment'
-os::cmd::expect_failure_and_text "echo 'S P A C E S=test' | oc new-build --binary php --env-file -" 'invalid parameter assignment'
-
-# check that we can set environment variables from build-env file
-build_env_file="${TEST_DATA}/new-app/test-cmd-newapp-build-env.env"
-
-os::cmd::expect_failure_and_text "oc new-app php --build-env-file does/not/exist" 'no such file or directory'
-os::cmd::expect_failure_and_text "oc new-app php --build-env-file ${TEST_DATA}/new-app"  'is a directory'
-os::cmd::expect_success "oc new-app php --build-env-file /dev/null -o yaml"
-os::cmd::expect_success "oc new-app php --build-env-file /dev/null --build-env-file ${build_env_file} -o yaml"
-os::cmd::expect_failure_and_text "echo 'fo%(o=bar' | oc new-app php --build-env-file -" 'invalid parameter assignment'
-os::cmd::expect_failure_and_text "echo 'S P A C E S=test' | oc new-app php --build-env-file -" 'invalid parameter assignment'
-
-# new-build
-# check that build env vars are not split on commas and warning is printed where they previously have
-os::cmd::expect_success_and_text 'oc new-build --binary php --build-env X=Y,Z=W -o yaml' 'value: Y,Z=W'
-os::cmd::expect_success_and_text 'oc new-build --binary php --build-env X=Y,Z=W -o yaml' 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_text 'oc new-build --binary php --build-env X=Y,Z,W -o yaml' 'value: Y,Z,W'
-os::cmd::expect_success_and_not_text 'oc new-build --binary php --build-env X=Y,Z,W -o yaml' 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_not_text 'oc new-build --binary php --build-env X=Y -o yaml' 'no longer accepts comma-separated list'
-
-# new-build - load build env vars from file
-os::cmd::expect_success_and_text "oc new-build --binary php --build-env-file ${build_env_file} -o jsonpath='{.items[?(@.kind==\"BuildConfig\")].spec.strategy.sourceStrategy.env[?(@.name==\"SOME_VAR\")].value}'" 'buildenvvarfromfile'
-os::cmd::expect_success_and_text "oc new-build --binary php --build-env-file ${build_env_file} --env SOME_VAR=fromcmdline -o jsonpath='{.items[?(@.kind==\"BuildConfig\")].spec.strategy.sourceStrategy.env[?(@.name==\"SOME_VAR\")].value}'" 'fromcmdline'
-os::cmd::expect_success_and_text "oc new-build --binary php --build-env-file ${build_env_file} --env SOME_VAR=fromcmdline -o yaml" 'ignoring value from file'
-os::cmd::expect_success_and_text "cat ${build_env_file} | oc new-build --binary php --build-env-file - -o jsonpath='{.items[?(@.kind==\"BuildConfig\")].spec.strategy.sourceStrategy.env[?(@.name==\"SOME_VAR\")].value}'" 'buildenvvarfromfile'
-
-os::cmd::expect_failure_and_text "oc new-build --binary php --build-env-file does/not/exist" 'no such file or directory'
-os::cmd::expect_failure_and_text "oc new-build --binary php --build-env-file ${TEST_DATA}/new-app"  'is a directory'
-os::cmd::expect_success "oc new-build --binary php --build-env-file /dev/null -o yaml"
-os::cmd::expect_success "oc new-build --binary php --build-env-file /dev/null --env-file ${build_env_file} -o yaml"
-os::cmd::expect_failure_and_text "echo 'fo%(o=bar' | oc new-build --binary php --build-env-file -" 'invalid parameter assignment'
-os::cmd::expect_failure_and_text "echo 'S P A C E S=test' | oc new-build --binary php --build-env-file -" 'invalid parameter assignment'
-
-# new-build - check that we can set build args in DockerStrategy
-os::cmd::expect_success_and_text "oc new-build ${TEST_DATA}/new-app/build-arg-dockerfile --build-arg 'foo=bar' --to 'test' -o jsonpath='{.items[?(@.kind==\"BuildConfig\")].spec.strategy.dockerStrategy.buildArgs[?(@.name==\"foo\")].value}'" 'bar'
-
-# check that we cannot set build args in a non-DockerStrategy build
-os::cmd::expect_failure_and_text "oc new-build https://github.com/openshift/ruby-hello-world --strategy=source --build-arg 'foo=bar'" "error: Cannot use '--build-arg' without a Docker build"
-os::cmd::expect_failure_and_text "oc new-build https://github.com/sclorg/ruby-ex --build-arg 'foo=bar'" "error: Cannot use '--build-arg' without a Docker build"
-
-#
-# verify we can create from a template when some objects in the template declare an app label
-# the app label will not be applied to any objects in the template.
-os::cmd::expect_success_and_not_text 'oc new-app -f ${TEST_DATA}/new-app/template-with-app-label.json -o yaml' 'app: ruby-helloworld-sample'
-# verify the existing app label on an object is not overridden by new-app
-os::cmd::expect_success_and_text 'oc new-app -f ${TEST_DATA}/new-app/template-with-app-label.json -o yaml' 'app: myapp'
-
-# verify that a template can be passed in stdin
-os::cmd::expect_success 'cat ${TEST_DATA}/application-template-stibuild.json | oc new-app -o yaml -f -'
-
-# check search
-os::cmd::expect_success_and_text 'oc new-app --search mysql' "Tags:\s+5.7, latest"
-os::cmd::expect_success_and_text 'oc new-app --search ruby-helloworld-sample' 'ruby-helloworld-sample'
-# check search - partial matches
-os::cmd::expect_success_and_text 'oc new-app --search ruby-hellow' 'ruby-helloworld-sample'
-os::cmd::expect_success_and_text 'oc new-app --search --template=ruby-hel' 'ruby-helloworld-sample'
-os::cmd::expect_success_and_text 'oc new-app --search --template=ruby-helloworld-sam -o yaml' 'ruby-helloworld-sample'
-os::cmd::expect_success_and_text 'oc new-app --search rub' "Tags:\s+2.3, 2.4, 2.5, latest"
-os::cmd::expect_success_and_text 'oc new-app --search --image-stream=rub' "Tags:\s+2.5, latest"
-# check search - check correct usage of filters
-os::cmd::expect_failure_and_not_text 'oc new-app --search --image-stream=ruby-heloworld-sample' 'application-template-stibuild'
-os::cmd::expect_failure 'oc new-app --search --template=php'
-os::cmd::expect_failure 'oc new-app -S --template=nodejs'
-os::cmd::expect_failure 'oc new-app -S --template=perl'
-# check search - filtered, exact matches
-# make sure the imagestreams are imported first.
-os::cmd::try_until_success 'oc get imagestreamtags mariadb:latest'
-os::cmd::try_until_success 'oc get imagestreamtags mariadb:10.1'
-os::cmd::try_until_success 'oc get imagestreamtags mariadb:10.2'
-os::cmd::try_until_success 'oc get imagestreamtags mongodb:latest'
-os::cmd::try_until_success 'oc get imagestreamtags mongodb:2.6'
-os::cmd::try_until_success 'oc get imagestreamtags mongodb:3.2'
-os::cmd::try_until_success 'oc get imagestreamtags mongodb:3.4'
-os::cmd::try_until_success 'oc get imagestreamtags mysql:latest'
-os::cmd::try_until_success 'oc get imagestreamtags mysql:5.6'
-os::cmd::try_until_success 'oc get imagestreamtags mysql:5.7'
-os::cmd::try_until_success 'oc get imagestreamtags nginx:latest'
-os::cmd::try_until_success 'oc get imagestreamtags nginx:1.14'
-os::cmd::try_until_success 'oc get imagestreamtags nginx:1.16'
-os::cmd::try_until_success 'oc get imagestreamtags nodejs:latest'
-os::cmd::try_until_success 'oc get imagestreamtags nodejs:12'
-os::cmd::try_until_success 'oc get imagestreamtags perl:latest'
-os::cmd::try_until_success 'oc get imagestreamtags perl:5.30'
-os::cmd::try_until_success 'oc get imagestreamtags php:latest'
-os::cmd::try_until_success 'oc get imagestreamtags php:7.0'
-os::cmd::try_until_success 'oc get imagestreamtags php:7.1'
-os::cmd::try_until_success 'oc get imagestreamtags postgresql:latest'
-os::cmd::try_until_success 'oc get imagestreamtags postgresql:9.5'
-os::cmd::try_until_success 'oc get imagestreamtags postgresql:9.6'
-os::cmd::try_until_success 'oc get imagestreamtags python:latest'
-os::cmd::try_until_success 'oc get imagestreamtags python:2.7'
-os::cmd::try_until_success 'oc get imagestreamtags python:3.6'
-os::cmd::try_until_success 'oc get imagestreamtags ruby:latest'
-os::cmd::try_until_success 'oc get imagestreamtags ruby:2.7'
-os::cmd::try_until_success 'oc get imagestreamtags wildfly:latest'
-os::cmd::try_until_success 'oc get imagestreamtags wildfly:20.0'
-os::cmd::try_until_success 'oc get imagestreamtags wildfly:21.0'
-
-os::cmd::expect_success_and_text 'oc new-app --search --image-stream=mariadb' "Tags:\s+10.1, 10.2, latest"
-os::cmd::expect_success_and_text 'oc new-app --search --image-stream=mongodb' "Tags:\s+3.2, 3.4, latest"
-os::cmd::expect_success_and_text 'oc new-app --search --image-stream=mysql' "Tags:\s+5.7, latest"
-os::cmd::expect_success_and_text 'oc new-app --search --image-stream=nginx' "Tags:\s+1.14, 1.16, latest"
-os::cmd::expect_success_and_text 'oc new-app --search --image-stream=nodejs' "Tags:\s+10, 12, latest"
-os::cmd::expect_success_and_text 'oc new-app --search --image-stream=perl' "Tags:\s+5.30-ubi8,latest,5.30-el7"
-os::cmd::expect_success_and_text 'oc new-app --search --image-stream=php' "Tags:\s+7.0, 7.1, latest"
-os::cmd::expect_success_and_text 'oc new-app --search --image-stream=postgresql' "Tags:\s+9.5, 9.6, latest"
-os::cmd::expect_success_and_text 'oc new-app -S --image-stream=python' "Tags:\s+2.7, 3.6, latest"
-os::cmd::expect_success_and_text 'oc new-app -S --image-stream=ruby' "Tags:\s+2.6, 2.7, latest"
-os::cmd::expect_success_and_text 'oc new-app -S --image-stream=wildfly' "Tags:\s+20.0, 21.0, latest"
-os::cmd::expect_success_and_text 'oc new-app --search --template=ruby-helloworld-sample' 'ruby-helloworld-sample'
-# check search - no matches
-os::cmd::expect_failure_and_text 'oc new-app -S foo-the-bar' 'no matches found'
-os::cmd::expect_failure_and_text 'oc new-app --search winter-is-coming' 'no matches found'
-# check search - mutually exclusive flags
-os::cmd::expect_failure_and_text 'oc new-app -S mysql --env=FOO=BAR' "can't be used"
-os::cmd::expect_failure_and_text 'oc new-app --search mysql --code=https://github.com/openshift/ruby-hello-world' "can't be used"
-os::cmd::expect_failure_and_text 'oc new-app --search mysql --param=FOO=BAR' "can't be used"
-# check specifying a non-existent template does not cause an index out of range error
-os::cmd::expect_failure_and_not_text 'oc new-app --template foo' 'index out of range'
-
-# set context-dir
-os::cmd::expect_success_and_text 'oc new-app https://github.com/sclorg/s2i-ruby-container.git --context-dir="2.5/test/puma-test-app" -o yaml' 'contextDir: 2.5/test/puma-test-app'
-os::cmd::expect_success_and_text 'oc new-app ruby~https://github.com/sclorg/s2i-ruby-container.git --context-dir="2.5/test/puma-test-app" -o yaml' 'contextDir: 2.5/test/puma-test-app'
-
-# set strategy
-os::cmd::expect_success_and_text 'oc new-app ruby~https://github.com/openshift/ruby-hello-world.git --strategy=docker -o yaml' 'dockerStrategy'
-os::cmd::expect_success_and_text 'oc new-app https://github.com/openshift/ruby-hello-world.git --strategy=source -o yaml' 'sourceStrategy'
-
-# prints root user info
-os::cmd::expect_success_and_not_text 'oc new-app --dry-run mysql' "runs as the 'root' user"
-os::cmd::expect_success_and_text 'oc new-app --dry-run --docker-image=mysql' "WARNING: Image \"mysql\" runs as the 'root' user"
-
-# verify multiple errors are displayed together, a nested error is returned, and that the usage message is displayed
-os::cmd::expect_failure_and_text 'oc new-app --dry-run __template_fail __templatefile_fail' 'error: unable to locate any'
-os::cmd::expect_failure_and_text 'oc new-app --dry-run __template_fail __templatefile_fail' 'with name "__templatefile_fail"'
-os::cmd::expect_failure_and_text 'oc new-app --dry-run __template_fail __templatefile_fail' 'error: unable to find the specified template file'
-os::cmd::expect_failure_and_text 'oc new-app --dry-run __template_fail __templatefile_fail' "The 'oc new-app' command will match arguments"
-
-# verify partial match error
-os::cmd::expect_failure_and_text 'oc new-app --dry-run mysq' 'error: only a partial match was found for "mysq"'
-os::cmd::expect_failure_and_text 'oc new-app --dry-run mysq' 'The argument "mysq" only partially matched'
-os::cmd::expect_failure_and_text 'oc new-app --dry-run mysq' "Image stream \"mysql\" \\(tag \"5.7\"\\) in project"
-
-# ensure new-app with pr ref does not fail
-os::cmd::expect_success 'oc new-app https://github.com/openshift/ruby-hello-world#refs/pull/58/head --dry-run'
-
-# verify image streams with no tags are reported correctly and that --allow-missing-imagestream-tags works
-# new-app
-os::cmd::expect_success 'printf "apiVersion: image.openshift.io/v1\nkind: ImageStream\nmetadata:\n  name: emptystream\n" | oc create -f -'
-os::cmd::expect_failure_and_text 'oc new-app --dry-run emptystream' 'error: no tags found on matching image stream'
-os::cmd::expect_success 'oc new-app --dry-run emptystream --allow-missing-imagestream-tags'
-# new-build
-os::cmd::expect_failure_and_text 'oc new-build --dry-run emptystream~https://github.com/sclorg/ruby-ex' 'error: no tags found on matching image stream'
-os::cmd::expect_success 'oc new-build --dry-run emptystream~https://github.com/sclorg/ruby-ex --allow-missing-imagestream-tags --strategy=source'
-
-# Allow setting --name when specifying grouping
-os::cmd::expect_success "oc new-app mysql+ruby~https://github.com/sclorg/ruby-ex --name foo -o yaml"
-# but not with multiple components
-os::cmd::expect_failure_and_text "oc new-app mysql ruby~https://github.com/sclorg/ruby-ex --name foo -o yaml" "error: only one component or source repository can be used when specifying a name"
-# do not allow specifying output image when specifying multiple input repos
-os::cmd::expect_failure_and_text 'oc new-build https://github.com/sclorg/nodejs-ex https://github.com/sclorg/ruby-ex --to foo' 'error: only one component with source can be used when specifying an output image reference'
-# but succeed with multiple input repos and no output image specified
-os::cmd::expect_success 'oc new-build https://github.com/sclorg/nodejs-ex https://github.com/sclorg/ruby-ex -o yaml'
-# check that binary build with a builder image results in a source type build
-os::cmd::expect_success_and_text 'oc new-build --binary --image-stream=ruby -o yaml' 'type: Source'
-# check that binary build with a specific strategy uses that strategy regardless of the image type
-os::cmd::expect_success_and_text 'oc new-build --binary --image=ruby --strategy=docker -o yaml' 'type: Docker'
-
-# When only a single imagestreamtag exists, and it does not match the implicit default
-# latest tag, new-app should fail.
-# when latest exists, we default to it and match it.
-os::cmd::expect_success 'oc new-app --image-stream ruby https://github.com/sclorg/rails-ex --dry-run'
-# when latest does not exist, there are multiple partial matches (2.5, 2.6)
-os::cmd::expect_success 'oc delete imagestreamtag ruby:latest'
-os::cmd::expect_failure_and_text 'oc new-app --image-stream ruby https://github.com/sclorg/rails-ex --dry-run' 'error: multiple images or templates matched \"ruby\"'
-# when only 2.6 exists, there is a single partial match (2.6)
-os::cmd::expect_success 'oc delete imagestreamtag ruby:2.7'
-os::cmd::expect_failure_and_text 'oc new-app --image-stream ruby https://github.com/sclorg/rails-ex --dry-run' 'error: only a partial match was found for \"ruby\":'
-# when the tag is specified explicitly, the operation is successful
-os::cmd::expect_success 'oc new-app --image-stream ruby:2.7 https://github.com/sclorg/rails-ex --dry-run'
-os::cmd::expect_success 'oc delete imagestreams --all'
-
-# newapp does not attempt to create an imagestream that already exists for a container image
-os::cmd::expect_success_and_text 'oc new-app docker.io/ruby:latest~https://github.com/sclorg/ruby-ex.git --name=testapp1 --strategy=docker' 'imagestream.image.openshift.io "ruby" created'
-# make sure the ruby:latest tag is imported before we run new-app again
-os::cmd::try_until_success 'oc get imagestreamtags ruby:latest'
-os::cmd::expect_success_and_not_text 'oc new-app docker.io/ruby:latest~https://github.com/sclorg/ruby-ex.git --name=testapp2 --strategy=docker' '"ruby:latest" already exists'
-os::cmd::expect_success 'oc delete all -l app=testapp2'
-os::cmd::expect_success 'oc delete all -l app=testapp1'
-os::cmd::expect_success 'oc delete all -l app=ruby --ignore-not-found'
-os::cmd::expect_success 'oc delete imagestreams --all --ignore-not-found'
-# newapp does not attempt to create an imagestream that already exists for a container image
-os::cmd::expect_success 'oc new-app docker.io/ruby:2.7'
-# the next one technically fails cause the DC is already created, but we should still see the ist created
-os::cmd::expect_failure_and_text 'oc new-app docker.io/ruby:2.7' 'imagestreamtag.image.openshift.io "ruby:2.7" created'
-os::cmd::expect_success 'oc delete imagestreams --all --ignore-not-found'
-
-# check that we can create from the template without errors
-os::cmd::expect_success_and_text 'oc new-app ruby-helloworld-sample -l app=helloworld' 'service "frontend" created'
-os::cmd::expect_success 'oc delete all -l app=helloworld'
-os::cmd::expect_success 'oc delete secret dbsecret'
-os::cmd::expect_success_and_text 'oc new-app ruby-helloworld-sample -l app=helloworld -o name' 'service/frontend'
-os::cmd::expect_success 'oc delete all -l app=helloworld'
-os::cmd::expect_success 'oc delete secret dbsecret'
-os::cmd::expect_success 'oc delete template ruby-helloworld-sample'
-# override component names
-os::cmd::expect_success_and_text 'oc new-app mysql --name=db' 'db'
-os::cmd::expect_success 'oc new-app https://github.com/openshift/ruby-hello-world -l app=ruby'
-os::cmd::expect_success 'oc delete all -l app=ruby'
-# check for error when template JSON file has errors
-jsonfile="${TEST_DATA}/new-app/invalid.json"
-os::cmd::expect_failure_and_text "oc new-app '${jsonfile}'" "error: unable to load template file \"${jsonfile}\": error parsing ${jsonfile}: json: line 0: invalid character '}' after object key"
-
-# check new-build
-os::cmd::expect_failure_and_text 'oc new-build mysql -o yaml' 'you must specify at least one source repository URL'
-os::cmd::expect_success_and_text 'oc new-build mysql --binary -o yaml --to mysql:bin' 'type: Binary'
-os::cmd::expect_success_and_text 'oc new-build mysql https://github.com/openshift/ruby-hello-world --strategy=docker -o yaml' 'type: Docker'
-os::cmd::expect_failure_and_text 'oc new-build mysql https://github.com/openshift/ruby-hello-world --binary' 'specifying binary builds and source repositories at the same time is not allowed'
-# binary builds cannot be created unless a builder image is specified.
-os::cmd::expect_failure_and_text 'oc new-build --name mybuild --binary --strategy=source -o yaml' 'you must provide a builder image when using the source strategy with a binary build'
-os::cmd::expect_success_and_text 'oc new-build --name mybuild registry.centos.org/centos/ruby-27-centos7 --binary --strategy=source -o yaml' 'name: ruby-27-centos7:latest'
-# binary builds can be created with no builder image if no strategy or docker strategy is specified
-os::cmd::expect_success_and_text 'oc new-build --name mybuild --binary -o yaml' 'type: Binary'
-os::cmd::expect_success_and_text 'oc new-build --name mybuild --binary --strategy=docker -o yaml' 'type: Binary'
-
-# new-build image source tests
-os::cmd::expect_failure_and_text 'oc new-build mysql --source-image centos' 'error: --source-image-path must be specified when --source-image is specified.'
-os::cmd::expect_failure_and_text 'oc new-build mysql --source-image-path foo' 'error: --source-image must be specified when --source-image-path is specified.'
-
-# ensure circular ref flagged but allowed for template
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/new-app/circular-is.yaml'
-os::cmd::expect_success_and_text 'oc new-app -f ${TEST_DATA}/new-app/circular.yaml' 'should be different than input'
-# ensure circular does not choke on image stream image
-os::cmd::expect_success_and_not_text 'oc new-app -f ${TEST_DATA}/new-app/bc-from-imagestreamimage.json --dry-run' 'Unable to follow reference type'
-
-# do not allow use of non-existent image (should fail)
-os::cmd::expect_failure_and_text 'oc new-app  openshift/bogusimage https://github.com/openshift/ruby-hello-world.git -o yaml' "unable to locate any"
-# allow use of non-existent image (should succeed)
-os::cmd::expect_success 'oc new-app openshift/bogusimage https://github.com/openshift/ruby-hello-world.git -o yaml --allow-missing-images'
-
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/new-app/installable-stream.yaml'
-
-os::cmd::expect_success 'oc policy add-role-to-user edit test-user'
-os::cmd::expect_success 'oc login -u test-user -p anything'
-os::cmd::try_until_success 'oc project ${default_project}'
-
-os::cmd::try_until_success 'oc get imagestreamtags installable:file'
-os::cmd::try_until_success 'oc get imagestreamtags installable:token'
-os::cmd::try_until_success 'oc get imagestreamtags installable:serviceaccount'
-os::cmd::expect_failure 'oc new-app installable:file'
-os::cmd::expect_failure_and_text 'oc new-app installable:file' 'requires that you grant the image access'
-os::cmd::expect_failure_and_text 'oc new-app installable:serviceaccount' "requires an 'installer' service account with project editor access"
-os::cmd::expect_success_and_text 'oc new-app installable:file --grant-install-rights -o yaml' '/var/run/openshift.secret.token'
-os::cmd::expect_success_and_text 'oc new-app installable:file --grant-install-rights -o yaml' 'activeDeadlineSeconds: 14400'
-os::cmd::expect_success_and_text 'oc new-app installable:file --grant-install-rights -o yaml' 'openshift.io/generated-job: "true"'
-os::cmd::expect_success_and_text 'oc new-app installable:file --grant-install-rights -o yaml' 'openshift.io/generated-job.for: installable:file'
-os::cmd::expect_success_and_text 'oc new-app installable:token --grant-install-rights -o yaml' 'name: TOKEN_ENV'
-os::cmd::expect_success_and_text 'oc new-app installable:token --grant-install-rights -o yaml' 'openshift/origin@sha256:'
-os::cmd::expect_success_and_text 'oc new-app installable:serviceaccount --grant-install-rights -o yaml' 'serviceAccountName: installer'
-os::cmd::expect_success_and_text 'oc new-app installable:serviceaccount --grant-install-rights -o yaml' 'fieldPath: metadata.namespace'
-os::cmd::expect_success_and_text 'oc new-app installable:serviceaccount --grant-install-rights -o yaml A=B' 'name: A'
-
-# Ensure output is valid JSON
-os::cmd::expect_success 'oc new-app mongo -o json | python -m json.tool'
-
-# Ensure custom branch/ref works
-os::cmd::expect_success 'oc new-app https://github.com/openshift/ruby-hello-world#beta4'
-
-# Ensure the resulting BuildConfig doesn't have unexpected sources
-os::cmd::expect_success_and_not_text 'oc new-app https://github.com/openshift/ruby-hello-world --output-version=v1 -o=jsonpath="{.items[?(@.kind==\"BuildConfig\")].spec.source}"' 'dockerfile|binary'
-
-# We permit running new-app against a remote URL which returns a template
-os::cmd::expect_success 'oc new-app https://raw.githubusercontent.com/openshift/origin/master/examples/quickstarts/rails-postgresql.json --dry-run'
-
-# ensure that --strategy sets the build strategy
-os::cmd::expect_success_and_text 'oc new-build --name sourcetest python~https://github.com/sclorg/django-ex --source-image registry.centos.org/centos/centos:latest --source-image-path /tmp --strategy source --dry-run -o yaml' 'sourceStrategy'
-os::cmd::expect_success_and_text 'oc new-build --name sourcetest python~https://github.com/sclorg/django-ex --source-image registry.centos.org/centos/centos:latest --source-image-path /tmp --strategy pipeline --dry-run -o yaml' 'jenkinsPipelineStrategy'
-os::cmd::expect_success_and_text 'oc new-build --name sourcetest python~https://github.com/sclorg/django-ex --source-image registry.centos.org/centos/centos:latest --source-image-path /tmp --strategy docker --dry-run -o yaml' 'dockerStrategy'
-
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/image-streams/image-streams-centos7.json'
-os::cmd::try_until_success 'oc get imagestreamtags nodejs:latest'
-# ensure that a build can be created with just image inputs without the --binary flag
-os::cmd::expect_success_and_text 'oc new-build --name sourcetest --source-image registry.centos.org/centos/centos:latest --source-image-path /tmp --image-stream nodejs --dry-run -o yaml' 'sourceStrategy'
-# ensure that using only image inputs and the --binary flag results in an error
-os::cmd::expect_failure_and_text 'oc new-build --name sourcetest --source-image registry.centos.org/centos/centos:latest --source-image-path /tmp --image-stream nodejs --binary --dry-run -o yaml' 'specifying binary builds and source repositories at the same time is not allowed'
-os::cmd::expect_success 'oc delete imagestreams --all --ignore-not-found'
-
-# new-app different syntax for new-app functionality
-os::cmd::expect_success 'oc new-project new-app-syntax'
-os::cmd::expect_success 'oc import-image registry.centos.org/centos/ruby-27-centos7:latest --confirm'
-os::cmd::expect_success 'oc import-image registry.centos.org/centos/php-70-centos7:latest --confirm'
-os::cmd::expect_success 'oc new-app ruby-27-centos7:latest~https://github.com/openshift/ruby-hello-world.git --dry-run'
-os::cmd::expect_success 'oc new-app ruby-27-centos7:latest~./test/testdata/testapp --dry-run'
-os::cmd::expect_success 'oc new-app -i ruby-27-centos7:latest https://github.com/openshift/ruby-hello-world.git --dry-run'
-os::cmd::expect_success 'oc new-app -i ruby-27-centos7:latest ./test/testdata/testapp --dry-run'
-os::cmd::expect_success 'oc new-app ruby-27-centos7:latest --code https://github.com/openshift/ruby-hello-world.git --dry-run'
-os::cmd::expect_success 'oc new-app ruby-27-centos7:latest --code ./test/testdata/testapp --dry-run'
-os::cmd::expect_success 'oc new-app -i ruby-27-centos7:latest --code https://github.com/openshift/ruby-hello-world.git --dry-run'
-os::cmd::expect_success 'oc new-app -i ruby-27-centos7:latest --code ./test/testdata/testapp --dry-run'
-
-os::cmd::expect_success 'oc new-app --code ./test/testdata/testapp --name test'
-os::cmd::expect_success_and_text 'oc get bc test --template={{.spec.strategy.dockerStrategy.from.name}}' 'ruby-27-centos7:latest'
-
-os::cmd::expect_success 'oc new-app -i php-70-centos7:latest --code ./test/testdata/testapp --name test2'
-os::cmd::expect_success_and_text 'oc get bc test2 --template={{.spec.strategy.sourceStrategy.from.name}}' 'php-70-centos7:latest'
-
-os::cmd::expect_success 'oc new-app -i php-70-centos7:latest~https://github.com/openshift/ruby-hello-world.git --name test3'
-os::cmd::expect_success_and_text 'oc get bc test3 --template={{.spec.strategy.sourceStrategy.from.name}}' 'php-70-centos7:latest'
-
-os::cmd::expect_success 'oc new-app php-70-centos7:latest~https://github.com/openshift/ruby-hello-world.git --name test4'
-os::cmd::expect_success_and_text 'oc get bc test4 --template={{.spec.strategy.sourceStrategy.from.name}}' 'php-70-centos7:latest'
-
-os::cmd::expect_success 'oc new-app -i php-70-centos7:latest https://github.com/openshift/ruby-hello-world.git --name test5'
-os::cmd::expect_success_and_text 'oc get bc test5 --template={{.spec.strategy.sourceStrategy.from.name}}' 'php-70-centos7:latest'
-
-os::cmd::expect_success 'oc new-app php-70-centos7:latest --code https://github.com/openshift/ruby-hello-world.git --name test6'
-os::cmd::expect_success_and_text 'oc get bc test6 --template={{.spec.strategy.sourceStrategy.from.name}}' 'php-70-centos7:latest'
-
-os::cmd::expect_success 'oc new-app https://github.com/openshift/ruby-hello-world.git --name test7'
-os::cmd::expect_success_and_text 'oc get bc test7 --template={{.spec.strategy.dockerStrategy.from.name}}' 'ruby-27-centos7:latest'
-
-os::cmd::expect_success 'oc new-app php-70-centos7:latest https://github.com/openshift/ruby-hello-world.git --name test8'
-os::cmd::expect_success_and_text 'oc get bc test8 --template={{.spec.strategy.sourceStrategy.from.name}}' 'php-70-centos7:latest'
-os::cmd::expect_success 'oc delete project new-app-syntax'
-
-# new-app docker build strategy with binary input
-os::cmd::expect_success 'oc project ${default_project}'
-os::cmd::expect_success 'oc delete all,templates --all'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/image-streams/image-streams-centos7.json'
-os::cmd::try_until_success 'oc get imagestreamtags ruby:latest' # need to wait until tags are available!?
-os::cmd::expect_failure_and_text 'oc new-app --strategy=docker --name my-docker-app' 'none of the arguments provided could be classified as a source code location'
-os::cmd::expect_success_and_text 'oc new-app --strategy=docker --binary --name my-docker-app' 'A binary build was created'
-os::cmd::expect_success_and_text 'oc get bc my-docker-app -o yaml' 'type: Binary'
-os::cmd::expect_success 'oc delete all -l app=my-docker-app'
-
-# new-app source build strategy with binary input
-os::cmd::expect_success_and_text 'oc new-app  ruby --binary --name my-imagestream-app' 'A binary build was created'
-os::cmd::expect_success_and_text 'oc get bc my-imagestream-app -o yaml' 'type: Binary'
-os::cmd::expect_success 'oc delete all -l app=my-imagestream-app'
-
-# new-app with source repository and binary input
-os::cmd::expect_failure_and_text 'oc new-app ./test/testdata/testapp --binary' 'error: specifying binary builds and source repositories at the same time is not allowed'
-
-echo "new-app: ok"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdNewappShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdNewappSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdNewappSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdNewappShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/newapp.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdPolicySh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-project="$( oc project -q )"
-testpod="apiVersion: v1
-kind: Pod
-metadata:
-  name: testpod
-spec:
-  containers:
-  - image: node
-    imagePullPolicy: IfNotPresent
-    name: testpod
-  volumes:
-  - emptyDir: {}
-    name: tmp"
-
-os::test::junit::declare_suite_start "cmd/policy"
-# This test validates user level policy
-os::cmd::expect_success_and_text 'oc whoami --as deads' "deads"
-
-os::cmd::expect_success 'oc adm policy add-cluster-role-to-user sudoer wheel'
-os::cmd::try_until_text 'oc policy who-can impersonate users system:admin' "wheel"
-os::cmd::try_until_text 'oc policy who-can impersonate groups system:masters' "wheel"
-os::cmd::try_until_text 'oc policy who-can impersonate systemusers system:admin' "wheel"
-os::cmd::try_until_text 'oc policy who-can impersonate systemgroups system:masters' "wheel"
-os::cmd::expect_success 'oc login -u wheel -p pw'
-os::cmd::expect_success_and_text 'oc whoami' "wheel"
-os::cmd::expect_failure 'oc whoami --as deads'
-os::cmd::expect_success_and_text 'oc whoami --as=system:admin' "system:admin"
-os::cmd::expect_success_and_text 'oc auth can-i --list --as=system:admin' '.*'
-
-os::cmd::expect_success 'oc login -u local-admin -p pw'
-os::cmd::expect_success 'oc new-project policy-login'
-os::cmd::expect_failure 'oc whoami --as=system:admin'
-os::cmd::expect_success_and_text 'oc whoami --as=system:serviceaccount:policy-login:default' "system:serviceaccount:policy-login:default"
-os::cmd::expect_failure 'oc whoami --as=system:serviceaccount:another:default'
-os::cmd::expect_success "oc login -u system:admin -n '${project}'"
-os::cmd::expect_success 'oc delete project policy-login'
-
-# validate --serviceaccount values
-os::cmd::expect_success_and_text 'oc policy add-role-to-user admin -z default' 'clusterrole.rbac.authorization.k8s.io/admin added: "default"'
-os::cmd::expect_failure_and_text 'oc policy add-role-to-user admin -z system:serviceaccount:test:default' 'should only be used with short\-form serviceaccount names'
-os::cmd::expect_failure_and_text 'oc policy add-role-to-user admin -z :invalid' '"\:invalid" is not a valid serviceaccount name'
-
-# This test validates user level policy
-os::cmd::expect_failure_and_text 'oc policy add-role-to-user' 'you must specify a role'
-os::cmd::expect_failure_and_text 'oc policy add-role-to-user -z NamespaceWithoutRole' 'you must specify a role'
-os::cmd::expect_failure_and_text 'oc policy add-role-to-user view' 'you must specify at least one user or service account'
-
-os::cmd::expect_success_and_text 'oc policy add-role-to-group cluster-admin --rolebinding-name cluster-admin system:unauthenticated' 'clusterrole.rbac.authorization.k8s.io/cluster-admin added: "system:unauthenticated"'
-os::cmd::expect_success_and_text 'oc policy add-role-to-user --rolebinding-name cluster-admin cluster-admin system:no-user' 'clusterrole.rbac.authorization.k8s.io/cluster-admin added: "system:no-user"'
-os::cmd::expect_success 'oc get rolebinding/cluster-admin --no-headers'
-os::cmd::expect_success_and_text 'oc get rolebinding/cluster-admin --no-headers' 'system:no-user'
-
-os::cmd::expect_success_and_text 'oc policy add-role-to-user --rolebinding-name cluster-admin cluster-admin -z=one,two --serviceaccount=three,four' 'clusterrole.rbac.authorization.k8s.io/cluster-admin added: \["one" "two" "three" "four"\]'
-os::cmd::expect_success 'oc get rolebinding/cluster-admin --no-headers'
-os::cmd::expect_success_and_text 'oc get rolebinding/cluster-admin --no-headers' 'one'
-os::cmd::expect_success_and_text 'oc get rolebinding/cluster-admin --no-headers' 'four'
-
-os::cmd::expect_success_and_text 'oc policy remove-role-from-group --rolebinding-name cluster-admin cluster-admin system:unauthenticated' 'clusterrole.rbac.authorization.k8s.io/cluster-admin removed: "system:unauthenticated"'
-
-os::cmd::expect_success_and_text 'oc policy remove-role-from-user --rolebinding-name cluster-admin cluster-admin system:no-user' 'clusterrole.rbac.authorization.k8s.io/cluster-admin removed: "system:no-user"'
-os::cmd::expect_success_and_text 'oc policy remove-role-from-user --rolebinding-name cluster-admin cluster-admin -z=one,two --serviceaccount=three,four' 'clusterrole.rbac.authorization.k8s.io/cluster-admin removed: \["one" "two" "three" "four"\]'
-os::cmd::expect_failure_and_text 'oc get rolebinding/cluster-admin --no-headers' 'NotFound'
-
-os::cmd::expect_success 'oc policy remove-group system:unauthenticated'
-os::cmd::expect_success 'oc policy remove-user system:no-user'
-
-# Test failure to mix and mismatch role/rolebiding removal
-os::cmd::expect_success 'oc login -u local-admin -p pw'
-os::cmd::expect_success 'oc new-project mismatch-prj'
-os::cmd::expect_success 'oc create rolebinding match --clusterrole=admin --user=user'
-os::cmd::expect_success 'oc create rolebinding mismatch --clusterrole=edit --user=user'
-os::cmd::expect_failure_and_text 'oc policy remove-role-from-user admin user --rolebinding-name mismatch' 'rolebinding mismatch'
-os::cmd::expect_success_and_text 'oc policy remove-user user' 'user'
-os::cmd::expect_failure_and_text 'oc get rolebinding mismatch --no-headers' 'NotFound'
-os::cmd::expect_failure_and_text 'oc get rolebinding match --no-headers' 'NotFound'
-os::cmd::expect_success "oc login -u system:admin -n '${project}'"
-os::cmd::expect_success 'oc delete project mismatch-prj'
-
-# check to make sure that our SCC policies don't prevent GC from deleting pods
-os::cmd::expect_success 'oc create -f ${OS_ROOT}/test/testdata/privileged-pod.yaml'
-os::cmd::expect_success 'oc delete pod/test-build-pod-issue --cascade=false'
-os::cmd::try_until_failure 'oc get pods pod/test-build-pod-issue'
-
-
-os::cmd::expect_success_and_text 'oc policy add-role-to-user admin namespaced-user' 'clusterrole.rbac.authorization.k8s.io/admin added: "namespaced-user"'
-# Ensure the user has create permissions on builds, but that build strategy permissions are granted through the authenticated users group
-os::cmd::try_until_text              'oc adm policy who-can create builds' 'namespaced-user'
-os::cmd::expect_success_and_not_text 'oc adm policy who-can create builds/docker' 'namespaced-user'
-os::cmd::expect_success_and_not_text 'oc adm policy who-can create builds/custom' 'namespaced-user'
-os::cmd::expect_success_and_not_text 'oc adm policy who-can create builds/source' 'namespaced-user'
-os::cmd::expect_success_and_not_text 'oc adm policy who-can create builds/jenkinspipeline' 'namespaced-user'
-os::cmd::expect_success_and_text     'oc adm policy who-can create builds/docker' 'system:authenticated'
-os::cmd::expect_success_and_text     'oc adm policy who-can create builds/source' 'system:authenticated'
-os::cmd::expect_success_and_text     'oc adm policy who-can create builds/jenkinspipeline' 'system:authenticated'
-# if this method for removing access to docker/custom/source/jenkinspipeline builds changes, docs need to be updated as well
-os::cmd::expect_success_and_text 'oc adm policy remove-cluster-role-from-group system:build-strategy-docker system:authenticated' 'clusterrole.rbac.authorization.k8s.io/system:build-strategy-docker removed: "system:authenticated"'
-os::cmd::expect_success_and_text 'oc adm policy remove-cluster-role-from-group system:build-strategy-source system:authenticated' 'clusterrole.rbac.authorization.k8s.io/system:build-strategy-source removed: "system:authenticated"'
-os::cmd::expect_success_and_text 'oc adm policy remove-cluster-role-from-group system:build-strategy-jenkinspipeline system:authenticated' 'clusterrole.rbac.authorization.k8s.io/system:build-strategy-jenkinspipeline removed: "system:authenticated"'
-
-# ensure build strategy permissions no longer exist
-os::cmd::try_until_failure           'oc adm policy who-can create builds/source | grep system:authenticated'
-os::cmd::expect_success_and_not_text 'oc adm policy who-can create builds/docker' 'system:authenticated'
-os::cmd::expect_success_and_not_text 'oc adm policy who-can create builds/source' 'system:authenticated'
-os::cmd::expect_success_and_not_text 'oc adm policy who-can create builds/jenkinspipeline' 'system:authenticated'
-
-# validate --output and --dry-run flags for oc-adm-policy sub-commands
-os::cmd::expect_success_and_text 'oc adm policy remove-role-from-user admin namespaced-user -o yaml' 'name: admin'
-os::cmd::expect_success_and_text 'oc adm policy add-role-to-user admin namespaced-user -o yaml' 'name: namespaced-user'
-
-os::cmd::expect_success_and_text 'oc adm policy remove-role-from-user admin namespaced-user --dry-run' 'clusterrole.rbac.authorization.k8s.io/admin removed: "namespaced-user" \(dry run\)'
-os::cmd::expect_success_and_text 'oc adm policy add-role-to-user admin namespaced-user --dry-run' 'clusterrole.rbac.authorization.k8s.io/admin added: "namespaced-user" \(dry run\)'
-
-# ensure that running an ` + "`" + `oc adm policy` + "`" + ` sub-command with --output does not actually perform any changes
-os::cmd::expect_success_and_text 'oc adm policy who-can create pods -o yaml' '\- namespaced\-user'
-
-os::cmd::expect_success_and_text 'oc adm policy scc-subject-review -u namespaced-user --output yaml -f - << __EOF__
-$testpod
-__EOF__' 'name: testpod'
-os::cmd::expect_success_and_text 'oc adm policy scc-subject-review -u namespaced-user --output wide -f - << __EOF__
-$testpod
-__EOF__' 'Pod/testpod'
-
-os::cmd::expect_success_and_text 'oc adm policy scc-review --output yaml -f - << __EOF__
-$testpod
-__EOF__' 'allowedServiceAccounts: null'
-
-os::cmd::expect_success_and_text 'oc adm policy add-role-to-group view testgroup -o yaml' 'name: view'
-os::cmd::expect_success_and_text 'oc adm policy add-cluster-role-to-group cluster-reader testgroup -o yaml' 'name: testgroup'
-os::cmd::expect_success_and_text 'oc adm policy add-cluster-role-to-user cluster-reader namespaced-user -o yaml' 'name: namespaced\-user'
-
-os::cmd::expect_success_and_text 'oc adm policy add-role-to-group view testgroup --dry-run' 'rolebinding.rbac.authorization.k8s.io/view added: "testgroup" \(dry run\)'
-os::cmd::expect_success_and_text 'oc adm policy add-cluster-role-to-group cluster-reader testgroup --dry-run' 'clusterrolebinding.rbac.authorization.k8s.io/cluster-reader added: "testgroup" \(dry run\)'
-os::cmd::expect_success_and_text 'oc adm policy add-cluster-role-to-user cluster-reader namespaced-user --dry-run' 'clusterrolebinding.rbac.authorization.k8s.io/cluster-reader added: "namespaced-user" \(dry run\)'
-
-os::cmd::expect_success 'oc adm policy add-role-to-group view testgroup'
-os::cmd::expect_success 'oc adm policy add-cluster-role-to-group cluster-reader testgroup'
-os::cmd::expect_success 'oc adm policy add-cluster-role-to-user cluster-reader namespaced-user'
-
-# ensure that removing missing target causes error.
-os::cmd::expect_failure_and_text 'oc adm policy remove-cluster-role-from-user admin ghost' 'error: unable to find target \[ghost\]'
-os::cmd::expect_failure_and_text 'oc adm policy remove-cluster-role-from-user admin -z ghost' 'error: unable to find target \[ghost\]'
-
-os::cmd::expect_success_and_not_text 'oc adm policy remove-role-from-group view testgroup -o yaml' 'subjects: '
-os::cmd::expect_success_and_text 'oc adm policy remove-cluster-role-from-group cluster-reader testgroup -o yaml' 'name: cluster\-readers'
-os::cmd::expect_success_and_text 'oc adm policy remove-cluster-role-from-user cluster-reader namespaced-user -o yaml' 'name: cluster\-reader'
-
-os::cmd::expect_success_and_text 'oc adm policy remove-role-from-group view testgroup --dry-run' 'clusterrole.rbac.authorization.k8s.io/view removed: "testgroup" \(dry run\)'
-os::cmd::expect_success_and_text 'oc adm policy remove-cluster-role-from-group cluster-reader testgroup --dry-run' 'clusterrole.rbac.authorization.k8s.io/cluster-reader removed: "testgroup" \(dry run\)'
-os::cmd::expect_success_and_text 'oc adm policy remove-cluster-role-from-user cluster-reader namespaced-user --dry-run' 'clusterrole.rbac.authorization.k8s.io/cluster-reader removed: "namespaced-user" \(dry run\)'
-
-os::cmd::expect_success_and_text 'oc adm policy remove-user namespaced-user -o yaml' "namespace: ${project}"
-os::cmd::expect_success_and_text 'oc adm policy remove-user namespaced-user --dry-run' "Removing admin from users \[namespaced\-user\] in project ${project}"
-
-os::cmd::expect_success_and_text 'oc adm policy add-scc-to-user anyuid namespaced-user -o yaml' '\- namespaced\-user'
-os::cmd::expect_success_and_text 'oc adm policy add-scc-to-user anyuid namespaced-user --dry-run' 'securitycontextconstraints.security.openshift.io/anyuid added to: \["namespaced\-user"\] \(dry run\)'
-
-os::cmd::expect_success_and_text 'oc adm policy add-scc-to-group anyuid testgroup -o yaml' '\- testgroup'
-os::cmd::expect_success_and_text 'oc adm policy add-scc-to-group anyuid testgroup --dry-run' 'securitycontextconstraints.security.openshift.io/anyuid added to groups: \["testgroup"\] \(dry run\)'
-
-os::cmd::expect_success_and_not_text 'oc adm policy remove-scc-from-user anyuid namespaced-user -o yaml' '\- namespaced\-user'
-os::cmd::expect_success_and_text 'oc adm policy remove-scc-from-user anyuid namespaced-user --dry-run' 'securitycontextconstraints.security.openshift.io/anyuid removed from: \["namespaced\-user"\] \(dry run\)'
-
-os::cmd::expect_success_and_not_text 'oc adm policy remove-scc-from-group anyuid testgroup -o yaml' '\- testgroup'
-os::cmd::expect_success_and_text 'oc adm policy remove-scc-from-group anyuid testgroup --dry-run' 'securitycontextconstraints.security.openshift.io/anyuid removed from groups: \["testgroup"\] \(dry run\)'
-
-# ensure system:authenticated users can not create custom builds by default, but can if explicitly granted access
-os::cmd::expect_success_and_not_text 'oc adm policy who-can create builds/custom' 'system:authenticated'
-os::cmd::expect_success_and_text 'oc adm policy add-cluster-role-to-group system:build-strategy-custom system:authenticated' 'clusterrole.rbac.authorization.k8s.io/system:build-strategy-custom added: "system:authenticated"'
-os::cmd::expect_success_and_text 'oc adm policy who-can create builds/custom' 'system:authenticated'
-
-os::cmd::expect_success 'oc auth reconcile --remove-extra-permissions --remove-extra-subjects -f "${BASE_RBAC_DATA}"'
-
-os::cmd::try_until_text 'oc auth can-i --list' 'get update.*imagestreams/layers'
-os::cmd::try_until_text 'oc auth can-i create pods --all-namespaces' 'yes'
-os::cmd::try_until_text 'oc auth can-i create pods' 'yes'
-os::cmd::try_until_text 'oc auth can-i create pods --as harold' 'no'
-os::cmd::expect_failure 'oc auth can-i create pods --as harold --user harold'
-os::cmd::expect_failure 'oc auth can-i --list --as harold --user harold'
-os::cmd::expect_failure 'oc auth can-i create pods --as harold -q'
-
-os::cmd::expect_success_and_text 'oc auth can-i create pods --user system:admin' 'yes'
-os::cmd::expect_success_and_text 'oc auth can-i create pods --groups system:unauthenticated --groups system:masters' 'yes'
-os::cmd::expect_success_and_text 'oc auth can-i create pods --groups system:unauthenticated' 'no'
-os::cmd::expect_success_and_text 'oc auth can-i create pods --user harold' 'no'
-
-os::cmd::expect_success_and_text 'oc auth can-i --list --user system:admin' 'get update.*imagestreams/layers'
-os::cmd::expect_success_and_text 'oc auth can-i --list --groups system:unauthenticated --groups system:cluster-readers' 'get.*imagestreams/layers'
-os::cmd::expect_success_and_not_text 'oc auth can-i --list --groups system:unauthenticated' 'get update.*imagestreams/layers'
-os::cmd::expect_success_and_not_text 'oc auth can-i --list --user harold --groups system:authenticated' 'get update.*imagestreams/layers'
-os::cmd::expect_success_and_text 'oc auth can-i --list --user harold --groups system:authenticated' 'create get.*buildconfigs/webhooks'
-
-os::cmd::expect_failure 'oc policy scc-subject-review'
-os::cmd::expect_failure 'oc policy scc-review'
-os::cmd::expect_failure 'oc policy scc-subject-review -u invalid --namespace=noexist'
-os::cmd::expect_failure_and_text 'oc policy scc-subject-review -f ${OS_ROOT}/test/testdata/pspreview_unsupported_statefulset.yaml' 'error: StatefulSet "rd" with spec.volumeClaimTemplates currently not supported.'
-os::cmd::expect_failure_and_text 'oc policy scc-subject-review -z foo,bar -f ${OS_ROOT}/test/testdata/job.yaml'  'error: only one Service Account is supported'
-os::cmd::expect_failure_and_text 'oc policy scc-subject-review -z system:serviceaccount:test:default,system:serviceaccount:test:builder -f ${OS_ROOT}/test/testdata/job.yaml'  'error: only one Service Account is supported'
-os::cmd::expect_failure_and_text 'oc policy scc-review -f ${OS_ROOT}/test/testdata/pspreview_unsupported_statefulset.yaml' 'error: StatefulSet "rd" with spec.volumeClaimTemplates currently not supported.'
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -f ${OS_ROOT}/test/testdata/job.yaml -o=jsonpath={.status.allowedBy.name}' 'anyuid'
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -f ${OS_ROOT}/test/testdata/redis-slave.yaml -o=jsonpath={.status.allowedBy.name}' 'anyuid'
-# In the past system:admin only had access to a few SCCs, so the following command resulted in the privileged SCC being used
-# Since SCCs are now authorized via RBAC, and system:admin can perform all RBAC actions == system:admin can access all SCCs now
-# Thus the following command now results in the use of the hostnetwork SCC which is the most restrictive SCC that still allows the pod to run
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -f ${OS_ROOT}/test/testdata/nginx_pod.yaml -o=jsonpath={.status.allowedBy.name}' 'hostnetwork'
-# Make sure that the legacy ungroupified objects continue to work by directly doing a create
-os::cmd::expect_success_and_text 'oc create -f ${OS_ROOT}/test/testdata/legacy_ungroupified_psp_review.yaml -o=jsonpath={.status.allowedBy.name}' 'restricted'
-os::cmd::expect_success "oc login -u bob -p bobpassword"
-os::cmd::expect_success_and_text 'oc whoami' 'bob'
-os::cmd::expect_success 'oc new-project policy-second'
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -f ${OS_ROOT}/test/testdata/job.yaml -o=jsonpath={.status.allowedBy.name}' 'restricted'
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -f ${OS_ROOT}/test/testdata/job.yaml --no-headers=true' 'Job/hello   restricted'
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -f ${OS_ROOT}/test/testdata/two_jobs.yaml -o=jsonpath={.status.allowedBy.name}' 'restrictedrestricted'
-os::cmd::expect_success_and_text 'oc policy scc-review -f ${OS_ROOT}/test/testdata/job.yaml -ojsonpath={.status.allowedServiceAccounts}' '<nil>'
-os::cmd::expect_success_and_text 'oc policy scc-review -f ${OS_ROOT}/test/extended/testdata/deployments/deployment-simple.yaml -ojsonpath={.status.allowedServiceAccounts}' '<nil>'
-os::cmd::expect_failure 'oc policy scc-subject-review -f ${OS_ROOT}/test/testdata/external-service.yaml'
-os::cmd::expect_success "oc login -u system:admin -n '${project}'"
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -u bob -g system:authenticated -f ${OS_ROOT}/test/testdata/job.yaml -n policy-second -o=jsonpath={.status.allowedBy.name}' 'restricted'
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -u bob -f ${OS_ROOT}/test/testdata/job.yaml -n policy-second --no-headers=true' 'Job/hello   <none>'
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -z default -f ${OS_ROOT}/test/testdata/job.yaml' ''
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -z default -g system:authenticated -f ${OS_ROOT}/test/testdata/job.yaml' 'restricted'
-os::cmd::expect_failure_and_text 'oc policy scc-subject-review -u alice -z default -g system:authenticated -f ${OS_ROOT}/test/testdata/job.yaml' 'error: --user and --serviceaccount are mutually exclusive'
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -z system:serviceaccount:alice:default -g system:authenticated -f ${OS_ROOT}/test/testdata/job.yaml' 'restricted'
-os::cmd::expect_success_and_text 'oc policy scc-subject-review -u alice -g system:authenticated -f ${OS_ROOT}/test/testdata/job.yaml' 'restricted'
-os::cmd::expect_failure_and_text 'oc policy scc-subject-review -u alice -g system:authenticated -n noexist -f ${OS_ROOT}/test/testdata/job.yaml' 'error: unable to compute Pod Security Policy Subject Review for "hello": namespaces "noexist" not found'
-os::cmd::expect_success 'oc create -f ${OS_ROOT}/test/testdata/scc_lax.yaml'
-os::cmd::expect_success "oc login -u bob -p bobpassword"
-os::cmd::expect_success_and_text 'oc policy scc-review -f ${OS_ROOT}/test/testdata/job.yaml --no-headers=true' 'Job/hello   default   lax'
-os::cmd::expect_success_and_text 'oc policy scc-review -z default  -f ${OS_ROOT}/test/testdata/job.yaml --no-headers=true' 'Job/hello   default   lax'
-os::cmd::expect_success_and_text 'oc policy scc-review -z system:serviceaccount:policy-second:default  -f ${OS_ROOT}/test/testdata/job.yaml --no-headers=true' 'Job/hello   default   lax'
-os::cmd::expect_success_and_text 'oc policy scc-review -f ${OS_ROOT}/test/extended/testdata/deployments/deployment-simple.yaml --no-headers=true' 'DeploymentConfig/deployment-simple   default   lax'
-os::cmd::expect_success_and_text 'oc policy scc-review -f ${OS_ROOT}/test/testdata/nginx_pod.yaml --no-headers=true' ''
-os::cmd::expect_failure_and_text 'oc policy scc-review -z default -f ${OS_ROOT}/test/testdata/job.yaml --namespace=no-exist' 'error: unable to compute Pod Security Policy Review for "hello": podsecuritypolicyreviews.security.openshift.io is forbidden: User "bob" cannot create resource "podsecuritypolicyreviews" in API group "security.openshift.io" in the namespace "no-exist"'
-os::cmd::expect_failure_and_text 'oc policy scc-review -z default -f ${OS_ROOT}/test/testdata/pspreview_unsupported_statefulset.yaml' 'error: StatefulSet "rd" with spec.volumeClaimTemplates currently not supported.'
-os::cmd::expect_failure_and_text 'oc policy scc-review -z no-exist -f ${OS_ROOT}/test/testdata/job.yaml' 'error: unable to compute Pod Security Policy Review for "hello": unable to retrieve ServiceAccount no-exist: serviceaccount "no-exist" not found'
-os::cmd::expect_success "oc login -u system:admin -n '${project}'"
-os::cmd::expect_success 'oc delete project policy-second'
-
-# adjust the cluster-admin role to check defaulting and coverage checks
-# this is done here instead of an integration test because we need to make sure the actual yaml serializations work
-workingdir=$(mktemp -d)
-cp ${OS_ROOT}/hack/local-up-master/test-manifests/cluster_admin_1.0.yaml ${workingdir}
-os::util::sed "s/RESOURCE_VERSION//g" ${workingdir}/cluster_admin_1.0.yaml
-os::cmd::expect_success "oc create -f ${workingdir}/cluster_admin_1.0.yaml"
-os::cmd::expect_success 'oc adm policy add-cluster-role-to-user alternate-cluster-admin alternate-cluster-admin-user'
-
-# switch to test user to be sure that default project admin policy works properly
-new_kubeconfig="${workingdir}/tempconfig"
-os::cmd::expect_success "oc config view --raw > $new_kubeconfig"
-os::cmd::expect_success "oc login -u alternate-cluster-admin-user -p anything --kubeconfig=${new_kubeconfig}"
-
-# alternate-cluster-admin can restrict himself to less groups (no star)
-os::cmd::try_until_text "oc policy who-can update clusterrroles" "alternate-cluster-admin-user"
-resourceversion=$(oc get clusterrole/alternate-cluster-admin -o=jsonpath="{.metadata.resourceVersion}")
-cp ${OS_ROOT}/hack/local-up-master/test-manifests/cluster_admin_without_apigroups.yaml ${workingdir}
-os::util::sed "s/RESOURCE_VERSION/${resourceversion}/g" ${workingdir}/cluster_admin_without_apigroups.yaml
-os::cmd::expect_success "oc replace --kubeconfig=${new_kubeconfig} clusterrole/alternate-cluster-admin -f ${workingdir}/cluster_admin_without_apigroups.yaml"
-
-# alternate-cluster-admin should NOT have the power add back star now (anything other than star is considered less so this mimics testing against no groups)
-os::cmd::try_until_failure "oc policy who-can update hpa.autoscaling | grep -q alternate-cluster-admin-user"
-resourceversion=$(oc get clusterrole/alternate-cluster-admin -o=jsonpath="{.metadata.resourceVersion}")
-cp ${OS_ROOT}/vendor/github.com/openshift/openshift-apiserver/test/testdata/bootstrappolicy/alternate_cluster_admin.yaml ${workingdir}
-os::util::sed "s/RESOURCE_VERSION/${resourceversion}/g" ${workingdir}/alternate_cluster_admin.yaml
-os::cmd::expect_failure_and_text "oc replace --kubeconfig=${new_kubeconfig} clusterrole/alternate-cluster-admin -f ${workingdir}/alternate_cluster_admin.yaml" "attempting to grant RBAC permissions not currently held"
-
-# This test validates cluster level policy for serviceaccounts
-# ensure service account cannot list pods at the namespace level
-os::cmd::expect_success_and_text "oc auth can-i list pods --as=system:serviceaccount:cmd-policy:testserviceaccount" "no"
-os::cmd::expect_success_and_text "oc adm policy add-role-to-user view -z=testserviceaccount" 'clusterrole.rbac.authorization.k8s.io/view added: "testserviceaccount"'
-# ensure service account can list pods at the namespace level after "view" role is added, but not at the cluster level
-os::cmd::try_until_text "oc auth can-i list pods --as=system:serviceaccount:${project}:testserviceaccount" "yes"
-os::cmd::try_until_text "oc auth can-i list pods --all-namespaces --as=system:serviceaccount:${project}:testserviceaccount" "no"
-# ensure service account can list pods at the cluster level after "cluster-reader" cluster role is added
-os::cmd::expect_success_and_text "oc adm policy add-cluster-role-to-user cluster-reader -z=testserviceaccount" 'clusterrole.rbac.authorization.k8s.io/cluster-reader added: "testserviceaccount"'
-os::cmd::try_until_text "oc auth can-i list pods --all-namespaces --as=system:serviceaccount:${project}:testserviceaccount" "yes"
-
-# make sure users can easily create roles for RBAC based SCC access
-os::cmd::expect_success_and_text 'oc create role scc-privileged --verb=use --resource=scc --resource-name=privileged' 'role.rbac.authorization.k8s.io/scc-privileged created'
-os::cmd::expect_success_and_text 'oc delete role.rbac scc-privileged' 'role.rbac.authorization.k8s.io "scc-privileged" deleted'
-
-echo "policy: ok"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdPolicyShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdPolicySh, nil
-}
-
-func testExtendedTestdataCmdTestCmdPolicySh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdPolicyShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/policy.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _testExtendedTestdataCmdTestCmdPrinterSh = []byte(`#!/bin/bash
 source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
 trap os::test::junit::reconcile_output EXIT
@@ -32136,176 +30806,6 @@ func testExtendedTestdataCmdTestCmdQuotaSh() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/quota.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdRegistrySh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete all --all
-  exit 0
-) &>/dev/null
-
-
-os::test::junit::declare_suite_start "cmd/registry/login"
-# TODO - re-enable these tests on a real cluster
-#os::cmd::expect_success_and_text "oc registry login -z 'default' --registry=localhost:5000 --to=- --skip-check" "auth"
-#os::cmd::expect_failure_and_text "oc registry login -z 'default' --registry=localhost2 --to=- 2>&1" "unable to check your credentials"
-#os::cmd::expect_success_and_text "oc registry login -z 'default' --registry=localhost2 --to=/tmp/test --skip-check && cat /tmp/test" "localhost2"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/registry/info"
-# TODO - re-enable these tests on a real cluster
-#os::cmd::expect_success 'oc tag --source=docker openshift/origin-control-plane:latest newrepo:latest'
-#os::cmd::expect_success "oc registry info"
-#os::cmd::expect_failure_and_text "oc registry info --internal --public" "only one of --internal or --public"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdRegistryShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdRegistrySh, nil
-}
-
-func testExtendedTestdataCmdTestCmdRegistrySh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdRegistryShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/registry.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdRoutesSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete route foo bar testroute test-route new-route
-  exit 0
-) &>/dev/null
-
-
-os::test::junit::declare_suite_start "cmd/routes"
-
-os::cmd::expect_success 'oc get routes'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/test-route.json'
-os::cmd::expect_success_and_text 'oc get routes testroute --show-labels' 'rtlabel1'
-os::cmd::expect_success 'oc delete routes testroute'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/test-service.json'
-os::cmd::expect_success 'oc create route passthrough --service=svc/frontend'
-os::cmd::expect_success 'oc delete routes frontend'
-os::cmd::expect_success 'oc create route edge --path /test --service=services/non-existent --port=80'
-os::cmd::expect_success 'oc delete routes non-existent'
-os::cmd::expect_success 'oc create route edge test-route --service=frontend'
-os::cmd::expect_success 'oc delete routes test-route'
-os::cmd::expect_failure 'oc create route edge new-route'
-os::cmd::expect_success 'oc delete services frontend'
-os::cmd::expect_success 'oc create route edge --insecure-policy=Allow --service=foo --port=80'
-os::cmd::expect_success_and_text 'oc get route foo -o jsonpath="{.spec.tls.insecureEdgeTerminationPolicy}"' 'Allow'
-os::cmd::expect_success 'oc delete routes foo'
-
-os::cmd::expect_success_and_text 'oc create route edge --service foo --port=8080' 'created'
-os::cmd::expect_success_and_text 'oc create route edge --service bar --port=9090' 'created'
-
-# verify that reencrypt routes with no destination CA return the stub PEM block on the old API
-project="$(oc project -q)"
-os::cmd::expect_success_and_text     'oc create route reencrypt --service baz --port=9090' 'created'
-os::cmd::expect_success_and_not_text 'oc get --raw /apis/route.openshift.io/v1/namespaces/${project}/routes/baz' 'This is an empty PEM file'
-
-os::cmd::expect_success_and_text 'oc set route-backends foo' 'routes/foo'
-os::cmd::expect_success_and_text 'oc set route-backends foo' 'Service'
-os::cmd::expect_success_and_text 'oc set route-backends foo' '100'
-os::cmd::expect_failure_and_text 'oc set route-backends foo --zero --equal' 'error: --zero and --equal may not be specified together'
-os::cmd::expect_failure_and_text 'oc set route-backends foo --zero --adjust' 'error: --adjust and --zero may not be specified together'
-os::cmd::expect_failure_and_text 'oc set route-backends foo a=' 'expected NAME=WEIGHT'
-os::cmd::expect_failure_and_text 'oc set route-backends foo =10' 'expected NAME=WEIGHT'
-os::cmd::expect_failure_and_text 'oc set route-backends foo a=a' 'WEIGHT must be a number'
-os::cmd::expect_success_and_text 'oc set route-backends foo a=10' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo a=100' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo a=0' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo' '0'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a'
-os::cmd::expect_success_and_text 'oc set route-backends foo a1=0 b2=0' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo' 'a1'
-os::cmd::expect_success_and_text 'oc set route-backends foo' 'b2'
-os::cmd::expect_success_and_text 'oc set route-backends foo a1=100 b2=50 c3=0' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(66%\),b2\(33%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo a1=100 b2=0 c3=0' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust b2=+10%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(90%\),b2\(10%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust b2=+25%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(65%\),b2\(35%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust b2=+99%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(0%\),b2\(100%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust b2=-51%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(51%\),b2\(49%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust a1=20%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(20%\),b2\(80%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust c3=50%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(10%\),b2\(80%\),c3\(10%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '25 \(10%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '200 \(80%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '25 \(10%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '<error: endpoints "c3" not found>'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust c3=1' 'updated'
-os::cmd::expect_success_and_text 'oc describe routes foo' '1 \(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --equal' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(33%\),b2\(33%\),c3\(33%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '100 \(33%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --zero' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(0%\),b2\(0%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '0'
-
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdRoutesShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdRoutesSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdRoutesSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdRoutesShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/routes.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdRunSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-os::test::junit::declare_suite_start "cmd/run"
-# This test validates the value of --image for oc run
-os::cmd::expect_success_and_text 'oc create deploymentconfig newdcforimage --image=validimagevalue' 'deploymentconfig.apps.openshift.io/newdcforimage created'
-os::cmd::expect_failure_and_text 'oc run newdcforimage2 --image="InvalidImageValue0192"' 'error: Invalid image name "InvalidImageValue0192": invalid reference format'
-echo "oc run: ok"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdRunShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdRunSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdRunSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdRunShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/run.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -32475,46 +30975,6 @@ func testExtendedTestdataCmdTestCmdSecretsSh() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/secrets.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdServicesSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete all,templates --all
-  exit 0
-) &>/dev/null
-
-
-os::test::junit::declare_suite_start "cmd/create-service-nodeport"
-# This test validates the 'create service nodeport' command and its "--node-port" and "--tcp" options
-os::cmd::expect_success_and_text 'oc create service nodeport mynodeport --tcp=8080:7777 --node-port=30000' 'service/mynodeport created'
-os::cmd::expect_failure_and_text 'oc create service nodeport mynodeport --tcp=8080:7777 --node-port=30000' 'provided port is already allocated'
-os::cmd::expect_failure_and_text 'oc create service nodeport mynodeport --tcp=8080:7777 --node-port=300' 'provided port is not in the valid range. The range of valid ports is 30000-32767'
-os::cmd::expect_success_and_text 'oc describe service mynodeport' 'NodePort\:.*30000'
-os::cmd::expect_success_and_text 'oc describe service mynodeport' 'NodePort\:.*8080-7777'
-os::cmd::expect_success_and_text 'oc describe --v=8 service mynodeport' 'Response Body'
-
-echo "create-services-nodeport: ok"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdServicesShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdServicesSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdServicesSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdServicesShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/services.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -32831,114 +31291,6 @@ func testExtendedTestdataCmdTestCmdSetbuildsecretSh() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/setbuildsecret.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdStatusSh = []byte(`#!/bin/bash
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
-OS_ROOT=$(dirname "${BASH_SOURCE}")/../..
-source "${OS_ROOT}/hack/lib/init.sh"
-os::log::stacktrace::install
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete project project-bar
-  oc delete project project-status
-  exit 0
-) &>/dev/null
-
-login_kubeconfig="${ARTIFACT_DIR}/login.kubeconfig"
-cp "${KUBECONFIG}" "${login_kubeconfig}"
-
-os::test::junit::declare_suite_start "cmd/status"
-# login and ensure no current projects exist
-#os::cmd::expect_success "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${MASTER_CONFIG_DIR}/server-ca.crt' -u test-user2 -p anything"
-#os::cmd::expect_success 'oc delete project --all'
-#os::cmd::try_until_text "oc get projects -o jsonpath='{.items}'" "^\[\]$"
-#os::cmd::expect_success 'oc logout'
-
-# remove self-provisioner role from user and test login prompt before creating any projects
-#os::cmd::expect_success "oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth --kubeconfig='${login_kubeconfig}'"
-
-# login as 'test-user2'
-#os::cmd::expect_success "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${MASTER_CONFIG_DIR}/server-ca.crt' -u test-user2 -p anything"
-
-# make sure ` + "`" + `oc status` + "`" + ` re-uses the correct "no projects" message from ` + "`" + `oc login` + "`" + ` with no self-provisioner role
-#os::cmd::expect_success_and_text 'oc status' "You don't have any projects. Contact your system administrator to request a project"
-os::cmd::expect_success_and_text 'oc status --all-namespaces' "Showing all projects on server"
-# make sure standard login prompt is printed once self-provisioner status is restored
-#os::cmd::expect_success "oc logout"
-#os::cmd::expect_success "oc adm policy add-cluster-role-to-group self-provisioner system:authenticated:oauth --kubeconfig='${login_kubeconfig}'"
-#os::cmd::try_until_text "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${MASTER_CONFIG_DIR}/server-ca.crt' -u test-user2 -p anything" "You don't have any projects. You can try to create a new project, by running" $(( 30 * second )) 0.25
-
-# make sure ` + "`" + `oc status` + "`" + ` re-uses the correct "no projects" message from ` + "`" + `oc login` + "`" + `
-#os::cmd::expect_success_and_text 'oc status' "You don't have any projects. You can try to create a new project, by running"
-os::cmd::expect_success_and_text 'oc status -A' "Showing all projects on server"
-# make sure ` + "`" + `oc status` + "`" + ` does not re-use the "no projects" message from ` + "`" + `oc login` + "`" + ` if -n is specified
-#os::cmd::expect_failure_and_text 'oc status -n forbidden' 'Error from server \(Forbidden\): projects.project.openshift.io "forbidden" is forbidden: User "test-user2" cannot get resource "projects" in API group "project.openshift.io" in the namespace "forbidden"'
-
-# create a new project
-os::cmd::expect_success "oc new-project project-bar --display-name='my project' --description='test project'"
-os::cmd::expect_success_and_text "oc project" 'Using project "project-bar"'
-
-# make sure ` + "`" + `oc status` + "`" + ` does not use "no projects" message if there is a project created
-os::cmd::expect_success_and_text 'oc status' "In project my project \(project-bar\) on server"
-#os::cmd::expect_failure_and_text 'oc status -n forbidden' 'Error from server \(Forbidden\): projects.project.openshift.io "forbidden" is forbidden: User "test-user2" cannot get resource "projects" in API group "project.openshift.io" in the namespace "forbidden"'
-
-# create a second project
-os::cmd::expect_success "oc new-project project-bar-2 --display-name='my project 2' --description='test project 2'"
-os::cmd::expect_success_and_text "oc project" 'Using project "project-bar-2"'
-
-# delete the current project ` + "`" + `project-bar-2` + "`" + ` and make sure ` + "`" + `oc status` + "`" + ` does not return the "no projects"
-# message since ` + "`" + `project-bar` + "`" + ` still exists
-os::cmd::expect_success_and_text "oc delete project project-bar-2" 'project.project.openshift.io "project-bar-2" deleted'
-# the deletion is asynchronous and can take a while, so wait until we see the error
-#os::cmd::try_until_text "oc status" 'Error from server \(Forbidden\): projects.project.openshift.io "project-bar-2" is forbidden: User "test-user2" cannot get resource "projects" in API group "project.openshift.io" in the namespace "project-bar-2"'
-
-# delete "project-bar" and test that ` + "`" + `oc status` + "`" + ` still does not return the "no projects" message.
-# Although we are deleting the last remaining project, the current context's namespace is still set
-# to it, therefore ` + "`" + `oc status` + "`" + ` should simply return a forbidden error and not the "no projects" message
-# until the next time the user logs in.
-os::cmd::expect_success "oc project project-bar"
-os::cmd::expect_success "oc delete project project-bar"
-# the deletion is asynchronous and can take a while, so wait until we see the error
-#os::cmd::try_until_text "oc status" 'Error from server \(Forbidden\): projects.project.openshift.io "project-bar" is forbidden: User "test-user2" cannot get resource "projects" in API group "project.openshift.io" in the namespace "project-bar"'
-os::cmd::try_until_not_text "oc get projects" "project-bar"
-os::cmd::try_until_not_text "oc get projects" "project-bar-2"
-#os::cmd::expect_success "oc logout"
-#os::cmd::expect_success_and_text "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${MASTER_CONFIG_DIR}/server-ca.crt' -u test-user2 -p anything" "You don't have any projects. You can try to create a new project, by running"
-#os::cmd::expect_success_and_text 'oc status' "You don't have any projects. You can try to create a new project, by running"
-os::cmd::expect_success "oc new-project project-status --display-name='my project' --description='test project'"
-
-# Verify jobs are showing in status
-os::cmd::expect_success "oc create job pi --image=image-registry.openshift-image-registry.svc:5000/openshift/tools:latest -- perl -Mbignum=bpi -wle 'print bpi(2000)'"
-os::cmd::expect_success_and_text "oc status" "job/pi manages image-registry.openshift-image-registry.svc:5000/openshift/tools:latest"
-
-# logout
-#os::cmd::expect_success "oc logout"
-
-echo "status: ok"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdStatusShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdStatusSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdStatusSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdStatusShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/status.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -34691,7 +33043,7 @@ var _testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson = []byte(`
     "containers": [
       {
         "name": "hello-openshift",
-        "image": "k8s.gcr.io/e2e-test-images/agnhost:2.39",
+        "image": "registry.k8s.io/e2e-test-images/agnhost:2.40",
         "args": ["netexec"],
         "ports": [
           {
@@ -38820,7 +37172,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+                image: registry.k8s.io/e2e-test-images/agnhost:2.40
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -43020,7 +41372,7 @@ items:
           replicationcontroller: idling-echo
       spec:
         containers:
-        - image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.40
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675" ]
           ports:
@@ -43086,7 +41438,7 @@ items:
           deploymentconfig: idling-echo
       spec:
         containers:
-        - image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.40
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -43665,39 +42017,6 @@ func testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson() (*asset, error) 
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataJobsV1Yaml = []byte(`apiVersion: batch/v1
-kind: Job
-metadata:
-  name: simplev1
-spec:
-  template:
-    metadata:
-      name: simplev1
-      labels:
-        app: simplev1
-    spec:
-      containers:
-      - name: simplev1
-        image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
-        command: ["/bin/sh", "-c", "exit 0"]
-      restartPolicy: Never
-`)
-
-func testExtendedTestdataJobsV1YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataJobsV1Yaml, nil
-}
-
-func testExtendedTestdataJobsV1Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataJobsV1YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/jobs/v1.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -48073,7 +46392,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -48091,7 +46410,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -48126,7 +46445,7 @@ items:
       app: serving-cert
   spec:
     containers:
-    - image: k8s.gcr.io/e2e-test-images/nginx:1.15-2
+    - image: registry.k8s.io/e2e-test-images/nginx:1.15-2
       name: serve
       command:
         - /usr/sbin/nginx
@@ -48223,13 +46542,11 @@ func testExtendedTestdataRouterReencryptServingCertYaml() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataRouterRouterCommonYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-objects:
-
+var _testExtendedTestdataRouterRouterCommonYaml = []byte(`kind: List
+apiVersion: v1
+items:
 # ensure the router can access routes and endpoints
-- apiVersion: v1
+- apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
   metadata:
     name: system-router
@@ -48237,6 +46554,8 @@ objects:
   - kind: ServiceAccount
     name: default
   roleRef:
+    kind: ClusterRole
+    apiGroup: rbac.authorization.k8s.io
     name: system:router
 
 # two routes that differ only by their labels and names
@@ -48330,7 +46649,7 @@ objects:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -48350,764 +46669,6 @@ func testExtendedTestdataRouterRouterCommonYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/router/router-common.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterConfigManagerYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-objects:
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: router-haproxy-cfgmgr
-    labels:
-      test: router-haproxy-cfgmgr
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      args: ["--namespace=$(POD_NAMESPACE)", "-v=4", "--haproxy-config-manager=true", "--blueprint-route-labels=select=hapcm-blueprint", "--labels=select=haproxy-cfgmgr", "--stats-password=password", "--stats-port=1936", "--stats-user=admin"]
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-    serviceAccountName: default
-
-# ensure the router can access routes and endpoints
-- apiVersion: v1
-  kind: RoleBinding
-  metadata:
-    name: system-router
-  subjects:
-  - kind: ServiceAccount
-    name: default
-  roleRef:
-    name: system:router
-
-# blueprints for edge, reencrypt and passthrough routes with annotation(s)
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: edge-blueprint
-    labels:
-      test: router
-      select: hapcm-blueprint
-    annotations:
-      router.openshift.io/cookie_name: empire
-  spec:
-    tls:
-      termination: edge
-    host: edge.blueprint.hapcm.test
-    to:
-      name: insecure-service
-      kind: Service
-    ports:
-    - targetPort: 8080
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: reencrypt-blueprint
-    labels:
-      test: router
-      select: hapcm-blueprint
-    annotations:
-      ren: stimpy
-  spec:
-    tls:
-      termination: reencrypt
-    host: reencrypt.blueprint.hapcm.test
-    to:
-      name: secure-service
-      kind: Service
-    ports:
-    - targetPort: 8443
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: passthrough-blueprint
-    labels:
-      test: router
-      select: hapcm-blueprint
-    annotations:
-      test: ptcruiser
-      foo: bar
-  spec:
-    tls:
-      termination: passthrough
-    host: passthrough.blueprint.hapcm.test
-    to:
-      name: secure-service
-      kind: Service
-
-# config map for nginx
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: serving-cert
-  data:
-    nginx.conf: |
-      daemon off;
-      events { }
-      http {
-        server {
-            listen 8443;
-            ssl    on;
-            ssl_certificate     /etc/serving-cert/tls.crt;
-            ssl_certificate_key    /etc/serving-cert/tls.key;
-            server_name  "*.svc";
-            location / {
-                root   /usr/share/nginx/html;
-                index  index.html index.htm;
-            }
-            error_page   500 502 503 504  /50x.html;
-            location = /50x.html {
-                root   /usr/share/nginx/html;
-            }
-        }
-      }
-
-# pods that service http[s] requests
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: insecure-endpoint
-    labels:
-      test: haproxy-cfgmgr
-      endpoints: insecure-endpoint
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
-      args: ["netexec"]
-      ports:
-      - containerPort: 8080
-        name: http
-      - containerPort: 100
-        protocol: UDP
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: secure-endpoint
-    labels:
-      app: secure-endpoint
-  spec:
-    containers:
-    - image: k8s.gcr.io/e2e-test-images/nginx:1.15-2
-      name: serve
-      command:
-        - /usr/sbin/nginx
-      args:
-        - -c
-        - /etc/nginx/nginx.conf
-      ports:
-      - containerPort: 8443
-        protocol: TCP
-      volumeMounts:
-      - name: cert
-        mountPath: /etc/serving-cert
-      - name: conf
-        mountPath: /etc/nginx
-      - name: tmp
-        mountPath: /var/cache/nginx
-      - name: tmp
-        mountPath: /var/run
-    volumes:
-    - name: conf
-      configMap:
-        name: serving-cert
-    - name: cert
-      secret:
-        secretName: serving-cert
-    - name: tmp
-      emptyDir: {}
-    - name: tmp2
-      emptyDir: {}
-
-# services that can be routed to
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: insecure-service
-    labels:
-      test: router
-  spec:
-    selector:
-      test: haproxy-cfgmgr
-      endpoints: insecure-endpoint
-    ports:
-    - port: 8080
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: secure-service
-    annotations:
-      service.alpha.openshift.io/serving-cert-secret-name: serving-cert
-  spec:
-    selector:
-      app: secure-endpoint
-    ports:
-      - port: 443
-        name: https
-        targetPort: 8443
-        protocol: TCP
-
-
-# insecure, edge secured, reencrypt and passthrough routes
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: insecure-route
-    labels:
-      test: haproxy-cfgmgr
-      select: haproxy-cfgmgr
-  spec:
-    host: insecure.hapcm.test
-    to:
-      name: insecure-service
-      kind: Service
-    ports:
-    - targetPort: 8080
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: edge-allow-http-route
-    labels:
-      test: haproxy-cfgmgr
-      select: haproxy-cfgmgr
-  spec:
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Allow
-    host: edge.allow.hapcm.test
-    to:
-      name: insecure-service
-      kind: Service
-    ports:
-    - targetPort: 8080
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: reencrypt-route
-    labels:
-      test: haproxy-cfgmgr
-      select: haproxy-cfgmgr
-  spec:
-    tls:
-      termination: reencrypt
-    host: reencrypt.hapcm.test
-    to:
-      name: secure-service
-      kind: Service
-    ports:
-    - targetPort: 8443
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: passthrough-route
-    labels:
-      test: haproxy-cfgmgr
-      select: haproxy-cfgmgr
-  spec:
-    tls:
-      termination: passthrough
-    host: passthrough.hapcm.test
-    to:
-      name: secure-service
-      kind: Service
-`)
-
-func testExtendedTestdataRouterRouterConfigManagerYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterConfigManagerYaml, nil
-}
-
-func testExtendedTestdataRouterRouterConfigManagerYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterConfigManagerYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-config-manager.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterGrpcInteropRoutesYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: DOMAIN
-- name: TLS_CRT
-- name: TLS_KEY
-- name: TYPE
-objects:
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: grpc-interop-h2c
-    labels:
-      type: ${TYPE}
-  spec:
-    host: grpc-interop-h2c.${DOMAIN}
-    port:
-      targetPort: 1110
-    to:
-      kind: Service
-      name: grpc-interop
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: grpc-interop-edge
-    labels:
-      type: ${TYPE}
-  spec:
-    host: grpc-interop-edge.${DOMAIN}
-    port:
-      targetPort: 1110
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-      key: |-
-        ${TLS_KEY}
-      certificate: |-
-        ${TLS_CRT}
-    to:
-      kind: Service
-      name: grpc-interop
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: grpc-interop-reencrypt
-    labels:
-      type: ${TYPE}
-  spec:
-    host: grpc-interop-reencrypt.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: reencrypt
-      insecureEdgeTerminationPolicy: Redirect
-      key: |-
-        ${TLS_KEY}
-      certificate: |-
-        ${TLS_CRT}
-    to:
-      kind: Service
-      name: grpc-interop
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: grpc-interop-passthrough
-    labels:
-      type: ${TYPE}
-  spec:
-    host: grpc-interop-passthrough.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: passthrough
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: grpc-interop
-      weight: 100
-    wildcardPolicy: None
-`)
-
-func testExtendedTestdataRouterRouterGrpcInteropRoutesYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterGrpcInteropRoutesYaml, nil
-}
-
-func testExtendedTestdataRouterRouterGrpcInteropRoutesYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterGrpcInteropRoutesYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-grpc-interop-routes.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterGrpcInteropYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-objects:
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: grpc-interop
-    annotations:
-      service.beta.openshift.io/serving-cert-secret-name: service-cert-grpc-interop
-  spec:
-    selector:
-      app: grpc-interop
-    ports:
-    - appProtocol: h2c
-      name: h2c
-      port: 1110
-      protocol: TCP
-      targetPort: 1110
-    - name: https
-      port: 8443
-      protocol: TCP
-      targetPort: 8443
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: grpc-interop
-    labels:
-      app: grpc-interop
-  spec:
-    containers:
-    - image: ${IMAGE}
-      name: server
-      command: ["ingress-operator", "serve-grpc-test-server"]
-      ports:
-      - containerPort: 1110
-        name: h2c
-        protocol: TCP
-      - containerPort: 8443
-        name: https
-        protocol: TCP
-      volumeMounts:
-      - mountPath: /etc/serving-cert
-        name: cert
-      readinessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8443
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      livenessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8443
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-    volumes:
-    - name: cert
-      secret:
-        secretName: service-cert-grpc-interop
-`)
-
-func testExtendedTestdataRouterRouterGrpcInteropYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterGrpcInteropYaml, nil
-}
-
-func testExtendedTestdataRouterRouterGrpcInteropYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterGrpcInteropYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-grpc-interop.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterH2specRoutesYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: DOMAIN
-- name: TYPE
-objects:
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    labels:
-      app: h2spec-haproxy
-      type: ${TYPE}
-    name: h2spec-passthrough
-  spec:
-    host: h2spec-passthrough.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: passthrough
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: h2spec-haproxy
-      weight: 100
-    wildcardPolicy: None
-`)
-
-func testExtendedTestdataRouterRouterH2specRoutesYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterH2specRoutesYaml, nil
-}
-
-func testExtendedTestdataRouterRouterH2specRoutesYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterH2specRoutesYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-h2spec-routes.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterH2specYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: HAPROXY_IMAGE
-- name: H2SPEC_IMAGE
-objects:
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: h2spec-haproxy-config
-  data:
-    haproxy.config: |
-      global
-        daemon
-        log stdout local0
-        nbthread 4
-        tune.ssl.default-dh-param 2048
-        tune.ssl.capture-cipherlist-size 1
-      defaults
-        mode http
-        timeout connect 5s
-        timeout client 30s
-        timeout client-fin 1s
-        timeout server 30s
-        timeout server-fin 1s
-        timeout http-request 10s
-        timeout http-keep-alive 300s
-        option logasap
-        option http-buffer-request
-        log-format "frontend:%f/%H/%fi:%fp GMT:%T\ body:%[capture.req.hdr(0)]\  request:%r"
-      frontend fe_proxy_tls
-        option http-buffer-request
-        declare capture request len 40000
-        http-request capture req.body id 0
-        log global
-        bind *:8443 ssl crt /tmp/bundle.pem alpn h2
-        default_backend haproxy-availability-ok
-      backend haproxy-availability-ok
-        errorfile 503 /etc/haproxy/errorfile
-        http-request deny deny_status 200
-    errorfile: |
-      HTTP/1.1 200 OK
-      Content-Length: 8192
-      Cache-Control: max-age=28800
-      Content-Type: text/plain
-
-      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
-      BFNBRELPe53ZdLKWpf2Sr96vRPRNw
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: h2spec-haproxy
-    labels:
-      app: h2spec-haproxy
-  spec:
-    containers:
-    - image: ${HAPROXY_IMAGE}
-      name: haproxy
-      command: ["/bin/bash", "-c" ]
-      args:
-        - set -e;
-          cat /etc/serving-cert/tls.key /etc/serving-cert/tls.crt > /tmp/bundle.pem;
-          haproxy -f /etc/haproxy/haproxy.config -db
-      ports:
-      - containerPort: 8443
-        protocol: TCP
-      readinessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8443
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      livenessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8443
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      securityContext:
-        allowPrivilegeEscalation: true
-      volumeMounts:
-      - mountPath: /etc/serving-cert
-        name: cert
-      - mountPath: /etc/haproxy
-        name: config
-    volumes:
-    - name: config
-      configMap:
-        name: h2spec-haproxy-config
-    - name: cert
-      secret:
-        secretName: serving-cert-h2spec
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: h2spec-haproxy
-    annotations:
-      service.beta.openshift.io/serving-cert-secret-name: serving-cert-h2spec
-  spec:
-    selector:
-      app: h2spec-haproxy
-    ports:
-      - port: 8443
-        name: https
-        targetPort: 8443
-        protocol: TCP
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: h2spec
-    labels:
-      app: h2spec
-  spec:
-    containers:
-    - name: h2spec
-      image: ${H2SPEC_IMAGE}
-      command: ["sleep"]
-      args: ["infinity"]
-`)
-
-func testExtendedTestdataRouterRouterH2specYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterH2specYaml, nil
-}
-
-func testExtendedTestdataRouterRouterH2specYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterH2specYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-h2spec.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -49181,286 +46742,6 @@ func testExtendedTestdataRouterRouterHttpEchoServerYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/router/router-http-echo-server.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterHttp2RoutesYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: DOMAIN
-- name: TLS_CRT
-- name: TLS_KEY
-- name: TYPE
-objects:
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-default-cert-edge
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-default-cert-edge.${DOMAIN}
-    port:
-      targetPort: 8080
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-default-cert-reencrypt
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-default-cert-reencrypt.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: reencrypt
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-custom-cert-edge
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-custom-cert-edge.${DOMAIN}
-    port:
-      targetPort: 8080
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-      key: |-
-        ${TLS_KEY}
-      certificate: |-
-        ${TLS_CRT}
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-custom-cert-reencrypt
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-custom-cert-reencrypt.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: reencrypt
-      insecureEdgeTerminationPolicy: Redirect
-      key: |-
-        ${TLS_KEY}
-      certificate: |-
-        ${TLS_CRT}
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-passthrough
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-passthrough.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: passthrough
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-`)
-
-func testExtendedTestdataRouterRouterHttp2RoutesYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterHttp2RoutesYaml, nil
-}
-
-func testExtendedTestdataRouterRouterHttp2RoutesYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterHttp2RoutesYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-http2-routes.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterHttp2Yaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-objects:
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: http2
-    annotations:
-      service.beta.openshift.io/serving-cert-secret-name: serving-cert-http2
-  spec:
-    selector:
-      name: http2
-    ports:
-      - name: https
-        protocol: TCP
-        port: 8443
-        targetPort: 8443
-      - name: http
-        protocol: TCP
-        port: 8080
-        targetPort: 8080
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: http2
-    labels:
-      name: http2
-  spec:
-    containers:
-    - image: ${IMAGE}
-      name: server
-      command: ["ingress-operator", "serve-http2-test-server"]
-      readinessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8080
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      livenessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8080
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      ports:
-      - containerPort: 8443
-        protocol: TCP
-      - containerPort: 8080
-        protocol: TCP
-      env:
-      - name: GODEBUG
-        value: http2debug=1
-      volumeMounts:
-      - mountPath: /etc/serving-cert
-        name: cert
-    volumes:
-    - name: cert
-      secret:
-        secretName: serving-cert-http2
-`)
-
-func testExtendedTestdataRouterRouterHttp2YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterHttp2Yaml, nil
-}
-
-func testExtendedTestdataRouterRouterHttp2Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterHttp2YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-http2.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterIdleYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-objects:
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: idle-test
-    labels:
-      app: idle-test
-  spec:
-    port:
-      targetPort: 8080
-    to:
-      kind: Service
-      name: idle-test
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: idle-test
-    labels:
-      app: idle-test
-  spec:
-    selector:
-      app: idle-test
-    ports:
-      - port: 8080
-        name: 8080-http
-        targetPort: 8080
-        protocol: TCP
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: idle-test
-  spec:
-    replicas: 1
-    template:
-      metadata:
-        name: idle-test
-        labels:
-          app: idle-test
-      spec:
-        containers:
-        - image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
-          name: idle-test
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 8080
-            initialDelaySeconds: 3
-            periodSeconds: 3
-          command:
-            - /usr/bin/socat
-            - TCP4-LISTEN:8080,reuseaddr,fork
-            - EXEC:'/bin/bash -c \"printf \\\"HTTP/1.0 200 OK\r\n\r\n\\\"; sed -e \\\"/^\r/q\\\"\"'
-          ports:
-          - containerPort: 8080
-            protocol: TCP
-    selector:
-      matchLabels:
-        app: idle-test
-`)
-
-func testExtendedTestdataRouterRouterIdleYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterIdleYaml, nil
-}
-
-func testExtendedTestdataRouterRouterIdleYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterIdleYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-idle.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -49545,7 +46826,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -49563,7 +46844,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -49583,645 +46864,6 @@ func testExtendedTestdataRouterRouterMetricsYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/router/router-metrics.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterOverrideDomainsYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-- name: DEFAULT_CERTIFICATE
-  value: |-
-    -----BEGIN CERTIFICATE-----
-    MIIDuTCCAqGgAwIBAgIUZYD30F0sJl7HqxE7gAequtxk/HowDQYJKoZIhvcNAQEL
-    BQAwgaExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UEBwwMRGVmYXVs
-    dCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBhbnkgTHRkMRAwDgYDVQQLDAdU
-    ZXN0IENBMRowGAYDVQQDDBF3d3cuZXhhbXBsZWNhLmNvbTEiMCAGCSqGSIb3DQEJ
-    ARYTZXhhbXBsZUBleGFtcGxlLmNvbTAeFw0yMjAxMjgwMjU0MDlaFw0zMjAxMjYw
-    MjU0MDlaMHwxGDAWBgNVBAMMD3d3dy5leGFtcGxlLmNvbTELMAkGA1UECAwCU0Mx
-    CzAJBgNVBAYTAlVTMSIwIAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUuY29t
-    MRAwDgYDVQQKDAdFeGFtcGxlMRAwDgYDVQQLDAdFeGFtcGxlMIIBIjANBgkqhkiG
-    9w0BAQEFAAOCAQ8AMIIBCgKCAQEA71W7gdEnM+Nm4/SA/4jEJ2SPQfVjkCMsIYGO
-    WrLLHq23HkMGstQoPyBnjLY8LmkKQsNhhWGRMWQz6+yGKgI1gh8huhfocuw+HODE
-    K3ugP/3DlaVEQlIQbVzwxDx+K78UqZHecQAJfvakuS/JThxsMf8/pqLuhjAf+t9N
-    k0CO8Z6mNVALtSvyQ+e+zjmzepVtu6WmtJ+8zW9dBQEmg0QCfWFd06836LrfixLk
-    vTRgCn0lzTuj7rSuGjY45JDIvKK4jZGQJKsYN59Wxg1d2CEoXBUJOJjecVdS3NhY
-    ubHNdcm+6Equ5ZmyVEkBmv462rOcednsHU6Ggt/vWSe05EOPVQIDAQABow0wCzAJ
-    BgNVHRMEAjAAMA0GCSqGSIb3DQEBCwUAA4IBAQCHI+fkEr27bJ2IMtFuHpSLpFF3
-    E4R5oVHt8XjflwKmuclyyLa8Z7nXnuvQLHa4jwf0tWUixsmtOyQN4tBI/msMk2PF
-    +ao2amcPoIo2lAg63+jFsIzkr2MEXBPu09wwt86e3XCoqmqT1Psnihh+Ys9KIPnc
-    wMr9muGkOh03O61vo71iaV17UKeGM4bzod333pSQIXLdYnoOuvmKdCsnD00lADoI
-    93DmG/4oYR/mD93QjxPFPDxDxR4isvWGoj7iXx7CFkN7PR9B3IhZt+T//ddeau3y
-    kXK0iSxOhyaqHvl15hHQ8tKPBBJRSDVU4qmaqAYWRXr65yxBoelHhTJQ6Gt4
-    -----END CERTIFICATE-----
-    -----BEGIN PRIVATE KEY-----
-    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDvVbuB0Scz42bj
-    9ID/iMQnZI9B9WOQIywhgY5assserbceQway1Cg/IGeMtjwuaQpCw2GFYZExZDPr
-    7IYqAjWCHyG6F+hy7D4c4MQre6A//cOVpURCUhBtXPDEPH4rvxSpkd5xAAl+9qS5
-    L8lOHGwx/z+mou6GMB/6302TQI7xnqY1UAu1K/JD577OObN6lW27paa0n7zNb10F
-    ASaDRAJ9YV3Trzfout+LEuS9NGAKfSXNO6PutK4aNjjkkMi8oriNkZAkqxg3n1bG
-    DV3YIShcFQk4mN5xV1Lc2Fi5sc11yb7oSq7lmbJUSQGa/jras5x52ewdToaC3+9Z
-    J7TkQ49VAgMBAAECggEAaCBzqOI3XSLlo+2/pe158e2VSkwZ2h8DVzyHk7xQFPPd
-    RKRCqNEXBYfypUyv2D1JAo0Aw8gUJFoFIPLR2DsHzqn+wXkfX8iaqXO8xXJO4Shl
-    zJiPnw8XKI2UDryG5D+JHNFi5uTuPLfQKOW6fmptRD9aEQS4I9eSQlKe7J7c0g+t
-    pCR1vCp6ZMFIXDgpHhquArI1fjA36nWK0dJkaO9LrTYPgeMIr0KFjEF+W3UPh/af
-    uw/KLjzyzHExwfVBcGZonb6rG1nU/7isUHqK75OhOKDcXpv+7NCBYZ6fu4COlE0O
-    +yGztbRXojWo1upKzzGPM+yoLyNA1aSljpCGOCSljQKBgQD+4i5FzRQ+e1XZxvUt
-    izypHHQcc7y9DfwKTwLXb9EUhmGCmrxVIuM+gm5N/Y/eXDjqtR2bqg7iIFjj3KTS
-    f9djCYT8FqlTtyDBk/qFNLchDX/mrykOuhqIXfT7JpQbk5+qkCy8k2ZJMl2ToNXA
-    WRqRCP4oa1WJMmoJFwo3BIVRIwKBgQDwYh2ryrs/QFE0W082oHAQ3Nrce5JmOtFp
-    70X/v8zZ8ESdeo7KOS0tNLeirBxlDGvUAesKwUHU1YwTgWhl/DkoPtv9INgT8kxS
-    VRcrix9kq62uiD+TKI732mwoG36keJdRECrQYRYjX+mf364EI+DeNmbPs3xsigaF
-    Zdbg+umxJwKBgF4fFelOvuAH2X8PGnDUDvV//VyYXKUPqfgAj1MRBotmyFFbZJqn
-    xHTL44HHVb5OHfKGKUXXeaGFQm36h573+Iio9kPE9ohkgqMZSxSvj8ST4JxGKIo4
-    rR2YXKP17hF05SwuC2cjo0z6XVXruaNLBCV0xa4VXMPKKx/qMyp37+czAoGBAL8c
-    woo6e/QlpmoBzlCX7YD6leaFODeeu6+FVBmo26zJoUOylKOiIZC3QOhL/ac44OGF
-    ROEgFL6pqNw5Hk824BpnH294FVKGaLdsfydXTHY1J7iDCkhtDn1vYl3gvib02RjR
-    ybgx9+/X6V3579fKzpTcm5C2Gk4Qzm5wMQ5dbj4xAoGBANYzYbBu8bItAEE6ohgf
-    D27SPW7VJsHGzbgRNC2SGCBzo3XaTJ0A8IMP+ghl5ndCJdLBz2FpeZLQvxOuopQD
-    J5dJXQxp7y20vh2C1e3wTPlA5CHHKpU1JZAe4THCJUg+EPwa4I+BOlvp71EB7BaH
-    bk65iLoLrUSkxMDi46qTAs5K
-    -----END PRIVATE KEY-----
-objects:
-
-# a router that overrides domains
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: router-override-domains
-    labels:
-      test: router-override-domains
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: DEFAULT_CERTIFICATE
-        value: |-
-          ${DEFAULT_CERTIFICATE}
-      args:
-      - "--name=test-override-domains"
-      - "--namespace=$(POD_NAMESPACE)"
-      - "-v=4"
-      - "--override-domains=null.ptr,void.str"
-      - "--hostname-template=${name}-${namespace}.apps.veto.test"
-      - "--stats-port=1936"
-      - "--metrics-type=haproxy"
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-      readinessProbe:
-        initialDelaySeconds: 10
-        httpGet:
-          path: /healthz/ready
-          port: 1936
-    serviceAccountName: default
-`)
-
-func testExtendedTestdataRouterRouterOverrideDomainsYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterOverrideDomainsYaml, nil
-}
-
-func testExtendedTestdataRouterRouterOverrideDomainsYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterOverrideDomainsYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-override-domains.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterOverrideYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-- name: DEFAULT_CERTIFICATE
-  value: |-
-    -----BEGIN CERTIFICATE-----
-    MIIDuTCCAqGgAwIBAgIUZYD30F0sJl7HqxE7gAequtxk/HowDQYJKoZIhvcNAQEL
-    BQAwgaExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UEBwwMRGVmYXVs
-    dCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBhbnkgTHRkMRAwDgYDVQQLDAdU
-    ZXN0IENBMRowGAYDVQQDDBF3d3cuZXhhbXBsZWNhLmNvbTEiMCAGCSqGSIb3DQEJ
-    ARYTZXhhbXBsZUBleGFtcGxlLmNvbTAeFw0yMjAxMjgwMjU0MDlaFw0zMjAxMjYw
-    MjU0MDlaMHwxGDAWBgNVBAMMD3d3dy5leGFtcGxlLmNvbTELMAkGA1UECAwCU0Mx
-    CzAJBgNVBAYTAlVTMSIwIAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUuY29t
-    MRAwDgYDVQQKDAdFeGFtcGxlMRAwDgYDVQQLDAdFeGFtcGxlMIIBIjANBgkqhkiG
-    9w0BAQEFAAOCAQ8AMIIBCgKCAQEA71W7gdEnM+Nm4/SA/4jEJ2SPQfVjkCMsIYGO
-    WrLLHq23HkMGstQoPyBnjLY8LmkKQsNhhWGRMWQz6+yGKgI1gh8huhfocuw+HODE
-    K3ugP/3DlaVEQlIQbVzwxDx+K78UqZHecQAJfvakuS/JThxsMf8/pqLuhjAf+t9N
-    k0CO8Z6mNVALtSvyQ+e+zjmzepVtu6WmtJ+8zW9dBQEmg0QCfWFd06836LrfixLk
-    vTRgCn0lzTuj7rSuGjY45JDIvKK4jZGQJKsYN59Wxg1d2CEoXBUJOJjecVdS3NhY
-    ubHNdcm+6Equ5ZmyVEkBmv462rOcednsHU6Ggt/vWSe05EOPVQIDAQABow0wCzAJ
-    BgNVHRMEAjAAMA0GCSqGSIb3DQEBCwUAA4IBAQCHI+fkEr27bJ2IMtFuHpSLpFF3
-    E4R5oVHt8XjflwKmuclyyLa8Z7nXnuvQLHa4jwf0tWUixsmtOyQN4tBI/msMk2PF
-    +ao2amcPoIo2lAg63+jFsIzkr2MEXBPu09wwt86e3XCoqmqT1Psnihh+Ys9KIPnc
-    wMr9muGkOh03O61vo71iaV17UKeGM4bzod333pSQIXLdYnoOuvmKdCsnD00lADoI
-    93DmG/4oYR/mD93QjxPFPDxDxR4isvWGoj7iXx7CFkN7PR9B3IhZt+T//ddeau3y
-    kXK0iSxOhyaqHvl15hHQ8tKPBBJRSDVU4qmaqAYWRXr65yxBoelHhTJQ6Gt4
-    -----END CERTIFICATE-----
-    -----BEGIN PRIVATE KEY-----
-    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDvVbuB0Scz42bj
-    9ID/iMQnZI9B9WOQIywhgY5assserbceQway1Cg/IGeMtjwuaQpCw2GFYZExZDPr
-    7IYqAjWCHyG6F+hy7D4c4MQre6A//cOVpURCUhBtXPDEPH4rvxSpkd5xAAl+9qS5
-    L8lOHGwx/z+mou6GMB/6302TQI7xnqY1UAu1K/JD577OObN6lW27paa0n7zNb10F
-    ASaDRAJ9YV3Trzfout+LEuS9NGAKfSXNO6PutK4aNjjkkMi8oriNkZAkqxg3n1bG
-    DV3YIShcFQk4mN5xV1Lc2Fi5sc11yb7oSq7lmbJUSQGa/jras5x52ewdToaC3+9Z
-    J7TkQ49VAgMBAAECggEAaCBzqOI3XSLlo+2/pe158e2VSkwZ2h8DVzyHk7xQFPPd
-    RKRCqNEXBYfypUyv2D1JAo0Aw8gUJFoFIPLR2DsHzqn+wXkfX8iaqXO8xXJO4Shl
-    zJiPnw8XKI2UDryG5D+JHNFi5uTuPLfQKOW6fmptRD9aEQS4I9eSQlKe7J7c0g+t
-    pCR1vCp6ZMFIXDgpHhquArI1fjA36nWK0dJkaO9LrTYPgeMIr0KFjEF+W3UPh/af
-    uw/KLjzyzHExwfVBcGZonb6rG1nU/7isUHqK75OhOKDcXpv+7NCBYZ6fu4COlE0O
-    +yGztbRXojWo1upKzzGPM+yoLyNA1aSljpCGOCSljQKBgQD+4i5FzRQ+e1XZxvUt
-    izypHHQcc7y9DfwKTwLXb9EUhmGCmrxVIuM+gm5N/Y/eXDjqtR2bqg7iIFjj3KTS
-    f9djCYT8FqlTtyDBk/qFNLchDX/mrykOuhqIXfT7JpQbk5+qkCy8k2ZJMl2ToNXA
-    WRqRCP4oa1WJMmoJFwo3BIVRIwKBgQDwYh2ryrs/QFE0W082oHAQ3Nrce5JmOtFp
-    70X/v8zZ8ESdeo7KOS0tNLeirBxlDGvUAesKwUHU1YwTgWhl/DkoPtv9INgT8kxS
-    VRcrix9kq62uiD+TKI732mwoG36keJdRECrQYRYjX+mf364EI+DeNmbPs3xsigaF
-    Zdbg+umxJwKBgF4fFelOvuAH2X8PGnDUDvV//VyYXKUPqfgAj1MRBotmyFFbZJqn
-    xHTL44HHVb5OHfKGKUXXeaGFQm36h573+Iio9kPE9ohkgqMZSxSvj8ST4JxGKIo4
-    rR2YXKP17hF05SwuC2cjo0z6XVXruaNLBCV0xa4VXMPKKx/qMyp37+czAoGBAL8c
-    woo6e/QlpmoBzlCX7YD6leaFODeeu6+FVBmo26zJoUOylKOiIZC3QOhL/ac44OGF
-    ROEgFL6pqNw5Hk824BpnH294FVKGaLdsfydXTHY1J7iDCkhtDn1vYl3gvib02RjR
-    ybgx9+/X6V3579fKzpTcm5C2Gk4Qzm5wMQ5dbj4xAoGBANYzYbBu8bItAEE6ohgf
-    D27SPW7VJsHGzbgRNC2SGCBzo3XaTJ0A8IMP+ghl5ndCJdLBz2FpeZLQvxOuopQD
-    J5dJXQxp7y20vh2C1e3wTPlA5CHHKpU1JZAe4THCJUg+EPwa4I+BOlvp71EB7BaH
-    bk65iLoLrUSkxMDi46qTAs5K
-    -----END PRIVATE KEY-----
-objects:
-
-# a router that overrides host
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: router-override
-    labels:
-      test: router-override
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: DEFAULT_CERTIFICATE
-        value: |-
-          ${DEFAULT_CERTIFICATE}
-      args:
-      - "--name=test-override"
-      - "--namespace=$(POD_NAMESPACE)"
-      - "-v=4"
-      - "--override-hostname"
-      - "--hostname-template=${name}-${namespace}.myapps.mycompany.com"
-      - "--stats-port=1936"
-      - "--metrics-type=haproxy"
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-      readinessProbe:
-        initialDelaySeconds: 10
-        httpGet:
-          path: /healthz/ready
-          port: 1936
-    serviceAccountName: default
-`)
-
-func testExtendedTestdataRouterRouterOverrideYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterOverrideYaml, nil
-}
-
-func testExtendedTestdataRouterRouterOverrideYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterOverrideYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-override.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterScopedYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-- name: ROUTER_NAME
-  value: "test-scoped"
-- name: DEFAULT_CERTIFICATE
-  value: |-
-    -----BEGIN CERTIFICATE-----
-    MIIDuTCCAqGgAwIBAgIUZYD30F0sJl7HqxE7gAequtxk/HowDQYJKoZIhvcNAQEL
-    BQAwgaExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UEBwwMRGVmYXVs
-    dCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBhbnkgTHRkMRAwDgYDVQQLDAdU
-    ZXN0IENBMRowGAYDVQQDDBF3d3cuZXhhbXBsZWNhLmNvbTEiMCAGCSqGSIb3DQEJ
-    ARYTZXhhbXBsZUBleGFtcGxlLmNvbTAeFw0yMjAxMjgwMjU0MDlaFw0zMjAxMjYw
-    MjU0MDlaMHwxGDAWBgNVBAMMD3d3dy5leGFtcGxlLmNvbTELMAkGA1UECAwCU0Mx
-    CzAJBgNVBAYTAlVTMSIwIAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUuY29t
-    MRAwDgYDVQQKDAdFeGFtcGxlMRAwDgYDVQQLDAdFeGFtcGxlMIIBIjANBgkqhkiG
-    9w0BAQEFAAOCAQ8AMIIBCgKCAQEA71W7gdEnM+Nm4/SA/4jEJ2SPQfVjkCMsIYGO
-    WrLLHq23HkMGstQoPyBnjLY8LmkKQsNhhWGRMWQz6+yGKgI1gh8huhfocuw+HODE
-    K3ugP/3DlaVEQlIQbVzwxDx+K78UqZHecQAJfvakuS/JThxsMf8/pqLuhjAf+t9N
-    k0CO8Z6mNVALtSvyQ+e+zjmzepVtu6WmtJ+8zW9dBQEmg0QCfWFd06836LrfixLk
-    vTRgCn0lzTuj7rSuGjY45JDIvKK4jZGQJKsYN59Wxg1d2CEoXBUJOJjecVdS3NhY
-    ubHNdcm+6Equ5ZmyVEkBmv462rOcednsHU6Ggt/vWSe05EOPVQIDAQABow0wCzAJ
-    BgNVHRMEAjAAMA0GCSqGSIb3DQEBCwUAA4IBAQCHI+fkEr27bJ2IMtFuHpSLpFF3
-    E4R5oVHt8XjflwKmuclyyLa8Z7nXnuvQLHa4jwf0tWUixsmtOyQN4tBI/msMk2PF
-    +ao2amcPoIo2lAg63+jFsIzkr2MEXBPu09wwt86e3XCoqmqT1Psnihh+Ys9KIPnc
-    wMr9muGkOh03O61vo71iaV17UKeGM4bzod333pSQIXLdYnoOuvmKdCsnD00lADoI
-    93DmG/4oYR/mD93QjxPFPDxDxR4isvWGoj7iXx7CFkN7PR9B3IhZt+T//ddeau3y
-    kXK0iSxOhyaqHvl15hHQ8tKPBBJRSDVU4qmaqAYWRXr65yxBoelHhTJQ6Gt4
-    -----END CERTIFICATE-----
-    -----BEGIN PRIVATE KEY-----
-    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDvVbuB0Scz42bj
-    9ID/iMQnZI9B9WOQIywhgY5assserbceQway1Cg/IGeMtjwuaQpCw2GFYZExZDPr
-    7IYqAjWCHyG6F+hy7D4c4MQre6A//cOVpURCUhBtXPDEPH4rvxSpkd5xAAl+9qS5
-    L8lOHGwx/z+mou6GMB/6302TQI7xnqY1UAu1K/JD577OObN6lW27paa0n7zNb10F
-    ASaDRAJ9YV3Trzfout+LEuS9NGAKfSXNO6PutK4aNjjkkMi8oriNkZAkqxg3n1bG
-    DV3YIShcFQk4mN5xV1Lc2Fi5sc11yb7oSq7lmbJUSQGa/jras5x52ewdToaC3+9Z
-    J7TkQ49VAgMBAAECggEAaCBzqOI3XSLlo+2/pe158e2VSkwZ2h8DVzyHk7xQFPPd
-    RKRCqNEXBYfypUyv2D1JAo0Aw8gUJFoFIPLR2DsHzqn+wXkfX8iaqXO8xXJO4Shl
-    zJiPnw8XKI2UDryG5D+JHNFi5uTuPLfQKOW6fmptRD9aEQS4I9eSQlKe7J7c0g+t
-    pCR1vCp6ZMFIXDgpHhquArI1fjA36nWK0dJkaO9LrTYPgeMIr0KFjEF+W3UPh/af
-    uw/KLjzyzHExwfVBcGZonb6rG1nU/7isUHqK75OhOKDcXpv+7NCBYZ6fu4COlE0O
-    +yGztbRXojWo1upKzzGPM+yoLyNA1aSljpCGOCSljQKBgQD+4i5FzRQ+e1XZxvUt
-    izypHHQcc7y9DfwKTwLXb9EUhmGCmrxVIuM+gm5N/Y/eXDjqtR2bqg7iIFjj3KTS
-    f9djCYT8FqlTtyDBk/qFNLchDX/mrykOuhqIXfT7JpQbk5+qkCy8k2ZJMl2ToNXA
-    WRqRCP4oa1WJMmoJFwo3BIVRIwKBgQDwYh2ryrs/QFE0W082oHAQ3Nrce5JmOtFp
-    70X/v8zZ8ESdeo7KOS0tNLeirBxlDGvUAesKwUHU1YwTgWhl/DkoPtv9INgT8kxS
-    VRcrix9kq62uiD+TKI732mwoG36keJdRECrQYRYjX+mf364EI+DeNmbPs3xsigaF
-    Zdbg+umxJwKBgF4fFelOvuAH2X8PGnDUDvV//VyYXKUPqfgAj1MRBotmyFFbZJqn
-    xHTL44HHVb5OHfKGKUXXeaGFQm36h573+Iio9kPE9ohkgqMZSxSvj8ST4JxGKIo4
-    rR2YXKP17hF05SwuC2cjo0z6XVXruaNLBCV0xa4VXMPKKx/qMyp37+czAoGBAL8c
-    woo6e/QlpmoBzlCX7YD6leaFODeeu6+FVBmo26zJoUOylKOiIZC3QOhL/ac44OGF
-    ROEgFL6pqNw5Hk824BpnH294FVKGaLdsfydXTHY1J7iDCkhtDn1vYl3gvib02RjR
-    ybgx9+/X6V3579fKzpTcm5C2Gk4Qzm5wMQ5dbj4xAoGBANYzYbBu8bItAEE6ohgf
-    D27SPW7VJsHGzbgRNC2SGCBzo3XaTJ0A8IMP+ghl5ndCJdLBz2FpeZLQvxOuopQD
-    J5dJXQxp7y20vh2C1e3wTPlA5CHHKpU1JZAe4THCJUg+EPwa4I+BOlvp71EB7BaH
-    bk65iLoLrUSkxMDi46qTAs5K
-    -----END PRIVATE KEY-----
-- name: UPDATE_STATUS
-  value: "true"
-objects:
-# a scoped router
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: router-scoped
-    labels:
-      test: router-scoped
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: DEFAULT_CERTIFICATE
-        value: |-
-          ${DEFAULT_CERTIFICATE}
-      args:
-      - "--name=${ROUTER_NAME}"
-      - "--namespace=$(POD_NAMESPACE)"
-      - "--update-status=${UPDATE_STATUS}"
-      - "-v=4"
-      - "--labels=select=first"
-      - "--stats-port=1936"
-      - "--metrics-type=haproxy"
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-      readinessProbe:
-        initialDelaySeconds: 10
-        httpGet:
-          path: /healthz/ready
-          port: 1936
-    serviceAccountName: default
-`)
-
-func testExtendedTestdataRouterRouterScopedYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterScopedYaml, nil
-}
-
-func testExtendedTestdataRouterRouterScopedYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterScopedYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-scoped.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterShardYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: DOMAIN
-- name: NAMESPACE
-- name: TYPE
-objects:
-- apiVersion: operator.openshift.io/v1
-  kind: IngressController
-  metadata:
-    name: ${TYPE}
-    namespace: ${NAMESPACE}
-    annotations:
-      ingress.operator.openshift.io/default-enable-http2: "true"
-  spec:
-    replicas: 1
-    domain: ${DOMAIN}
-    endpointPublishingStrategy:
-      type: LoadBalancerService
-    nodePlacement:
-      nodeSelector:
-        matchLabels:
-          node-role.kubernetes.io/worker: ""
-    namespaceSelector:
-      matchLabels:
-        type: ${TYPE}
-`)
-
-func testExtendedTestdataRouterRouterShardYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterShardYaml, nil
-}
-
-func testExtendedTestdataRouterRouterShardYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterShardYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-shard.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterWeightedRouterYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-- name: DEFAULT_CERTIFICATE
-  value: |-
-    -----BEGIN CERTIFICATE-----
-    MIIDuTCCAqGgAwIBAgIUZYD30F0sJl7HqxE7gAequtxk/HowDQYJKoZIhvcNAQEL
-    BQAwgaExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UEBwwMRGVmYXVs
-    dCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBhbnkgTHRkMRAwDgYDVQQLDAdU
-    ZXN0IENBMRowGAYDVQQDDBF3d3cuZXhhbXBsZWNhLmNvbTEiMCAGCSqGSIb3DQEJ
-    ARYTZXhhbXBsZUBleGFtcGxlLmNvbTAeFw0yMjAxMjgwMjU0MDlaFw0zMjAxMjYw
-    MjU0MDlaMHwxGDAWBgNVBAMMD3d3dy5leGFtcGxlLmNvbTELMAkGA1UECAwCU0Mx
-    CzAJBgNVBAYTAlVTMSIwIAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUuY29t
-    MRAwDgYDVQQKDAdFeGFtcGxlMRAwDgYDVQQLDAdFeGFtcGxlMIIBIjANBgkqhkiG
-    9w0BAQEFAAOCAQ8AMIIBCgKCAQEA71W7gdEnM+Nm4/SA/4jEJ2SPQfVjkCMsIYGO
-    WrLLHq23HkMGstQoPyBnjLY8LmkKQsNhhWGRMWQz6+yGKgI1gh8huhfocuw+HODE
-    K3ugP/3DlaVEQlIQbVzwxDx+K78UqZHecQAJfvakuS/JThxsMf8/pqLuhjAf+t9N
-    k0CO8Z6mNVALtSvyQ+e+zjmzepVtu6WmtJ+8zW9dBQEmg0QCfWFd06836LrfixLk
-    vTRgCn0lzTuj7rSuGjY45JDIvKK4jZGQJKsYN59Wxg1d2CEoXBUJOJjecVdS3NhY
-    ubHNdcm+6Equ5ZmyVEkBmv462rOcednsHU6Ggt/vWSe05EOPVQIDAQABow0wCzAJ
-    BgNVHRMEAjAAMA0GCSqGSIb3DQEBCwUAA4IBAQCHI+fkEr27bJ2IMtFuHpSLpFF3
-    E4R5oVHt8XjflwKmuclyyLa8Z7nXnuvQLHa4jwf0tWUixsmtOyQN4tBI/msMk2PF
-    +ao2amcPoIo2lAg63+jFsIzkr2MEXBPu09wwt86e3XCoqmqT1Psnihh+Ys9KIPnc
-    wMr9muGkOh03O61vo71iaV17UKeGM4bzod333pSQIXLdYnoOuvmKdCsnD00lADoI
-    93DmG/4oYR/mD93QjxPFPDxDxR4isvWGoj7iXx7CFkN7PR9B3IhZt+T//ddeau3y
-    kXK0iSxOhyaqHvl15hHQ8tKPBBJRSDVU4qmaqAYWRXr65yxBoelHhTJQ6Gt4
-    -----END CERTIFICATE-----
-    -----BEGIN PRIVATE KEY-----
-    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDvVbuB0Scz42bj
-    9ID/iMQnZI9B9WOQIywhgY5assserbceQway1Cg/IGeMtjwuaQpCw2GFYZExZDPr
-    7IYqAjWCHyG6F+hy7D4c4MQre6A//cOVpURCUhBtXPDEPH4rvxSpkd5xAAl+9qS5
-    L8lOHGwx/z+mou6GMB/6302TQI7xnqY1UAu1K/JD577OObN6lW27paa0n7zNb10F
-    ASaDRAJ9YV3Trzfout+LEuS9NGAKfSXNO6PutK4aNjjkkMi8oriNkZAkqxg3n1bG
-    DV3YIShcFQk4mN5xV1Lc2Fi5sc11yb7oSq7lmbJUSQGa/jras5x52ewdToaC3+9Z
-    J7TkQ49VAgMBAAECggEAaCBzqOI3XSLlo+2/pe158e2VSkwZ2h8DVzyHk7xQFPPd
-    RKRCqNEXBYfypUyv2D1JAo0Aw8gUJFoFIPLR2DsHzqn+wXkfX8iaqXO8xXJO4Shl
-    zJiPnw8XKI2UDryG5D+JHNFi5uTuPLfQKOW6fmptRD9aEQS4I9eSQlKe7J7c0g+t
-    pCR1vCp6ZMFIXDgpHhquArI1fjA36nWK0dJkaO9LrTYPgeMIr0KFjEF+W3UPh/af
-    uw/KLjzyzHExwfVBcGZonb6rG1nU/7isUHqK75OhOKDcXpv+7NCBYZ6fu4COlE0O
-    +yGztbRXojWo1upKzzGPM+yoLyNA1aSljpCGOCSljQKBgQD+4i5FzRQ+e1XZxvUt
-    izypHHQcc7y9DfwKTwLXb9EUhmGCmrxVIuM+gm5N/Y/eXDjqtR2bqg7iIFjj3KTS
-    f9djCYT8FqlTtyDBk/qFNLchDX/mrykOuhqIXfT7JpQbk5+qkCy8k2ZJMl2ToNXA
-    WRqRCP4oa1WJMmoJFwo3BIVRIwKBgQDwYh2ryrs/QFE0W082oHAQ3Nrce5JmOtFp
-    70X/v8zZ8ESdeo7KOS0tNLeirBxlDGvUAesKwUHU1YwTgWhl/DkoPtv9INgT8kxS
-    VRcrix9kq62uiD+TKI732mwoG36keJdRECrQYRYjX+mf364EI+DeNmbPs3xsigaF
-    Zdbg+umxJwKBgF4fFelOvuAH2X8PGnDUDvV//VyYXKUPqfgAj1MRBotmyFFbZJqn
-    xHTL44HHVb5OHfKGKUXXeaGFQm36h573+Iio9kPE9ohkgqMZSxSvj8ST4JxGKIo4
-    rR2YXKP17hF05SwuC2cjo0z6XVXruaNLBCV0xa4VXMPKKx/qMyp37+czAoGBAL8c
-    woo6e/QlpmoBzlCX7YD6leaFODeeu6+FVBmo26zJoUOylKOiIZC3QOhL/ac44OGF
-    ROEgFL6pqNw5Hk824BpnH294FVKGaLdsfydXTHY1J7iDCkhtDn1vYl3gvib02RjR
-    ybgx9+/X6V3579fKzpTcm5C2Gk4Qzm5wMQ5dbj4xAoGBANYzYbBu8bItAEE6ohgf
-    D27SPW7VJsHGzbgRNC2SGCBzo3XaTJ0A8IMP+ghl5ndCJdLBz2FpeZLQvxOuopQD
-    J5dJXQxp7y20vh2C1e3wTPlA5CHHKpU1JZAe4THCJUg+EPwa4I+BOlvp71EB7BaH
-    bk65iLoLrUSkxMDi46qTAs5K
-    -----END PRIVATE KEY-----
-objects:
-# a weighted router
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: weighted-router
-    labels:
-      test: weighted-router
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: DEFAULT_CERTIFICATE
-        value: |-
-          ${DEFAULT_CERTIFICATE}
-      args: ["--namespace=$(POD_NAMESPACE)", "-v=4", "--labels=select=weighted", "--stats-password=password", "--stats-port=1936", "--stats-user=admin"]
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-    serviceAccountName: default
-
-# ensure the router can access routes and endpoints
-- apiVersion: v1
-  kind: RoleBinding
-  metadata:
-    name: system-router
-  subjects:
-  - kind: ServiceAccount
-    name: default
-  roleRef:
-    name: system:router
-
-# a route that has multiple weighted services that it points to
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: weightedroute
-    labels:
-      test: router
-      select: weighted
-  spec:
-    host: weighted.example.com
-    to:
-      name: weightedendpoints1
-      kind: Service
-      weight: 90
-    alternateBackends:
-    - name: weightedendpoints2
-      kind: Service
-      weight: 10
-    ports:
-    - targetPort: 8080
-
-# a route that has multiple services but all weights are zero
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: zeroweightroute
-    labels:
-      test: router
-      select: weighted
-  spec:
-    host: zeroweight.example.com
-    to:
-      name: weightedendpoints1
-      kind: Service
-      weight: 0
-    alternateBackends:
-    - name: weightedendpoints2
-      kind: Service
-      weight: 0
-    ports:
-    - targetPort: 8080
-
-# two services that can be routed to
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: weightedendpoints1
-    labels:
-      test: router
-  spec:
-    selector:
-      test: weightedrouter1
-      endpoints: weightedrouter1
-    ports:
-    - port: 8080
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: weightedendpoints2
-    labels:
-      test: router
-  spec:
-    selector:
-      test: weightedrouter2
-      endpoints: weightedrouter2
-    ports:
-    - port: 8080
-# two pods that serves a response
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: endpoint-1
-    labels:
-      test: weightedrouter1
-      endpoints: weightedrouter1
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
-      args: ["netexec"]
-      ports:
-      - containerPort: 8080
-        name: http
-      - containerPort: 100
-        protocol: UDP
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: endpoint-2
-    labels:
-      test: weightedrouter2
-      endpoints: weightedrouter2
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
-      args: ["netexec"]
-      ports:
-      - containerPort: 8080
-        name: http
-      - containerPort: 100
-        protocol: UDP
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: endpoint-3
-    labels:
-      test: weightedrouter2
-      endpoints: weightedrouter2
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
-      args: ["netexec"]
-      ports:
-      - containerPort: 8080
-        name: http
-      - containerPort: 100
-        protocol: UDP
-`)
-
-func testExtendedTestdataRouterWeightedRouterYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterWeightedRouterYaml, nil
-}
-
-func testExtendedTestdataRouterWeightedRouterYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterWeightedRouterYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/weighted-router.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -51605,7 +48247,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+                image: registry.k8s.io/e2e-test-images/agnhost:2.40
 `)
 
 func testExtendedTestdataTemplatesTemplateinstance_badobjectYamlBytes() ([]byte, error) {
@@ -51665,7 +48307,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+                image: registry.k8s.io/e2e-test-images/agnhost:2.40
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -52952,6 +49594,127 @@ func e2echartE2eChartTemplateHtml() (*asset, error) {
 	return a, nil
 }
 
+var _e2echartTestRiskAnalysisHtml = []byte(`<html lang="en">
+<head>
+    <title>Risk Analysis</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <meta name="description"
+          content="Risk analysis is performed by Sippy to attempt to determine if the failures in this job are abnormal when compared to results for similar jobs over the past week, and amidst on-going incidents in the CI infrastructure. Risk analysis API will not catch everything and is a relatively simple implementation today, please reach out to the Technical Release Team if you spot abnormalities or have suggestions.">
+</head>
+<body onLoad="buildTestCaseTable('#test_case_results')">
+<p>
+    <a target="_blank" href="TEST_RISK_ANALYSIS_SIPPY_URL_GOES_HERE">Link to Sippy</a>
+</p>
+
+<table id="test_case_results" border="1" width="100%">
+</table>
+<p>&nbsp;</p>
+
+<script>
+    var testResult = TEST_RISK_ANALYSIS_JSON_GOES_HERE
+    var testLinkPrefix = "https://sippy.dptools.openshift.org/sippy-ng/tests/"
+    var testLinkSuffix = "/analysis?test="
+
+    function buildOpenBugs(openBugs) {
+        td$ = $('<td/>')
+        if (openBugs.length > 0) {
+            cell$ = $('<ul/>')
+            for (var i = 0; i < openBugs.length; i++) {
+                li$ = $('<li>')
+                bug = "<a target=\"_blank\" href=" + openBugs[i].url + ">" + openBugs[i].key + "</a>: " + openBugs[i].summary
+                li$.append($('<li>').html(bug))
+                cell$.append(li$)
+            }
+            td$.append(cell$)
+        }
+        return td$
+    }
+
+    function buildRiskReasons(reasons) {
+        td$ = $('<td/>')
+        if (reasons.length > 0) {
+            cell$ = $('<ul/>')
+            for (var i = 0; i < reasons.length; i++) {
+                li$ = $('<li>')
+                li$.append($('<li>').html(reasons[i]))
+                cell$.append(li$)
+            }
+            td$.append(cell$)
+        }
+        return td$
+    }
+
+    function buildRiskLevel(level) {
+        td$ = $('<td/>')
+        if (level.Level >= 10) {
+            td$.css("background-color", "red");
+        } else if (level.Level >= 5) {
+            td$.css("background-color", "yellow");
+        } else {
+            td$.css("background-color", "green");
+        }
+        td$.append(level.Name)
+        return td$
+    }
+
+    // Build Test Case Table
+    function buildTestCaseTable(selector) {
+        // Add table headers
+        addColumnHeaders(selector);
+
+        // Build Overall Row
+        var row$ = $('<tr/>');
+        row$.append($('<td/>').html("Overall"));
+        row$.append(buildRiskLevel(testResult.OverallRisk.Level))
+        row$.append(buildRiskReasons(testResult.OverallRisk.Reasons))
+        row$.append(buildOpenBugs(testResult.OpenBugs))
+        $(selector).append(row$);
+
+        // First sort the tests by risk factor
+        testResult.Tests.sort(function(a, b){return b.Risk.Level.Level - a.Risk.Level.Level})
+        // Build rows for all tests
+        for (var i = 0; i < testResult.Tests.length; i++) {
+            var row$ = $('<tr/>');
+            testUrl = encodeURI(testLinkPrefix + testResult.CompareRelease + testLinkSuffix + testResult.Tests[i].Name)
+            row$.append($('<td/>').html("<a target=\"_blank\" href=" + testUrl + ">" + testResult.Tests[i].Name + "</a>"));
+            row$.append(buildRiskLevel(testResult.Tests[i].Risk.Level))
+            row$.append(buildRiskReasons(testResult.Tests[i].Risk.Reasons))
+            row$.append(buildOpenBugs(testResult.Tests[i].OpenBugs))
+            $(selector).append(row$);
+        }
+    }
+
+    function addColumnHeaders(selector) {
+        var headerTr$ = $('<tr/>');
+        headerTr$.append($('<th/>').html("Test Name"));
+        headerTr$.append($('<th/>').html("Risk Level"));
+        headerTr$.append($('<th/>').html("Risk Reason"));
+        headerTr$.append($('<th/>').html("Open Bugs"));
+
+        $(selector).append(headerTr$);
+    }
+
+</script>
+
+</body>
+</html>
+`)
+
+func e2echartTestRiskAnalysisHtmlBytes() ([]byte, error) {
+	return _e2echartTestRiskAnalysisHtml, nil
+}
+
+func e2echartTestRiskAnalysisHtml() (*asset, error) {
+	bytes, err := e2echartTestRiskAnalysisHtmlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "e2echart/test-risk-analysis.html", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -53179,7 +49942,6 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/builds/webhook/github/testdata/pushevent.json":                                   testExtendedTestdataBuildsWebhookGithubTestdataPusheventJson,
 	"test/extended/testdata/builds/webhook/gitlab/testdata/pushevent-not-master-branch.json":                 testExtendedTestdataBuildsWebhookGitlabTestdataPusheventNotMasterBranchJson,
 	"test/extended/testdata/builds/webhook/gitlab/testdata/pushevent.json":                                   testExtendedTestdataBuildsWebhookGitlabTestdataPusheventJson,
-	"test/extended/testdata/cli/pod-with-two-containers.yaml":                                                testExtendedTestdataCliPodWithTwoContainersYaml,
 	"test/extended/testdata/cluster/master-vert.yaml":                                                        testExtendedTestdataClusterMasterVertYaml,
 	"test/extended/testdata/cluster/quickstarts/cakephp-mysql.json":                                          testExtendedTestdataClusterQuickstartsCakephpMysqlJson,
 	"test/extended/testdata/cluster/quickstarts/dancer-mysql.json":                                           testExtendedTestdataClusterQuickstartsDancerMysqlJson,
@@ -53207,26 +49969,16 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/cmd/test/cmd/env.sh":                                                             testExtendedTestdataCmdTestCmdEnvSh,
 	"test/extended/testdata/cmd/test/cmd/framework-test.sh":                                                  testExtendedTestdataCmdTestCmdFrameworkTestSh,
 	"test/extended/testdata/cmd/test/cmd/get.sh":                                                             testExtendedTestdataCmdTestCmdGetSh,
-	"test/extended/testdata/cmd/test/cmd/idle.sh":                                                            testExtendedTestdataCmdTestCmdIdleSh,
 	"test/extended/testdata/cmd/test/cmd/image-lookup.sh":                                                    testExtendedTestdataCmdTestCmdImageLookupSh,
 	"test/extended/testdata/cmd/test/cmd/images.sh":                                                          testExtendedTestdataCmdTestCmdImagesSh,
-	"test/extended/testdata/cmd/test/cmd/login.sh":                                                           testExtendedTestdataCmdTestCmdLoginSh,
-	"test/extended/testdata/cmd/test/cmd/migrate.sh":                                                         testExtendedTestdataCmdTestCmdMigrateSh,
-	"test/extended/testdata/cmd/test/cmd/newapp.sh":                                                          testExtendedTestdataCmdTestCmdNewappSh,
-	"test/extended/testdata/cmd/test/cmd/policy.sh":                                                          testExtendedTestdataCmdTestCmdPolicySh,
 	"test/extended/testdata/cmd/test/cmd/printer.sh":                                                         testExtendedTestdataCmdTestCmdPrinterSh,
 	"test/extended/testdata/cmd/test/cmd/quota.sh":                                                           testExtendedTestdataCmdTestCmdQuotaSh,
-	"test/extended/testdata/cmd/test/cmd/registry.sh":                                                        testExtendedTestdataCmdTestCmdRegistrySh,
-	"test/extended/testdata/cmd/test/cmd/routes.sh":                                                          testExtendedTestdataCmdTestCmdRoutesSh,
-	"test/extended/testdata/cmd/test/cmd/run.sh":                                                             testExtendedTestdataCmdTestCmdRunSh,
 	"test/extended/testdata/cmd/test/cmd/secrets.sh":                                                         testExtendedTestdataCmdTestCmdSecretsSh,
-	"test/extended/testdata/cmd/test/cmd/services.sh":                                                        testExtendedTestdataCmdTestCmdServicesSh,
 	"test/extended/testdata/cmd/test/cmd/set-data.sh":                                                        testExtendedTestdataCmdTestCmdSetDataSh,
 	"test/extended/testdata/cmd/test/cmd/set-image.sh":                                                       testExtendedTestdataCmdTestCmdSetImageSh,
 	"test/extended/testdata/cmd/test/cmd/set-liveness-probe.sh":                                              testExtendedTestdataCmdTestCmdSetLivenessProbeSh,
 	"test/extended/testdata/cmd/test/cmd/setbuildhook.sh":                                                    testExtendedTestdataCmdTestCmdSetbuildhookSh,
 	"test/extended/testdata/cmd/test/cmd/setbuildsecret.sh":                                                  testExtendedTestdataCmdTestCmdSetbuildsecretSh,
-	"test/extended/testdata/cmd/test/cmd/status.sh":                                                          testExtendedTestdataCmdTestCmdStatusSh,
 	"test/extended/testdata/cmd/test/cmd/templates.sh":                                                       testExtendedTestdataCmdTestCmdTemplatesSh,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateDockerbuildJson,
@@ -53351,7 +50103,6 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl":                                         testExtendedTestdataImage_ecosystemPerlHotdeployIndexPl,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm":                                   testExtendedTestdataImage_ecosystemPerlHotdeployLibMyTestPm,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json":                                        testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson,
-	"test/extended/testdata/jobs/v1.yaml":                                                                    testExtendedTestdataJobsV1Yaml,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt":                                            testExtendedTestdataLdapGroupsyncAdBlacklist_ldapTxt,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_openshift.txt":                                       testExtendedTestdataLdapGroupsyncAdBlacklist_openshiftTxt,
 	"test/extended/testdata/ldap/groupsync/ad/ldapgroupuids.txt":                                             testExtendedTestdataLdapGroupsyncAdLdapgroupuidsTxt,
@@ -53447,21 +50198,8 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/router/ingress.yaml":                                                             testExtendedTestdataRouterIngressYaml,
 	"test/extended/testdata/router/reencrypt-serving-cert.yaml":                                              testExtendedTestdataRouterReencryptServingCertYaml,
 	"test/extended/testdata/router/router-common.yaml":                                                       testExtendedTestdataRouterRouterCommonYaml,
-	"test/extended/testdata/router/router-config-manager.yaml":                                               testExtendedTestdataRouterRouterConfigManagerYaml,
-	"test/extended/testdata/router/router-grpc-interop-routes.yaml":                                          testExtendedTestdataRouterRouterGrpcInteropRoutesYaml,
-	"test/extended/testdata/router/router-grpc-interop.yaml":                                                 testExtendedTestdataRouterRouterGrpcInteropYaml,
-	"test/extended/testdata/router/router-h2spec-routes.yaml":                                                testExtendedTestdataRouterRouterH2specRoutesYaml,
-	"test/extended/testdata/router/router-h2spec.yaml":                                                       testExtendedTestdataRouterRouterH2specYaml,
 	"test/extended/testdata/router/router-http-echo-server.yaml":                                             testExtendedTestdataRouterRouterHttpEchoServerYaml,
-	"test/extended/testdata/router/router-http2-routes.yaml":                                                 testExtendedTestdataRouterRouterHttp2RoutesYaml,
-	"test/extended/testdata/router/router-http2.yaml":                                                        testExtendedTestdataRouterRouterHttp2Yaml,
-	"test/extended/testdata/router/router-idle.yaml":                                                         testExtendedTestdataRouterRouterIdleYaml,
 	"test/extended/testdata/router/router-metrics.yaml":                                                      testExtendedTestdataRouterRouterMetricsYaml,
-	"test/extended/testdata/router/router-override-domains.yaml":                                             testExtendedTestdataRouterRouterOverrideDomainsYaml,
-	"test/extended/testdata/router/router-override.yaml":                                                     testExtendedTestdataRouterRouterOverrideYaml,
-	"test/extended/testdata/router/router-scoped.yaml":                                                       testExtendedTestdataRouterRouterScopedYaml,
-	"test/extended/testdata/router/router-shard.yaml":                                                        testExtendedTestdataRouterRouterShardYaml,
-	"test/extended/testdata/router/weighted-router.yaml":                                                     testExtendedTestdataRouterWeightedRouterYaml,
 	"test/extended/testdata/run_policy/parallel-bc.yaml":                                                     testExtendedTestdataRun_policyParallelBcYaml,
 	"test/extended/testdata/run_policy/serial-bc.yaml":                                                       testExtendedTestdataRun_policySerialBcYaml,
 	"test/extended/testdata/run_policy/serial-latest-only-bc.yaml":                                           testExtendedTestdataRun_policySerialLatestOnlyBcYaml,
@@ -53489,17 +50227,20 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/test-secret.json":                                                                testExtendedTestdataTestSecretJson,
 	"test/extended/testdata/verifyservice-pipeline-template.yaml":                                            testExtendedTestdataVerifyservicePipelineTemplateYaml,
 	"e2echart/e2e-chart-template.html":                                                                       e2echartE2eChartTemplateHtml,
+	"e2echart/test-risk-analysis.html":                                                                       e2echartTestRiskAnalysisHtml,
 }
 
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
 // following hierarchy:
-//     data/
-//       foo.txt
-//       img/
-//         a.png
-//         b.png
+//
+//	data/
+//	  foo.txt
+//	  img/
+//	    a.png
+//	    b.png
+//
 // then AssetDir("data") would return []string{"foo.txt", "img"}
 // AssetDir("data/img") would return []string{"a.png", "b.png"}
 // AssetDir("foo.txt") and AssetDir("notexist") would return an error
@@ -53534,6 +50275,7 @@ type bintree struct {
 var _bintree = &bintree{nil, map[string]*bintree{
 	"e2echart": {nil, map[string]*bintree{
 		"e2e-chart-template.html": {e2echartE2eChartTemplateHtml, map[string]*bintree{}},
+		"test-risk-analysis.html": {e2echartTestRiskAnalysisHtml, map[string]*bintree{}},
 	}},
 	"examples": {nil, map[string]*bintree{
 		"db-templates": {nil, map[string]*bintree{
@@ -53806,9 +50548,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						}},
 					}},
 				}},
-				"cli": {nil, map[string]*bintree{
-					"pod-with-two-containers.yaml": {testExtendedTestdataCliPodWithTwoContainersYaml, map[string]*bintree{}},
-				}},
 				"cluster": {nil, map[string]*bintree{
 					"master-vert.yaml": {testExtendedTestdataClusterMasterVertYaml, map[string]*bintree{}},
 					"quickstarts": {nil, map[string]*bintree{
@@ -53853,26 +50592,16 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"env.sh":                {testExtendedTestdataCmdTestCmdEnvSh, map[string]*bintree{}},
 							"framework-test.sh":     {testExtendedTestdataCmdTestCmdFrameworkTestSh, map[string]*bintree{}},
 							"get.sh":                {testExtendedTestdataCmdTestCmdGetSh, map[string]*bintree{}},
-							"idle.sh":               {testExtendedTestdataCmdTestCmdIdleSh, map[string]*bintree{}},
 							"image-lookup.sh":       {testExtendedTestdataCmdTestCmdImageLookupSh, map[string]*bintree{}},
 							"images.sh":             {testExtendedTestdataCmdTestCmdImagesSh, map[string]*bintree{}},
-							"login.sh":              {testExtendedTestdataCmdTestCmdLoginSh, map[string]*bintree{}},
-							"migrate.sh":            {testExtendedTestdataCmdTestCmdMigrateSh, map[string]*bintree{}},
-							"newapp.sh":             {testExtendedTestdataCmdTestCmdNewappSh, map[string]*bintree{}},
-							"policy.sh":             {testExtendedTestdataCmdTestCmdPolicySh, map[string]*bintree{}},
 							"printer.sh":            {testExtendedTestdataCmdTestCmdPrinterSh, map[string]*bintree{}},
 							"quota.sh":              {testExtendedTestdataCmdTestCmdQuotaSh, map[string]*bintree{}},
-							"registry.sh":           {testExtendedTestdataCmdTestCmdRegistrySh, map[string]*bintree{}},
-							"routes.sh":             {testExtendedTestdataCmdTestCmdRoutesSh, map[string]*bintree{}},
-							"run.sh":                {testExtendedTestdataCmdTestCmdRunSh, map[string]*bintree{}},
 							"secrets.sh":            {testExtendedTestdataCmdTestCmdSecretsSh, map[string]*bintree{}},
-							"services.sh":           {testExtendedTestdataCmdTestCmdServicesSh, map[string]*bintree{}},
 							"set-data.sh":           {testExtendedTestdataCmdTestCmdSetDataSh, map[string]*bintree{}},
 							"set-image.sh":          {testExtendedTestdataCmdTestCmdSetImageSh, map[string]*bintree{}},
 							"set-liveness-probe.sh": {testExtendedTestdataCmdTestCmdSetLivenessProbeSh, map[string]*bintree{}},
 							"setbuildhook.sh":       {testExtendedTestdataCmdTestCmdSetbuildhookSh, map[string]*bintree{}},
 							"setbuildsecret.sh":     {testExtendedTestdataCmdTestCmdSetbuildsecretSh, map[string]*bintree{}},
-							"status.sh":             {testExtendedTestdataCmdTestCmdStatusSh, map[string]*bintree{}},
 							"templates.sh":          {testExtendedTestdataCmdTestCmdTemplatesSh, map[string]*bintree{}},
 							"testdata": {nil, map[string]*bintree{
 								"application-template-custombuild.json": {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson, map[string]*bintree{}},
@@ -54066,9 +50795,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"perl.json": {testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson, map[string]*bintree{}},
 					}},
 				}},
-				"jobs": {nil, map[string]*bintree{
-					"v1.yaml": {testExtendedTestdataJobsV1Yaml, map[string]*bintree{}},
-				}},
 				"ldap": {nil, map[string]*bintree{
 					"groupsync": {nil, map[string]*bintree{
 						"ad": {nil, map[string]*bintree{
@@ -54196,24 +50922,11 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"policy-roles.yaml":        {testExtendedTestdataRolesPolicyRolesYaml, map[string]*bintree{}},
 				}},
 				"router": {nil, map[string]*bintree{
-					"ingress.yaml":                    {testExtendedTestdataRouterIngressYaml, map[string]*bintree{}},
-					"reencrypt-serving-cert.yaml":     {testExtendedTestdataRouterReencryptServingCertYaml, map[string]*bintree{}},
-					"router-common.yaml":              {testExtendedTestdataRouterRouterCommonYaml, map[string]*bintree{}},
-					"router-config-manager.yaml":      {testExtendedTestdataRouterRouterConfigManagerYaml, map[string]*bintree{}},
-					"router-grpc-interop-routes.yaml": {testExtendedTestdataRouterRouterGrpcInteropRoutesYaml, map[string]*bintree{}},
-					"router-grpc-interop.yaml":        {testExtendedTestdataRouterRouterGrpcInteropYaml, map[string]*bintree{}},
-					"router-h2spec-routes.yaml":       {testExtendedTestdataRouterRouterH2specRoutesYaml, map[string]*bintree{}},
-					"router-h2spec.yaml":              {testExtendedTestdataRouterRouterH2specYaml, map[string]*bintree{}},
-					"router-http-echo-server.yaml":    {testExtendedTestdataRouterRouterHttpEchoServerYaml, map[string]*bintree{}},
-					"router-http2-routes.yaml":        {testExtendedTestdataRouterRouterHttp2RoutesYaml, map[string]*bintree{}},
-					"router-http2.yaml":               {testExtendedTestdataRouterRouterHttp2Yaml, map[string]*bintree{}},
-					"router-idle.yaml":                {testExtendedTestdataRouterRouterIdleYaml, map[string]*bintree{}},
-					"router-metrics.yaml":             {testExtendedTestdataRouterRouterMetricsYaml, map[string]*bintree{}},
-					"router-override-domains.yaml":    {testExtendedTestdataRouterRouterOverrideDomainsYaml, map[string]*bintree{}},
-					"router-override.yaml":            {testExtendedTestdataRouterRouterOverrideYaml, map[string]*bintree{}},
-					"router-scoped.yaml":              {testExtendedTestdataRouterRouterScopedYaml, map[string]*bintree{}},
-					"router-shard.yaml":               {testExtendedTestdataRouterRouterShardYaml, map[string]*bintree{}},
-					"weighted-router.yaml":            {testExtendedTestdataRouterWeightedRouterYaml, map[string]*bintree{}},
+					"ingress.yaml":                 {testExtendedTestdataRouterIngressYaml, map[string]*bintree{}},
+					"reencrypt-serving-cert.yaml":  {testExtendedTestdataRouterReencryptServingCertYaml, map[string]*bintree{}},
+					"router-common.yaml":           {testExtendedTestdataRouterRouterCommonYaml, map[string]*bintree{}},
+					"router-http-echo-server.yaml": {testExtendedTestdataRouterRouterHttpEchoServerYaml, map[string]*bintree{}},
+					"router-metrics.yaml":          {testExtendedTestdataRouterRouterMetricsYaml, map[string]*bintree{}},
 				}},
 				"run_policy": {nil, map[string]*bintree{
 					"parallel-bc.yaml":           {testExtendedTestdataRun_policyParallelBcYaml, map[string]*bintree{}},

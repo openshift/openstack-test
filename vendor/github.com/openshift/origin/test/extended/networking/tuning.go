@@ -6,8 +6,7 @@ import (
 	"strings"
 	"time"
 
-	g "github.com/onsi/ginkgo"
-	t "github.com/onsi/ginkgo/extensions/table"
+	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 
 	kapiv1 "k8s.io/api/core/v1"
@@ -61,7 +60,7 @@ var _ = g.Describe("[sig-network][Feature:tuning]", func() {
 	oc := exutil.NewCLIWithPodSecurityLevel("tuning", admissionapi.LevelPrivileged)
 	f := oc.KubeFramework()
 
-	g.It("pod should start with all sysctl on whitelist", func() {
+	g.It("pod should start with all sysctl on whitelist [apigroup:k8s.cni.cncf.io]", func() {
 		namespace := f.Namespace.Name
 		sysctls := map[string]string{}
 		for _, sysctl := range whitelistedSysctls {
@@ -79,7 +78,7 @@ var _ = g.Describe("[sig-network][Feature:tuning]", func() {
 			o.Expect(result).To(o.Equal(sysctl.Value), "incorrect sysctl value")
 		}
 	})
-	t.DescribeTable("pod should not start for sysctls not on whitelist", func(sysctl, value string) {
+	g.DescribeTable("pod should not start for sysctls not on whitelist [apigroup:k8s.cni.cncf.io]", func(sysctl, value string) {
 		namespace := f.Namespace.Name
 		tuningNADName := "tuningnadwithdisallowedsysctls"
 		err := createTuningNAD(oc.AdminConfig(), namespace, tuningNADName, map[string]string{sysctl: value})
@@ -101,11 +100,11 @@ var _ = g.Describe("[sig-network][Feature:tuning]", func() {
 			return pod.Status.Phase
 		}, 15*time.Second, 3*time.Second).Should(o.Equal(kapiv1.PodPending))
 	},
-		t.Entry("net.ipv4.conf.all.send_redirects", "net.ipv4.conf.all.send_redirects", "1"),
-		t.Entry("net.ipv4.conf.IFNAME.arp_filter", "net.ipv4.conf.IFNAME.arp_filter", "1"),
+		g.Entry("net.ipv4.conf.all.send_redirects", "net.ipv4.conf.all.send_redirects", "1"),
+		g.Entry("net.ipv4.conf.IFNAME.arp_filter", "net.ipv4.conf.IFNAME.arp_filter", "1"),
 	)
 
-	g.It("pod sysctls should not affect node", func() {
+	g.It("pod sysctls should not affect node [apigroup:k8s.cni.cncf.io]", func() {
 		namespace := f.Namespace.Name
 		g.By("creating a preexisting pod to check host sysctl")
 		nodePod := frameworkpod.CreateExecPodOrFail(f.ClientSet, f.Namespace.Name, "nodeaccess-pod-", func(pod *kapiv1.Pod) {
@@ -162,7 +161,7 @@ var _ = g.Describe("[sig-network][Feature:tuning]", func() {
 		o.Expect(hostSysctlValue).Should(o.Equal(hostSysctlValue2))
 	})
 
-	g.It("pod sysctl should not affect existing pods", func() {
+	g.It("pod sysctl should not affect existing pods [apigroup:k8s.cni.cncf.io]", func() {
 		namespace := f.Namespace.Name
 		path := fmt.Sprintf(sysctlPath, "net1")
 		err := createNAD(oc.AdminConfig(), namespace, baseNAD)
@@ -191,7 +190,7 @@ var _ = g.Describe("[sig-network][Feature:tuning]", func() {
 		o.Expect(podOutputBeforeSysctlAplied).Should(o.Equal(podOutputAfterSysctlAplied))
 	})
 
-	g.It("pod sysctl should not affect newly created pods", func() {
+	g.It("pod sysctl should not affect newly created pods [apigroup:k8s.cni.cncf.io]", func() {
 		namespace := f.Namespace.Name
 		path := fmt.Sprintf(sysctlPath, "net1")
 
@@ -230,6 +229,56 @@ var _ = g.Describe("[sig-network][Feature:tuning]", func() {
 		o.Expect(podOutput).Should(o.Equal(podOutputBeforeSysctlAplied))
 	})
 
+	g.Context("sysctl allowlist update", func() {
+		var originalSysctls = ""
+
+		g.BeforeEach(func() {
+			cm, err := f.ClientSet.CoreV1().ConfigMaps("openshift-multus").Get(context.TODO(), "cni-sysctl-allowlist", metav1.GetOptions{})
+			o.Expect(err).ToNot(o.HaveOccurred())
+			var ok bool
+			originalSysctls, ok = cm.Data["allowlist.conf"]
+			o.Expect(ok).To(o.BeTrue())
+		})
+
+		g.AfterEach(func() {
+			updateAllowlistConfig(originalSysctls, f.ClientSet)
+		})
+
+		g.It("should start a pod with custom sysctl only when the sysctl is added to whitelist", func() {
+			updatedSysctls := originalSysctls + "\n" + "^net.ipv4.conf.IFNAME.accept_local$"
+			namespace := f.Namespace.Name
+
+			err := createTuningNAD(oc.AdminConfig(), namespace, tuningNADName, map[string]string{"net.ipv4.conf.IFNAME.accept_local": "1"})
+			o.Expect(err).NotTo(o.HaveOccurred(), "unable to create network-attachment-definition")
+
+			podDefinition := frameworkpod.NewAgnhostPod(namespace, podName, nil, nil, nil)
+			podDefinition.ObjectMeta.Annotations = map[string]string{"k8s.v1.cni.cncf.io/networks": fmt.Sprintf("%s/%s", namespace, tuningNADName)}
+			pod := f.PodClient().Create(podDefinition)
+			err = frameworkpod.WaitForPodCondition(f.ClientSet, namespace, pod.Name, "Failed", 30*time.Second, func(pod *kapiv1.Pod) (bool, error) {
+				if pod.Status.Phase == kapiv1.PodPending {
+					return true, nil
+				}
+				return false, nil
+			})
+			o.Expect(err).NotTo(o.HaveOccurred(), "incorrect pod status")
+
+			o.Consistently(func() kapiv1.PodPhase {
+				pod, err := f.ClientSet.CoreV1().Pods(namespace).Get(context.Background(), podName, metav1.GetOptions{})
+				o.Expect(err).ToNot(o.HaveOccurred())
+				return pod.Status.Phase
+			}, 15*time.Second, 3*time.Second).Should(o.Equal(kapiv1.PodPending))
+
+			updateAllowlistConfig(updatedSysctls, f.ClientSet)
+
+			err = frameworkpod.WaitForPodCondition(f.ClientSet, namespace, pod.Name, "Failed", 30*time.Second, func(pod *kapiv1.Pod) (bool, error) {
+				if pod.Status.Phase == kapiv1.PodRunning {
+					return true, nil
+				}
+				return false, nil
+			})
+		})
+	})
+
 })
 
 func createNAD(config *rest.Config, namespace string, nadName string) error {
@@ -253,4 +302,14 @@ func createTuningNADWithBridgeName(config *rest.Config, namespace, nadName, brid
 	}
 	nadConfig := fmt.Sprintf(`{"cniVersion":"0.4.0","name":"%s","plugins":[{"type":"bridge","bridge":"%s","ipam":{"type":"static","addresses":[{"address":"10.10.0.1/24"}]}}%s]}`, nadName, bridgeName, sysctlString)
 	return createNetworkAttachmentDefinition(config, namespace, nadName, nadConfig)
+}
+
+func updateAllowlistConfig(sysctls string, client clientset.Interface) error {
+	cm, err := client.CoreV1().ConfigMaps("openshift-multus").Get(context.TODO(), "cni-sysctl-allowlist", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	cm.Data["allowlist.conf"] = sysctls
+	_, err = client.CoreV1().ConfigMaps("openshift-multus").Update(context.TODO(), cm, metav1.UpdateOptions{})
+	return err
 }

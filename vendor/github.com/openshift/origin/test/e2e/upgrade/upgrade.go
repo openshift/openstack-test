@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	g "github.com/onsi/ginkgo"
+	g "github.com/onsi/ginkgo/v2"
 	configv1 "github.com/openshift/api/config/v1"
 	configv1client "github.com/openshift/client-go/config/clientset/versioned"
 	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
@@ -114,7 +114,6 @@ func SetUpgradeDisruptReboot(policy string) error {
 //
 // * empty string - do not abort
 // * integer between 0-100 - once this percentage of operators have updated, rollback to the previous version
-//
 func SetUpgradeAbortAt(policy string) error {
 	if len(policy) == 0 {
 		upgradeAbortAt = 0
@@ -140,7 +139,6 @@ func SetUpgradeAbortAt(policy string) error {
 var _ = g.Describe("[sig-arch][Feature:ClusterUpgrade]", func() {
 	f := framework.NewDefaultFramework("cluster-upgrade")
 	f.SkipNamespaceCreation = true
-	f.SkipPrivilegedPSPBinding = true
 
 	g.It("Cluster should remain functional during upgrade [Disruptive]", func() {
 		config, err := framework.LoadConfig()

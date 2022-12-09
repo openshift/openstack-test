@@ -48,6 +48,32 @@ func testKubeletToAPIServerGracefulTermination(events monitorapi.Intervals) []*j
 	return tests
 }
 
+func testHttpConnectionLost(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] kubelet logs do not contain http client connection lost errors"
+	success := &junitapi.JUnitTestCase{Name: testName}
+
+	var failures []string
+	for _, event := range events {
+		if strings.Contains(event.Message, "reason/HttpClientConnectionLost") {
+			failures = append(failures, fmt.Sprintf("%v - %v", event.Locator, event.Message))
+		}
+	}
+
+	if len(failures) == 0 {
+		return []*junitapi.JUnitTestCase{success}
+	}
+
+	failure := &junitapi.JUnitTestCase{
+		Name:      testName,
+		SystemOut: strings.Join(failures, "\n"),
+		FailureOutput: &junitapi.FailureOutput{
+			Output: fmt.Sprintf("%d kubelet logs contain errors from http client connections lost unexpectedly.\n\n%v", len(failures), strings.Join(failures, "\n")),
+		},
+	}
+	// TODO: marked flaky until we have monitored it for consistency
+	return []*junitapi.JUnitTestCase{failure, success}
+}
+
 func testKubeAPIServerGracefulTermination(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	const testName = "[sig-api-machinery] kube-apiserver terminates within graceful termination period"
 
@@ -218,7 +244,7 @@ func testPodTransitions(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 			Output: fmt.Sprintf("Marked as flake until https://bugzilla.redhat.com/show_bug.cgi?id=1933760 is fixed\n\n%d pods illegally transitioned to Pending\n\n%v", len(failures), strings.Join(failures, "\n")),
 		},
 	}
-	// TODO: temporarily marked flaky since it is continously failing
+	// TODO: temporarily marked flaky since it is continuously failing
 	return []*junitapi.JUnitTestCase{failure, success}
 }
 
@@ -372,6 +398,8 @@ func testSystemDTimeout(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 
 var errImagePullTimeoutRE = regexp.MustCompile("ErrImagePull.*read: connection timed out")
 var errImagePullGenericRE = regexp.MustCompile("ErrImagePull")
+var errImagePullQPSExceededRE = regexp.MustCompile("ErrImagePull.*pull QPS exceeded")
+var errImagePullManifestUnknownRE = regexp.MustCompile("ErrImagePull.*manifest unknown")
 var invalidImagesRE = []*regexp.Regexp{
 
 	// See this test: "should not be able to pull image from invalid registry [NodeConformance]"
@@ -396,25 +424,53 @@ const (
 
 func testErrImagePullConnTimeoutOpenShiftNamespaces(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	const testName = "[sig-node] should not encounter ErrImagePull read connection timeout in openshift namespace pods"
-	return buildTestsFailIfRegexMatch(testName, errImagePullTimeoutRE, nil, InOpenShiftNS, []*regexp.Regexp{}, events)
+	return buildTestsFailIfRegexMatch(testName, errImagePullTimeoutRE, []*regexp.Regexp{}, InOpenShiftNS, []*regexp.Regexp{}, events)
 }
 
 func testErrImagePullConnTimeout(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	const testName = "[sig-node] should not encounter ErrImagePull read connection timeout in non-openshift namespace pods"
-	return buildTestsFailIfRegexMatch(testName, errImagePullTimeoutRE, nil, NotInOpenshiftNS, []*regexp.Regexp{}, events)
+	return buildTestsFailIfRegexMatch(testName, errImagePullTimeoutRE, []*regexp.Regexp{}, NotInOpenshiftNS, []*regexp.Regexp{}, events)
+}
+
+func testErrImagePullQPSExceededOpenShiftNamespaces(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] should not encounter ErrImagePull QPS exceeded error in openshift namespace pods"
+	return buildTestsFailIfRegexMatch(testName, errImagePullQPSExceededRE, []*regexp.Regexp{}, InOpenShiftNS, invalidImagesRE, events)
+}
+
+func testErrImagePullQPSExceeded(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] should not encounter ErrImagePull QPS exceeded error in non-openshift namespace pods"
+	return buildTestsFailIfRegexMatch(testName, errImagePullQPSExceededRE, []*regexp.Regexp{}, NotInOpenshiftNS, invalidImagesRE, events)
+}
+
+func testErrImagePullManifestUnknownOpenShiftNamespaces(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] should not encounter ErrImagePull manifest unknown error in openshift namespace pods"
+	return buildTestsFailIfRegexMatch(testName, errImagePullManifestUnknownRE, []*regexp.Regexp{}, InOpenShiftNS, invalidImagesRE, events)
+}
+
+func testErrImagePullManifestUnknown(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] should not encounter ErrImagePull manifest unknown error in non-openshift namespace pods"
+	return buildTestsFailIfRegexMatch(testName, errImagePullManifestUnknownRE, []*regexp.Regexp{}, NotInOpenshiftNS, invalidImagesRE, events)
 }
 
 func testErrImagePullGenericOpenShiftNamespaces(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	const testName = "[sig-node] should not encounter ErrImagePull in openshift namespace pods"
-	return buildTestsFailIfRegexMatch(testName, errImagePullGenericRE, errImagePullTimeoutRE, InOpenShiftNS, invalidImagesRE, events)
+	dontMatchREs := []*regexp.Regexp{}
+	dontMatchREs = append(dontMatchREs, errImagePullTimeoutRE)
+	dontMatchREs = append(dontMatchREs, errImagePullQPSExceededRE)
+	dontMatchREs = append(dontMatchREs, errImagePullManifestUnknownRE)
+	return buildTestsFailIfRegexMatch(testName, errImagePullGenericRE, dontMatchREs, InOpenShiftNS, invalidImagesRE, events)
 }
 
 func testErrImagePullGeneric(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	const testName = "[sig-node] should not encounter ErrImagePull in non-openshift namespace pods"
-	return buildTestsFailIfRegexMatch(testName, errImagePullGenericRE, errImagePullTimeoutRE, NotInOpenshiftNS, invalidImagesRE, events)
+	dontMatchREs := []*regexp.Regexp{}
+	dontMatchREs = append(dontMatchREs, errImagePullTimeoutRE)
+	dontMatchREs = append(dontMatchREs, errImagePullQPSExceededRE)
+	dontMatchREs = append(dontMatchREs, errImagePullManifestUnknownRE)
+	return buildTestsFailIfRegexMatch(testName, errImagePullGenericRE, dontMatchREs, NotInOpenshiftNS, invalidImagesRE, events)
 }
 
-func buildTestsFailIfRegexMatch(testName string, matchRE, dontMatchRE *regexp.Regexp,
+func buildTestsFailIfRegexMatch(testName string, matchRE *regexp.Regexp, dontMatchREs []*regexp.Regexp,
 	nsRestriction namespaceRestriction, expectedErrPatterns []*regexp.Regexp, events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 
 	var matchedIntervals monitorapi.Intervals
@@ -432,14 +488,21 @@ func buildTestsFailIfRegexMatch(testName string, matchRE, dontMatchRE *regexp.Re
 			continue
 		}
 
-		// Skip if we *do* match the don't match regex:
-		if dontMatchRE != nil && dontMatchRE.MatchString(estr) {
+		// Skip if we *do* match the list of don't match regex:
+		found := false
+		for i := 0; i < len(dontMatchREs); i++ {
+			if dontMatchREs[i].MatchString(estr) {
+				found = true
+				break
+			}
+		}
+		if found {
+			// Skip those since they might be captured by other tests
 			continue
 		}
 
 		// Skip if this ErrImagePull problem is part of a negative test (i.e., if any of these
 		// patterns match the event string, it is an expected ErrImagePull failure).
-		found := false
 		for i := 0; i < len(expectedErrPatterns); i++ {
 			if expectedErrPatterns[i].MatchString(estr) {
 				found = true

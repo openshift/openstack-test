@@ -10,11 +10,9 @@ var (
 		// alpha features that are not gated
 		"[Disabled:Alpha]": {
 			`\[Feature:StorageVersionAPI\]`,
-			`\[Feature:StatefulSetMinReadySeconds\]`,
-			`\[Feature:PodSecurityPolicy\]`,
 			`\[Feature:StatefulSetAutoDeletePVC\]`,
-			`\[Feature:CustomResourceValidationExpressions\]`,
 			`\[Feature:ProxyTerminatingEndpoints\]`,
+			`\[Feature:UserNamespacesStatelessPodsSupport\]`,
 		},
 		// tests for features that are not implemented in openshift
 		"[Disabled:Unimplemented]": {
@@ -113,12 +111,11 @@ var (
 		},
 		// tests that may work, but we don't support them
 		"[Disabled:Unsupported]": {
-			`\[Driver: rbd\]`,               // OpenShift 4.x does not support Ceph RBD (use CSI instead)
-			`\[Driver: ceph\]`,              // OpenShift 4.x does not support CephFS (use CSI instead)
-			`\[Driver: gluster\]`,           // OpenShift 4.x does not support Gluster
-			`Volumes GlusterFS`,             // OpenShift 4.x does not support Gluster
-			`GlusterDynamicProvisioner`,     // OpenShift 4.x does not support Gluster
-			`\[Feature:PodSecurityPolicy\]`, // OpenShift 4.x does not enable PSP by default
+			`\[Driver: rbd\]`,           // OpenShift 4.x does not support Ceph RBD (use CSI instead)
+			`\[Driver: ceph\]`,          // OpenShift 4.x does not support CephFS (use CSI instead)
+			`\[Driver: gluster\]`,       // OpenShift 4.x does not support Gluster
+			`Volumes GlusterFS`,         // OpenShift 4.x does not support Gluster
+			`GlusterDynamicProvisioner`, // OpenShift 4.x does not support Gluster
 		},
 		// tests too slow to be part of conformance
 		"[Slow]": {
@@ -221,10 +218,13 @@ var (
 			`NetworkPolicy between server and client should support a 'default-deny-all' policy`,            // uses egress feature
 			`NetworkPolicy between server and client should stop enforcing policies after they are deleted`, // uses egress feature
 		},
+		// Tests that don't pass with OVNKubernetes.
+		// These are skipped explicitly by openshift-hack/test-kubernetes-e2e.sh,
+		// but will also be skipped by openshift-tests in jobs that use OVNKuberenets.
+		"[Skipped:Network/OVNKuberenetes]": {
+			`session affinity timeout`,
+		},
 	}
-
-	// labelExcludes temporarily block tests out of a specific suite
-	LabelExcludes = map[string][]string{}
 
 	ExcludedTests = []string{
 		`\[Disabled:`,

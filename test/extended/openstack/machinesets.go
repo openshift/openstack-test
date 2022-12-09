@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	g "github.com/onsi/ginkgo"
+	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 
 	configv1 "github.com/openshift/api/config/v1"
+	machinev1alpha1 "github.com/openshift/api/machine/v1alpha1"
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
-	machineproviderv1 "github.com/openshift/machine-api-provider-openstack/pkg/apis/openstackproviderconfig/v1alpha1"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -51,7 +51,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			g.By("Fetching worker machineSets")
 			var networkClient *gophercloud.ServiceClient
 			var rawBytes []byte
-			var newProviderSpec machineproviderv1.OpenstackProviderSpec
+			var newProviderSpec machinev1alpha1.OpenstackProviderSpec
 			var rclient runtimeclient.Client
 
 			networkClient, err := client(serviceNetwork)

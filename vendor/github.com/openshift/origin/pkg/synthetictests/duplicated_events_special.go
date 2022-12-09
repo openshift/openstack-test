@@ -22,6 +22,14 @@ const (
 	errorUpdatingEndpointSlicesRegex           = `reason/FailedToUpdateEndpointSlices Error updating Endpoint Slices`
 	errorUpdatingEndpointSlicesFailedThreshold = -1 // flake only
 	errorUpdatingEndpointSlicesFlakeThreshold  = 10
+	readinessFailedMessageRegExpStr            = "reason/ReadinessFailed.*Get.*healthz.*net/http.*request canceled while waiting for connection.*Client.Timeout exceeded"
+	probeErrorReadinessMessageRegExpStr        = "reason/ProbeError.*Readiness probe error.*Client.Timeout exceeded while awaiting headers"
+	probeErrorLivenessMessageRegExpStr         = "reason/(ProbeError|Unhealthy).*Liveness probe error.*Client.Timeout exceeded while awaiting headers"
+	probeErrorConnectionRefusedRegExpStr       = "reason/ProbeError.*Readiness probe error.*connection refused"
+	nodeHasNoDiskPressureRegExpStr             = "reason/NodeHasNoDiskPressure.*status is now: NodeHasNoDiskPressure"
+	nodeHasSufficientMemoryRegExpStr           = "reason/NodeHasSufficientMemory.*status is now: NodeHasSufficientMemory"
+	nodeHasSufficientPIDRegExpStr              = "reason/NodeHasSufficientPID.*status is now: NodeHasSufficientPID"
+	singleNodeErrorConnectionRefusedRegExpStr  = "reason/.*dial tcp.*connection refused"
 )
 
 type eventRecognizerFunc func(event monitorapi.EventInterval) bool
@@ -44,7 +52,6 @@ type singleEventCheckRegex struct {
 // if a match is found, marks it as failure or flake depending on if the pattern occurs
 // above the fail/flake thresholds (this allows us to track the occurence as a specific
 // test. If the fail threshold is set to -1, the test will only flake.
-//
 func (s *singleEventCheckRegex) test(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	success := &junitapi.JUnitTestCase{Name: s.testName}
 	var failureOutput, flakeOutput []string
@@ -97,27 +104,30 @@ func newSingleEventCheckRegex(testName, regex string, failThreshold, flakeThresh
 }
 
 // testBackoffPullingRegistryRedhatImage looks for this symptom:
-//   reason/ContainerWait ... Back-off pulling image "registry.redhat.io/openshift4/ose-oauth-proxy:latest"
-//   reason/BackOff Back-off pulling image "registry.redhat.io/openshift4/ose-oauth-proxy:latest"
-// to happen over a certain threshold and marks it as a failure or flake accordingly.
 //
+//	reason/ContainerWait ... Back-off pulling image "registry.redhat.io/openshift4/ose-oauth-proxy:latest"
+//	reason/BackOff Back-off pulling image "registry.redhat.io/openshift4/ose-oauth-proxy:latest"
+//
+// to happen over a certain threshold and marks it as a failure or flake accordingly.
 func testBackoffPullingRegistryRedhatImage(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	testName := "[sig-arch] should not see excessive pull back-off on registry.redhat.io"
 	return newSingleEventCheckRegex(testName, imagePullRedhatRegEx, math.MaxInt, imagePullRedhatFlakeThreshold).test(events)
 }
 
 // testRequiredInstallerResourcesMissing looks for this symptom:
-//   reason/RequiredInstallerResourcesMissing secrets: etcd-all-certs-3
+//
+//	reason/RequiredInstallerResourcesMissing secrets: etcd-all-certs-3
+//
 // and fails if it happens more than the failure threshold count of 20 and flakes more than the
 // flake threshold.  See https://bugzilla.redhat.com/show_bug.cgi?id=2031564.
-//
 func testRequiredInstallerResourcesMissing(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	testName := "[bz-etcd] should not see excessive RequiredInstallerResourcesMissing secrets"
 	return newSingleEventCheckRegex(testName, requiredResourcesMissingRegEx, duplicateEventThreshold, requiredResourceMissingFlakeThreshold).test(events)
 }
 
 // testBackoffStartingFailedContainer looks for this symptom in core namespaces:
-//   reason/BackOff Back-off restarting failed container
+//
+//	reason/BackOff Back-off restarting failed container
 func testBackoffStartingFailedContainer(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	testName := "[sig-cluster-lifecycle] should not see excessive Back-off restarting failed containers"
 
@@ -126,7 +136,8 @@ func testBackoffStartingFailedContainer(events monitorapi.Intervals) []*junitapi
 }
 
 // testBackoffStartingFailedContainerForE2ENamespaces looks for this symptom in e2e namespaces:
-//   reason/BackOff Back-off restarting failed container
+//
+//	reason/BackOff Back-off restarting failed container
 func testBackoffStartingFailedContainerForE2ENamespaces(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	testName := "[sig-cluster-lifecycle] should not see excessive Back-off restarting failed containers in e2e namespaces"
 
@@ -140,4 +151,79 @@ func testErrorUpdatingEndpointSlices(events monitorapi.Intervals) []*junitapi.JU
 
 	return newSingleEventCheckRegex(testName, errorUpdatingEndpointSlicesRegex, errorUpdatingEndpointSlicesFailedThreshold, errorUpdatingEndpointSlicesFlakeThreshold).
 		test(events.Filter(monitorapi.IsInNamespaces(sets.NewString("openshift-ovn-kubernetes"))))
+}
+
+func testConfigOperatorProbeErrorReadinessProbe(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] openshift-config-operator should not get probe error on readiness probe due to timeout"
+	return makeProbeTest(testName, events, "openshift-config-operator", probeErrorReadinessMessageRegExpStr, duplicateEventThreshold)
+}
+
+func testConfigOperatorProbeErrorLivenessProbe(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] openshift-config-operator should not get probe error on liveness probe due to timeout"
+	return makeProbeTest(testName, events, "openshift-config-operator", probeErrorLivenessMessageRegExpStr, duplicateEventThreshold)
+}
+
+func testConfigOperatorReadinessProbe(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] openshift-config-operator readiness probe should not fail due to timeout"
+	return makeProbeTest(testName, events, "openshift-config-operator", readinessFailedMessageRegExpStr, duplicateEventThreshold)
+}
+
+func testNodeHasNoDiskPressure(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] Test the NodeHasNoDiskPressure condition does not occur too often"
+	return eventExprMatchThresholdTest(testName, events, nodeHasNoDiskPressureRegExpStr, duplicateEventThreshold)
+}
+
+func testNodeHasSufficientMemory(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] Test the NodeHasSufficeintMemory condition does not occur too often"
+	return eventExprMatchThresholdTest(testName, events, nodeHasSufficientMemoryRegExpStr, duplicateEventThreshold)
+}
+
+func testNodeHasSufficientPID(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] Test the NodeHasSufficientPID condition does not occur too often"
+	return eventExprMatchThresholdTest(testName, events, nodeHasSufficientPIDRegExpStr, duplicateEventThreshold)
+}
+
+func makeProbeTest(testName string, events monitorapi.Intervals, operatorName string, regExStr string, eventFlakeThreshold int) []*junitapi.JUnitTestCase {
+	messageRegExp := regexp.MustCompile(regExStr)
+	return eventMatchThresholdTest(testName, events, func(event monitorapi.EventInterval) bool {
+		return isOperatorMatchRegexMessage(event, operatorName, messageRegExp)
+	}, eventFlakeThreshold)
+}
+
+func eventExprMatchThresholdTest(testName string, events monitorapi.Intervals, regExStr string, eventFlakeThreshold int) []*junitapi.JUnitTestCase {
+	messageRegExp := regexp.MustCompile(regExStr)
+	return eventMatchThresholdTest(testName, events, func(event monitorapi.EventInterval) bool { return messageRegExp.MatchString(event.Message) }, eventFlakeThreshold)
+}
+
+func eventMatchThresholdTest(testName string, events monitorapi.Intervals, eventMatch eventRecognizerFunc, eventFlakeThreshold int) []*junitapi.JUnitTestCase {
+	var maxFailureOutput string
+	maxTimes := 0
+	for _, event := range events {
+		if eventMatch(event) {
+			// Place the failure time in the message to avoid having to extract the time from the events json file
+			// (in artifacts) when viewing the test failure output.
+			failureOutput := fmt.Sprintf("%s %s\n", event.From.UTC().Format("15:04:05"), event.Message)
+
+			_, times := getTimesAnEventHappened(fmt.Sprintf("%s - %s", event.Locator, event.Message))
+
+			// find the largest grouping of these events
+			if times > maxTimes {
+				maxTimes = times
+				maxFailureOutput = failureOutput
+			}
+		}
+	}
+
+	test := &junitapi.JUnitTestCase{Name: testName}
+
+	if maxTimes < eventFlakeThreshold {
+		return []*junitapi.JUnitTestCase{test}
+	}
+
+	// Flake for now.
+	test.FailureOutput = &junitapi.FailureOutput{
+		Output: maxFailureOutput,
+	}
+	success := &junitapi.JUnitTestCase{Name: testName}
+	return []*junitapi.JUnitTestCase{test, success}
 }

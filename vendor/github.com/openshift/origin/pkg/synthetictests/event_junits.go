@@ -34,6 +34,10 @@ func StableSystemEventInvariants(events monitorapi.Intervals, duration time.Dura
 	tests = append(tests, testStaticPodLifecycleFailure(events, kubeClientConfig, testSuite)...)
 	tests = append(tests, testErrImagePullConnTimeoutOpenShiftNamespaces(events)...)
 	tests = append(tests, testErrImagePullConnTimeout(events)...)
+	tests = append(tests, testErrImagePullQPSExceededOpenShiftNamespaces(events)...)
+	tests = append(tests, testErrImagePullQPSExceeded(events)...)
+	tests = append(tests, testErrImagePullManifestUnknownOpenShiftNamespaces(events)...)
+	tests = append(tests, testErrImagePullManifestUnknown(events)...)
 	tests = append(tests, testErrImagePullGenericOpenShiftNamespaces(events)...)
 	tests = append(tests, testErrImagePullGeneric(events)...)
 	tests = append(tests, testAlerts(events, kubeClientConfig, duration, recordedResource)...)
@@ -46,7 +50,18 @@ func StableSystemEventInvariants(events monitorapi.Intervals, duration time.Dura
 	tests = append(tests, testBackoffStartingFailedContainerForE2ENamespaces(events)...)
 	tests = append(tests, testAPIQuotaEvents(events)...)
 	tests = append(tests, testErrorUpdatingEndpointSlices(events)...)
+	tests = append(tests, testConfigOperatorReadinessProbe(events)...)
+	tests = append(tests, testConfigOperatorProbeErrorReadinessProbe(events)...)
+	tests = append(tests, testConfigOperatorProbeErrorLivenessProbe(events)...)
+	tests = append(tests, testOauthApiserverProbeErrorReadiness(events)...)
+	tests = append(tests, testOauthApiserverProbeErrorLiveness(events)...)
+	tests = append(tests, testOauthApiserverProbeErrorConnectionRefused(events)...)
+	tests = append(tests, testNodeHasNoDiskPressure(events)...)
+	tests = append(tests, testNodeHasSufficientMemory(events)...)
+	tests = append(tests, testNodeHasSufficientPID(events)...)
 
+	tests = append(tests, testHttpConnectionLost(events)...)
+	tests = append(tests, testMarketplaceStartupProbeFailure(events)...)
 	return tests
 }
 
@@ -68,6 +83,10 @@ func SystemUpgradeEventInvariants(events monitorapi.Intervals, duration time.Dur
 	tests = append(tests, testStaticPodLifecycleFailure(events, kubeClientConfig, testSuite)...)
 	tests = append(tests, testErrImagePullConnTimeoutOpenShiftNamespaces(events)...)
 	tests = append(tests, testErrImagePullConnTimeout(events)...)
+	tests = append(tests, testErrImagePullQPSExceededOpenShiftNamespaces(events)...)
+	tests = append(tests, testErrImagePullQPSExceeded(events)...)
+	tests = append(tests, testErrImagePullManifestUnknownOpenShiftNamespaces(events)...)
+	tests = append(tests, testErrImagePullManifestUnknown(events)...)
 	tests = append(tests, testErrImagePullGenericOpenShiftNamespaces(events)...)
 	tests = append(tests, testErrImagePullGeneric(events)...)
 	tests = append(tests, testAlerts(events, kubeClientConfig, duration, recordedResource)...)
@@ -89,7 +108,18 @@ func SystemUpgradeEventInvariants(events monitorapi.Intervals, duration time.Dur
 
 	tests = append(tests, testNoExcessiveSecretGrowthDuringUpgrade()...)
 	tests = append(tests, testNoExcessiveConfigMapGrowthDuringUpgrade()...)
+	tests = append(tests, testConfigOperatorReadinessProbe(events)...)
+	tests = append(tests, testConfigOperatorProbeErrorReadinessProbe(events)...)
+	tests = append(tests, testConfigOperatorProbeErrorLivenessProbe(events)...)
+	tests = append(tests, testOauthApiserverProbeErrorReadiness(events)...)
+	tests = append(tests, testOauthApiserverProbeErrorLiveness(events)...)
+	tests = append(tests, testOauthApiserverProbeErrorConnectionRefused(events)...)
+	tests = append(tests, testNodeHasNoDiskPressure(events)...)
+	tests = append(tests, testNodeHasSufficientMemory(events)...)
+	tests = append(tests, testNodeHasSufficientPID(events)...)
 
+	tests = append(tests, testHttpConnectionLost(events)...)
+	tests = append(tests, testMarketplaceStartupProbeFailure(events)...)
 	return tests
 }
 
