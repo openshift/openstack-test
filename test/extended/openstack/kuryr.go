@@ -3,7 +3,7 @@ package openstack
 import (
 	"context"
 
-	g "github.com/onsi/ginkgo"
+	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	configv1client "github.com/openshift/client-go/config/clientset/versioned"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

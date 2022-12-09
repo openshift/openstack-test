@@ -13,7 +13,7 @@ func NewWorkLoad(njobs int32, memoryRequest resource.Quantity, workloadJobName s
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workloadJobName,
-			Namespace: "default",
+			Namespace: MachineAPINamespace,
 			Labels:    map[string]string{testLabel: ""},
 		},
 		Spec: batchv1.JobSpec{
@@ -22,7 +22,7 @@ func NewWorkLoad(njobs int32, memoryRequest resource.Quantity, workloadJobName s
 					Containers: []corev1.Container{
 						{
 							Name:  workloadJobName,
-							Image: "busybox",
+							Image: "registry.access.redhat.com/ubi8/ubi-minimal:latest",
 							Command: []string{
 								"sleep",
 								"86400", // 1 day
@@ -40,6 +40,10 @@ func NewWorkLoad(njobs int32, memoryRequest resource.Quantity, workloadJobName s
 						{
 							Key:      "kubemark",
 							Operator: corev1.TolerationOpExists,
+						},
+						{
+							Key:    ClusterAPIActuatorPkgTaint,
+							Effect: corev1.TaintEffectPreferNoSchedule,
 						},
 					},
 				},

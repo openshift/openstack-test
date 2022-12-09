@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	g "github.com/onsi/ginkgo"
+	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 
 	configclient "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
@@ -39,6 +39,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	batchv1client "k8s.io/client-go/kubernetes/typed/batch/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	"k8s.io/kubernetes/test/e2e/framework/skipper"
@@ -52,7 +53,6 @@ import (
 	securityv1 "github.com/openshift/api/security/v1"
 	buildv1clienttyped "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	imagev1typedclient "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
-	projectv1typedclient "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
 	"github.com/openshift/library-go/pkg/build/naming"
 	"github.com/openshift/library-go/pkg/git"
 	"github.com/openshift/library-go/pkg/image/imageutil"
@@ -1019,10 +1019,29 @@ func CheckBuildCancelled(b *buildv1.Build) bool {
 }
 
 // WaitForServiceAccount waits until the named service account gets fully
-// provisioned
+// provisioned. Does not wait for dockercfg secrets
 func WaitForServiceAccount(c corev1client.ServiceAccountInterface, name string) error {
 	waitFn := func() (bool, error) {
-		sc, err := c.Get(context.Background(), name, metav1.GetOptions{})
+		_, err := c.Get(context.Background(), name, metav1.GetOptions{})
+		if err != nil {
+			// If we can't access the service accounts, let's wait till the controller
+			// create it.
+			if kapierrs.IsNotFound(err) || kapierrs.IsForbidden(err) {
+				e2e.Logf("Waiting for service account %q to be available: %v (will retry) ...", name, err)
+				return false, nil
+			}
+			return false, fmt.Errorf("Failed to get service account %q: %v", name, err)
+		}
+		return true, nil
+	}
+	return wait.Poll(100*time.Millisecond, 3*time.Minute, waitFn)
+}
+
+// WaitForServiceAccountWithSecret waits until the named service account gets fully
+// provisioned, including dockercfg secrets
+func WaitForServiceAccountWithSecret(c corev1client.ServiceAccountInterface, name string) error {
+	waitFn := func() (bool, error) {
+		sa, err := c.Get(context.Background(), name, metav1.GetOptions{})
 		if err != nil {
 			// If we can't access the service accounts, let's wait till the controller
 			// create it.
@@ -1034,7 +1053,7 @@ func WaitForServiceAccount(c corev1client.ServiceAccountInterface, name string) 
 		}
 		secretNames := []string{}
 		var hasDockercfg bool
-		for _, s := range sc.ImagePullSecrets {
+		for _, s := range sa.ImagePullSecrets {
 			if strings.Contains(s.Name, "-dockercfg-") {
 				hasDockercfg = true
 			}
@@ -1073,32 +1092,6 @@ func WaitForNamespaceSCCAnnotations(c corev1client.CoreV1Interface, name string)
 		return false, nil
 	}
 	return wait.Poll(time.Duration(250*time.Millisecond), 30*time.Minute, waitFn)
-}
-
-// WaitForProjectSCCAnnotations waits up to 30s for the cluster-policy-controller to add the SCC related
-// annotations to the provided namespace.
-func WaitForProjectSCCAnnotations(c projectv1typedclient.ProjectV1Interface, name string) error {
-	waitFn := func() (bool, error) {
-		proj, err := c.Projects().Get(context.Background(), name, metav1.GetOptions{})
-		if err != nil {
-			// it is assumed the project was created prior to calling this, so we
-			// do not distinguish not found errors
-			return false, err
-		}
-		if proj.Annotations == nil {
-			return false, nil
-		}
-		for k := range proj.Annotations {
-			// annotations to check based off of
-			// https://github.com/openshift/cluster-policy-controller/blob/master/pkg/security/controller/namespace_scc_allocation_controller.go#L112
-			if k == securityv1.UIDRangeAnnotation {
-				return true, nil
-			}
-		}
-		e2e.Logf("project %s current annotation set: %#v", name, proj.Annotations)
-		return false, nil
-	}
-	return wait.Poll(time.Duration(500*time.Millisecond), 30*time.Minute, waitFn)
 }
 
 // WaitForAnImageStream waits for an ImageStream to fulfill the isOK function
@@ -1396,7 +1389,7 @@ func KubeConfigPath() string {
 	return os.Getenv("KUBECONFIG")
 }
 
-//ArtifactDirPath returns the value of ARTIFACT_DIR environment variable
+// ArtifactDirPath returns the value of ARTIFACT_DIR environment variable
 func ArtifactDirPath() string {
 	path := os.Getenv("ARTIFACT_DIR")
 	o.Expect(path).NotTo(o.BeNil())
@@ -1404,8 +1397,8 @@ func ArtifactDirPath() string {
 	return path
 }
 
-//ArtifactPath returns the absolute path to the fix artifact file
-//The path is relative to ARTIFACT_DIR
+// ArtifactPath returns the absolute path to the fix artifact file
+// The path is relative to ARTIFACT_DIR
 func ArtifactPath(elem ...string) string {
 	return filepath.Join(append([]string{ArtifactDirPath()}, elem...)...)
 }
@@ -1949,6 +1942,17 @@ func GetRouterPodTemplate(oc *CLI) (*corev1.PodTemplateSpec, string, error) {
 }
 
 func FindRouterImage(oc *CLI) (string, error) {
+	exists, err := DoesApiResourceExist(oc.AdminConfig(), "clusteroperators")
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		deployment, err := oc.AdminKubeClient().AppsV1().Deployments("openshift-ingress").Get(context.Background(), "router-default", metav1.GetOptions{})
+		if err != nil {
+			return "", err
+		}
+		return deployment.Spec.Template.Spec.Containers[0].Image, nil
+	}
 	configclient := oc.AdminConfigClient().ConfigV1()
 	o, err := configclient.ClusterOperators().Get(context.Background(), "ingress", metav1.GetOptions{})
 	if err != nil {
@@ -2052,8 +2056,8 @@ func SkipIfExternalControlplaneTopology(oc *CLI, reason string) {
 
 // DoesApiResourceExist searches the list of ApiResources and returns "true" if a given
 // apiResourceName Exists. Valid search strings are for example "cloudprivateipconfigs" or "machines".
-func DoesApiResourceExist(oc *CLI, apiResourceName string) (bool, error) {
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(oc.AdminConfig())
+func DoesApiResourceExist(config *rest.Config, apiResourceName string) (bool, error) {
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return false, err
 	}
