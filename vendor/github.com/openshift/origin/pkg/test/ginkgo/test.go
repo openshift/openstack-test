@@ -2,22 +2,19 @@ package ginkgo
 
 import (
 	"bytes"
-	"context"
 	"fmt"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
-	"github.com/onsi/ginkgo/types"
+	"github.com/onsi/ginkgo/v2/types"
 )
 
 type testCase struct {
 	name      string
-	spec      ginkgoSpec
-	location  types.CodeLocation
+	spec      types.TestSpec
+	locations []types.CodeLocation
 	apigroups []string
 
 	// identifies which tests can be run in parallel (ginkgo runs suites linearly)
@@ -26,28 +23,28 @@ type testCase struct {
 	// suite timeout
 	testTimeout time.Duration
 
-	start    time.Time
-	end      time.Time
-	duration time.Duration
-	out      []byte
-	success  bool
-	failed   bool
-	timedOut bool
-	skipped  bool
+	start           time.Time
+	end             time.Time
+	duration        time.Duration
+	testOutputBytes []byte
+
 	flake    bool
+	failed   bool
+	skipped  bool
+	success  bool
+	timedOut bool
 
 	previous *testCase
 }
 
-func newTestCase(spec ginkgoSpec) (*testCase, error) {
-	name := spec.ConcatenatedString()
-	name = strings.TrimPrefix(name, "[Top Level] ")
+var re = regexp.MustCompile(`.*\[Timeout:(.[^\]]*)\]`)
 
-	summary := spec.Summary("")
+func newTestCaseFromGinkgoSpec(spec types.TestSpec) (*testCase, error) {
+	name := spec.Text()
 	tc := &testCase{
-		name:     name,
-		spec:     spec,
-		location: summary.ComponentCodeLocations[len(summary.ComponentCodeLocations)-1],
+		name:      name,
+		locations: spec.CodeLocations(),
+		spec:      spec,
 	}
 
 	matches := regexp.MustCompile(`\[apigroup:([^]]*)\]`).FindAllStringSubmatch(name, -1)
@@ -59,7 +56,6 @@ func newTestCase(spec ginkgoSpec) (*testCase, error) {
 		tc.apigroups = append(tc.apigroups, apigroup)
 	}
 
-	re := regexp.MustCompile(`.*\[Timeout:(.[^\]]*)\]`)
 	if match := re.FindStringSubmatch(name); match != nil {
 		testTimeOut, err := time.ParseDuration(match[1])
 		if err != nil {
@@ -75,7 +71,7 @@ func (t *testCase) Retry() *testCase {
 	copied := &testCase{
 		name:          t.name,
 		spec:          t.spec,
-		location:      t.location,
+		locations:     t.locations,
 		testExclusion: t.testExclusion,
 
 		previous: t,
@@ -169,32 +165,4 @@ func SuitesString(suites []*TestSuite, prefix string) string {
 		fmt.Fprintf(buf, "%s\n  %s\n\n", suite.Name, suite.Description)
 	}
 	return buf.String()
-}
-
-func runWithTimeout(ctx context.Context, c *exec.Cmd, timeout time.Duration) ([]byte, error) {
-	if timeout > 0 {
-		go func() {
-			select {
-			// interrupt tests after timeout, and abort if they don't complete quick enough
-			case <-time.After(timeout):
-				if c.Process != nil {
-					c.Process.Signal(syscall.SIGINT)
-				}
-				// if the process appears to be hung a significant amount of time after the timeout
-				// send an ABRT so we get a stack dump
-				select {
-				case <-time.After(time.Minute):
-					if c.Process != nil {
-						c.Process.Signal(syscall.SIGABRT)
-					}
-				}
-			case <-ctx.Done():
-				if c.Process != nil {
-					c.Process.Signal(syscall.SIGINT)
-				}
-			}
-
-		}()
-	}
-	return c.CombinedOutput()
 }

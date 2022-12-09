@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	g "github.com/onsi/ginkgo"
+	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	dto "github.com/prometheus/client_model/go"
@@ -216,14 +216,6 @@ var _ = g.Describe("[sig-instrumentation][Late] Alerts", func() {
 			{
 				Selector: map[string]string{"alertname": "ClusterOperatorDegraded", "name": "authentication"},
 				Text:     "https://bugzilla.redhat.com/show_bug.cgi?id=1939580",
-			},
-			{
-				Selector: map[string]string{"alertname": "AggregatedAPIDown", "name": "v1alpha1.wardle.example.com"},
-				Text:     "https://bugzilla.redhat.com/show_bug.cgi?id=1933144",
-			},
-			{
-				Selector: map[string]string{"alertname": "KubeAggregatedAPIDown", "name": "v1alpha1.wardle.example.com"},
-				Text:     "https://bugzilla.redhat.com/show_bug.cgi?id=1933144",
 			},
 			{
 				Selector: map[string]string{"alertname": "KubeAPIErrorBudgetBurn"},
@@ -431,7 +423,7 @@ sort_desc(
 	})
 })
 
-var _ = g.Describe("[sig-instrumentation] Prometheus", func() {
+var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.io]", func() {
 	defer g.GinkgoRecover()
 	ctx := context.TODO()
 	var (

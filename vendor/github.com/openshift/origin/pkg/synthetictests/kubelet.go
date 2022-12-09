@@ -16,6 +16,11 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+const (
+	probeTimeoutEventThreshold   = 5
+	probeTimeoutMessageRegExpStr = "reason/ReadinessFailed.*Get.*healthz.*net/http.*request canceled while waiting for connection.*Client.Timeout exceeded"
+)
+
 func testKubeletToAPIServerGracefulTermination(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	const testName = "[sig-node] kubelet terminates kube-apiserver gracefully"
 
@@ -46,6 +51,32 @@ func testKubeletToAPIServerGracefulTermination(events monitorapi.Intervals) []*j
 		tests = append(tests, &junitapi.JUnitTestCase{Name: testName})
 	}
 	return tests
+}
+
+func testHttpConnectionLost(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] kubelet logs do not contain http client connection lost errors"
+	success := &junitapi.JUnitTestCase{Name: testName}
+
+	var failures []string
+	for _, event := range events {
+		if strings.Contains(event.Message, "reason/HttpClientConnectionLost") {
+			failures = append(failures, fmt.Sprintf("%v - %v", event.Locator, event.Message))
+		}
+	}
+
+	if len(failures) == 0 {
+		return []*junitapi.JUnitTestCase{success}
+	}
+
+	failure := &junitapi.JUnitTestCase{
+		Name:      testName,
+		SystemOut: strings.Join(failures, "\n"),
+		FailureOutput: &junitapi.FailureOutput{
+			Output: fmt.Sprintf("%d kubelet logs contain errors from http client connections lost unexpectedly.\n\n%v", len(failures), strings.Join(failures, "\n")),
+		},
+	}
+	// TODO: marked flaky until we have monitored it for consistency
+	return []*junitapi.JUnitTestCase{failure, success}
 }
 
 func testKubeAPIServerGracefulTermination(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
@@ -138,6 +169,31 @@ func testContainerFailures(events monitorapi.Intervals) []*junitapi.JUnitTestCas
 	return testCases
 }
 
+func testConfigOperatorReadinessProbe(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] openshift-config-operator readiness probe should not fail due to timeout"
+	messageRegExp := regexp.MustCompile(probeTimeoutMessageRegExpStr)
+	var failureOutput string
+	var count int
+	for _, event := range events {
+		if isConfigOperatorReadinessProbeFailedMessage(event, messageRegExp) {
+			// Place the failure time in the message to avoid having to extract the time from the events json file
+			// (in `artifacts) when viewing the test failure output.
+			failureOutput += fmt.Sprintf("%s %s\n", event.From.Format("15:04:05"), event.Message)
+			count++
+		}
+	}
+	test := &junitapi.JUnitTestCase{Name: testName}
+	if count > probeTimeoutEventThreshold {
+		// Flake for now.
+		test.FailureOutput = &junitapi.FailureOutput{
+			Output: failureOutput,
+		}
+		success := &junitapi.JUnitTestCase{Name: testName}
+		return []*junitapi.JUnitTestCase{test, success}
+	}
+	return []*junitapi.JUnitTestCase{test}
+}
+
 func testKubeApiserverProcessOverlap(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	const testName = "[sig-node] overlapping apiserver process detected during kube-apiserver rollout"
 	success := &junitapi.JUnitTestCase{Name: testName}
@@ -218,7 +274,7 @@ func testPodTransitions(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 			Output: fmt.Sprintf("Marked as flake until https://bugzilla.redhat.com/show_bug.cgi?id=1933760 is fixed\n\n%d pods illegally transitioned to Pending\n\n%v", len(failures), strings.Join(failures, "\n")),
 		},
 	}
-	// TODO: temporarily marked flaky since it is continously failing
+	// TODO: temporarily marked flaky since it is continuously failing
 	return []*junitapi.JUnitTestCase{failure, success}
 }
 
