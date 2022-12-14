@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gophercloud/utils/openstack/clientconfig"
+	ini "gopkg.in/ini.v1"
+
 	g "github.com/onsi/ginkgo"
 	o "github.com/onsi/gomega"
 	configv1client "github.com/openshift/client-go/config/clientset/versioned"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 )
@@ -152,6 +156,49 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 			e2e.Logf("Properties with correct values on section %q in configMap %q (namespace: %q) with NetworkType=%s.",
 				sectionName, ccmConfigMap.name, ccmConfigMap.namespace, network.Status.NetworkType)
 			e2e.Logf("- Properties (%q): Values (%q)", propertyNames, ccmPropertyValues)
+
+		})
+
+		//Reference: https://github.com/openshift/installer/blob/master/docs/user/openstack/README.md#openstack-credentials-update
+		g.It("should store cloud credentials on secrets", func() {
+
+			systemNamespace := "kube-system"
+			openstackCredsRole := "openstack-creds-secret-reader"
+			expectedSecretName := "openstack-credentials"
+
+			g.By(fmt.Sprintf("Getting the secret managed by role %q in %q namespace", openstackCredsRole, systemNamespace))
+			role, err := clientSet.RbacV1().Roles(systemNamespace).Get(context.TODO(), openstackCredsRole, metav1.GetOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred(), "Error getting role %q in %q namespace", openstackCredsRole, systemNamespace)
+			o.Expect(role.Rules[0].ResourceNames[0]).To(o.Equal(expectedSecretName),
+				"Unexpected resourceName on role %q in %q namespace", openstackCredsRole, systemNamespace)
+
+			g.By(fmt.Sprintf("Getting the openstack auth url from clouds.conf in secret %q in %q namespace",
+				expectedSecretName, systemNamespace))
+			secret, err := clientSet.CoreV1().Secrets(systemNamespace).Get(context.TODO(), expectedSecretName, metav1.GetOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred(), "Secret %q not found in %q namespace", expectedSecretName, systemNamespace)
+			conf, err := ini.Load([]byte(secret.Data["clouds.conf"]))
+			o.Expect(err).NotTo(o.HaveOccurred(),
+				"clouds.conf key not found on %q secret in %q namespace", expectedSecretName, systemNamespace)
+			globalSection, err := conf.GetSection("Global")
+			o.Expect(err).NotTo(o.HaveOccurred(),
+				"section Global not found on %q secret in %q namespace", expectedSecretName, systemNamespace)
+			authUrl, err := globalSection.GetKey("auth-url")
+			o.Expect(err).NotTo(o.HaveOccurred(),
+				"property auth-url not found on %q secret in %q namespace", expectedSecretName, systemNamespace)
+
+			g.By(fmt.Sprintf("Getting the openstack auth url from clouds.yaml in secret %q in %q namespace", expectedSecretName, systemNamespace))
+			cloudsYaml := make(map[string]map[string]*clientconfig.Cloud)
+			err = yaml.Unmarshal([]byte(secret.Data["clouds.yaml"]), &cloudsYaml)
+			o.Expect(err).NotTo(o.HaveOccurred(),
+				"Error unmarshaling clouds.yaml on %q secret in %q namespace", expectedSecretName, systemNamespace)
+			clouds := cloudsYaml["clouds"]["openstack"]
+
+			g.By("Compare cloud auth url on secret with openstack API")
+			computeClient, err := client(serviceCompute)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Error creating openstack client")
+			o.Expect(computeClient.IdentityEndpoint).To(o.HavePrefix(authUrl.Value()), "Unexpected auth url on clouds.conf")
+			o.Expect(computeClient.IdentityEndpoint).To(o.HavePrefix(clouds.AuthInfo.AuthURL), "Unexpected auth url on clouds.yaml")
+
 		})
 	})
 })

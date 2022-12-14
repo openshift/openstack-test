@@ -733,6 +733,8 @@ var annotations = map[string]string{
 
 	"[Top Level] [sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should set use-octavia and enabled properties in CCM depending on the NetworkType": "should set use-octavia and enabled properties in CCM depending on the NetworkType [Suite:openshift/conformance/parallel]",
 
+	"[Top Level] [sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should store cloud credentials on secrets": "should store cloud credentials on secrets [Suite:openshift/conformance/parallel]",
+
 	"[Top Level] [sig-installer][Suite:openshift/openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace [Suite:openshift/conformance/parallel]",
 
 	"[Top Level] [sig-installer][Suite:openshift/openstack][lb] The Openstack platform should create an UDP Amphora LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift": "should create an UDP Amphora LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift [Suite:openshift/conformance/parallel]",
