@@ -10,6 +10,7 @@ import (
 
 	"github.com/gophercloud/gophercloud"
 	octavialoadbalancers "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
+	octaviamonitors "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/monitors"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
 	g "github.com/onsi/ginkgo"
@@ -208,6 +209,84 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 				e2e.Logf("Pod %s successfully accessed through svc loadbalancer on ip %s and port %d", podName, fip, svcPort)
 			}
 		})
+
+		// https://issues.redhat.com/browse/OCPBUGS-2350
+		g.It(fmt.Sprintf("should apply lb-method on UDP %s LoadBalancer when an UDP svc with monitors and ETP:Local is created on Openshift", lbProviderUnderTest), func() {
+
+			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
+
+			g.By("Creating Openshift deployment")
+			labels := map[string]string{"app": "udp-lb-etplocal-dep"}
+			testDeployment := createTestDeployment("udp-lb-etplocal-dep", labels, 2, v1.ProtocolUDP, 8081)
+			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+				testDeployment, metav1.CreateOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Creating Openshift LoadBalancer Service with monitors and ETP:Local")
+			svcName := "udp-lb-etplocal-svc"
+			svcPort := int32(8082)
+			monitorDelay := 10
+			monitorTimeout := 20
+			monitorMaxRetries := 2
+			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName)
+			jig.Labels = labels
+			svc, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort, TargetPort: intstr.FromInt(8081)}}
+				svc.Spec.Selector = labels
+				svc.SetAnnotations(map[string]string{
+					"loadbalancer.openstack.org/enable-health-monitor":      "true",
+					"loadbalancer.openstack.org/health-monitor-delay":       fmt.Sprintf("%d", monitorDelay),
+					"loadbalancer.openstack.org/health-monitor-timeout":     fmt.Sprintf("%d", monitorTimeout),
+					"loadbalancer.openstack.org/health-monitor-max-retries": fmt.Sprintf("%d", monitorMaxRetries),
+				})
+				svc.Spec.ExternalTrafficPolicy = v1.ServiceExternalTrafficPolicyTypeLocal
+			})
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Checks from openshift perspective")
+			loadBalancerId := svc.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]
+			o.Expect(loadBalancerId).ShouldNot(o.BeEmpty(), "load-balancer-id annotation missing")
+			svcIp := svc.Status.LoadBalancer.Ingress[0].IP
+			o.Expect(svcIp).ShouldNot(o.BeEmpty(), "FIP missing on svc Status")
+			o.Expect(svc.Spec.ExternalTrafficPolicy).Should(o.Equal(v1.ServiceExternalTrafficPolicyTypeLocal),
+				"Unexpected ExternalTrafficPolicy on svc specs")
+
+			g.By("Checks from openstack perspective")
+			lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(lb.Provider).Should(o.Equal(strings.ToLower(lbProviderUnderTest)), "Unexpected provider in the Openstack LoadBalancer")
+			pool, err := pools.Get(loadBalancerClient, lb.Pools[0].ID).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(pool.Protocol).Should(o.Equal("UDP"), "Unexpected protocol on Openstack LoadBalancer Pool: %q", pool.Name)
+			monitor, err := octaviamonitors.Get(loadBalancerClient, pool.MonitorID).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(monitor.AdminStateUp).Should(o.BeTrue(), "Unexpected healthmonitor adminStateUp on Openstack LoadBalancer Pool: %q", pool.Name)
+			o.Expect(monitor.Delay).Should(o.Equal(monitorDelay), "Unexpected healthmonitor delay on Openstack LoadBalancer Pool: %q", pool.Name)
+			o.Expect(monitor.Timeout).Should(o.Equal(monitorTimeout), "Unexpected healthmonitor timeout on Openstack LoadBalancer Pool: %q", pool.Name)
+			o.Expect(monitor.MaxRetries).Should(o.Equal(monitorMaxRetries), "Unexpected healthmonitor MaxRetries on Openstack LoadBalancer Pool: %q", pool.Name)
+			lbMethod, err := getClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", pool.LBMethod)
+
+			g.By("accessing the service 100 times from outside and storing the name of the pods answering")
+			results := make(map[string]int)
+			for i := 0; i < 100; i++ {
+				// https://github.com/kubernetes/kubernetes/blob/master/test/images/agnhost/README.md#netexec
+				podName, err := getPodNameThroughUdpLb(svcIp, fmt.Sprintf("%d", svcPort), "hostname")
+				if err != nil {
+					e2e.Logf("Error detected while accessing the LoadBalancer service on try %d: %q", i, err)
+				} else {
+					results[podName]++
+				}
+			}
+			e2e.Logf("Pods accessed after 100 UDP requests:\n%v\n", results)
+			pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(context.Background(), metav1.ListOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			//lbMethod can be something different to ROUND_ROBIN as monitors && ETP:Local are enabled on this test:
+			o.Expect(isLbMethodApplied(lbMethod, results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
+		})
 	}
 })
 
@@ -307,6 +386,16 @@ func isLbMethodApplied(lbMethod string, results map[string]int, pods *v1.PodList
 			}
 		}
 		return true
+	} else if lbMethod == "source_ip" || lbMethod == "least_connections" {
+		minAccesses := 100 - safeguard
+		for _, pod := range pods.Items {
+			val, ok := results[pod.Name]
+			if ok && val > minAccesses && len(results) == 1 {
+				e2e.Logf("%q algorithm successfully applied - Unique pod %q has been accessed %d times.", lbMethod, pod.Name, val)
+				return true
+			}
+		}
+		return false
 	} else {
 		e2e.Logf("LB-Method check not implemented for %q", lbMethod)
 		return true
