@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,6 +35,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 	var loadBalancerClient *gophercloud.ServiceClient
 	var networkClient *gophercloud.ServiceClient
 	var clientSet *kubernetes.Clientset
+	var cloudProviderConfig *ini.File
 	availableLbProvidersUnderTests := [2]string{"Amphora", "OVN"}
 
 	g.BeforeEach(func() {
@@ -53,39 +55,27 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 		g.By("preparing openshift dynamic client")
 		clientSet, err = e2e.LoadClientset()
 		o.Expect(err).NotTo(o.HaveOccurred())
+
+		g.By("Gathering cloud-provider-config")
+		cloudProviderConfig, err = getConfig(oc.AdminKubeClient(),
+			"openshift-config",
+			"cloud-provider-config",
+			"config")
+		o.Expect(err).NotTo(o.HaveOccurred())
+
 	})
 
-	// https://issues.redhat.com/browse/OSASINFRA-2753
 	for _, i := range availableLbProvidersUnderTests {
 		lbProviderUnderTest := i
+
+		// https://issues.redhat.com/browse/OSASINFRA-2753
 		g.It(fmt.Sprintf("should create an UDP %s LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift", lbProviderUnderTest), func() {
 
-			g.By("Checking loadBalancer provider")
-			cloudProviderConfig, err := getConfig(oc.AdminKubeClient(),
-				"openshift-config",
-				"cloud-provider-config",
-				"config")
-			o.Expect(err).NotTo(o.HaveOccurred())
-			lbProvider, err := getClusterLoadBalancerSetting("lb-provider", cloudProviderConfig)
-			o.Expect(err).NotTo(o.HaveOccurred())
-			if lbProvider != strings.ToLower(lbProviderUnderTest) {
-				e2eskipper.Skipf("Test not applicable for LoadBalancer provider different than %s. Cluster is configured with %q", lbProviderUnderTest, lbProvider)
-			}
+			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
 			g.By("Creating Openshift deployment")
 			labels := map[string]string{"app": "udp-lb-default-dep"}
-			depName := "udp-lb-default-dep"
-			svcName := "udp-lb-default-svc"
-			svcPort := int32(8082)
-			testDeployment := e2edeployment.NewDeployment(depName, 2, labels, "udp-test",
-				imageutils.GetE2EImage(imageutils.Agnhost), appsv1.RollingUpdateDeploymentStrategyType)
-			testDeployment.Spec.Template.Spec.SecurityContext = e2epod.GetRestrictedPodSecurityContext()
-			testDeployment.Spec.Template.Spec.Containers[0].SecurityContext = e2epod.GetRestrictedContainerSecurityContext()
-			testDeployment.Spec.Template.Spec.Containers[0].Args = []string{"netexec", "--udp-port=8081"}
-			testDeployment.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{{
-				ContainerPort: 8081,
-				Protocol:      "UDP",
-			}}
+			testDeployment := createTestDeployment("udp-lb-default-dep", labels, 2, v1.ProtocolUDP, 8081)
 			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -93,6 +83,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("Creating Openshift LoadBalancer Service")
+			svcName := "udp-lb-default-svc"
+			svcPort := int32(8082)
 			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName)
 			jig.Labels = labels
 			svc, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
@@ -145,15 +137,97 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(isLbMethodApplied(lbMethod, results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
 		})
+
+		// https://github.com/kubernetes/cloud-provider-openstack/blob/master/docs/openstack-cloud-controller-manager/expose-applications-using-loadbalancer-type-service.md#sharing-load-balancer-with-multiple-services
+		g.It(fmt.Sprintf("should re-use an existing UDP %s LoadBalancer when new svc is created on Openshift with the proper annotation", lbProviderUnderTest), func() {
+
+			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
+
+			g.By("Checking cluster configuration")
+			setting, err := getClusterLoadBalancerSetting("max-shared-lb", cloudProviderConfig)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			maxSharedLb, err := strconv.Atoi(setting)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			if 2 < maxSharedLb {
+				e2eskipper.Skipf("Test not applicable when max-shared-lb is lower than 2 and it is %d", maxSharedLb)
+			}
+
+			g.By("Creating Openshift deployment")
+			labels := map[string]string{"app": "udp-lb-shared-dep"}
+			testDeployment := createTestDeployment("udp-lb-shared-dep", labels, 2, v1.ProtocolUDP, 8081)
+			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+				testDeployment, metav1.CreateOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Creating first Openshift service")
+			svcName1 := "udp-lb-shared1-svc"
+			svcPort1 := int32(8082)
+			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName1)
+			jig.Labels = labels
+			svc1, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort1, TargetPort: intstr.FromInt(8081)}}
+				svc.Spec.Selector = labels
+			})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			loadBalancerId := svc1.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]
+			o.Expect(loadBalancerId).ShouldNot(o.BeEmpty(), "load-balancer-id annotation missing")
+			e2e.Logf("detected loadbalancer id is %q", loadBalancerId)
+
+			g.By(fmt.Sprintf("Creating second Openshift service using the existing Openstack loadbalancer %s", loadBalancerId))
+			svcName2 := "udp-lb-shared2-svc"
+			svcPort2 := int32(8083)
+			jig = e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName2)
+			jig.Labels = labels
+			svc2, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort2, TargetPort: intstr.FromInt(8081)}}
+				svc.Spec.Selector = labels
+				svc.SetAnnotations(map[string]string{"loadbalancer.openstack.org/load-balancer-id": loadBalancerId})
+			})
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Checks from openstack perspective")
+			lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(lb.Pools).Should(o.HaveLen(2), "Unexpected number of pools on Openstack LoadBalancer %q", lb.Name)
+
+			g.By("Connectivity checks")
+			o.Expect(svc1.Status.LoadBalancer.Ingress).ShouldNot(o.BeEmpty(), "svc1.Status.LoadBalancer.Ingress should not be empty")
+			o.Expect(svc2.Status.LoadBalancer.Ingress).ShouldNot(o.BeEmpty(), "svc2.Status.LoadBalancer.Ingress should not be empty")
+			o.Expect(svc1.Status.LoadBalancer.Ingress[0].IP).Should(o.Equal(svc2.Status.LoadBalancer.Ingress[0].IP),
+				"Unexpected external IP for svcs sharing the loadbalancer")
+			fip := svc1.Status.LoadBalancer.Ingress[0].IP
+			podNames, err := exutil.GetPodNamesByFilter(oc.KubeClient().CoreV1().Pods(oc.Namespace()),
+				exutil.ParseLabelsOrDie(""), func(v1.Pod) bool { return true })
+			o.Expect(err).NotTo(o.HaveOccurred())
+			for _, svcPort := range [2]int32{svcPort1, svcPort2} {
+				podName, err := getPodNameThroughUdpLb(fip, fmt.Sprintf("%d", svcPort), "hostname")
+				o.Expect(err).NotTo(o.HaveOccurred())
+				o.Expect(podName).Should(o.BeElementOf(podNames))
+				e2e.Logf("Pod %s successfully accessed through svc loadbalancer on ip %s and port %d", podName, fip, svcPort)
+			}
+		})
 	}
 })
+
+// Check ini.File from cloudProviderConfig and skip the tests if lb-provider is not matching the expected value
+func skipIfNotLbProvider(expectedLbProvider string, ini *ini.File) {
+
+	foundLbProvider, err := getClusterLoadBalancerSetting("lb-provider", ini)
+	o.Expect(err).NotTo(o.HaveOccurred())
+	if foundLbProvider != strings.ToLower(expectedLbProvider) {
+		e2eskipper.Skipf("Test not applicable for LoadBalancer provider different than %s. Cluster is configured with %q", expectedLbProvider, foundLbProvider)
+	}
+}
 
 // get the LoadBalancer setting based on the provided CloudProviderConfig INI file and the default values
 func getClusterLoadBalancerSetting(setting string, config *ini.File) (string, error) {
 
 	defaultLoadBalancerSettings := map[string]string{
-		"lb-provider": "amphora",
-		"lb-method":   "round_robin",
+		"lb-provider":   "amphora",
+		"lb-method":     "round_robin",
+		"max-shared-lb": "2",
 	}
 
 	result, err := getPropertyValue("LoadBalancer", setting, config)
@@ -237,4 +311,22 @@ func isLbMethodApplied(lbMethod string, results map[string]int, pods *v1.PodList
 		e2e.Logf("LB-Method check not implemented for %q", lbMethod)
 		return true
 	}
+}
+
+// Creates *appsv1.Deployment using the image agnhost configuring a server on the specified port and protocol
+// Further info on: https://github.com/kubernetes/kubernetes/blob/master/test/images/agnhost/README.md#netexec
+func createTestDeployment(depName string, labels map[string]string, replicas int32, protocol v1.Protocol, port int32) *appsv1.Deployment {
+
+	netExecParams := "--" + strings.ToLower(string(protocol)) + "-port=" + fmt.Sprintf("%d", port)
+
+	testDeployment := e2edeployment.NewDeployment(depName, replicas, labels, "test",
+		imageutils.GetE2EImage(imageutils.Agnhost), appsv1.RollingUpdateDeploymentStrategyType)
+	testDeployment.Spec.Template.Spec.SecurityContext = e2epod.GetRestrictedPodSecurityContext()
+	testDeployment.Spec.Template.Spec.Containers[0].SecurityContext = e2epod.GetRestrictedContainerSecurityContext()
+	testDeployment.Spec.Template.Spec.Containers[0].Args = []string{"netexec", netExecParams}
+	testDeployment.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{{
+		ContainerPort: port,
+		Protocol:      protocol,
+	}}
+	return testDeployment
 }
