@@ -65,6 +65,9 @@ type ClusterConfiguration struct {
 
 	// IsIBMROKS determines whether the cluster is Managed IBM Cloud (ROKS)
 	IsIBMROKS bool
+
+	// IsNoOptionalCapabilities indicates the cluster has no optional capabilities enabled
+	HasNoOptionalCapabilities bool
 }
 
 func (c *ClusterConfiguration) ToJSONString() string {
@@ -84,6 +87,7 @@ type ClusterState struct {
 	NonMasters           *corev1.NodeList
 	NetworkSpec          *operatorv1.NetworkSpec
 	ControlPlaneTopology *configv1.TopologyMode
+	OptionalCapabilities []configv1.ClusterVersionCapability
 }
 
 // DiscoverClusterState creates a ClusterState based on a live cluster
@@ -142,6 +146,12 @@ func DiscoverClusterState(clientConfig *rest.Config) (*ClusterState, error) {
 	}
 	state.NetworkSpec = &networkConfig.Spec
 
+	clusterVersion, err := configClient.ConfigV1().ClusterVersions().Get(context.Background(), "version", metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	state.OptionalCapabilities = clusterVersion.Status.Capabilities.EnabledCapabilities
+
 	return state, nil
 }
 
@@ -159,6 +169,9 @@ func LoadConfig(state *ClusterState) (*ClusterConfiguration, error) {
 		Zones:                 zones.List(),
 		SingleReplicaTopology: *state.ControlPlaneTopology == configv1.SingleReplicaTopologyMode,
 	}
+
+	config.HasNoOptionalCapabilities = len(state.OptionalCapabilities) == 0
+
 	if zones.Len() > 0 {
 		config.Zone = zones.List()[0]
 	}
@@ -280,6 +293,10 @@ func (c *ClusterConfiguration) MatchFn() func(string) bool {
 		skips = append(skips, "[Feature:SCTPConnectivity]")
 	}
 
+	if c.HasNoOptionalCapabilities {
+		skips = append(skips, "[Skipped:NoOptionalCapabilities]")
+	}
+
 	matchFn := func(name string) bool {
 		for _, skip := range skips {
 			if strings.Contains(name, skip) {
@@ -289,4 +306,21 @@ func (c *ClusterConfiguration) MatchFn() func(string) bool {
 		return true
 	}
 	return matchFn
+}
+
+func HasCapability(clusterVersion *configv1.ClusterVersion, desiredCapability string) bool {
+	for _, ec := range clusterVersion.Status.Capabilities.EnabledCapabilities {
+		if string(ec) == desiredCapability {
+			return true
+		}
+	}
+	return false
+}
+func KnowsCapability(clusterVersion *configv1.ClusterVersion, desiredCapability string) bool {
+	for _, ec := range clusterVersion.Status.Capabilities.KnownCapabilities {
+		if string(ec) == desiredCapability {
+			return true
+		}
+	}
+	return false
 }

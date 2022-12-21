@@ -18,6 +18,7 @@ import (
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kruntime "k8s.io/apimachinery/pkg/runtime"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
@@ -149,6 +150,14 @@ const (
 	minVSphereMemoryMiB = 2048
 	// https://docs.openshift.com/container-platform/4.1/installing/installing_vsphere/installing-vsphere.html#minimum-resource-requirements_installing-vsphere
 	minVSphereDiskGiB = 120
+
+	// Nutanix Defaults
+	// Minimum Nutanix values taken from Nutanix reconciler
+	defaultNutanixCredentialsSecret = "nutanix-credentials"
+	minNutanixCPUSockets            = 1
+	minNutanixCPUPerSocket          = 1
+	minNutanixMemoryMiB             = 2048
+	minNutanixDiskGiB               = 20
 
 	// PowerVS Defaults
 	defaultPowerVSCredentialsSecret = "powervs-credentials"
@@ -321,6 +330,8 @@ func getMachineValidatorOperation(platform osconfigv1.PlatformType) machineAdmis
 		return validateVSphere
 	case osconfigv1.PowerVSPlatformType:
 		return validatePowerVS
+	case osconfigv1.NutanixPlatformType:
+		return validateNutanix
 	default:
 		// just no-op
 		return func(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
@@ -365,6 +376,8 @@ func getMachineDefaulterOperation(platformStatus *osconfigv1.PlatformStatus) mac
 		return defaultVSphere
 	case osconfigv1.PowerVSPlatformType:
 		return defaultPowerVS
+	case osconfigv1.NutanixPlatformType:
+		return defaultNutanix
 	default:
 		// just no-op
 		return func(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
@@ -987,6 +1000,8 @@ func validateAzure(m *machinev1beta1.Machine, config *admissionConfig) (bool, []
 
 	errs = append(errs, validateAzureDataDisks(m.Name, providerSpec, field.NewPath("providerSpec", "dataDisks"))...)
 
+	errs = append(errs, validateAzureDiagnostics(providerSpec.Diagnostics, field.NewPath("providerSpec", "diagnostics"))...)
+
 	if isAzureGovCloud(config.platformStatus) && providerSpec.SpotVMOptions != nil {
 		warnings = append(warnings, "spot VMs may not be supported when using GovCloud region")
 	}
@@ -1025,6 +1040,33 @@ func validateAzureImage(image machinev1beta1.Image) []error {
 	}
 
 	return errors
+}
+
+func validateAzureDiagnostics(diagnosticsSpec machinev1beta1.AzureDiagnostics, parentPath *field.Path) []error {
+	errs := []error{}
+
+	if diagnosticsSpec.Boot != nil {
+		cmPath := parentPath.Child("boot", "customerManaged")
+
+		switch diagnosticsSpec.Boot.StorageAccountType {
+		case machinev1beta1.CustomerManagedAzureDiagnosticsStorage:
+			if diagnosticsSpec.Boot.CustomerManaged == nil {
+				errs = append(errs, field.Required(cmPath, "customerManaged configuration must be provided"))
+			} else if diagnosticsSpec.Boot.CustomerManaged.StorageAccountURI == "" {
+				errs = append(errs, field.Required(cmPath.Child("storageAccountURI"), "storageAccountURI must be provided"))
+			}
+
+		case machinev1beta1.AzureManagedAzureDiagnosticsStorage:
+			if diagnosticsSpec.Boot.CustomerManaged != nil {
+				errs = append(errs, field.Invalid(cmPath, diagnosticsSpec.Boot.CustomerManaged, "customerManaged may not be set when type is AzureManaged"))
+			}
+
+		default:
+			errs = append(errs, field.Invalid(parentPath.Child("boot", "storageAccountType"), diagnosticsSpec.Boot.StorageAccountType, fmt.Sprintf("storageAccountType must be one of: %s, %s", machinev1beta1.AzureManagedAzureDiagnosticsStorage, machinev1beta1.CustomerManagedAzureDiagnosticsStorage)))
+		}
+	}
+
+	return errs
 }
 
 func defaultGCP(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
@@ -1400,6 +1442,136 @@ func validateVSphereNetwork(network machinev1beta1.NetworkSpec, parentPath *fiel
 	return errs
 }
 
+func defaultNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+	klog.V(3).Infof("Defaulting nutanix providerSpec")
+
+	var errs []error
+	var warnings []string
+	providerSpec := new(machinev1.NutanixMachineProviderConfig)
+	if err := unmarshalInto(m, providerSpec); err != nil {
+		errs = append(errs, err)
+		return false, warnings, utilerrors.NewAggregate(errs)
+	}
+
+	if providerSpec.UserDataSecret == nil {
+		providerSpec.UserDataSecret = &corev1.LocalObjectReference{Name: defaultUserDataSecret}
+	}
+
+	if providerSpec.CredentialsSecret == nil {
+		providerSpec.CredentialsSecret = &corev1.LocalObjectReference{Name: defaultNutanixCredentialsSecret}
+	}
+
+	rawBytes, err := json.Marshal(providerSpec)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	if len(errs) > 0 {
+		return false, warnings, utilerrors.NewAggregate(errs)
+	}
+
+	m.Spec.ProviderSpec.Value = &kruntime.RawExtension{Raw: rawBytes}
+	return true, warnings, nil
+}
+
+func validateNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+	klog.V(3).Infof("Validating nutanix providerSpec")
+
+	var errs []error
+	var warnings []string
+	providerSpec := new(machinev1.NutanixMachineProviderConfig)
+	if err := unmarshalInto(m, providerSpec); err != nil {
+		errs = append(errs, err)
+		return false, warnings, utilerrors.NewAggregate(errs)
+	}
+
+	if err := validateNutanixResourceIdentifier("cluster", providerSpec.Cluster); err != nil {
+		errs = append(errs, err)
+	}
+	if err := validateNutanixResourceIdentifier("image", providerSpec.Image); err != nil {
+		errs = append(errs, err)
+	}
+	// Currently, we only support one subnet per VM in Openshift
+	// We may extend this to support more than one subnet per VM in future releases
+	if len(providerSpec.Subnets) == 0 {
+		errs = append(errs, fmt.Errorf("providerSpec.subnets: missing subnets: nodes may fail to start if no subnets are configured"))
+	} else if len(providerSpec.Subnets) > 1 {
+		errs = append(errs, fmt.Errorf("providerSpec.subnets: too many subnets: currently nutanix platform supports one subnet per VM but more than one subnets are configured"))
+	}
+
+	for _, subnet := range providerSpec.Subnets {
+		if err := validateNutanixResourceIdentifier("subnet", subnet); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if providerSpec.VCPUSockets < minNutanixCPUSockets {
+		warnings = append(warnings, fmt.Sprintf("providerSpec.vcpuSockets: %d is missing or less than the minimum value (%d): nodes may not boot correctly", providerSpec.VCPUSockets, minNutanixCPUSockets))
+	}
+
+	if providerSpec.VCPUsPerSocket < minNutanixCPUPerSocket {
+		warnings = append(warnings, fmt.Sprintf("providerSpec.vcpusPerSocket: %d is missing or less than the minimum value (%d): nodes may not boot correctly", providerSpec.VCPUsPerSocket, minNutanixCPUPerSocket))
+	}
+
+	minNutanixMemory, err := resource.ParseQuantity(fmt.Sprintf("%dMi", minNutanixMemoryMiB))
+	if err != nil {
+		errs = append(errs, err)
+		return false, warnings, utilerrors.NewAggregate(errs)
+	}
+	if providerSpec.MemorySize.Cmp(minNutanixMemory) < 0 {
+		warnings = append(warnings, fmt.Sprintf("providerSpec.memorySize: %d is missing or less than the recommended minimum value (%d): nodes may not boot correctly", providerSpec.MemorySize.Value()/(1024*1024), minNutanixMemoryMiB))
+	}
+
+	minNutanixDiskSize, err := resource.ParseQuantity(fmt.Sprintf("%dGi", minNutanixDiskGiB))
+	if err != nil {
+		errs = append(errs, err)
+		return false, warnings, utilerrors.NewAggregate(errs)
+	}
+	if providerSpec.SystemDiskSize.Cmp(minNutanixDiskSize) < 0 {
+		warnings = append(warnings, fmt.Sprintf("providerSpec.systemDiskSize: %d is missing or less than the recommended minimum (%d): nodes may fail to start if disk size is too low", providerSpec.SystemDiskSize.Value()/(1024*1024*1024), minNutanixDiskGiB))
+	}
+
+	if providerSpec.UserDataSecret == nil {
+		errs = append(errs, field.Required(field.NewPath("providerSpec", "userDataSecret"), "userDataSecret must be provided"))
+	} else {
+		if providerSpec.UserDataSecret.Name == "" {
+			errs = append(errs, field.Required(field.NewPath("providerSpec", "userDataSecret", "name"), "name must be provided"))
+		}
+	}
+
+	if providerSpec.CredentialsSecret == nil {
+		errs = append(errs, field.Required(field.NewPath("providerSpec", "credentialsSecret"), "credentialsSecret must be provided"))
+	} else {
+		if providerSpec.CredentialsSecret.Name == "" {
+			errs = append(errs, field.Required(field.NewPath("providerSpec", "credentialsSecret", "name"), "name must be provided"))
+		} else {
+			warnings = append(warnings, credentialsSecretExists(config.client, providerSpec.CredentialsSecret.Name, m.GetNamespace())...)
+		}
+	}
+
+	if len(errs) > 0 {
+		return false, warnings, utilerrors.NewAggregate(errs)
+	}
+	return true, warnings, nil
+}
+
+func validateNutanixResourceIdentifier(resource string, identifier machinev1.NutanixResourceIdentifier) error {
+	parentPath := field.NewPath("providerSpec")
+	if identifier.Type == machinev1.NutanixIdentifierName {
+		if identifier.Name == nil || *identifier.Name == "" {
+			return field.Required(parentPath.Child(resource).Child("name"), fmt.Sprintf("%s name must be provided", resource))
+		}
+	} else if identifier.Type == machinev1.NutanixIdentifierUUID {
+		if identifier.UUID == nil || *identifier.UUID == "" {
+			return field.Required(parentPath.Child(resource).Child("uuid"), fmt.Sprintf("%s UUID must be provided", resource))
+		}
+	} else {
+		return field.Invalid(parentPath.Child(resource).Child("type"), identifier.Type, fmt.Sprintf("%s type must be one of %s or %s", resource, machinev1.NutanixIdentifierName, machinev1.NutanixIdentifierUUID))
+	}
+
+	return nil
+}
+
 func isAzureGovCloud(platformStatus *osconfigv1.PlatformStatus) bool {
 	return platformStatus != nil && platformStatus.Azure != nil &&
 		platformStatus.Azure.CloudName != osconfigv1.AzurePublicCloud
@@ -1511,7 +1683,7 @@ func defaultPowerVS(m *machinev1beta1.Machine, config *admissionConfig) (bool, [
 	if providerSpec.ProcessorType == "" {
 		providerSpec.ProcessorType = defaultPowerVSProcType
 	}
-	if providerSpec.Processors.IntVal == 0 || providerSpec.Processors.StrVal == "" {
+	if providerSpec.Processors.IntVal == 0 && providerSpec.Processors.StrVal == "" {
 		switch providerSpec.ProcessorType {
 		case machinev1.PowerVSProcessorTypeDedicated:
 			providerSpec.Processors = intstr.IntOrString{Type: intstr.Int, IntVal: 1}
@@ -1679,11 +1851,15 @@ func isDeleting(obj metav1.Object) bool {
 
 // isFinalizerOnlyRemoval checks if the machine update only removes finalizers.
 func isFinalizerOnlyRemoval(m, oldM *machinev1beta1.Machine) (bool, error) {
+	// ignore updated managed fields as they don't affect the result
+	machineCopy := m.DeepCopy()
+	machineCopy.ManagedFields = oldM.ManagedFields
+
 	patchBase := client.MergeFrom(oldM)
-	data, err := patchBase.Data(m)
+	data, err := patchBase.Data(machineCopy)
 	if err != nil {
 		return false, fmt.Errorf("cannot calculate patch data from machine object: %w", err)
 	}
 
-	return string(data) == `{"metadata":{"finalizers":[""]}}`, nil
+	return string(data) == `{"metadata":{"finalizers":null}}`, nil
 }

@@ -32,7 +32,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	unstructuredv1 "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -50,7 +49,7 @@ import (
 	samplev1alpha1 "k8s.io/sample-apiserver/pkg/apis/wardle/v1alpha1"
 	"k8s.io/utils/pointer"
 
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 )
 
 const (
@@ -102,17 +101,11 @@ var _ = SIGDescribe("Aggregator", func() {
 		// Testing a 1.17 version of the sample-apiserver
 		TestSampleAPIServer(f, aggrclient, imageutils.GetE2EImage(imageutils.APIServer))
 	})
-
 })
 
 func cleanTest(client clientset.Interface, aggrclient *aggregatorclient.Clientset, namespace string) {
 	// delete the APIService first to avoid causing discovery errors
 	_ = aggrclient.ApiregistrationV1().APIServices().Delete(context.TODO(), "v1alpha1.wardle.example.com", metav1.DeleteOptions{})
-
-	// this simple sleep makes sure that the sample api server was unregistered from all Kube APIs before tearing down the deployment (otherwise it could make the test to fail)
-	// a more expensive way of doing it would be checking if the sample server was unregistered from all deployed Kube API servers before tearing down the deployment.
-	framework.Logf("sleeping 45 seconds before deleting the sample-apiserver deployment, see %q for more", "https://bugzilla.redhat.com/show_bug.cgi?id=1933144")
-	time.Sleep(time.Second * 45)
 
 	_ = client.AppsV1().Deployments(namespace).Delete(context.TODO(), "sample-apiserver-deployment", metav1.DeleteOptions{})
 	_ = client.CoreV1().Secrets(namespace).Delete(context.TODO(), "sample-apiserver-secret", metav1.DeleteOptions{})
@@ -150,7 +143,7 @@ func TestSampleAPIServer(f *framework.Framework, aggrclient *aggregatorclient.Cl
 		},
 	}
 	_, err := client.CoreV1().Secrets(namespace).Create(context.TODO(), secret, metav1.CreateOptions{})
-	framework.ExpectNoError(err, "creating secret %q in namespace %q", secretName, namespace)
+	framework.ExpectNoError(err, "creating secret %s in namespace %s", secretName, namespace)
 
 	// kubectl create -f clusterrole.yaml
 	_, err = client.RbacV1().ClusterRoles().Create(context.TODO(), &rbacv1.ClusterRole{
@@ -243,6 +236,19 @@ func TestSampleAPIServer(f *framework.Framework, aggrclient *aggregatorclient.Cl
 				"--audit-log-maxbackup=0",
 			},
 			Image: image,
+			ReadinessProbe: &v1.Probe{
+				ProbeHandler: v1.ProbeHandler{
+					HTTPGet: &v1.HTTPGetAction{
+						Scheme: v1.URISchemeHTTPS,
+						Port:   intstr.FromInt(443),
+						Path:   "/readyz",
+					},
+				},
+				InitialDelaySeconds: 20,
+				PeriodSeconds:       1,
+				SuccessThreshold:    1,
+				FailureThreshold:    3,
+			},
 		},
 		{
 			Name:  "etcd",
@@ -281,7 +287,7 @@ func TestSampleAPIServer(f *framework.Framework, aggrclient *aggregatorclient.Cl
 			Selector: serviceLabels,
 			Ports: []v1.ServicePort{
 				{
-					Protocol:   "TCP",
+					Protocol:   v1.ProtocolTCP,
 					Port:       aggregatorServicePort,
 					TargetPort: intstr.FromInt(443),
 				},
@@ -289,7 +295,7 @@ func TestSampleAPIServer(f *framework.Framework, aggrclient *aggregatorclient.Cl
 		},
 	}
 	_, err = client.CoreV1().Services(namespace).Create(context.TODO(), service, metav1.CreateOptions{})
-	framework.ExpectNoError(err, "creating service %s in namespace %s", "sample-apiserver", namespace)
+	framework.ExpectNoError(err, "creating service %s in namespace %s", "sample-api", namespace)
 
 	// kubectl create -f serviceAccount.yaml
 	sa := &v1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "sample-apiserver"}}
@@ -317,7 +323,7 @@ func TestSampleAPIServer(f *framework.Framework, aggrclient *aggregatorclient.Cl
 			},
 		},
 	}, metav1.CreateOptions{})
-	framework.ExpectNoError(err, "creating role binding %s:sample-apiserver to access configMap", namespace)
+	framework.ExpectNoError(err, "creating role binding %s in namespace %s", "wardler-auth-reader", "kube-system")
 
 	// Wait for the extension apiserver to be up and healthy
 	// kubectl get deployments -n <aggregated-api-namespace> && status == Running
@@ -342,7 +348,7 @@ func TestSampleAPIServer(f *framework.Framework, aggrclient *aggregatorclient.Cl
 			VersionPriority:      200,
 		},
 	}, metav1.CreateOptions{})
-	framework.ExpectNoError(err, "creating apiservice %s with namespace %s", "v1alpha1.wardle.example.com", namespace)
+	framework.ExpectNoError(err, "creating apiservice %s", "v1alpha1.wardle.example.com")
 
 	var (
 		currentAPIService *apiregistrationv1.APIService
@@ -465,7 +471,7 @@ func TestSampleAPIServer(f *framework.Framework, aggrclient *aggregatorclient.Cl
 	}
 	jsonFlunder, err := json.Marshal(testFlunder)
 	framework.ExpectNoError(err, "marshalling test-flunder for create using dynamic client")
-	unstruct := &unstructuredv1.Unstructured{}
+	unstruct := &unstructured.Unstructured{}
 	err = unstruct.UnmarshalJSON(jsonFlunder)
 	framework.ExpectNoError(err, "unmarshalling test-flunder as unstructured for create using dynamic client")
 	_, err = dynamicClient.Create(context.TODO(), unstruct, metav1.CreateOptions{})
