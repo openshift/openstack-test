@@ -5,15 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/config"
-	"github.com/onsi/ginkgo/reporters"
-	"github.com/onsi/gomega"
+	"github.com/onsi/ginkgo/v2"
 	"k8s.io/klog/v2"
 
 	kapiv1 "k8s.io/api/core/v1"
@@ -36,6 +32,7 @@ import (
 
 	projectv1 "github.com/openshift/api/project/v1"
 	securityv1client "github.com/openshift/client-go/security/clientset/versioned"
+
 	"github.com/openshift/origin/pkg/version"
 )
 
@@ -67,7 +64,6 @@ func InitTest(dryRun bool) error {
 	testfiles.AddFileSource(conformancetestdata.GetConformanceTestdataFS())
 	TestContext.KubectlPath = "kubectl"
 	TestContext.KubeConfig = KubeConfigPath()
-	os.Setenv("KUBECONFIG", TestContext.KubeConfig)
 
 	// "debian" is used when not set. At least GlusterFS tests need "custom".
 	// (There is no option for "rhel" or "centos".)
@@ -96,40 +92,6 @@ func InitTest(dryRun bool) error {
 
 	klog.V(2).Infof("Extended test version %s", version.Get().String())
 	return nil
-}
-
-func ExecuteTest(t ginkgo.GinkgoTestingT, suite string) {
-	var r []ginkgo.Reporter
-
-	if dir := os.Getenv("TEST_REPORT_DIR"); len(dir) > 0 {
-		TestContext.ReportDir = dir
-	}
-
-	if TestContext.ReportDir != "" {
-		if err := os.MkdirAll(TestContext.ReportDir, 0755); err != nil {
-			klog.Errorf("Failed creating report directory: %v", err)
-		}
-		defer e2e.CoreDump(TestContext.ReportDir)
-	}
-
-	if config.GinkgoConfig.FocusString == "" && config.GinkgoConfig.SkipString == "" {
-		config.GinkgoConfig.SkipString = "Skipped"
-	}
-
-	gomega.RegisterFailHandler(ginkgo.Fail)
-
-	if TestContext.ReportDir != "" {
-		r = append(r, reporters.NewJUnitReporter(path.Join(TestContext.ReportDir, fmt.Sprintf("%s_%02d.xml", reportFileName, config.GinkgoConfig.ParallelNode))))
-	}
-
-	WithCleanup(func() {
-		if quiet {
-			r = append(r, NewSimpleReporter())
-			ginkgo.RunSpecsWithCustomReporters(t, suite, r)
-		} else {
-			ginkgo.RunSpecsWithDefaultAndCustomReporters(t, suite, r)
-		}
-	})
 }
 
 var testsStarted bool
@@ -183,21 +145,20 @@ func InitDefaultEnvironmentVariables() {
 //
 // historically: ".../vendor/k8s.io/kubernetes/test/e2e"
 // go.mod:       "k8s.io/kubernetes@0.18.4/test/e2e"
-//
 func isGoModulePath(packagePath, module, modulePath string) bool {
 	return regexp.MustCompile(fmt.Sprintf(`\b%s(@[^/]*|)/%s\b`, regexp.QuoteMeta(module), regexp.QuoteMeta(modulePath))).MatchString(packagePath)
 }
 
 func isOriginTest() bool {
-	return isGoModulePath(ginkgo.CurrentGinkgoTestDescription().FileName, "github.com/openshift/origin", "test")
+	return isGoModulePath(ginkgo.CurrentSpecReport().FileName(), "github.com/openshift/origin", "test")
 }
 
 func isKubernetesE2ETest() bool {
-	return isGoModulePath(ginkgo.CurrentGinkgoTestDescription().FileName, "k8s.io/kubernetes", "test/e2e")
+	return isGoModulePath(ginkgo.CurrentSpecReport().FileName(), "k8s.io/kubernetes", "test/e2e")
 }
 
 func testNameContains(name string) bool {
-	return strings.Contains(ginkgo.CurrentGinkgoTestDescription().FullTestText, name)
+	return strings.Contains(ginkgo.CurrentSpecReport().FullText(), name)
 }
 
 func skipTestNamespaceCustomization() bool {
@@ -269,13 +230,16 @@ func checkSyntheticInput() {
 // checkSuiteSkips ensures Origin/Kubernetes synthetic skip labels are applied
 // DEPRECATED: remove in a future release
 func checkSuiteSkips() {
+	suiteConfig, _ := ginkgo.GinkgoConfiguration()
 	switch {
 	case isOriginTest():
-		if strings.Contains(config.GinkgoConfig.SkipString, "Synthetic Origin") {
+		skip := strings.Join(suiteConfig.SkipStrings, "|")
+		if strings.Contains(skip, "Synthetic Origin") {
 			ginkgo.Skip("skipping all openshift/origin tests")
 		}
 	case isKubernetesE2ETest():
-		if strings.Contains(config.GinkgoConfig.SkipString, "Synthetic Kubernetes") {
+		skip := strings.Join(suiteConfig.SkipStrings, "|")
+		if strings.Contains(skip, "Synthetic Kubernetes") {
 			ginkgo.Skip("skipping all k8s.io/kubernetes tests")
 		}
 	}

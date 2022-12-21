@@ -13,7 +13,7 @@ import (
 	octaviamonitors "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/monitors"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
-	g "github.com/onsi/ginkgo"
+	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	exutil "github.com/openshift/origin/test/extended/util"
 	ini "gopkg.in/ini.v1"
@@ -24,7 +24,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2edeployment "k8s.io/kubernetes/test/e2e/framework/deployment"
-	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	e2eservice "k8s.io/kubernetes/test/e2e/framework/service"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	imageutils "k8s.io/kubernetes/test/utils/image"
@@ -406,12 +405,19 @@ func isLbMethodApplied(lbMethod string, results map[string]int, pods *v1.PodList
 // Further info on: https://github.com/kubernetes/kubernetes/blob/master/test/images/agnhost/README.md#netexec
 func createTestDeployment(depName string, labels map[string]string, replicas int32, protocol v1.Protocol, port int32) *appsv1.Deployment {
 
+	isFalse := false
+	isTrue := true
 	netExecParams := "--" + strings.ToLower(string(protocol)) + "-port=" + fmt.Sprintf("%d", port)
 
 	testDeployment := e2edeployment.NewDeployment(depName, replicas, labels, "test",
 		imageutils.GetE2EImage(imageutils.Agnhost), appsv1.RollingUpdateDeploymentStrategyType)
-	testDeployment.Spec.Template.Spec.SecurityContext = e2epod.GetRestrictedPodSecurityContext()
-	testDeployment.Spec.Template.Spec.Containers[0].SecurityContext = e2epod.GetRestrictedContainerSecurityContext()
+	testDeployment.Spec.Template.Spec.SecurityContext = &v1.PodSecurityContext{}
+	testDeployment.Spec.Template.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
+		Capabilities:             &v1.Capabilities{Drop: []v1.Capability{"ALL"}},
+		AllowPrivilegeEscalation: &isFalse,
+		RunAsNonRoot:             &isTrue,
+		SeccompProfile:           &v1.SeccompProfile{Type: v1.SeccompProfileTypeRuntimeDefault},
+	}
 	testDeployment.Spec.Template.Spec.Containers[0].Args = []string{"netexec", netExecParams}
 	testDeployment.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{{
 		ContainerPort: port,

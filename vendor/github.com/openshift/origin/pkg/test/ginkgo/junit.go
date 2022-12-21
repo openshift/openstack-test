@@ -14,7 +14,12 @@ import (
 	"github.com/openshift/origin/pkg/version"
 )
 
-func writeJUnitReport(filePrefix, name string, tests []*testCase, dir string, duration time.Duration, errOut io.Writer, additionalResults ...*junitapi.JUnitTestCase) error {
+func generateJUnitTestSuiteResults(
+	name string,
+	duration time.Duration,
+	tests []*testCase,
+	syntheticTestResults ...*junitapi.JUnitTestCase) *junitapi.JUnitTestSuite {
+
 	s := &junitapi.JUnitTestSuite{
 		Name:     name,
 		Duration: duration.Seconds(),
@@ -32,10 +37,10 @@ func writeJUnitReport(filePrefix, name string, tests []*testCase, dir string, du
 			s.NumSkipped++
 			s.TestCases = append(s.TestCases, &junitapi.JUnitTestCase{
 				Name:      test.name,
-				SystemOut: string(test.out),
+				SystemOut: string(test.testOutputBytes),
 				Duration:  test.duration.Seconds(),
 				SkipMessage: &junitapi.SkipMessage{
-					Message: lastLinesUntil(string(test.out), 100, "skip ["),
+					Message: lastLinesUntil(string(test.testOutputBytes), 100, "skip ["),
 				},
 			})
 		case test.failed:
@@ -43,25 +48,31 @@ func writeJUnitReport(filePrefix, name string, tests []*testCase, dir string, du
 			s.NumFailed++
 			s.TestCases = append(s.TestCases, &junitapi.JUnitTestCase{
 				Name:      test.name,
-				SystemOut: string(test.out),
+				SystemOut: string(test.testOutputBytes),
 				Duration:  test.duration.Seconds(),
 				FailureOutput: &junitapi.FailureOutput{
-					Output: lastLinesUntil(string(test.out), 100, "fail ["),
+					Output: lastLinesUntil(string(test.testOutputBytes), 100, "fail ["),
 				},
 			})
+		case test.flake:
+			s.NumTests++
+			s.NumFailed++
+			s.TestCases = append(s.TestCases, &junitapi.JUnitTestCase{
+				Name:      test.name,
+				SystemOut: string(test.testOutputBytes),
+				Duration:  test.duration.Seconds(),
+				FailureOutput: &junitapi.FailureOutput{
+					Output: lastLinesUntil(string(test.testOutputBytes), 100, "flake:"),
+				},
+			})
+
+			// also add the successful junit result:
+			s.NumTests++
+			s.TestCases = append(s.TestCases, &junitapi.JUnitTestCase{
+				Name:     test.name,
+				Duration: test.duration.Seconds(),
+			})
 		case test.success:
-			if test.flake {
-				s.NumTests++
-				s.NumFailed++
-				s.TestCases = append(s.TestCases, &junitapi.JUnitTestCase{
-					Name:      test.name,
-					SystemOut: string(test.out),
-					Duration:  test.duration.Seconds(),
-					FailureOutput: &junitapi.FailureOutput{
-						Output: lastLinesUntil(string(test.out), 100, "flake:"),
-					},
-				})
-			}
 			s.NumTests++
 			s.TestCases = append(s.TestCases, &junitapi.JUnitTestCase{
 				Name:     test.name,
@@ -69,7 +80,7 @@ func writeJUnitReport(filePrefix, name string, tests []*testCase, dir string, du
 			})
 		}
 	}
-	for _, result := range additionalResults {
+	for _, result := range syntheticTestResults {
 		switch {
 		case result.SkipMessage != nil:
 			s.NumSkipped++
@@ -79,11 +90,15 @@ func writeJUnitReport(filePrefix, name string, tests []*testCase, dir string, du
 		s.NumTests++
 		s.TestCases = append(s.TestCases, result)
 	}
+	return s
+}
+
+func writeJUnitReport(s *junitapi.JUnitTestSuite, filePrefix, fileSuffix, dir string, errOut io.Writer) error {
 	out, err := xml.Marshal(s)
 	if err != nil {
 		return err
 	}
-	path := filepath.Join(dir, fmt.Sprintf("%s_%s.xml", filePrefix, time.Now().UTC().Format("20060102-150405")))
+	path := filepath.Join(dir, fmt.Sprintf("%s_%s.xml", filePrefix, fileSuffix))
 	fmt.Fprintf(errOut, "Writing JUnit report to %s\n\n", path)
 	return ioutil.WriteFile(path, out, 0640)
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/gophercloud/utils/openstack/clientconfig"
 	ini "gopkg.in/ini.v1"
 
-	g "github.com/onsi/ginkgo"
+	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	configv1client "github.com/openshift/client-go/config/clientset/versioned"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

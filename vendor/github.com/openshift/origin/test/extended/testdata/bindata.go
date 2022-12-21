@@ -175,7 +175,6 @@
 // test/extended/testdata/builds/webhook/github/testdata/pushevent.json
 // test/extended/testdata/builds/webhook/gitlab/testdata/pushevent-not-master-branch.json
 // test/extended/testdata/builds/webhook/gitlab/testdata/pushevent.json
-// test/extended/testdata/cli/pod-with-two-containers.yaml
 // test/extended/testdata/cluster/master-vert.yaml
 // test/extended/testdata/cluster/quickstarts/cakephp-mysql.json
 // test/extended/testdata/cluster/quickstarts/dancer-mysql.json
@@ -203,7 +202,6 @@
 // test/extended/testdata/cmd/test/cmd/env.sh
 // test/extended/testdata/cmd/test/cmd/framework-test.sh
 // test/extended/testdata/cmd/test/cmd/get.sh
-// test/extended/testdata/cmd/test/cmd/idle.sh
 // test/extended/testdata/cmd/test/cmd/image-lookup.sh
 // test/extended/testdata/cmd/test/cmd/images.sh
 // test/extended/testdata/cmd/test/cmd/login.sh
@@ -213,16 +211,12 @@
 // test/extended/testdata/cmd/test/cmd/printer.sh
 // test/extended/testdata/cmd/test/cmd/quota.sh
 // test/extended/testdata/cmd/test/cmd/registry.sh
-// test/extended/testdata/cmd/test/cmd/routes.sh
-// test/extended/testdata/cmd/test/cmd/run.sh
 // test/extended/testdata/cmd/test/cmd/secrets.sh
-// test/extended/testdata/cmd/test/cmd/services.sh
 // test/extended/testdata/cmd/test/cmd/set-data.sh
 // test/extended/testdata/cmd/test/cmd/set-image.sh
 // test/extended/testdata/cmd/test/cmd/set-liveness-probe.sh
 // test/extended/testdata/cmd/test/cmd/setbuildhook.sh
 // test/extended/testdata/cmd/test/cmd/setbuildsecret.sh
-// test/extended/testdata/cmd/test/cmd/status.sh
 // test/extended/testdata/cmd/test/cmd/templates.sh
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json
@@ -347,7 +341,6 @@
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json
-// test/extended/testdata/jobs/v1.yaml
 // test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt
 // test/extended/testdata/ldap/groupsync/ad/blacklist_openshift.txt
 // test/extended/testdata/ldap/groupsync/ad/ldapgroupuids.txt
@@ -443,21 +436,8 @@
 // test/extended/testdata/router/ingress.yaml
 // test/extended/testdata/router/reencrypt-serving-cert.yaml
 // test/extended/testdata/router/router-common.yaml
-// test/extended/testdata/router/router-config-manager.yaml
-// test/extended/testdata/router/router-grpc-interop-routes.yaml
-// test/extended/testdata/router/router-grpc-interop.yaml
-// test/extended/testdata/router/router-h2spec-routes.yaml
-// test/extended/testdata/router/router-h2spec.yaml
 // test/extended/testdata/router/router-http-echo-server.yaml
-// test/extended/testdata/router/router-http2-routes.yaml
-// test/extended/testdata/router/router-http2.yaml
-// test/extended/testdata/router/router-idle.yaml
 // test/extended/testdata/router/router-metrics.yaml
-// test/extended/testdata/router/router-override-domains.yaml
-// test/extended/testdata/router/router-override.yaml
-// test/extended/testdata/router/router-scoped.yaml
-// test/extended/testdata/router/router-shard.yaml
-// test/extended/testdata/router/weighted-router.yaml
 // test/extended/testdata/run_policy/parallel-bc.yaml
 // test/extended/testdata/run_policy/serial-bc.yaml
 // test/extended/testdata/run_policy/serial-latest-only-bc.yaml
@@ -485,6 +465,7 @@
 // test/extended/testdata/test-secret.json
 // test/extended/testdata/verifyservice-pipeline-template.yaml
 // e2echart/e2e-chart-template.html
+// e2echart/test-risk-analysis.html
 package testdata
 
 import (
@@ -2802,8 +2783,8 @@ func examplesDbTemplatesRedisPersistentTemplateJson() (*asset, error) {
 }
 
 var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
-  "kind": "List",
-  "apiVersion": "v1",
+  "kind": "ImageStreamList",
+  "apiVersion": "image.openshift.io/v1",
   "items": [
     {
       "kind": "ImageStream",
@@ -24147,57 +24128,6 @@ func testExtendedTestdataBuildsWebhookGitlabTestdataPusheventJson() (*asset, err
 	return a, nil
 }
 
-var _testExtendedTestdataCliPodWithTwoContainersYaml = []byte(`kind: Pod
-apiVersion: v1
-metadata:
-  name: doublecontainers
-  labels:
-    name: hello-centos
-spec:
-  containers:
-  - name: hello-centos
-    image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
-    command:
-      - /bin/sleep
-      - infinity
-    resources:
-      limits:
-        memory: 256Mi
-    terminationMessagePath: "/dev/termination-log"
-    imagePullPolicy: IfNotPresent
-    securityContext: {}
-  - name: hello-centos-2
-    image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
-    command:
-      - /bin/sleep
-      - infinity
-    resources:
-      limits:
-        memory: 256Mi
-    terminationMessagePath: "/dev/termination-log1"
-    imagePullPolicy: IfNotPresent
-    securityContext: {}
-  restartPolicy: Always
-  dnsPolicy: ClusterFirst
-  serviceAccount: ''
-status: {}
-`)
-
-func testExtendedTestdataCliPodWithTwoContainersYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataCliPodWithTwoContainersYaml, nil
-}
-
-func testExtendedTestdataCliPodWithTwoContainersYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataCliPodWithTwoContainersYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cli/pod-with-two-containers.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _testExtendedTestdataClusterMasterVertYaml = []byte(`provider: local
 ClusterLoader:
   cleanup: true
@@ -30346,89 +30276,6 @@ func testExtendedTestdataCmdTestCmdGetSh() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataCmdTestCmdIdleSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete all,templates --all
-  exit 0
-) &>/dev/null
-
-project="$(oc project -q)"
-idled_at_annotation='idling.alpha.openshift.io/idled-at'
-unidle_target_annotation='idling.alpha.openshift.io/unidle-targets'
-prev_scale_annotation='idling.alpha.openshift.io/previous-scale'
-idled_at_template="{{index .metadata.annotations \"${idled_at_annotation}\"}}"
-unidle_target_template="{{index .metadata.annotations \"${unidle_target_annotation}\"}}"
-prev_scale_template="{{index .metadata.annotations \"${prev_scale_annotation}\"}}"
-dc_name=""
-
-setup_idling_resources() {
-    os::cmd::expect_success 'oc delete all --all'
-
-    # set up resources for the idle command
-    os::cmd::expect_success 'oc create -f ${TEST_DATA}/idling-svc-route.yaml'
-    dc_name=$(basename $(oc create -f ${TEST_DATA}/idling-dc.yaml -o name))  # ` + "`" + `basename type/name` + "`" + ` --> name
-    os::cmd::expect_success "oc describe deploymentconfigs '${dc_name}'"
-    os::cmd::try_until_success 'oc describe endpoints idling-echo'
-
-    # deployer pod won't work, so just scale up the rc ourselves
-    os::cmd::try_until_success "oc get replicationcontroller ${dc_name}-1"
-    os::cmd::expect_success "oc scale replicationcontroller ${dc_name}-1 --replicas=2"
-    os::cmd::try_until_text "oc get pod -l app=idling-echo -o go-template='{{ len .items }}'" "2"
-
-    # wait for endpoints to populate. Ensure subset exists first to avoid nil dereference.
-    os::cmd::try_until_success "oc get endpoints idling-echo -o go-template='{{ index .subsets 0 }}'"
-    os::cmd::try_until_text "oc get endpoints idling-echo -o go-template='{{ len (index .subsets 0).addresses }}'" "2"
-}
-
-os::test::junit::declare_suite_start "cmd/idle/by-name"
-setup_idling_resources
-os::cmd::expect_failure "oc idle dc/${dc_name}" # make sure manually passing non-endpoints resources fails
-os::cmd::expect_success_and_text 'oc idle idling-echo' "The service will unidle DeploymentConfig \"${project}/${dc_name}\" to 2 replicas once it receives traffic"
-os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${idled_at_template}'" '.'
-#os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${unidle_target_template}' | jq '.[] | select(.name == \"${dc_name}\") | (.replicas == 2 and .kind == \"DeploymentConfig\")'" 'true'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/idle/by-label"
-setup_idling_resources
-os::cmd::expect_success_and_text 'oc idle -l app=idling-echo' "The service will unidle DeploymentConfig \"${project}/${dc_name}\" to 2 replicas once it receives traffic"
-os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${idled_at_template}'" '.'
-#os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${unidle_target_template}' | jq '.[] | select(.name == \"${dc_name}\") | (.replicas == 2 and .kind == \"DeploymentConfig\")'" 'true'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/idle/all"
-setup_idling_resources
-os::cmd::expect_success_and_text 'oc idle --all' "The service will unidle DeploymentConfig \"${project}/${dc_name}\" to 2 replicas once it receives traffic"
-os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${idled_at_template}'" '.'
-#os::cmd::expect_success_and_text "oc get endpoints idling-echo -o go-template='${unidle_target_template}' | jq '.[] | select(.name == \"${dc_name}\") | (.replicas == 2 and .kind == \"DeploymentConfig\")'" 'true'
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/idle/check-previous-scale"
-setup_idling_resources  # scales up to 2 replicas
-os::cmd::expect_success_and_text 'oc idle idling-echo' "The service will unidle DeploymentConfig \"${project}/${dc_name}\" to 2 replicas once it receives traffic"
-os::cmd::expect_success_and_text "oc get dc ${dc_name}  -o go-template='${prev_scale_template}'" '2'  # we see the result of the initial scale as the previous scale
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdIdleShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdIdleSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdIdleSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdIdleShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/idle.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _testExtendedTestdataCmdTestCmdImageLookupSh = []byte(`#!/bin/bash
 source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
 trap os::test::junit::reconcile_output EXIT
@@ -32182,134 +32029,6 @@ func testExtendedTestdataCmdTestCmdRegistrySh() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataCmdTestCmdRoutesSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete route foo bar testroute test-route new-route
-  exit 0
-) &>/dev/null
-
-
-os::test::junit::declare_suite_start "cmd/routes"
-
-os::cmd::expect_success 'oc get routes'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/test-route.json'
-os::cmd::expect_success_and_text 'oc get routes testroute --show-labels' 'rtlabel1'
-os::cmd::expect_success 'oc delete routes testroute'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/test-service.json'
-os::cmd::expect_success 'oc create route passthrough --service=svc/frontend'
-os::cmd::expect_success 'oc delete routes frontend'
-os::cmd::expect_success 'oc create route edge --path /test --service=services/non-existent --port=80'
-os::cmd::expect_success 'oc delete routes non-existent'
-os::cmd::expect_success 'oc create route edge test-route --service=frontend'
-os::cmd::expect_success 'oc delete routes test-route'
-os::cmd::expect_failure 'oc create route edge new-route'
-os::cmd::expect_success 'oc delete services frontend'
-os::cmd::expect_success 'oc create route edge --insecure-policy=Allow --service=foo --port=80'
-os::cmd::expect_success_and_text 'oc get route foo -o jsonpath="{.spec.tls.insecureEdgeTerminationPolicy}"' 'Allow'
-os::cmd::expect_success 'oc delete routes foo'
-
-os::cmd::expect_success_and_text 'oc create route edge --service foo --port=8080' 'created'
-os::cmd::expect_success_and_text 'oc create route edge --service bar --port=9090' 'created'
-
-# verify that reencrypt routes with no destination CA return the stub PEM block on the old API
-project="$(oc project -q)"
-os::cmd::expect_success_and_text     'oc create route reencrypt --service baz --port=9090' 'created'
-os::cmd::expect_success_and_not_text 'oc get --raw /apis/route.openshift.io/v1/namespaces/${project}/routes/baz' 'This is an empty PEM file'
-
-os::cmd::expect_success_and_text 'oc set route-backends foo' 'routes/foo'
-os::cmd::expect_success_and_text 'oc set route-backends foo' 'Service'
-os::cmd::expect_success_and_text 'oc set route-backends foo' '100'
-os::cmd::expect_failure_and_text 'oc set route-backends foo --zero --equal' 'error: --zero and --equal may not be specified together'
-os::cmd::expect_failure_and_text 'oc set route-backends foo --zero --adjust' 'error: --adjust and --zero may not be specified together'
-os::cmd::expect_failure_and_text 'oc set route-backends foo a=' 'expected NAME=WEIGHT'
-os::cmd::expect_failure_and_text 'oc set route-backends foo =10' 'expected NAME=WEIGHT'
-os::cmd::expect_failure_and_text 'oc set route-backends foo a=a' 'WEIGHT must be a number'
-os::cmd::expect_success_and_text 'oc set route-backends foo a=10' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo a=100' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo a=0' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo' '0'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a'
-os::cmd::expect_success_and_text 'oc set route-backends foo a1=0 b2=0' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo' 'a1'
-os::cmd::expect_success_and_text 'oc set route-backends foo' 'b2'
-os::cmd::expect_success_and_text 'oc set route-backends foo a1=100 b2=50 c3=0' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(66%\),b2\(33%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo a1=100 b2=0 c3=0' 'updated'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust b2=+10%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(90%\),b2\(10%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust b2=+25%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(65%\),b2\(35%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust b2=+99%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(0%\),b2\(100%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust b2=-51%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(51%\),b2\(49%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust a1=20%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(20%\),b2\(80%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust c3=50%' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(10%\),b2\(80%\),c3\(10%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '25 \(10%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '200 \(80%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '25 \(10%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '<error: endpoints "c3" not found>'
-os::cmd::expect_success_and_text 'oc set route-backends foo --adjust c3=1' 'updated'
-os::cmd::expect_success_and_text 'oc describe routes foo' '1 \(0%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --equal' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(33%\),b2\(33%\),c3\(33%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '100 \(33%\)'
-os::cmd::expect_success_and_text 'oc set route-backends foo --zero' 'updated'
-os::cmd::expect_success_and_text 'oc get routes foo' 'a1\(0%\),b2\(0%\),c3\(0%\)'
-os::cmd::expect_success_and_text 'oc describe routes foo' '0'
-
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdRoutesShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdRoutesSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdRoutesSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdRoutesShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/routes.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdRunSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-os::test::junit::declare_suite_start "cmd/run"
-# This test validates the value of --image for oc run
-os::cmd::expect_success_and_text 'oc create deploymentconfig newdcforimage --image=validimagevalue' 'deploymentconfig.apps.openshift.io/newdcforimage created'
-os::cmd::expect_failure_and_text 'oc run newdcforimage2 --image="InvalidImageValue0192"' 'error: Invalid image name "InvalidImageValue0192": invalid reference format'
-echo "oc run: ok"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdRunShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdRunSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdRunSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdRunShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/run.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _testExtendedTestdataCmdTestCmdSecretsSh = []byte(`#!/bin/bash
 source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
 trap os::test::junit::reconcile_output EXIT
@@ -32475,46 +32194,6 @@ func testExtendedTestdataCmdTestCmdSecretsSh() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/secrets.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdServicesSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete all,templates --all
-  exit 0
-) &>/dev/null
-
-
-os::test::junit::declare_suite_start "cmd/create-service-nodeport"
-# This test validates the 'create service nodeport' command and its "--node-port" and "--tcp" options
-os::cmd::expect_success_and_text 'oc create service nodeport mynodeport --tcp=8080:7777 --node-port=30000' 'service/mynodeport created'
-os::cmd::expect_failure_and_text 'oc create service nodeport mynodeport --tcp=8080:7777 --node-port=30000' 'provided port is already allocated'
-os::cmd::expect_failure_and_text 'oc create service nodeport mynodeport --tcp=8080:7777 --node-port=300' 'provided port is not in the valid range. The range of valid ports is 30000-32767'
-os::cmd::expect_success_and_text 'oc describe service mynodeport' 'NodePort\:.*30000'
-os::cmd::expect_success_and_text 'oc describe service mynodeport' 'NodePort\:.*8080-7777'
-os::cmd::expect_success_and_text 'oc describe --v=8 service mynodeport' 'Response Body'
-
-echo "create-services-nodeport: ok"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdServicesShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdServicesSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdServicesSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdServicesShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/services.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -32831,114 +32510,6 @@ func testExtendedTestdataCmdTestCmdSetbuildsecretSh() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/setbuildsecret.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdStatusSh = []byte(`#!/bin/bash
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
-OS_ROOT=$(dirname "${BASH_SOURCE}")/../..
-source "${OS_ROOT}/hack/lib/init.sh"
-os::log::stacktrace::install
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete project project-bar
-  oc delete project project-status
-  exit 0
-) &>/dev/null
-
-login_kubeconfig="${ARTIFACT_DIR}/login.kubeconfig"
-cp "${KUBECONFIG}" "${login_kubeconfig}"
-
-os::test::junit::declare_suite_start "cmd/status"
-# login and ensure no current projects exist
-#os::cmd::expect_success "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${MASTER_CONFIG_DIR}/server-ca.crt' -u test-user2 -p anything"
-#os::cmd::expect_success 'oc delete project --all'
-#os::cmd::try_until_text "oc get projects -o jsonpath='{.items}'" "^\[\]$"
-#os::cmd::expect_success 'oc logout'
-
-# remove self-provisioner role from user and test login prompt before creating any projects
-#os::cmd::expect_success "oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth --kubeconfig='${login_kubeconfig}'"
-
-# login as 'test-user2'
-#os::cmd::expect_success "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${MASTER_CONFIG_DIR}/server-ca.crt' -u test-user2 -p anything"
-
-# make sure ` + "`" + `oc status` + "`" + ` re-uses the correct "no projects" message from ` + "`" + `oc login` + "`" + ` with no self-provisioner role
-#os::cmd::expect_success_and_text 'oc status' "You don't have any projects. Contact your system administrator to request a project"
-os::cmd::expect_success_and_text 'oc status --all-namespaces' "Showing all projects on server"
-# make sure standard login prompt is printed once self-provisioner status is restored
-#os::cmd::expect_success "oc logout"
-#os::cmd::expect_success "oc adm policy add-cluster-role-to-group self-provisioner system:authenticated:oauth --kubeconfig='${login_kubeconfig}'"
-#os::cmd::try_until_text "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${MASTER_CONFIG_DIR}/server-ca.crt' -u test-user2 -p anything" "You don't have any projects. You can try to create a new project, by running" $(( 30 * second )) 0.25
-
-# make sure ` + "`" + `oc status` + "`" + ` re-uses the correct "no projects" message from ` + "`" + `oc login` + "`" + `
-#os::cmd::expect_success_and_text 'oc status' "You don't have any projects. You can try to create a new project, by running"
-os::cmd::expect_success_and_text 'oc status -A' "Showing all projects on server"
-# make sure ` + "`" + `oc status` + "`" + ` does not re-use the "no projects" message from ` + "`" + `oc login` + "`" + ` if -n is specified
-#os::cmd::expect_failure_and_text 'oc status -n forbidden' 'Error from server \(Forbidden\): projects.project.openshift.io "forbidden" is forbidden: User "test-user2" cannot get resource "projects" in API group "project.openshift.io" in the namespace "forbidden"'
-
-# create a new project
-os::cmd::expect_success "oc new-project project-bar --display-name='my project' --description='test project'"
-os::cmd::expect_success_and_text "oc project" 'Using project "project-bar"'
-
-# make sure ` + "`" + `oc status` + "`" + ` does not use "no projects" message if there is a project created
-os::cmd::expect_success_and_text 'oc status' "In project my project \(project-bar\) on server"
-#os::cmd::expect_failure_and_text 'oc status -n forbidden' 'Error from server \(Forbidden\): projects.project.openshift.io "forbidden" is forbidden: User "test-user2" cannot get resource "projects" in API group "project.openshift.io" in the namespace "forbidden"'
-
-# create a second project
-os::cmd::expect_success "oc new-project project-bar-2 --display-name='my project 2' --description='test project 2'"
-os::cmd::expect_success_and_text "oc project" 'Using project "project-bar-2"'
-
-# delete the current project ` + "`" + `project-bar-2` + "`" + ` and make sure ` + "`" + `oc status` + "`" + ` does not return the "no projects"
-# message since ` + "`" + `project-bar` + "`" + ` still exists
-os::cmd::expect_success_and_text "oc delete project project-bar-2" 'project.project.openshift.io "project-bar-2" deleted'
-# the deletion is asynchronous and can take a while, so wait until we see the error
-#os::cmd::try_until_text "oc status" 'Error from server \(Forbidden\): projects.project.openshift.io "project-bar-2" is forbidden: User "test-user2" cannot get resource "projects" in API group "project.openshift.io" in the namespace "project-bar-2"'
-
-# delete "project-bar" and test that ` + "`" + `oc status` + "`" + ` still does not return the "no projects" message.
-# Although we are deleting the last remaining project, the current context's namespace is still set
-# to it, therefore ` + "`" + `oc status` + "`" + ` should simply return a forbidden error and not the "no projects" message
-# until the next time the user logs in.
-os::cmd::expect_success "oc project project-bar"
-os::cmd::expect_success "oc delete project project-bar"
-# the deletion is asynchronous and can take a while, so wait until we see the error
-#os::cmd::try_until_text "oc status" 'Error from server \(Forbidden\): projects.project.openshift.io "project-bar" is forbidden: User "test-user2" cannot get resource "projects" in API group "project.openshift.io" in the namespace "project-bar"'
-os::cmd::try_until_not_text "oc get projects" "project-bar"
-os::cmd::try_until_not_text "oc get projects" "project-bar-2"
-#os::cmd::expect_success "oc logout"
-#os::cmd::expect_success_and_text "oc login --server=${KUBERNETES_MASTER} --certificate-authority='${MASTER_CONFIG_DIR}/server-ca.crt' -u test-user2 -p anything" "You don't have any projects. You can try to create a new project, by running"
-#os::cmd::expect_success_and_text 'oc status' "You don't have any projects. You can try to create a new project, by running"
-os::cmd::expect_success "oc new-project project-status --display-name='my project' --description='test project'"
-
-# Verify jobs are showing in status
-os::cmd::expect_success "oc create job pi --image=image-registry.openshift-image-registry.svc:5000/openshift/tools:latest -- perl -Mbignum=bpi -wle 'print bpi(2000)'"
-os::cmd::expect_success_and_text "oc status" "job/pi manages image-registry.openshift-image-registry.svc:5000/openshift/tools:latest"
-
-# logout
-#os::cmd::expect_success "oc logout"
-
-echo "status: ok"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdStatusShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdStatusSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdStatusSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdStatusShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/status.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -34691,7 +34262,7 @@ var _testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson = []byte(`
     "containers": [
       {
         "name": "hello-openshift",
-        "image": "k8s.gcr.io/e2e-test-images/agnhost:2.39",
+        "image": "registry.k8s.io/e2e-test-images/agnhost:2.40",
         "args": ["netexec"],
         "ports": [
           {
@@ -38820,7 +38391,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+                image: registry.k8s.io/e2e-test-images/agnhost:2.40
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -43020,7 +42591,7 @@ items:
           replicationcontroller: idling-echo
       spec:
         containers:
-        - image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.40
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675" ]
           ports:
@@ -43086,7 +42657,7 @@ items:
           deploymentconfig: idling-echo
       spec:
         containers:
-        - image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.40
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -43665,39 +43236,6 @@ func testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson() (*asset, error) 
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataJobsV1Yaml = []byte(`apiVersion: batch/v1
-kind: Job
-metadata:
-  name: simplev1
-spec:
-  template:
-    metadata:
-      name: simplev1
-      labels:
-        app: simplev1
-    spec:
-      containers:
-      - name: simplev1
-        image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
-        command: ["/bin/sh", "-c", "exit 0"]
-      restartPolicy: Never
-`)
-
-func testExtendedTestdataJobsV1YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataJobsV1Yaml, nil
-}
-
-func testExtendedTestdataJobsV1Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataJobsV1YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/jobs/v1.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -48073,7 +47611,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -48091,7 +47629,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -48126,7 +47664,7 @@ items:
       app: serving-cert
   spec:
     containers:
-    - image: k8s.gcr.io/e2e-test-images/nginx:1.15-2
+    - image: registry.k8s.io/e2e-test-images/nginx:1.15-2
       name: serve
       command:
         - /usr/sbin/nginx
@@ -48223,13 +47761,11 @@ func testExtendedTestdataRouterReencryptServingCertYaml() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataRouterRouterCommonYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-objects:
-
+var _testExtendedTestdataRouterRouterCommonYaml = []byte(`kind: List
+apiVersion: v1
+items:
 # ensure the router can access routes and endpoints
-- apiVersion: v1
+- apiVersion: rbac.authorization.k8s.io/v1
   kind: RoleBinding
   metadata:
     name: system-router
@@ -48237,6 +47773,8 @@ objects:
   - kind: ServiceAccount
     name: default
   roleRef:
+    kind: ClusterRole
+    apiGroup: rbac.authorization.k8s.io
     name: system:router
 
 # two routes that differ only by their labels and names
@@ -48330,7 +47868,7 @@ objects:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -48350,764 +47888,6 @@ func testExtendedTestdataRouterRouterCommonYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/router/router-common.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterConfigManagerYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-objects:
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: router-haproxy-cfgmgr
-    labels:
-      test: router-haproxy-cfgmgr
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      args: ["--namespace=$(POD_NAMESPACE)", "-v=4", "--haproxy-config-manager=true", "--blueprint-route-labels=select=hapcm-blueprint", "--labels=select=haproxy-cfgmgr", "--stats-password=password", "--stats-port=1936", "--stats-user=admin"]
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-    serviceAccountName: default
-
-# ensure the router can access routes and endpoints
-- apiVersion: v1
-  kind: RoleBinding
-  metadata:
-    name: system-router
-  subjects:
-  - kind: ServiceAccount
-    name: default
-  roleRef:
-    name: system:router
-
-# blueprints for edge, reencrypt and passthrough routes with annotation(s)
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: edge-blueprint
-    labels:
-      test: router
-      select: hapcm-blueprint
-    annotations:
-      router.openshift.io/cookie_name: empire
-  spec:
-    tls:
-      termination: edge
-    host: edge.blueprint.hapcm.test
-    to:
-      name: insecure-service
-      kind: Service
-    ports:
-    - targetPort: 8080
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: reencrypt-blueprint
-    labels:
-      test: router
-      select: hapcm-blueprint
-    annotations:
-      ren: stimpy
-  spec:
-    tls:
-      termination: reencrypt
-    host: reencrypt.blueprint.hapcm.test
-    to:
-      name: secure-service
-      kind: Service
-    ports:
-    - targetPort: 8443
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: passthrough-blueprint
-    labels:
-      test: router
-      select: hapcm-blueprint
-    annotations:
-      test: ptcruiser
-      foo: bar
-  spec:
-    tls:
-      termination: passthrough
-    host: passthrough.blueprint.hapcm.test
-    to:
-      name: secure-service
-      kind: Service
-
-# config map for nginx
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: serving-cert
-  data:
-    nginx.conf: |
-      daemon off;
-      events { }
-      http {
-        server {
-            listen 8443;
-            ssl    on;
-            ssl_certificate     /etc/serving-cert/tls.crt;
-            ssl_certificate_key    /etc/serving-cert/tls.key;
-            server_name  "*.svc";
-            location / {
-                root   /usr/share/nginx/html;
-                index  index.html index.htm;
-            }
-            error_page   500 502 503 504  /50x.html;
-            location = /50x.html {
-                root   /usr/share/nginx/html;
-            }
-        }
-      }
-
-# pods that service http[s] requests
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: insecure-endpoint
-    labels:
-      test: haproxy-cfgmgr
-      endpoints: insecure-endpoint
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
-      args: ["netexec"]
-      ports:
-      - containerPort: 8080
-        name: http
-      - containerPort: 100
-        protocol: UDP
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: secure-endpoint
-    labels:
-      app: secure-endpoint
-  spec:
-    containers:
-    - image: k8s.gcr.io/e2e-test-images/nginx:1.15-2
-      name: serve
-      command:
-        - /usr/sbin/nginx
-      args:
-        - -c
-        - /etc/nginx/nginx.conf
-      ports:
-      - containerPort: 8443
-        protocol: TCP
-      volumeMounts:
-      - name: cert
-        mountPath: /etc/serving-cert
-      - name: conf
-        mountPath: /etc/nginx
-      - name: tmp
-        mountPath: /var/cache/nginx
-      - name: tmp
-        mountPath: /var/run
-    volumes:
-    - name: conf
-      configMap:
-        name: serving-cert
-    - name: cert
-      secret:
-        secretName: serving-cert
-    - name: tmp
-      emptyDir: {}
-    - name: tmp2
-      emptyDir: {}
-
-# services that can be routed to
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: insecure-service
-    labels:
-      test: router
-  spec:
-    selector:
-      test: haproxy-cfgmgr
-      endpoints: insecure-endpoint
-    ports:
-    - port: 8080
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: secure-service
-    annotations:
-      service.alpha.openshift.io/serving-cert-secret-name: serving-cert
-  spec:
-    selector:
-      app: secure-endpoint
-    ports:
-      - port: 443
-        name: https
-        targetPort: 8443
-        protocol: TCP
-
-
-# insecure, edge secured, reencrypt and passthrough routes
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: insecure-route
-    labels:
-      test: haproxy-cfgmgr
-      select: haproxy-cfgmgr
-  spec:
-    host: insecure.hapcm.test
-    to:
-      name: insecure-service
-      kind: Service
-    ports:
-    - targetPort: 8080
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: edge-allow-http-route
-    labels:
-      test: haproxy-cfgmgr
-      select: haproxy-cfgmgr
-  spec:
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Allow
-    host: edge.allow.hapcm.test
-    to:
-      name: insecure-service
-      kind: Service
-    ports:
-    - targetPort: 8080
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: reencrypt-route
-    labels:
-      test: haproxy-cfgmgr
-      select: haproxy-cfgmgr
-  spec:
-    tls:
-      termination: reencrypt
-    host: reencrypt.hapcm.test
-    to:
-      name: secure-service
-      kind: Service
-    ports:
-    - targetPort: 8443
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: passthrough-route
-    labels:
-      test: haproxy-cfgmgr
-      select: haproxy-cfgmgr
-  spec:
-    tls:
-      termination: passthrough
-    host: passthrough.hapcm.test
-    to:
-      name: secure-service
-      kind: Service
-`)
-
-func testExtendedTestdataRouterRouterConfigManagerYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterConfigManagerYaml, nil
-}
-
-func testExtendedTestdataRouterRouterConfigManagerYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterConfigManagerYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-config-manager.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterGrpcInteropRoutesYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: DOMAIN
-- name: TLS_CRT
-- name: TLS_KEY
-- name: TYPE
-objects:
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: grpc-interop-h2c
-    labels:
-      type: ${TYPE}
-  spec:
-    host: grpc-interop-h2c.${DOMAIN}
-    port:
-      targetPort: 1110
-    to:
-      kind: Service
-      name: grpc-interop
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: grpc-interop-edge
-    labels:
-      type: ${TYPE}
-  spec:
-    host: grpc-interop-edge.${DOMAIN}
-    port:
-      targetPort: 1110
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-      key: |-
-        ${TLS_KEY}
-      certificate: |-
-        ${TLS_CRT}
-    to:
-      kind: Service
-      name: grpc-interop
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: grpc-interop-reencrypt
-    labels:
-      type: ${TYPE}
-  spec:
-    host: grpc-interop-reencrypt.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: reencrypt
-      insecureEdgeTerminationPolicy: Redirect
-      key: |-
-        ${TLS_KEY}
-      certificate: |-
-        ${TLS_CRT}
-    to:
-      kind: Service
-      name: grpc-interop
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: grpc-interop-passthrough
-    labels:
-      type: ${TYPE}
-  spec:
-    host: grpc-interop-passthrough.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: passthrough
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: grpc-interop
-      weight: 100
-    wildcardPolicy: None
-`)
-
-func testExtendedTestdataRouterRouterGrpcInteropRoutesYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterGrpcInteropRoutesYaml, nil
-}
-
-func testExtendedTestdataRouterRouterGrpcInteropRoutesYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterGrpcInteropRoutesYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-grpc-interop-routes.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterGrpcInteropYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-objects:
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: grpc-interop
-    annotations:
-      service.beta.openshift.io/serving-cert-secret-name: service-cert-grpc-interop
-  spec:
-    selector:
-      app: grpc-interop
-    ports:
-    - appProtocol: h2c
-      name: h2c
-      port: 1110
-      protocol: TCP
-      targetPort: 1110
-    - name: https
-      port: 8443
-      protocol: TCP
-      targetPort: 8443
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: grpc-interop
-    labels:
-      app: grpc-interop
-  spec:
-    containers:
-    - image: ${IMAGE}
-      name: server
-      command: ["ingress-operator", "serve-grpc-test-server"]
-      ports:
-      - containerPort: 1110
-        name: h2c
-        protocol: TCP
-      - containerPort: 8443
-        name: https
-        protocol: TCP
-      volumeMounts:
-      - mountPath: /etc/serving-cert
-        name: cert
-      readinessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8443
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      livenessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8443
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-    volumes:
-    - name: cert
-      secret:
-        secretName: service-cert-grpc-interop
-`)
-
-func testExtendedTestdataRouterRouterGrpcInteropYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterGrpcInteropYaml, nil
-}
-
-func testExtendedTestdataRouterRouterGrpcInteropYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterGrpcInteropYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-grpc-interop.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterH2specRoutesYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: DOMAIN
-- name: TYPE
-objects:
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    labels:
-      app: h2spec-haproxy
-      type: ${TYPE}
-    name: h2spec-passthrough
-  spec:
-    host: h2spec-passthrough.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: passthrough
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: h2spec-haproxy
-      weight: 100
-    wildcardPolicy: None
-`)
-
-func testExtendedTestdataRouterRouterH2specRoutesYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterH2specRoutesYaml, nil
-}
-
-func testExtendedTestdataRouterRouterH2specRoutesYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterH2specRoutesYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-h2spec-routes.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterH2specYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: HAPROXY_IMAGE
-- name: H2SPEC_IMAGE
-objects:
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: h2spec-haproxy-config
-  data:
-    haproxy.config: |
-      global
-        daemon
-        log stdout local0
-        nbthread 4
-        tune.ssl.default-dh-param 2048
-        tune.ssl.capture-cipherlist-size 1
-      defaults
-        mode http
-        timeout connect 5s
-        timeout client 30s
-        timeout client-fin 1s
-        timeout server 30s
-        timeout server-fin 1s
-        timeout http-request 10s
-        timeout http-keep-alive 300s
-        option logasap
-        option http-buffer-request
-        log-format "frontend:%f/%H/%fi:%fp GMT:%T\ body:%[capture.req.hdr(0)]\  request:%r"
-      frontend fe_proxy_tls
-        option http-buffer-request
-        declare capture request len 40000
-        http-request capture req.body id 0
-        log global
-        bind *:8443 ssl crt /tmp/bundle.pem alpn h2
-        default_backend haproxy-availability-ok
-      backend haproxy-availability-ok
-        errorfile 503 /etc/haproxy/errorfile
-        http-request deny deny_status 200
-    errorfile: |
-      HTTP/1.1 200 OK
-      Content-Length: 8192
-      Cache-Control: max-age=28800
-      Content-Type: text/plain
-
-      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
-      BFNBRELPe53ZdLKWpf2Sr96vRPRNw
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: h2spec-haproxy
-    labels:
-      app: h2spec-haproxy
-  spec:
-    containers:
-    - image: ${HAPROXY_IMAGE}
-      name: haproxy
-      command: ["/bin/bash", "-c" ]
-      args:
-        - set -e;
-          cat /etc/serving-cert/tls.key /etc/serving-cert/tls.crt > /tmp/bundle.pem;
-          haproxy -f /etc/haproxy/haproxy.config -db
-      ports:
-      - containerPort: 8443
-        protocol: TCP
-      readinessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8443
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      livenessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8443
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      securityContext:
-        allowPrivilegeEscalation: true
-      volumeMounts:
-      - mountPath: /etc/serving-cert
-        name: cert
-      - mountPath: /etc/haproxy
-        name: config
-    volumes:
-    - name: config
-      configMap:
-        name: h2spec-haproxy-config
-    - name: cert
-      secret:
-        secretName: serving-cert-h2spec
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: h2spec-haproxy
-    annotations:
-      service.beta.openshift.io/serving-cert-secret-name: serving-cert-h2spec
-  spec:
-    selector:
-      app: h2spec-haproxy
-    ports:
-      - port: 8443
-        name: https
-        targetPort: 8443
-        protocol: TCP
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: h2spec
-    labels:
-      app: h2spec
-  spec:
-    containers:
-    - name: h2spec
-      image: ${H2SPEC_IMAGE}
-      command: ["sleep"]
-      args: ["infinity"]
-`)
-
-func testExtendedTestdataRouterRouterH2specYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterH2specYaml, nil
-}
-
-func testExtendedTestdataRouterRouterH2specYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterH2specYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-h2spec.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -49181,286 +47961,6 @@ func testExtendedTestdataRouterRouterHttpEchoServerYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/router/router-http-echo-server.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterHttp2RoutesYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: DOMAIN
-- name: TLS_CRT
-- name: TLS_KEY
-- name: TYPE
-objects:
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-default-cert-edge
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-default-cert-edge.${DOMAIN}
-    port:
-      targetPort: 8080
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-default-cert-reencrypt
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-default-cert-reencrypt.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: reencrypt
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-custom-cert-edge
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-custom-cert-edge.${DOMAIN}
-    port:
-      targetPort: 8080
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-      key: |-
-        ${TLS_KEY}
-      certificate: |-
-        ${TLS_CRT}
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-custom-cert-reencrypt
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-custom-cert-reencrypt.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: reencrypt
-      insecureEdgeTerminationPolicy: Redirect
-      key: |-
-        ${TLS_KEY}
-      certificate: |-
-        ${TLS_CRT}
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: http2-passthrough
-    labels:
-      type: ${TYPE}
-  spec:
-    host: http2-passthrough.${DOMAIN}
-    port:
-      targetPort: 8443
-    tls:
-      termination: passthrough
-      insecureEdgeTerminationPolicy: Redirect
-    to:
-      kind: Service
-      name: http2
-      weight: 100
-    wildcardPolicy: None
-`)
-
-func testExtendedTestdataRouterRouterHttp2RoutesYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterHttp2RoutesYaml, nil
-}
-
-func testExtendedTestdataRouterRouterHttp2RoutesYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterHttp2RoutesYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-http2-routes.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterHttp2Yaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-objects:
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: http2
-    annotations:
-      service.beta.openshift.io/serving-cert-secret-name: serving-cert-http2
-  spec:
-    selector:
-      name: http2
-    ports:
-      - name: https
-        protocol: TCP
-        port: 8443
-        targetPort: 8443
-      - name: http
-        protocol: TCP
-        port: 8080
-        targetPort: 8080
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: http2
-    labels:
-      name: http2
-  spec:
-    containers:
-    - image: ${IMAGE}
-      name: server
-      command: ["ingress-operator", "serve-http2-test-server"]
-      readinessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8080
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      livenessProbe:
-        failureThreshold: 3
-        tcpSocket:
-          port: 8080
-        initialDelaySeconds: 10
-        periodSeconds: 30
-        successThreshold: 1
-      ports:
-      - containerPort: 8443
-        protocol: TCP
-      - containerPort: 8080
-        protocol: TCP
-      env:
-      - name: GODEBUG
-        value: http2debug=1
-      volumeMounts:
-      - mountPath: /etc/serving-cert
-        name: cert
-    volumes:
-    - name: cert
-      secret:
-        secretName: serving-cert-http2
-`)
-
-func testExtendedTestdataRouterRouterHttp2YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterHttp2Yaml, nil
-}
-
-func testExtendedTestdataRouterRouterHttp2Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterHttp2YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-http2.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterIdleYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-objects:
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: idle-test
-    labels:
-      app: idle-test
-  spec:
-    port:
-      targetPort: 8080
-    to:
-      kind: Service
-      name: idle-test
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: idle-test
-    labels:
-      app: idle-test
-  spec:
-    selector:
-      app: idle-test
-    ports:
-      - port: 8080
-        name: 8080-http
-        targetPort: 8080
-        protocol: TCP
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: idle-test
-  spec:
-    replicas: 1
-    template:
-      metadata:
-        name: idle-test
-        labels:
-          app: idle-test
-      spec:
-        containers:
-        - image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
-          name: idle-test
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 8080
-            initialDelaySeconds: 3
-            periodSeconds: 3
-          command:
-            - /usr/bin/socat
-            - TCP4-LISTEN:8080,reuseaddr,fork
-            - EXEC:'/bin/bash -c \"printf \\\"HTTP/1.0 200 OK\r\n\r\n\\\"; sed -e \\\"/^\r/q\\\"\"'
-          ports:
-          - containerPort: 8080
-            protocol: TCP
-    selector:
-      matchLabels:
-        app: idle-test
-`)
-
-func testExtendedTestdataRouterRouterIdleYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterIdleYaml, nil
-}
-
-func testExtendedTestdataRouterRouterIdleYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterIdleYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-idle.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -49545,7 +48045,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -49563,7 +48063,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+      image: registry.k8s.io/e2e-test-images/agnhost:2.40
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -49583,645 +48083,6 @@ func testExtendedTestdataRouterRouterMetricsYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/router/router-metrics.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterOverrideDomainsYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-- name: DEFAULT_CERTIFICATE
-  value: |-
-    -----BEGIN CERTIFICATE-----
-    MIIDuTCCAqGgAwIBAgIUZYD30F0sJl7HqxE7gAequtxk/HowDQYJKoZIhvcNAQEL
-    BQAwgaExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UEBwwMRGVmYXVs
-    dCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBhbnkgTHRkMRAwDgYDVQQLDAdU
-    ZXN0IENBMRowGAYDVQQDDBF3d3cuZXhhbXBsZWNhLmNvbTEiMCAGCSqGSIb3DQEJ
-    ARYTZXhhbXBsZUBleGFtcGxlLmNvbTAeFw0yMjAxMjgwMjU0MDlaFw0zMjAxMjYw
-    MjU0MDlaMHwxGDAWBgNVBAMMD3d3dy5leGFtcGxlLmNvbTELMAkGA1UECAwCU0Mx
-    CzAJBgNVBAYTAlVTMSIwIAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUuY29t
-    MRAwDgYDVQQKDAdFeGFtcGxlMRAwDgYDVQQLDAdFeGFtcGxlMIIBIjANBgkqhkiG
-    9w0BAQEFAAOCAQ8AMIIBCgKCAQEA71W7gdEnM+Nm4/SA/4jEJ2SPQfVjkCMsIYGO
-    WrLLHq23HkMGstQoPyBnjLY8LmkKQsNhhWGRMWQz6+yGKgI1gh8huhfocuw+HODE
-    K3ugP/3DlaVEQlIQbVzwxDx+K78UqZHecQAJfvakuS/JThxsMf8/pqLuhjAf+t9N
-    k0CO8Z6mNVALtSvyQ+e+zjmzepVtu6WmtJ+8zW9dBQEmg0QCfWFd06836LrfixLk
-    vTRgCn0lzTuj7rSuGjY45JDIvKK4jZGQJKsYN59Wxg1d2CEoXBUJOJjecVdS3NhY
-    ubHNdcm+6Equ5ZmyVEkBmv462rOcednsHU6Ggt/vWSe05EOPVQIDAQABow0wCzAJ
-    BgNVHRMEAjAAMA0GCSqGSIb3DQEBCwUAA4IBAQCHI+fkEr27bJ2IMtFuHpSLpFF3
-    E4R5oVHt8XjflwKmuclyyLa8Z7nXnuvQLHa4jwf0tWUixsmtOyQN4tBI/msMk2PF
-    +ao2amcPoIo2lAg63+jFsIzkr2MEXBPu09wwt86e3XCoqmqT1Psnihh+Ys9KIPnc
-    wMr9muGkOh03O61vo71iaV17UKeGM4bzod333pSQIXLdYnoOuvmKdCsnD00lADoI
-    93DmG/4oYR/mD93QjxPFPDxDxR4isvWGoj7iXx7CFkN7PR9B3IhZt+T//ddeau3y
-    kXK0iSxOhyaqHvl15hHQ8tKPBBJRSDVU4qmaqAYWRXr65yxBoelHhTJQ6Gt4
-    -----END CERTIFICATE-----
-    -----BEGIN PRIVATE KEY-----
-    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDvVbuB0Scz42bj
-    9ID/iMQnZI9B9WOQIywhgY5assserbceQway1Cg/IGeMtjwuaQpCw2GFYZExZDPr
-    7IYqAjWCHyG6F+hy7D4c4MQre6A//cOVpURCUhBtXPDEPH4rvxSpkd5xAAl+9qS5
-    L8lOHGwx/z+mou6GMB/6302TQI7xnqY1UAu1K/JD577OObN6lW27paa0n7zNb10F
-    ASaDRAJ9YV3Trzfout+LEuS9NGAKfSXNO6PutK4aNjjkkMi8oriNkZAkqxg3n1bG
-    DV3YIShcFQk4mN5xV1Lc2Fi5sc11yb7oSq7lmbJUSQGa/jras5x52ewdToaC3+9Z
-    J7TkQ49VAgMBAAECggEAaCBzqOI3XSLlo+2/pe158e2VSkwZ2h8DVzyHk7xQFPPd
-    RKRCqNEXBYfypUyv2D1JAo0Aw8gUJFoFIPLR2DsHzqn+wXkfX8iaqXO8xXJO4Shl
-    zJiPnw8XKI2UDryG5D+JHNFi5uTuPLfQKOW6fmptRD9aEQS4I9eSQlKe7J7c0g+t
-    pCR1vCp6ZMFIXDgpHhquArI1fjA36nWK0dJkaO9LrTYPgeMIr0KFjEF+W3UPh/af
-    uw/KLjzyzHExwfVBcGZonb6rG1nU/7isUHqK75OhOKDcXpv+7NCBYZ6fu4COlE0O
-    +yGztbRXojWo1upKzzGPM+yoLyNA1aSljpCGOCSljQKBgQD+4i5FzRQ+e1XZxvUt
-    izypHHQcc7y9DfwKTwLXb9EUhmGCmrxVIuM+gm5N/Y/eXDjqtR2bqg7iIFjj3KTS
-    f9djCYT8FqlTtyDBk/qFNLchDX/mrykOuhqIXfT7JpQbk5+qkCy8k2ZJMl2ToNXA
-    WRqRCP4oa1WJMmoJFwo3BIVRIwKBgQDwYh2ryrs/QFE0W082oHAQ3Nrce5JmOtFp
-    70X/v8zZ8ESdeo7KOS0tNLeirBxlDGvUAesKwUHU1YwTgWhl/DkoPtv9INgT8kxS
-    VRcrix9kq62uiD+TKI732mwoG36keJdRECrQYRYjX+mf364EI+DeNmbPs3xsigaF
-    Zdbg+umxJwKBgF4fFelOvuAH2X8PGnDUDvV//VyYXKUPqfgAj1MRBotmyFFbZJqn
-    xHTL44HHVb5OHfKGKUXXeaGFQm36h573+Iio9kPE9ohkgqMZSxSvj8ST4JxGKIo4
-    rR2YXKP17hF05SwuC2cjo0z6XVXruaNLBCV0xa4VXMPKKx/qMyp37+czAoGBAL8c
-    woo6e/QlpmoBzlCX7YD6leaFODeeu6+FVBmo26zJoUOylKOiIZC3QOhL/ac44OGF
-    ROEgFL6pqNw5Hk824BpnH294FVKGaLdsfydXTHY1J7iDCkhtDn1vYl3gvib02RjR
-    ybgx9+/X6V3579fKzpTcm5C2Gk4Qzm5wMQ5dbj4xAoGBANYzYbBu8bItAEE6ohgf
-    D27SPW7VJsHGzbgRNC2SGCBzo3XaTJ0A8IMP+ghl5ndCJdLBz2FpeZLQvxOuopQD
-    J5dJXQxp7y20vh2C1e3wTPlA5CHHKpU1JZAe4THCJUg+EPwa4I+BOlvp71EB7BaH
-    bk65iLoLrUSkxMDi46qTAs5K
-    -----END PRIVATE KEY-----
-objects:
-
-# a router that overrides domains
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: router-override-domains
-    labels:
-      test: router-override-domains
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: DEFAULT_CERTIFICATE
-        value: |-
-          ${DEFAULT_CERTIFICATE}
-      args:
-      - "--name=test-override-domains"
-      - "--namespace=$(POD_NAMESPACE)"
-      - "-v=4"
-      - "--override-domains=null.ptr,void.str"
-      - "--hostname-template=${name}-${namespace}.apps.veto.test"
-      - "--stats-port=1936"
-      - "--metrics-type=haproxy"
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-      readinessProbe:
-        initialDelaySeconds: 10
-        httpGet:
-          path: /healthz/ready
-          port: 1936
-    serviceAccountName: default
-`)
-
-func testExtendedTestdataRouterRouterOverrideDomainsYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterOverrideDomainsYaml, nil
-}
-
-func testExtendedTestdataRouterRouterOverrideDomainsYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterOverrideDomainsYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-override-domains.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterOverrideYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-- name: DEFAULT_CERTIFICATE
-  value: |-
-    -----BEGIN CERTIFICATE-----
-    MIIDuTCCAqGgAwIBAgIUZYD30F0sJl7HqxE7gAequtxk/HowDQYJKoZIhvcNAQEL
-    BQAwgaExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UEBwwMRGVmYXVs
-    dCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBhbnkgTHRkMRAwDgYDVQQLDAdU
-    ZXN0IENBMRowGAYDVQQDDBF3d3cuZXhhbXBsZWNhLmNvbTEiMCAGCSqGSIb3DQEJ
-    ARYTZXhhbXBsZUBleGFtcGxlLmNvbTAeFw0yMjAxMjgwMjU0MDlaFw0zMjAxMjYw
-    MjU0MDlaMHwxGDAWBgNVBAMMD3d3dy5leGFtcGxlLmNvbTELMAkGA1UECAwCU0Mx
-    CzAJBgNVBAYTAlVTMSIwIAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUuY29t
-    MRAwDgYDVQQKDAdFeGFtcGxlMRAwDgYDVQQLDAdFeGFtcGxlMIIBIjANBgkqhkiG
-    9w0BAQEFAAOCAQ8AMIIBCgKCAQEA71W7gdEnM+Nm4/SA/4jEJ2SPQfVjkCMsIYGO
-    WrLLHq23HkMGstQoPyBnjLY8LmkKQsNhhWGRMWQz6+yGKgI1gh8huhfocuw+HODE
-    K3ugP/3DlaVEQlIQbVzwxDx+K78UqZHecQAJfvakuS/JThxsMf8/pqLuhjAf+t9N
-    k0CO8Z6mNVALtSvyQ+e+zjmzepVtu6WmtJ+8zW9dBQEmg0QCfWFd06836LrfixLk
-    vTRgCn0lzTuj7rSuGjY45JDIvKK4jZGQJKsYN59Wxg1d2CEoXBUJOJjecVdS3NhY
-    ubHNdcm+6Equ5ZmyVEkBmv462rOcednsHU6Ggt/vWSe05EOPVQIDAQABow0wCzAJ
-    BgNVHRMEAjAAMA0GCSqGSIb3DQEBCwUAA4IBAQCHI+fkEr27bJ2IMtFuHpSLpFF3
-    E4R5oVHt8XjflwKmuclyyLa8Z7nXnuvQLHa4jwf0tWUixsmtOyQN4tBI/msMk2PF
-    +ao2amcPoIo2lAg63+jFsIzkr2MEXBPu09wwt86e3XCoqmqT1Psnihh+Ys9KIPnc
-    wMr9muGkOh03O61vo71iaV17UKeGM4bzod333pSQIXLdYnoOuvmKdCsnD00lADoI
-    93DmG/4oYR/mD93QjxPFPDxDxR4isvWGoj7iXx7CFkN7PR9B3IhZt+T//ddeau3y
-    kXK0iSxOhyaqHvl15hHQ8tKPBBJRSDVU4qmaqAYWRXr65yxBoelHhTJQ6Gt4
-    -----END CERTIFICATE-----
-    -----BEGIN PRIVATE KEY-----
-    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDvVbuB0Scz42bj
-    9ID/iMQnZI9B9WOQIywhgY5assserbceQway1Cg/IGeMtjwuaQpCw2GFYZExZDPr
-    7IYqAjWCHyG6F+hy7D4c4MQre6A//cOVpURCUhBtXPDEPH4rvxSpkd5xAAl+9qS5
-    L8lOHGwx/z+mou6GMB/6302TQI7xnqY1UAu1K/JD577OObN6lW27paa0n7zNb10F
-    ASaDRAJ9YV3Trzfout+LEuS9NGAKfSXNO6PutK4aNjjkkMi8oriNkZAkqxg3n1bG
-    DV3YIShcFQk4mN5xV1Lc2Fi5sc11yb7oSq7lmbJUSQGa/jras5x52ewdToaC3+9Z
-    J7TkQ49VAgMBAAECggEAaCBzqOI3XSLlo+2/pe158e2VSkwZ2h8DVzyHk7xQFPPd
-    RKRCqNEXBYfypUyv2D1JAo0Aw8gUJFoFIPLR2DsHzqn+wXkfX8iaqXO8xXJO4Shl
-    zJiPnw8XKI2UDryG5D+JHNFi5uTuPLfQKOW6fmptRD9aEQS4I9eSQlKe7J7c0g+t
-    pCR1vCp6ZMFIXDgpHhquArI1fjA36nWK0dJkaO9LrTYPgeMIr0KFjEF+W3UPh/af
-    uw/KLjzyzHExwfVBcGZonb6rG1nU/7isUHqK75OhOKDcXpv+7NCBYZ6fu4COlE0O
-    +yGztbRXojWo1upKzzGPM+yoLyNA1aSljpCGOCSljQKBgQD+4i5FzRQ+e1XZxvUt
-    izypHHQcc7y9DfwKTwLXb9EUhmGCmrxVIuM+gm5N/Y/eXDjqtR2bqg7iIFjj3KTS
-    f9djCYT8FqlTtyDBk/qFNLchDX/mrykOuhqIXfT7JpQbk5+qkCy8k2ZJMl2ToNXA
-    WRqRCP4oa1WJMmoJFwo3BIVRIwKBgQDwYh2ryrs/QFE0W082oHAQ3Nrce5JmOtFp
-    70X/v8zZ8ESdeo7KOS0tNLeirBxlDGvUAesKwUHU1YwTgWhl/DkoPtv9INgT8kxS
-    VRcrix9kq62uiD+TKI732mwoG36keJdRECrQYRYjX+mf364EI+DeNmbPs3xsigaF
-    Zdbg+umxJwKBgF4fFelOvuAH2X8PGnDUDvV//VyYXKUPqfgAj1MRBotmyFFbZJqn
-    xHTL44HHVb5OHfKGKUXXeaGFQm36h573+Iio9kPE9ohkgqMZSxSvj8ST4JxGKIo4
-    rR2YXKP17hF05SwuC2cjo0z6XVXruaNLBCV0xa4VXMPKKx/qMyp37+czAoGBAL8c
-    woo6e/QlpmoBzlCX7YD6leaFODeeu6+FVBmo26zJoUOylKOiIZC3QOhL/ac44OGF
-    ROEgFL6pqNw5Hk824BpnH294FVKGaLdsfydXTHY1J7iDCkhtDn1vYl3gvib02RjR
-    ybgx9+/X6V3579fKzpTcm5C2Gk4Qzm5wMQ5dbj4xAoGBANYzYbBu8bItAEE6ohgf
-    D27SPW7VJsHGzbgRNC2SGCBzo3XaTJ0A8IMP+ghl5ndCJdLBz2FpeZLQvxOuopQD
-    J5dJXQxp7y20vh2C1e3wTPlA5CHHKpU1JZAe4THCJUg+EPwa4I+BOlvp71EB7BaH
-    bk65iLoLrUSkxMDi46qTAs5K
-    -----END PRIVATE KEY-----
-objects:
-
-# a router that overrides host
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: router-override
-    labels:
-      test: router-override
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: DEFAULT_CERTIFICATE
-        value: |-
-          ${DEFAULT_CERTIFICATE}
-      args:
-      - "--name=test-override"
-      - "--namespace=$(POD_NAMESPACE)"
-      - "-v=4"
-      - "--override-hostname"
-      - "--hostname-template=${name}-${namespace}.myapps.mycompany.com"
-      - "--stats-port=1936"
-      - "--metrics-type=haproxy"
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-      readinessProbe:
-        initialDelaySeconds: 10
-        httpGet:
-          path: /healthz/ready
-          port: 1936
-    serviceAccountName: default
-`)
-
-func testExtendedTestdataRouterRouterOverrideYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterOverrideYaml, nil
-}
-
-func testExtendedTestdataRouterRouterOverrideYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterOverrideYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-override.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterScopedYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-- name: ROUTER_NAME
-  value: "test-scoped"
-- name: DEFAULT_CERTIFICATE
-  value: |-
-    -----BEGIN CERTIFICATE-----
-    MIIDuTCCAqGgAwIBAgIUZYD30F0sJl7HqxE7gAequtxk/HowDQYJKoZIhvcNAQEL
-    BQAwgaExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UEBwwMRGVmYXVs
-    dCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBhbnkgTHRkMRAwDgYDVQQLDAdU
-    ZXN0IENBMRowGAYDVQQDDBF3d3cuZXhhbXBsZWNhLmNvbTEiMCAGCSqGSIb3DQEJ
-    ARYTZXhhbXBsZUBleGFtcGxlLmNvbTAeFw0yMjAxMjgwMjU0MDlaFw0zMjAxMjYw
-    MjU0MDlaMHwxGDAWBgNVBAMMD3d3dy5leGFtcGxlLmNvbTELMAkGA1UECAwCU0Mx
-    CzAJBgNVBAYTAlVTMSIwIAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUuY29t
-    MRAwDgYDVQQKDAdFeGFtcGxlMRAwDgYDVQQLDAdFeGFtcGxlMIIBIjANBgkqhkiG
-    9w0BAQEFAAOCAQ8AMIIBCgKCAQEA71W7gdEnM+Nm4/SA/4jEJ2SPQfVjkCMsIYGO
-    WrLLHq23HkMGstQoPyBnjLY8LmkKQsNhhWGRMWQz6+yGKgI1gh8huhfocuw+HODE
-    K3ugP/3DlaVEQlIQbVzwxDx+K78UqZHecQAJfvakuS/JThxsMf8/pqLuhjAf+t9N
-    k0CO8Z6mNVALtSvyQ+e+zjmzepVtu6WmtJ+8zW9dBQEmg0QCfWFd06836LrfixLk
-    vTRgCn0lzTuj7rSuGjY45JDIvKK4jZGQJKsYN59Wxg1d2CEoXBUJOJjecVdS3NhY
-    ubHNdcm+6Equ5ZmyVEkBmv462rOcednsHU6Ggt/vWSe05EOPVQIDAQABow0wCzAJ
-    BgNVHRMEAjAAMA0GCSqGSIb3DQEBCwUAA4IBAQCHI+fkEr27bJ2IMtFuHpSLpFF3
-    E4R5oVHt8XjflwKmuclyyLa8Z7nXnuvQLHa4jwf0tWUixsmtOyQN4tBI/msMk2PF
-    +ao2amcPoIo2lAg63+jFsIzkr2MEXBPu09wwt86e3XCoqmqT1Psnihh+Ys9KIPnc
-    wMr9muGkOh03O61vo71iaV17UKeGM4bzod333pSQIXLdYnoOuvmKdCsnD00lADoI
-    93DmG/4oYR/mD93QjxPFPDxDxR4isvWGoj7iXx7CFkN7PR9B3IhZt+T//ddeau3y
-    kXK0iSxOhyaqHvl15hHQ8tKPBBJRSDVU4qmaqAYWRXr65yxBoelHhTJQ6Gt4
-    -----END CERTIFICATE-----
-    -----BEGIN PRIVATE KEY-----
-    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDvVbuB0Scz42bj
-    9ID/iMQnZI9B9WOQIywhgY5assserbceQway1Cg/IGeMtjwuaQpCw2GFYZExZDPr
-    7IYqAjWCHyG6F+hy7D4c4MQre6A//cOVpURCUhBtXPDEPH4rvxSpkd5xAAl+9qS5
-    L8lOHGwx/z+mou6GMB/6302TQI7xnqY1UAu1K/JD577OObN6lW27paa0n7zNb10F
-    ASaDRAJ9YV3Trzfout+LEuS9NGAKfSXNO6PutK4aNjjkkMi8oriNkZAkqxg3n1bG
-    DV3YIShcFQk4mN5xV1Lc2Fi5sc11yb7oSq7lmbJUSQGa/jras5x52ewdToaC3+9Z
-    J7TkQ49VAgMBAAECggEAaCBzqOI3XSLlo+2/pe158e2VSkwZ2h8DVzyHk7xQFPPd
-    RKRCqNEXBYfypUyv2D1JAo0Aw8gUJFoFIPLR2DsHzqn+wXkfX8iaqXO8xXJO4Shl
-    zJiPnw8XKI2UDryG5D+JHNFi5uTuPLfQKOW6fmptRD9aEQS4I9eSQlKe7J7c0g+t
-    pCR1vCp6ZMFIXDgpHhquArI1fjA36nWK0dJkaO9LrTYPgeMIr0KFjEF+W3UPh/af
-    uw/KLjzyzHExwfVBcGZonb6rG1nU/7isUHqK75OhOKDcXpv+7NCBYZ6fu4COlE0O
-    +yGztbRXojWo1upKzzGPM+yoLyNA1aSljpCGOCSljQKBgQD+4i5FzRQ+e1XZxvUt
-    izypHHQcc7y9DfwKTwLXb9EUhmGCmrxVIuM+gm5N/Y/eXDjqtR2bqg7iIFjj3KTS
-    f9djCYT8FqlTtyDBk/qFNLchDX/mrykOuhqIXfT7JpQbk5+qkCy8k2ZJMl2ToNXA
-    WRqRCP4oa1WJMmoJFwo3BIVRIwKBgQDwYh2ryrs/QFE0W082oHAQ3Nrce5JmOtFp
-    70X/v8zZ8ESdeo7KOS0tNLeirBxlDGvUAesKwUHU1YwTgWhl/DkoPtv9INgT8kxS
-    VRcrix9kq62uiD+TKI732mwoG36keJdRECrQYRYjX+mf364EI+DeNmbPs3xsigaF
-    Zdbg+umxJwKBgF4fFelOvuAH2X8PGnDUDvV//VyYXKUPqfgAj1MRBotmyFFbZJqn
-    xHTL44HHVb5OHfKGKUXXeaGFQm36h573+Iio9kPE9ohkgqMZSxSvj8ST4JxGKIo4
-    rR2YXKP17hF05SwuC2cjo0z6XVXruaNLBCV0xa4VXMPKKx/qMyp37+czAoGBAL8c
-    woo6e/QlpmoBzlCX7YD6leaFODeeu6+FVBmo26zJoUOylKOiIZC3QOhL/ac44OGF
-    ROEgFL6pqNw5Hk824BpnH294FVKGaLdsfydXTHY1J7iDCkhtDn1vYl3gvib02RjR
-    ybgx9+/X6V3579fKzpTcm5C2Gk4Qzm5wMQ5dbj4xAoGBANYzYbBu8bItAEE6ohgf
-    D27SPW7VJsHGzbgRNC2SGCBzo3XaTJ0A8IMP+ghl5ndCJdLBz2FpeZLQvxOuopQD
-    J5dJXQxp7y20vh2C1e3wTPlA5CHHKpU1JZAe4THCJUg+EPwa4I+BOlvp71EB7BaH
-    bk65iLoLrUSkxMDi46qTAs5K
-    -----END PRIVATE KEY-----
-- name: UPDATE_STATUS
-  value: "true"
-objects:
-# a scoped router
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: router-scoped
-    labels:
-      test: router-scoped
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: DEFAULT_CERTIFICATE
-        value: |-
-          ${DEFAULT_CERTIFICATE}
-      args:
-      - "--name=${ROUTER_NAME}"
-      - "--namespace=$(POD_NAMESPACE)"
-      - "--update-status=${UPDATE_STATUS}"
-      - "-v=4"
-      - "--labels=select=first"
-      - "--stats-port=1936"
-      - "--metrics-type=haproxy"
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-      readinessProbe:
-        initialDelaySeconds: 10
-        httpGet:
-          path: /healthz/ready
-          port: 1936
-    serviceAccountName: default
-`)
-
-func testExtendedTestdataRouterRouterScopedYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterScopedYaml, nil
-}
-
-func testExtendedTestdataRouterRouterScopedYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterScopedYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-scoped.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterRouterShardYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: DOMAIN
-- name: NAMESPACE
-- name: TYPE
-objects:
-- apiVersion: operator.openshift.io/v1
-  kind: IngressController
-  metadata:
-    name: ${TYPE}
-    namespace: ${NAMESPACE}
-    annotations:
-      ingress.operator.openshift.io/default-enable-http2: "true"
-  spec:
-    replicas: 1
-    domain: ${DOMAIN}
-    endpointPublishingStrategy:
-      type: LoadBalancerService
-    nodePlacement:
-      nodeSelector:
-        matchLabels:
-          node-role.kubernetes.io/worker: ""
-    namespaceSelector:
-      matchLabels:
-        type: ${TYPE}
-`)
-
-func testExtendedTestdataRouterRouterShardYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterRouterShardYaml, nil
-}
-
-func testExtendedTestdataRouterRouterShardYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterRouterShardYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/router-shard.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataRouterWeightedRouterYaml = []byte(`apiVersion: template.openshift.io/v1
-kind: Template
-parameters:
-- name: IMAGE
-  value: openshift/origin-haproxy-router:latest
-- name: DEFAULT_CERTIFICATE
-  value: |-
-    -----BEGIN CERTIFICATE-----
-    MIIDuTCCAqGgAwIBAgIUZYD30F0sJl7HqxE7gAequtxk/HowDQYJKoZIhvcNAQEL
-    BQAwgaExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UEBwwMRGVmYXVs
-    dCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBhbnkgTHRkMRAwDgYDVQQLDAdU
-    ZXN0IENBMRowGAYDVQQDDBF3d3cuZXhhbXBsZWNhLmNvbTEiMCAGCSqGSIb3DQEJ
-    ARYTZXhhbXBsZUBleGFtcGxlLmNvbTAeFw0yMjAxMjgwMjU0MDlaFw0zMjAxMjYw
-    MjU0MDlaMHwxGDAWBgNVBAMMD3d3dy5leGFtcGxlLmNvbTELMAkGA1UECAwCU0Mx
-    CzAJBgNVBAYTAlVTMSIwIAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUuY29t
-    MRAwDgYDVQQKDAdFeGFtcGxlMRAwDgYDVQQLDAdFeGFtcGxlMIIBIjANBgkqhkiG
-    9w0BAQEFAAOCAQ8AMIIBCgKCAQEA71W7gdEnM+Nm4/SA/4jEJ2SPQfVjkCMsIYGO
-    WrLLHq23HkMGstQoPyBnjLY8LmkKQsNhhWGRMWQz6+yGKgI1gh8huhfocuw+HODE
-    K3ugP/3DlaVEQlIQbVzwxDx+K78UqZHecQAJfvakuS/JThxsMf8/pqLuhjAf+t9N
-    k0CO8Z6mNVALtSvyQ+e+zjmzepVtu6WmtJ+8zW9dBQEmg0QCfWFd06836LrfixLk
-    vTRgCn0lzTuj7rSuGjY45JDIvKK4jZGQJKsYN59Wxg1d2CEoXBUJOJjecVdS3NhY
-    ubHNdcm+6Equ5ZmyVEkBmv462rOcednsHU6Ggt/vWSe05EOPVQIDAQABow0wCzAJ
-    BgNVHRMEAjAAMA0GCSqGSIb3DQEBCwUAA4IBAQCHI+fkEr27bJ2IMtFuHpSLpFF3
-    E4R5oVHt8XjflwKmuclyyLa8Z7nXnuvQLHa4jwf0tWUixsmtOyQN4tBI/msMk2PF
-    +ao2amcPoIo2lAg63+jFsIzkr2MEXBPu09wwt86e3XCoqmqT1Psnihh+Ys9KIPnc
-    wMr9muGkOh03O61vo71iaV17UKeGM4bzod333pSQIXLdYnoOuvmKdCsnD00lADoI
-    93DmG/4oYR/mD93QjxPFPDxDxR4isvWGoj7iXx7CFkN7PR9B3IhZt+T//ddeau3y
-    kXK0iSxOhyaqHvl15hHQ8tKPBBJRSDVU4qmaqAYWRXr65yxBoelHhTJQ6Gt4
-    -----END CERTIFICATE-----
-    -----BEGIN PRIVATE KEY-----
-    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDvVbuB0Scz42bj
-    9ID/iMQnZI9B9WOQIywhgY5assserbceQway1Cg/IGeMtjwuaQpCw2GFYZExZDPr
-    7IYqAjWCHyG6F+hy7D4c4MQre6A//cOVpURCUhBtXPDEPH4rvxSpkd5xAAl+9qS5
-    L8lOHGwx/z+mou6GMB/6302TQI7xnqY1UAu1K/JD577OObN6lW27paa0n7zNb10F
-    ASaDRAJ9YV3Trzfout+LEuS9NGAKfSXNO6PutK4aNjjkkMi8oriNkZAkqxg3n1bG
-    DV3YIShcFQk4mN5xV1Lc2Fi5sc11yb7oSq7lmbJUSQGa/jras5x52ewdToaC3+9Z
-    J7TkQ49VAgMBAAECggEAaCBzqOI3XSLlo+2/pe158e2VSkwZ2h8DVzyHk7xQFPPd
-    RKRCqNEXBYfypUyv2D1JAo0Aw8gUJFoFIPLR2DsHzqn+wXkfX8iaqXO8xXJO4Shl
-    zJiPnw8XKI2UDryG5D+JHNFi5uTuPLfQKOW6fmptRD9aEQS4I9eSQlKe7J7c0g+t
-    pCR1vCp6ZMFIXDgpHhquArI1fjA36nWK0dJkaO9LrTYPgeMIr0KFjEF+W3UPh/af
-    uw/KLjzyzHExwfVBcGZonb6rG1nU/7isUHqK75OhOKDcXpv+7NCBYZ6fu4COlE0O
-    +yGztbRXojWo1upKzzGPM+yoLyNA1aSljpCGOCSljQKBgQD+4i5FzRQ+e1XZxvUt
-    izypHHQcc7y9DfwKTwLXb9EUhmGCmrxVIuM+gm5N/Y/eXDjqtR2bqg7iIFjj3KTS
-    f9djCYT8FqlTtyDBk/qFNLchDX/mrykOuhqIXfT7JpQbk5+qkCy8k2ZJMl2ToNXA
-    WRqRCP4oa1WJMmoJFwo3BIVRIwKBgQDwYh2ryrs/QFE0W082oHAQ3Nrce5JmOtFp
-    70X/v8zZ8ESdeo7KOS0tNLeirBxlDGvUAesKwUHU1YwTgWhl/DkoPtv9INgT8kxS
-    VRcrix9kq62uiD+TKI732mwoG36keJdRECrQYRYjX+mf364EI+DeNmbPs3xsigaF
-    Zdbg+umxJwKBgF4fFelOvuAH2X8PGnDUDvV//VyYXKUPqfgAj1MRBotmyFFbZJqn
-    xHTL44HHVb5OHfKGKUXXeaGFQm36h573+Iio9kPE9ohkgqMZSxSvj8ST4JxGKIo4
-    rR2YXKP17hF05SwuC2cjo0z6XVXruaNLBCV0xa4VXMPKKx/qMyp37+czAoGBAL8c
-    woo6e/QlpmoBzlCX7YD6leaFODeeu6+FVBmo26zJoUOylKOiIZC3QOhL/ac44OGF
-    ROEgFL6pqNw5Hk824BpnH294FVKGaLdsfydXTHY1J7iDCkhtDn1vYl3gvib02RjR
-    ybgx9+/X6V3579fKzpTcm5C2Gk4Qzm5wMQ5dbj4xAoGBANYzYbBu8bItAEE6ohgf
-    D27SPW7VJsHGzbgRNC2SGCBzo3XaTJ0A8IMP+ghl5ndCJdLBz2FpeZLQvxOuopQD
-    J5dJXQxp7y20vh2C1e3wTPlA5CHHKpU1JZAe4THCJUg+EPwa4I+BOlvp71EB7BaH
-    bk65iLoLrUSkxMDi46qTAs5K
-    -----END PRIVATE KEY-----
-objects:
-# a weighted router
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: weighted-router
-    labels:
-      test: weighted-router
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: router
-      image: ${IMAGE}
-      imagePullPolicy: IfNotPresent
-      env:
-      - name: POD_NAMESPACE
-        valueFrom:
-          fieldRef:
-            fieldPath: metadata.namespace
-      - name: DEFAULT_CERTIFICATE
-        value: |-
-          ${DEFAULT_CERTIFICATE}
-      args: ["--namespace=$(POD_NAMESPACE)", "-v=4", "--labels=select=weighted", "--stats-password=password", "--stats-port=1936", "--stats-user=admin"]
-      hostNetwork: false
-      ports:
-      - containerPort: 80
-      - containerPort: 443
-      - containerPort: 1936
-        name: stats
-        protocol: TCP
-    serviceAccountName: default
-
-# ensure the router can access routes and endpoints
-- apiVersion: v1
-  kind: RoleBinding
-  metadata:
-    name: system-router
-  subjects:
-  - kind: ServiceAccount
-    name: default
-  roleRef:
-    name: system:router
-
-# a route that has multiple weighted services that it points to
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: weightedroute
-    labels:
-      test: router
-      select: weighted
-  spec:
-    host: weighted.example.com
-    to:
-      name: weightedendpoints1
-      kind: Service
-      weight: 90
-    alternateBackends:
-    - name: weightedendpoints2
-      kind: Service
-      weight: 10
-    ports:
-    - targetPort: 8080
-
-# a route that has multiple services but all weights are zero
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: zeroweightroute
-    labels:
-      test: router
-      select: weighted
-  spec:
-    host: zeroweight.example.com
-    to:
-      name: weightedendpoints1
-      kind: Service
-      weight: 0
-    alternateBackends:
-    - name: weightedendpoints2
-      kind: Service
-      weight: 0
-    ports:
-    - targetPort: 8080
-
-# two services that can be routed to
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: weightedendpoints1
-    labels:
-      test: router
-  spec:
-    selector:
-      test: weightedrouter1
-      endpoints: weightedrouter1
-    ports:
-    - port: 8080
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: weightedendpoints2
-    labels:
-      test: router
-  spec:
-    selector:
-      test: weightedrouter2
-      endpoints: weightedrouter2
-    ports:
-    - port: 8080
-# two pods that serves a response
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: endpoint-1
-    labels:
-      test: weightedrouter1
-      endpoints: weightedrouter1
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
-      args: ["netexec"]
-      ports:
-      - containerPort: 8080
-        name: http
-      - containerPort: 100
-        protocol: UDP
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: endpoint-2
-    labels:
-      test: weightedrouter2
-      endpoints: weightedrouter2
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
-      args: ["netexec"]
-      ports:
-      - containerPort: 8080
-        name: http
-      - containerPort: 100
-        protocol: UDP
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: endpoint-3
-    labels:
-      test: weightedrouter2
-      endpoints: weightedrouter2
-  spec:
-    terminationGracePeriodSeconds: 1
-    containers:
-    - name: test
-      image: k8s.gcr.io/e2e-test-images/agnhost:2.39
-      args: ["netexec"]
-      ports:
-      - containerPort: 8080
-        name: http
-      - containerPort: 100
-        protocol: UDP
-`)
-
-func testExtendedTestdataRouterWeightedRouterYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataRouterWeightedRouterYaml, nil
-}
-
-func testExtendedTestdataRouterWeightedRouterYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataRouterWeightedRouterYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/router/weighted-router.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -51605,7 +49466,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+                image: registry.k8s.io/e2e-test-images/agnhost:2.40
 `)
 
 func testExtendedTestdataTemplatesTemplateinstance_badobjectYamlBytes() ([]byte, error) {
@@ -51665,7 +49526,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: k8s.gcr.io/e2e-test-images/agnhost:2.39
+                image: registry.k8s.io/e2e-test-images/agnhost:2.40
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -52952,6 +50813,126 @@ func e2echartE2eChartTemplateHtml() (*asset, error) {
 	return a, nil
 }
 
+var _e2echartTestRiskAnalysisHtml = []byte(`<html lang="en">
+<head>
+    <title>Risk Analysis</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <meta name="description"
+          content="Risk analysis is performed by Sippy to attempt to determine if the failures in this job are abnormal when compared to results for similar jobs over the past week, and amidst on-going incidents in the CI infrastructure. Risk analysis API will not catch everything and is a relatively simple implementation today, please reach out to the Technical Release Team if you spot abnormalities or have suggestions.">
+</head>
+<body onLoad="buildTestCaseTable('#test_case_results')">
+<p>
+    <a target="_blank" href="TEST_RISK_ANALYSIS_SIPPY_URL_GOES_HERE">Link to Sippy</a>
+</p>
+
+<table id="test_case_results" border="1" width="100%">
+</table>
+<p>&nbsp;</p>
+
+<script>
+    var testResult = TEST_RISK_ANALYSIS_JSON_GOES_HERE
+    var testLinkPrefix = "https://sippy.dptools.openshift.org/sippy-ng/tests/"
+    var testLinkSuffix = "/analysis?test="
+
+    function buildOpenBugs(openBugs) {
+        td$ = $('<td/>')
+        if (openBugs.length > 0) {
+            cell$ = $('<ul/>')
+            for (var i = 0; i < openBugs.length; i++) {
+                li$ = $('<li>')
+                bug = "<a target=\"_blank\" href=" + openBugs[i].url + ">" + openBugs[i].id + "</a>: " + openBugs[i].summary
+                li$.append($('<li>').html(bug))
+                cell$.append(li$)
+            }
+            td$.append(cell$)
+        }
+        return td$
+    }
+
+    function buildRiskReasons(reasons) {
+        td$ = $('<td/>')
+        if (reasons.length > 0) {
+            cell$ = $('<ul/>')
+            for (var i = 0; i < reasons.length; i++) {
+                li$ = $('<li>')
+                li$.append($('<li>').html(reasons[i]))
+                cell$.append(li$)
+            }
+            td$.append(cell$)
+        }
+        return td$
+    }
+
+    function buildRiskLevel(level) {
+        td$ = $('<td/>')
+        if (level.Level >= 10) {
+            td$.css("background-color", "red");
+        } else if (level.Level >= 5) {
+            td$.css("background-color", "yellow");
+        } else {
+            td$.css("background-color", "green");
+        }
+        td$.append(level.Name)
+        return td$
+    }
+
+    // Build Test Case Table
+    function buildTestCaseTable(selector) {
+        // Add table headers
+        addColumnHeaders(selector);
+
+        // Build Overall Row
+        var row$ = $('<tr/>');
+        row$.append($('<td/>').html("Overall"));
+        row$.append(buildRiskLevel(testResult.OverallRisk.Level))
+        row$.append(buildRiskReasons(testResult.OverallRisk.Reasons))
+        row$.append(buildOpenBugs(testResult.OpenBugs))
+        $(selector).append(row$);
+
+        // First sort the tests by risk factor
+        testResult.Tests.sort(function(a, b){return b.Risk.Level.Level - a.Risk.Level.Level})
+        // Build rows for all tests
+        for (var i = 0; i < testResult.Tests.length; i++) {
+            var row$ = $('<tr/>');
+            testUrl = encodeURI(testLinkPrefix + testResult.Release + testLinkSuffix + testResult.Tests[i].Name)
+            row$.append($('<td/>').html("<a target=\"_blank\" href=" + testUrl + ">" + testResult.Tests[i].Name + "</a>"));
+            row$.append(buildRiskLevel(testResult.Tests[i].Risk.Level))
+            row$.append(buildRiskReasons(testResult.Tests[i].Risk.Reasons))
+            row$.append(buildOpenBugs(testResult.Tests[i].OpenBugs))
+            $(selector).append(row$);
+        }
+    }
+
+    function addColumnHeaders(selector) {
+        var headerTr$ = $('<tr/>');
+        headerTr$.append($('<th/>').html("Test Name"));
+        headerTr$.append($('<th/>').html("Risk Level"));
+        headerTr$.append($('<th/>').html("Risk Reason"));
+        headerTr$.append($('<th/>').html("Open Bugs"));
+
+        $(selector).append(headerTr$);
+    }
+
+</script>
+
+</body>
+</html>`)
+
+func e2echartTestRiskAnalysisHtmlBytes() ([]byte, error) {
+	return _e2echartTestRiskAnalysisHtml, nil
+}
+
+func e2echartTestRiskAnalysisHtml() (*asset, error) {
+	bytes, err := e2echartTestRiskAnalysisHtmlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "e2echart/test-risk-analysis.html", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -53179,7 +51160,6 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/builds/webhook/github/testdata/pushevent.json":                                   testExtendedTestdataBuildsWebhookGithubTestdataPusheventJson,
 	"test/extended/testdata/builds/webhook/gitlab/testdata/pushevent-not-master-branch.json":                 testExtendedTestdataBuildsWebhookGitlabTestdataPusheventNotMasterBranchJson,
 	"test/extended/testdata/builds/webhook/gitlab/testdata/pushevent.json":                                   testExtendedTestdataBuildsWebhookGitlabTestdataPusheventJson,
-	"test/extended/testdata/cli/pod-with-two-containers.yaml":                                                testExtendedTestdataCliPodWithTwoContainersYaml,
 	"test/extended/testdata/cluster/master-vert.yaml":                                                        testExtendedTestdataClusterMasterVertYaml,
 	"test/extended/testdata/cluster/quickstarts/cakephp-mysql.json":                                          testExtendedTestdataClusterQuickstartsCakephpMysqlJson,
 	"test/extended/testdata/cluster/quickstarts/dancer-mysql.json":                                           testExtendedTestdataClusterQuickstartsDancerMysqlJson,
@@ -53207,7 +51187,6 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/cmd/test/cmd/env.sh":                                                             testExtendedTestdataCmdTestCmdEnvSh,
 	"test/extended/testdata/cmd/test/cmd/framework-test.sh":                                                  testExtendedTestdataCmdTestCmdFrameworkTestSh,
 	"test/extended/testdata/cmd/test/cmd/get.sh":                                                             testExtendedTestdataCmdTestCmdGetSh,
-	"test/extended/testdata/cmd/test/cmd/idle.sh":                                                            testExtendedTestdataCmdTestCmdIdleSh,
 	"test/extended/testdata/cmd/test/cmd/image-lookup.sh":                                                    testExtendedTestdataCmdTestCmdImageLookupSh,
 	"test/extended/testdata/cmd/test/cmd/images.sh":                                                          testExtendedTestdataCmdTestCmdImagesSh,
 	"test/extended/testdata/cmd/test/cmd/login.sh":                                                           testExtendedTestdataCmdTestCmdLoginSh,
@@ -53217,16 +51196,12 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/cmd/test/cmd/printer.sh":                                                         testExtendedTestdataCmdTestCmdPrinterSh,
 	"test/extended/testdata/cmd/test/cmd/quota.sh":                                                           testExtendedTestdataCmdTestCmdQuotaSh,
 	"test/extended/testdata/cmd/test/cmd/registry.sh":                                                        testExtendedTestdataCmdTestCmdRegistrySh,
-	"test/extended/testdata/cmd/test/cmd/routes.sh":                                                          testExtendedTestdataCmdTestCmdRoutesSh,
-	"test/extended/testdata/cmd/test/cmd/run.sh":                                                             testExtendedTestdataCmdTestCmdRunSh,
 	"test/extended/testdata/cmd/test/cmd/secrets.sh":                                                         testExtendedTestdataCmdTestCmdSecretsSh,
-	"test/extended/testdata/cmd/test/cmd/services.sh":                                                        testExtendedTestdataCmdTestCmdServicesSh,
 	"test/extended/testdata/cmd/test/cmd/set-data.sh":                                                        testExtendedTestdataCmdTestCmdSetDataSh,
 	"test/extended/testdata/cmd/test/cmd/set-image.sh":                                                       testExtendedTestdataCmdTestCmdSetImageSh,
 	"test/extended/testdata/cmd/test/cmd/set-liveness-probe.sh":                                              testExtendedTestdataCmdTestCmdSetLivenessProbeSh,
 	"test/extended/testdata/cmd/test/cmd/setbuildhook.sh":                                                    testExtendedTestdataCmdTestCmdSetbuildhookSh,
 	"test/extended/testdata/cmd/test/cmd/setbuildsecret.sh":                                                  testExtendedTestdataCmdTestCmdSetbuildsecretSh,
-	"test/extended/testdata/cmd/test/cmd/status.sh":                                                          testExtendedTestdataCmdTestCmdStatusSh,
 	"test/extended/testdata/cmd/test/cmd/templates.sh":                                                       testExtendedTestdataCmdTestCmdTemplatesSh,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateDockerbuildJson,
@@ -53351,7 +51326,6 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl":                                         testExtendedTestdataImage_ecosystemPerlHotdeployIndexPl,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm":                                   testExtendedTestdataImage_ecosystemPerlHotdeployLibMyTestPm,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json":                                        testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson,
-	"test/extended/testdata/jobs/v1.yaml":                                                                    testExtendedTestdataJobsV1Yaml,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt":                                            testExtendedTestdataLdapGroupsyncAdBlacklist_ldapTxt,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_openshift.txt":                                       testExtendedTestdataLdapGroupsyncAdBlacklist_openshiftTxt,
 	"test/extended/testdata/ldap/groupsync/ad/ldapgroupuids.txt":                                             testExtendedTestdataLdapGroupsyncAdLdapgroupuidsTxt,
@@ -53447,21 +51421,8 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/router/ingress.yaml":                                                             testExtendedTestdataRouterIngressYaml,
 	"test/extended/testdata/router/reencrypt-serving-cert.yaml":                                              testExtendedTestdataRouterReencryptServingCertYaml,
 	"test/extended/testdata/router/router-common.yaml":                                                       testExtendedTestdataRouterRouterCommonYaml,
-	"test/extended/testdata/router/router-config-manager.yaml":                                               testExtendedTestdataRouterRouterConfigManagerYaml,
-	"test/extended/testdata/router/router-grpc-interop-routes.yaml":                                          testExtendedTestdataRouterRouterGrpcInteropRoutesYaml,
-	"test/extended/testdata/router/router-grpc-interop.yaml":                                                 testExtendedTestdataRouterRouterGrpcInteropYaml,
-	"test/extended/testdata/router/router-h2spec-routes.yaml":                                                testExtendedTestdataRouterRouterH2specRoutesYaml,
-	"test/extended/testdata/router/router-h2spec.yaml":                                                       testExtendedTestdataRouterRouterH2specYaml,
 	"test/extended/testdata/router/router-http-echo-server.yaml":                                             testExtendedTestdataRouterRouterHttpEchoServerYaml,
-	"test/extended/testdata/router/router-http2-routes.yaml":                                                 testExtendedTestdataRouterRouterHttp2RoutesYaml,
-	"test/extended/testdata/router/router-http2.yaml":                                                        testExtendedTestdataRouterRouterHttp2Yaml,
-	"test/extended/testdata/router/router-idle.yaml":                                                         testExtendedTestdataRouterRouterIdleYaml,
 	"test/extended/testdata/router/router-metrics.yaml":                                                      testExtendedTestdataRouterRouterMetricsYaml,
-	"test/extended/testdata/router/router-override-domains.yaml":                                             testExtendedTestdataRouterRouterOverrideDomainsYaml,
-	"test/extended/testdata/router/router-override.yaml":                                                     testExtendedTestdataRouterRouterOverrideYaml,
-	"test/extended/testdata/router/router-scoped.yaml":                                                       testExtendedTestdataRouterRouterScopedYaml,
-	"test/extended/testdata/router/router-shard.yaml":                                                        testExtendedTestdataRouterRouterShardYaml,
-	"test/extended/testdata/router/weighted-router.yaml":                                                     testExtendedTestdataRouterWeightedRouterYaml,
 	"test/extended/testdata/run_policy/parallel-bc.yaml":                                                     testExtendedTestdataRun_policyParallelBcYaml,
 	"test/extended/testdata/run_policy/serial-bc.yaml":                                                       testExtendedTestdataRun_policySerialBcYaml,
 	"test/extended/testdata/run_policy/serial-latest-only-bc.yaml":                                           testExtendedTestdataRun_policySerialLatestOnlyBcYaml,
@@ -53489,17 +51450,20 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/test-secret.json":                                                                testExtendedTestdataTestSecretJson,
 	"test/extended/testdata/verifyservice-pipeline-template.yaml":                                            testExtendedTestdataVerifyservicePipelineTemplateYaml,
 	"e2echart/e2e-chart-template.html":                                                                       e2echartE2eChartTemplateHtml,
+	"e2echart/test-risk-analysis.html":                                                                       e2echartTestRiskAnalysisHtml,
 }
 
 // AssetDir returns the file names below a certain
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
 // following hierarchy:
-//     data/
-//       foo.txt
-//       img/
-//         a.png
-//         b.png
+//
+//	data/
+//	  foo.txt
+//	  img/
+//	    a.png
+//	    b.png
+//
 // then AssetDir("data") would return []string{"foo.txt", "img"}
 // AssetDir("data/img") would return []string{"a.png", "b.png"}
 // AssetDir("foo.txt") and AssetDir("notexist") would return an error
@@ -53534,6 +51498,7 @@ type bintree struct {
 var _bintree = &bintree{nil, map[string]*bintree{
 	"e2echart": {nil, map[string]*bintree{
 		"e2e-chart-template.html": {e2echartE2eChartTemplateHtml, map[string]*bintree{}},
+		"test-risk-analysis.html": {e2echartTestRiskAnalysisHtml, map[string]*bintree{}},
 	}},
 	"examples": {nil, map[string]*bintree{
 		"db-templates": {nil, map[string]*bintree{
@@ -53806,9 +51771,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						}},
 					}},
 				}},
-				"cli": {nil, map[string]*bintree{
-					"pod-with-two-containers.yaml": {testExtendedTestdataCliPodWithTwoContainersYaml, map[string]*bintree{}},
-				}},
 				"cluster": {nil, map[string]*bintree{
 					"master-vert.yaml": {testExtendedTestdataClusterMasterVertYaml, map[string]*bintree{}},
 					"quickstarts": {nil, map[string]*bintree{
@@ -53853,7 +51815,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"env.sh":                {testExtendedTestdataCmdTestCmdEnvSh, map[string]*bintree{}},
 							"framework-test.sh":     {testExtendedTestdataCmdTestCmdFrameworkTestSh, map[string]*bintree{}},
 							"get.sh":                {testExtendedTestdataCmdTestCmdGetSh, map[string]*bintree{}},
-							"idle.sh":               {testExtendedTestdataCmdTestCmdIdleSh, map[string]*bintree{}},
 							"image-lookup.sh":       {testExtendedTestdataCmdTestCmdImageLookupSh, map[string]*bintree{}},
 							"images.sh":             {testExtendedTestdataCmdTestCmdImagesSh, map[string]*bintree{}},
 							"login.sh":              {testExtendedTestdataCmdTestCmdLoginSh, map[string]*bintree{}},
@@ -53863,16 +51824,12 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"printer.sh":            {testExtendedTestdataCmdTestCmdPrinterSh, map[string]*bintree{}},
 							"quota.sh":              {testExtendedTestdataCmdTestCmdQuotaSh, map[string]*bintree{}},
 							"registry.sh":           {testExtendedTestdataCmdTestCmdRegistrySh, map[string]*bintree{}},
-							"routes.sh":             {testExtendedTestdataCmdTestCmdRoutesSh, map[string]*bintree{}},
-							"run.sh":                {testExtendedTestdataCmdTestCmdRunSh, map[string]*bintree{}},
 							"secrets.sh":            {testExtendedTestdataCmdTestCmdSecretsSh, map[string]*bintree{}},
-							"services.sh":           {testExtendedTestdataCmdTestCmdServicesSh, map[string]*bintree{}},
 							"set-data.sh":           {testExtendedTestdataCmdTestCmdSetDataSh, map[string]*bintree{}},
 							"set-image.sh":          {testExtendedTestdataCmdTestCmdSetImageSh, map[string]*bintree{}},
 							"set-liveness-probe.sh": {testExtendedTestdataCmdTestCmdSetLivenessProbeSh, map[string]*bintree{}},
 							"setbuildhook.sh":       {testExtendedTestdataCmdTestCmdSetbuildhookSh, map[string]*bintree{}},
 							"setbuildsecret.sh":     {testExtendedTestdataCmdTestCmdSetbuildsecretSh, map[string]*bintree{}},
-							"status.sh":             {testExtendedTestdataCmdTestCmdStatusSh, map[string]*bintree{}},
 							"templates.sh":          {testExtendedTestdataCmdTestCmdTemplatesSh, map[string]*bintree{}},
 							"testdata": {nil, map[string]*bintree{
 								"application-template-custombuild.json": {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson, map[string]*bintree{}},
@@ -54066,9 +52023,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"perl.json": {testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson, map[string]*bintree{}},
 					}},
 				}},
-				"jobs": {nil, map[string]*bintree{
-					"v1.yaml": {testExtendedTestdataJobsV1Yaml, map[string]*bintree{}},
-				}},
 				"ldap": {nil, map[string]*bintree{
 					"groupsync": {nil, map[string]*bintree{
 						"ad": {nil, map[string]*bintree{
@@ -54196,24 +52150,11 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"policy-roles.yaml":        {testExtendedTestdataRolesPolicyRolesYaml, map[string]*bintree{}},
 				}},
 				"router": {nil, map[string]*bintree{
-					"ingress.yaml":                    {testExtendedTestdataRouterIngressYaml, map[string]*bintree{}},
-					"reencrypt-serving-cert.yaml":     {testExtendedTestdataRouterReencryptServingCertYaml, map[string]*bintree{}},
-					"router-common.yaml":              {testExtendedTestdataRouterRouterCommonYaml, map[string]*bintree{}},
-					"router-config-manager.yaml":      {testExtendedTestdataRouterRouterConfigManagerYaml, map[string]*bintree{}},
-					"router-grpc-interop-routes.yaml": {testExtendedTestdataRouterRouterGrpcInteropRoutesYaml, map[string]*bintree{}},
-					"router-grpc-interop.yaml":        {testExtendedTestdataRouterRouterGrpcInteropYaml, map[string]*bintree{}},
-					"router-h2spec-routes.yaml":       {testExtendedTestdataRouterRouterH2specRoutesYaml, map[string]*bintree{}},
-					"router-h2spec.yaml":              {testExtendedTestdataRouterRouterH2specYaml, map[string]*bintree{}},
-					"router-http-echo-server.yaml":    {testExtendedTestdataRouterRouterHttpEchoServerYaml, map[string]*bintree{}},
-					"router-http2-routes.yaml":        {testExtendedTestdataRouterRouterHttp2RoutesYaml, map[string]*bintree{}},
-					"router-http2.yaml":               {testExtendedTestdataRouterRouterHttp2Yaml, map[string]*bintree{}},
-					"router-idle.yaml":                {testExtendedTestdataRouterRouterIdleYaml, map[string]*bintree{}},
-					"router-metrics.yaml":             {testExtendedTestdataRouterRouterMetricsYaml, map[string]*bintree{}},
-					"router-override-domains.yaml":    {testExtendedTestdataRouterRouterOverrideDomainsYaml, map[string]*bintree{}},
-					"router-override.yaml":            {testExtendedTestdataRouterRouterOverrideYaml, map[string]*bintree{}},
-					"router-scoped.yaml":              {testExtendedTestdataRouterRouterScopedYaml, map[string]*bintree{}},
-					"router-shard.yaml":               {testExtendedTestdataRouterRouterShardYaml, map[string]*bintree{}},
-					"weighted-router.yaml":            {testExtendedTestdataRouterWeightedRouterYaml, map[string]*bintree{}},
+					"ingress.yaml":                 {testExtendedTestdataRouterIngressYaml, map[string]*bintree{}},
+					"reencrypt-serving-cert.yaml":  {testExtendedTestdataRouterReencryptServingCertYaml, map[string]*bintree{}},
+					"router-common.yaml":           {testExtendedTestdataRouterRouterCommonYaml, map[string]*bintree{}},
+					"router-http-echo-server.yaml": {testExtendedTestdataRouterRouterHttpEchoServerYaml, map[string]*bintree{}},
+					"router-metrics.yaml":          {testExtendedTestdataRouterRouterMetricsYaml, map[string]*bintree{}},
 				}},
 				"run_policy": {nil, map[string]*bintree{
 					"parallel-bc.yaml":           {testExtendedTestdataRun_policyParallelBcYaml, map[string]*bintree{}},

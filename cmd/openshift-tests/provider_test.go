@@ -1,12 +1,14 @@
 package main
 
 import (
+	"net/url"
 	"os"
 	"testing"
 
 	configv1 "github.com/openshift/api/config/v1"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	exutilcluster "github.com/openshift/origin/test/extended/util/cluster"
+	"github.com/stretchr/testify/require"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -141,16 +143,17 @@ var ovnKubernetesConfig = &operatorv1.NetworkSpec{
 }
 
 var e2eTests = map[string]string{
-	"everyone":        "[Skipped:Wednesday]",
-	"not-gce":         "[Skipped:gce]",
-	"not-aws":         "[Skipped:aws]",
-	"not-sdn":         "[Skipped:Network/OpenShiftSDN]",
-	"not-multitenant": "[Skipped:Network/OpenShiftSDN/Multitenant]",
-	"online":          "[Skipped:Disconnected]",
-	"ipv4":            "[Feature:Networking-IPv4]",
-	"ipv6":            "[Feature:Networking-IPv6]",
-	"dual-stack":      "[Feature:IPv6DualStackAlpha]",
-	"sctp":            "[Feature:SCTPConnectivity]",
+	"everyone":              "[Skipped:Wednesday]",
+	"not-gce":               "[Skipped:gce]",
+	"not-aws":               "[Skipped:aws]",
+	"not-sdn":               "[Skipped:Network/OpenShiftSDN]",
+	"not-multitenant":       "[Skipped:Network/OpenShiftSDN/Multitenant]",
+	"online":                "[Skipped:Disconnected]",
+	"ipv4":                  "[Feature:Networking-IPv4]",
+	"ipv6":                  "[Feature:Networking-IPv6]",
+	"dual-stack":            "[Feature:IPv6DualStackAlpha]",
+	"sctp":                  "[Feature:SCTPConnectivity]",
+	"requires-optional-cap": "[Skipped:NoOptionalCapabilities]",
 }
 
 func TestDecodeProvider(t *testing.T) {
@@ -158,101 +161,122 @@ func TestDecodeProvider(t *testing.T) {
 		name     string
 		provider string
 
-		discoveredPlatform *configv1.PlatformStatus
-		discoveredMasters  *corev1.NodeList
-		discoveredNetwork  *operatorv1.NetworkSpec
+		discoveredPlatform   *configv1.PlatformStatus
+		discoveredMasters    *corev1.NodeList
+		discoveredNetwork    *operatorv1.NetworkSpec
+		optionalCapabilities []configv1.ClusterVersionCapability
 
 		expectedConfig string
 		runTests       sets.String
 	}{
 		{
-			name:               "simple GCE",
-			provider:           "",
-			discoveredPlatform: gcePlatform,
-			discoveredMasters:  gceMasters,
-			discoveredNetwork:  sdnConfig,
-			expectedConfig:     `{"type":"gce","ProjectID":"openshift-gce-devel-ci","Region":"us-east1","Zone":"us-east1-a","NumNodes":3,"MultiMaster":true,"MultiZone":true,"Zones":["us-east1-a","us-east1-b","us-east1-c"],"ConfigFile":"","Disconnected":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false}`,
-			runTests:           sets.NewString("everyone", "not-aws", "not-multitenant", "online", "ipv4"),
+			name:                 "simple GCE",
+			provider:             "",
+			discoveredPlatform:   gcePlatform,
+			discoveredMasters:    gceMasters,
+			discoveredNetwork:    sdnConfig,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
+			expectedConfig:       `{"type":"gce","ProjectID":"openshift-gce-devel-ci","Region":"us-east1","Zone":"us-east1-a","NumNodes":3,"MultiMaster":true,"MultiZone":true,"Zones":["us-east1-a","us-east1-b","us-east1-c"],"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:             sets.NewString("everyone", "not-aws", "not-multitenant", "online", "ipv4", "requires-optional-cap"),
 		},
 		{
-			name:               "GCE multitenant",
-			provider:           "",
-			discoveredPlatform: gcePlatform,
-			discoveredMasters:  gceMasters,
-			discoveredNetwork:  multitenantConfig,
-			expectedConfig:     `{"type":"gce","ProjectID":"openshift-gce-devel-ci","Region":"us-east1","Zone":"us-east1-a","NumNodes":3,"MultiMaster":true,"MultiZone":true,"Zones":["us-east1-a","us-east1-b","us-east1-c"],"ConfigFile":"","Disconnected":false,"NetworkPlugin":"OpenShiftSDN","NetworkPluginMode":"Multitenant","HasIPv4":true,"HasIPv6":false,"HasSCTP":false}`,
-			runTests:           sets.NewString("everyone", "not-aws", "online", "ipv4"),
+			name:                 "GCE multitenant",
+			provider:             "",
+			discoveredPlatform:   gcePlatform,
+			discoveredMasters:    gceMasters,
+			discoveredNetwork:    multitenantConfig,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
+			expectedConfig:       `{"type":"gce","ProjectID":"openshift-gce-devel-ci","Region":"us-east1","Zone":"us-east1-a","NumNodes":3,"MultiMaster":true,"MultiZone":true,"Zones":["us-east1-a","us-east1-b","us-east1-c"],"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"OpenShiftSDN","NetworkPluginMode":"Multitenant","HasIPv4":true,"HasIPv6":false,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:             sets.NewString("everyone", "not-aws", "online", "ipv4", "requires-optional-cap"),
 		},
 		{
-			name:               "simple non-cloud",
-			provider:           "",
-			discoveredPlatform: noPlatform,
-			discoveredMasters:  simpleMasters,
-			discoveredNetwork:  sdnConfig,
-			expectedConfig:     `{"type":"skeleton","ProjectID":"","Region":"","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false}`,
-			runTests:           sets.NewString("everyone", "not-gce", "not-aws", "not-multitenant", "online", "ipv4"),
+			name:                 "simple non-cloud",
+			provider:             "",
+			discoveredPlatform:   noPlatform,
+			discoveredMasters:    simpleMasters,
+			discoveredNetwork:    sdnConfig,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
+			expectedConfig:       `{"type":"skeleton","ProjectID":"","Region":"","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:             sets.NewString("everyone", "not-gce", "not-aws", "not-multitenant", "online", "ipv4", "requires-optional-cap"),
 		},
 		{
-			name:               "simple override",
-			provider:           "vsphere",
-			discoveredPlatform: vspherePlatform,
-			discoveredMasters:  simpleMasters,
-			discoveredNetwork:  sdnConfig,
+			name:                 "simple override",
+			provider:             "vsphere",
+			discoveredPlatform:   vspherePlatform,
+			discoveredMasters:    simpleMasters,
+			discoveredNetwork:    sdnConfig,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
 			// NB: It does not actually use the passed-in Provider value
-			expectedConfig: `{"type":"skeleton","ProjectID":"","Region":"","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false}`,
-			runTests:       sets.NewString("everyone", "not-gce", "not-aws", "not-multitenant", "online", "ipv4"),
+			expectedConfig: `{"type":"skeleton","ProjectID":"","Region":"","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:       sets.NewString("everyone", "not-gce", "not-aws", "not-multitenant", "online", "ipv4", "requires-optional-cap"),
 		},
 		{
-			name:               "simple AlibabaCloud",
-			provider:           "alibabacloud",
-			discoveredPlatform: alibabaPlatform,
-			discoveredMasters:  simpleMasters,
-			discoveredNetwork:  sdnConfig,
-			expectedConfig:     `{"type":"skeleton","ProjectID":"","Region":"us-east-1","Zone":"us-east-1a","NumNodes":3,"MultiMaster":true,"MultiZone":true,"Zones":["us-east-1a", "us-east-1b"],"ConfigFile":"","Disconnected":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false}`,
-			runTests:           sets.NewString("everyone", "not-gce", "not-aws", "not-multitenant", "online", "ipv4"),
+			name:                 "simple AlibabaCloud",
+			provider:             "alibabacloud",
+			discoveredPlatform:   alibabaPlatform,
+			discoveredMasters:    simpleMasters,
+			discoveredNetwork:    sdnConfig,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
+			expectedConfig:       `{"type":"skeleton","ProjectID":"","Region":"","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:             sets.NewString("everyone", "not-gce", "not-aws", "not-multitenant", "online", "ipv4", "requires-optional-cap"),
 		},
 		{
-			name:               "json simple override",
-			provider:           `{"type": "openstack"}`,
-			discoveredPlatform: noPlatform,
-			discoveredMasters:  simpleMasters,
-			discoveredNetwork:  sdnConfig,
-			expectedConfig:     `{"type":"openstack","ProjectID":"","Region":"","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false}`,
-			runTests:           sets.NewString("everyone", "not-gce", "not-aws", "not-multitenant", "online", "ipv4"),
+			name:                 "json simple override",
+			provider:             `{"type": "openstack"}`,
+			discoveredPlatform:   noPlatform,
+			discoveredMasters:    simpleMasters,
+			discoveredNetwork:    sdnConfig,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
+			expectedConfig:       `{"type":"openstack","ProjectID":"","Region":"","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:             sets.NewString("everyone", "not-gce", "not-aws", "not-multitenant", "online", "ipv4", "requires-optional-cap"),
 		},
 		{
-			name:               "complex override, dual-stack",
-			provider:           `{"type":"aws","region":"us-east-2","zone":"us-east-2a","multimaster":false,"multizone":true}`,
-			discoveredPlatform: awsPlatform,
-			discoveredMasters:  simpleMasters,
-			discoveredNetwork:  ovnKubernetesConfig,
-			expectedConfig:     `{"type":"aws","ProjectID":"","Region":"us-east-2","Zone":"us-east-2a","NumNodes":3,"MultiMaster":false,"MultiZone":true,"Zones":[],"ConfigFile":"","Disconnected":false,"NetworkPlugin":"OVNKubernetes","HasIPv4":true,"HasIPv6":true,"HasSCTP":false}`,
-			runTests:           sets.NewString("everyone", "not-gce", "not-sdn", "not-multitenant", "online", "ipv4", "ipv6", "dual-stack"),
+			name:                 "complex override dual-stack",
+			provider:             `{"type":"aws","region":"us-east-2","zone":"us-east-2a","multimaster":false,"multizone":true}`,
+			discoveredPlatform:   awsPlatform,
+			discoveredMasters:    simpleMasters,
+			discoveredNetwork:    ovnKubernetesConfig,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
+			expectedConfig:       `{"type":"aws","ProjectID":"","Region":"us-east-2","Zone":"us-east-2a","NumNodes":3,"MultiMaster":false,"MultiZone":true,"Zones":[],"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"OVNKubernetes","HasIPv4":true,"HasIPv6":true,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:             sets.NewString("everyone", "not-gce", "not-sdn", "not-multitenant", "online", "ipv4", "ipv6", "dual-stack", "requires-optional-cap"),
 		},
 		{
-			name:               "complex override without discovery",
-			provider:           `{"type":"aws","region":"us-east-2","zone":"us-east-2a","multimaster":false,"multizone":true}`,
-			discoveredPlatform: nil,
-			expectedConfig:     `{"type":"aws","ProjectID":"","Region":"us-east-2","Zone":"us-east-2a","NumNodes":0,"MultiMaster":false,"MultiZone":true,"Zones":null,"ConfigFile":"","Disconnected":false,"NetworkPlugin":"","HasIPv4":false,"HasIPv6":false,"HasSCTP":false}`,
-			runTests:           sets.NewString("everyone", "not-gce", "not-sdn", "not-multitenant", "online"),
+			name:                 "complex override without discovery",
+			provider:             `{"type":"aws","region":"us-east-2","zone":"us-east-2a","multimaster":false,"multizone":true}`,
+			discoveredPlatform:   nil,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
+			expectedConfig:       `{"type":"aws","ProjectID":"","Region":"us-east-2","Zone":"us-east-2a","NumNodes":0,"MultiMaster":false,"MultiZone":true,"Zones":null,"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"","HasIPv4":false,"HasIPv6":false,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:             sets.NewString("everyone", "not-gce", "not-sdn", "not-multitenant", "online", "requires-optional-cap"),
 		},
 		{
-			name:               "disconnected",
-			provider:           `{"type":"none","disconnected":true}`,
-			discoveredPlatform: noPlatform,
-			discoveredMasters:  simpleMasters,
-			discoveredNetwork:  ovnKubernetesConfig,
-			expectedConfig:     `{"type":"none","ProjectID":"","Region":"","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":true,"NetworkPlugin":"OVNKubernetes","HasIPv4":true,"HasIPv6":true,"HasSCTP":false}`,
-			runTests:           sets.NewString("everyone", "not-gce", "not-aws", "not-sdn", "not-multitenant", "ipv4", "ipv6", "dual-stack"),
+			name:                 "disconnected",
+			provider:             `{"type":"none","disconnected":true}`,
+			discoveredPlatform:   noPlatform,
+			discoveredMasters:    simpleMasters,
+			discoveredNetwork:    ovnKubernetesConfig,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
+			expectedConfig:       `{"type":"none","ProjectID":"","Region":"","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":true,"SingleReplicaTopology":false,"NetworkPlugin":"OVNKubernetes","HasIPv4":true,"HasIPv6":true,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:             sets.NewString("everyone", "not-gce", "not-aws", "not-sdn", "not-multitenant", "ipv4", "ipv6", "dual-stack", "requires-optional-cap"),
 		},
 		{
-			name:               "override network plugin",
-			provider:           `{"type":"aws","networkPlugin":"Calico","hasIPv4":false,"hasIPv6":true,"hasSCTP":true}`,
-			discoveredPlatform: awsPlatform,
-			discoveredMasters:  simpleMasters,
-			discoveredNetwork:  ovnKubernetesConfig,
-			expectedConfig:     `{"type":"aws","ProjectID":"","Region":"us-east-2","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":false,"NetworkPlugin":"Calico","HasIPv4":false,"HasIPv6":true,"HasSCTP":true}`,
-			runTests:           sets.NewString("everyone", "not-gce", "not-sdn", "not-multitenant", "online", "ipv6", "sctp"),
+			name:                 "override network plugin",
+			provider:             `{"type":"aws","networkPlugin":"Calico","hasIPv4":false,"hasIPv6":true,"hasSCTP":true}`,
+			discoveredPlatform:   awsPlatform,
+			discoveredMasters:    simpleMasters,
+			discoveredNetwork:    ovnKubernetesConfig,
+			optionalCapabilities: configv1.KnownClusterVersionCapabilities,
+			expectedConfig:       `{"type":"aws","ProjectID":"","Region":"us-east-2","Zone":"","NumNodes":3,"MultiMaster":true,"MultiZone":false,"Zones":[],"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"Calico","HasIPv4":false,"HasIPv6":true,"HasSCTP":true,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":false}`,
+			runTests:             sets.NewString("everyone", "not-gce", "not-sdn", "not-multitenant", "online", "ipv6", "sctp", "requires-optional-cap"),
+		},
+		{
+			name:                 "no optional capabilities",
+			provider:             "",
+			discoveredPlatform:   gcePlatform,
+			discoveredMasters:    gceMasters,
+			discoveredNetwork:    sdnConfig,
+			optionalCapabilities: []configv1.ClusterVersionCapability{},
+			expectedConfig:       `{"type":"gce","ProjectID":"openshift-gce-devel-ci","Region":"us-east1","Zone":"us-east1-a","NumNodes":3,"MultiMaster":true,"MultiZone":true,"Zones":["us-east1-a","us-east1-b","us-east1-c"],"ConfigFile":"","Disconnected":false,"SingleReplicaTopology":false,"NetworkPlugin":"OpenShiftSDN","HasIPv4":true,"HasIPv6":false,"HasSCTP":false,"IsProxied":false,"IsIBMROKS":false,"HasNoOptionalCapabilities":true}`,
+			runTests:             sets.NewString("everyone", "not-aws", "not-multitenant", "online", "ipv4"),
 		},
 	}
 
@@ -265,11 +289,16 @@ func TestDecodeProvider(t *testing.T) {
 			discover := tc.discoveredPlatform != nil
 			var testState *exutilcluster.ClusterState
 			if discover {
+				topology := configv1.HighlyAvailableTopologyMode
+				testURL, _ := url.Parse("https://example.com")
 				testState = &exutilcluster.ClusterState{
-					PlatformStatus: tc.discoveredPlatform,
-					Masters:        tc.discoveredMasters,
-					NonMasters:     nonMasters,
-					NetworkSpec:    tc.discoveredNetwork,
+					PlatformStatus:       tc.discoveredPlatform,
+					Masters:              tc.discoveredMasters,
+					NonMasters:           nonMasters,
+					NetworkSpec:          tc.discoveredNetwork,
+					ControlPlaneTopology: &topology,
+					APIURL:               testURL,
+					OptionalCapabilities: tc.optionalCapabilities,
 				}
 			}
 			config, err := decodeProvider(tc.provider, false, discover, testState)
@@ -277,9 +306,7 @@ func TestDecodeProvider(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			configJSON := config.ToJSONString()
-			if configJSON != tc.expectedConfig {
-				t.Fatalf("Generated config:\n%s\ndoes not match expected:\n%s\n", configJSON, tc.expectedConfig)
-			}
+			require.Equal(t, tc.expectedConfig, configJSON)
 			matchFn := config.MatchFn()
 
 			runTests := sets.NewString()
