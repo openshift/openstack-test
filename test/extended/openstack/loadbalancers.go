@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +25,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2edeployment "k8s.io/kubernetes/test/e2e/framework/deployment"
@@ -40,6 +42,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 	var clientSet *kubernetes.Clientset
 	var cloudProviderConfig *ini.File
 	availableLbProvidersUnderTests := [2]string{"Amphora", "OVN"}
+	lbMethodsWithETPGlobal := map[string]string{
+		"OVN":     "source_ip_port",
+		"Amphora": "round_robin",
+	}
 
 	g.BeforeEach(func() {
 
@@ -123,6 +129,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 			lbMethod, err := getClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", strings.ToLower(pool.LBMethod))
+			nodeList, err := clientSet.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			expectedNumberOfMembers := len(nodeList.Items)
+			o.Expect(waitUntilNmembersReady(loadBalancerClient, pool, expectedNumberOfMembers, "NO_MONITOR|ONLINE")).NotTo(o.HaveOccurred(),
+				"Error waiting for %d members with NO_MONITOR or ONLINE OperatingStatus", len(nodeList.Items))
 
 			g.By("accessing the service 100 times from outside and storing the name of the pods answering")
 			results := make(map[string]int)
@@ -138,7 +149,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 			e2e.Logf("Pods accessed after 100 UDP requests:\n%v\n", results)
 			pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(context.Background(), metav1.ListOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
-			o.Expect(isLbMethodApplied(lbMethod, results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
+
+			// ETP:Local not configured so the defined lbMethod is not applied, but the one on 'lbMethodsWithETPGlobal' var.
+			// https://issues.redhat.com/browse/OCPBUGS-2350
+			o.Expect(isLbMethodApplied(lbMethodsWithETPGlobal[lbProviderUnderTest], results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
 		})
 
 		// https://github.com/kubernetes/cloud-provider-openstack/blob/master/docs/openstack-cloud-controller-manager/expose-applications-using-loadbalancer-type-service.md#sharing-load-balancer-with-multiple-services
@@ -219,7 +233,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 
 			g.By("Creating Openshift deployment")
 			labels := map[string]string{"app": "udp-lb-etplocal-dep"}
-			testDeployment := createTestDeployment("udp-lb-etplocal-dep", labels, 2, v1.ProtocolUDP, 8081)
+			replicas := int32(2)
+			testDeployment := createTestDeployment("udp-lb-etplocal-dep", labels, replicas, v1.ProtocolUDP, 8081)
 			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -229,8 +244,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 			g.By("Creating Openshift LoadBalancer Service with monitors and ETP:Local")
 			svcName := "udp-lb-etplocal-svc"
 			svcPort := int32(8082)
-			monitorDelay := 10
-			monitorTimeout := 20
+			monitorDelay := 5
+			monitorTimeout := 5
 			monitorMaxRetries := 2
 			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName)
 			jig.Labels = labels
@@ -271,6 +286,16 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 			lbMethod, err := getClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", pool.LBMethod)
+
+			if monitor.Type == "UDP-CONNECT" {
+				o.Expect(waitUntilNmembersReady(loadBalancerClient, pool, int(replicas), "ONLINE")).NotTo(o.HaveOccurred(),
+					"Error waiting for %d members with ONLINE OperatingStatus", replicas)
+			} else if monitor.Type == "HTTP" {
+				// vexxhost uses HTTP healthmonitor and the OperatingStatus is not updated in that case.
+				// Therefore, the test cannot know when the the members are ready, so waiting 30 seconds for stability
+				e2e.Logf("monitor type is HTTP - Giving 30 seconds to let it calculate the ONLINE members")
+				time.Sleep(30 * time.Second)
+			}
 
 			g.By("accessing the service 100 times from outside and storing the name of the pods answering")
 			results := make(map[string]int)
@@ -546,4 +571,61 @@ func getSubnet(networkSubnet string, subnetList []subnets.Subnet) *subnets.Subne
 		}
 	}
 	return nil
+}
+
+// Active wait (up to 3 minutes) until a certain number of members match a regex on status attribute.
+func waitUntilNmembersReady(client *gophercloud.ServiceClient, pool *pools.Pool, n int, status string) error {
+
+	var resultingMembers []string
+	var err error
+
+	e2e.Logf("Waiting for %d members matching status %s in the pool %s", n, status, pool.Name)
+	err = wait.Poll(15*time.Second, 3*time.Minute, func() (bool, error) {
+		resultingMembers, err = getMembersMatchingStatus(client, pool, status)
+		if err != nil {
+			return false, err
+		}
+		if len(resultingMembers) == int(n) {
+			e2e.Logf("Found expected number of %s members, checking again 5 seconds later to confirm that it is stable", status)
+			time.Sleep(5 * time.Second)
+			resultingMembers, err = getMembersMatchingStatus(client, pool, status)
+			if err != nil {
+				return false, err
+			} else if len(resultingMembers) == int(n) {
+				e2e.Logf("Wait completed, %s members found: %q", status, resultingMembers)
+				return true, nil
+			}
+		}
+		e2e.Logf("Waiting for next iteration, %s members found: %q", status, resultingMembers)
+		return false, nil
+	})
+
+	if err != nil && strings.Contains(err.Error(), "timed out waiting for the condition") {
+		resultingMembers, err = getMembersMatchingStatus(client, pool, status)
+		allMembers, err := pools.ListMembers(client, pool.ID, pools.ListMembersOpts{}).AllPages()
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("expected %d members matching %s status, got %d. All members: %+v", n, status, len(resultingMembers), allMembers)
+	}
+	return err
+}
+
+// Return the name of the members matching a regex in the OperatingStatus attribute
+func getMembersMatchingStatus(client *gophercloud.ServiceClient, pool *pools.Pool, status string) ([]string, error) {
+
+	var members []string
+	for _, aux := range pool.Members {
+		member, err := pools.GetMember(client, pool.ID, aux.ID).Extract()
+		if err != nil {
+			return nil, err
+		}
+		result, err := regexp.MatchString(status, member.OperatingStatus)
+		if err != nil {
+			return nil, err
+		} else if result {
+			members = append(members, member.Name)
+		}
+	}
+	return members, nil
 }
