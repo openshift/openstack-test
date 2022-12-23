@@ -12,7 +12,10 @@ import (
 	octavialoadbalancers "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
 	octaviamonitors "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/monitors"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/external"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	exutil "github.com/openshift/origin/test/extended/util"
@@ -286,6 +289,72 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 			//lbMethod can be something different to ROUND_ROBIN as monitors && ETP:Local are enabled on this test:
 			o.Expect(isLbMethodApplied(lbMethod, results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
 		})
+
+		// https://bugzilla.redhat.com/show_bug.cgi?id=1997704
+		g.It(fmt.Sprintf("should create an UDP %s LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift", lbProviderUnderTest), func() {
+
+			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
+
+			g.By("Create FIP to be used on the subsequent LoadBalancer Service")
+			var fip *floatingips.FloatingIP
+			var err error
+			// Use network configured on cloud-provider-config if any
+			configuredNetworkId, _ := getClusterLoadBalancerSetting("floating-network-id", cloudProviderConfig)
+			configuredSubnetId, _ := getClusterLoadBalancerSetting("floating-subnet-id", cloudProviderConfig)
+			if configuredNetworkId != "" {
+				fip, err = floatingips.Create(networkClient, floatingips.CreateOpts{FloatingNetworkID: configuredNetworkId, SubnetID: configuredSubnetId}).Extract()
+				o.Expect(err).NotTo(o.HaveOccurred(), "error creating FIP using IDs configured on the OCP cluster. Network-id: %s. Subnet-id: %s", configuredNetworkId, configuredSubnetId)
+			} else {
+				// If not, discover the first FloatingNetwork existing on OSP
+				foundNetworkId, err := GetFloatingNetworkID(networkClient)
+				o.Expect(err).NotTo(o.HaveOccurred())
+				fip, err = floatingips.Create(networkClient, floatingips.CreateOpts{FloatingNetworkID: foundNetworkId}).Extract()
+				o.Expect(err).NotTo(o.HaveOccurred(), "error creating FIP using discovered floatingNetwork ID %s", foundNetworkId)
+			}
+			g.By(fmt.Sprintf("FIP created: %s", fip.FloatingIP))
+			defer floatingips.Delete(networkClient, fip.ID)
+
+			g.By("Creating Openshift deployment")
+			depName := "udp-lb-precreatedfip-dep"
+			svcName := "udp-lb-precreatedfip-svc"
+			svcPort := int32(8022)
+			labels := map[string]string{"app": depName}
+			testDeployment := createTestDeployment(depName, labels, 2, v1.ProtocolUDP, 8081)
+			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+				testDeployment, metav1.CreateOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By(fmt.Sprintf("Creating Openshift LoadBalancer Service using the FIP %s on network %s", fip.FloatingIP, fip.FloatingNetworkID))
+			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName)
+			jig.Labels = labels
+			svc, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort, TargetPort: intstr.FromInt(8081)}}
+				svc.Spec.Selector = labels
+				svc.Spec.LoadBalancerIP = fip.FloatingIP
+			})
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Checks from openshift perspective")
+			o.Expect(svc.Status.LoadBalancer.Ingress[0].IP).Should(o.Equal(fip.FloatingIP))
+
+			g.By("Connectivity checks")
+			podNames, err := exutil.GetPodNamesByFilter(oc.KubeClient().CoreV1().Pods(oc.Namespace()),
+				exutil.ParseLabelsOrDie(""), func(v1.Pod) bool { return true })
+			o.Expect(err).NotTo(o.HaveOccurred())
+			maxAttempts := 100 // Multiple connection attempts to stabilize the test in vexxhost
+			var podName string
+			for count := 0; count < maxAttempts; count++ {
+				podName, err = getPodNameThroughUdpLb(fip.FloatingIP, fmt.Sprintf("%d", svcPort), "hostname")
+				if err == nil {
+					count = maxAttempts
+				}
+			}
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(podName).Should(o.BeElementOf(podNames))
+			e2e.Logf("Pod %s successfully accessed through svc loadbalancer on ip %s and port %d", podName, fip.FloatingIP, svcPort)
+		})
 	}
 })
 
@@ -424,4 +493,57 @@ func createTestDeployment(depName string, labels map[string]string, replicas int
 		Protocol:      protocol,
 	}}
 	return testDeployment
+}
+
+// GetFloatingNetworkID returns a floating network ID.
+func GetFloatingNetworkID(client *gophercloud.ServiceClient) (string, error) {
+	type NetworkWithExternalExt struct {
+		networks.Network
+		external.NetworkExternalExt
+	}
+	var allNetworks []NetworkWithExternalExt
+
+	page, err := networks.List(client, networks.ListOpts{}).AllPages()
+	if err != nil {
+		return "", err
+	}
+
+	err = networks.ExtractNetworksInto(page, &allNetworks)
+	if err != nil {
+		return "", err
+	}
+
+	for _, network := range allNetworks {
+		if network.External && len(network.Subnets) > 0 {
+			page, err := subnets.List(client, subnets.ListOpts{NetworkID: network.ID}).AllPages()
+			if err != nil {
+				return "", err
+			}
+			subnetList, err := subnets.ExtractSubnets(page)
+			if err != nil {
+				return "", err
+			}
+			for _, networkSubnet := range network.Subnets {
+				subnet := getSubnet(networkSubnet, subnetList)
+				if subnet != nil {
+					if subnet.IPVersion == 4 {
+						return network.ID, nil
+					}
+				} else {
+					return network.ID, nil
+				}
+			}
+		}
+	}
+	return "", fmt.Errorf("no network matching the requirements found")
+}
+
+// getSubnet checks if a Subnet is present in the list of Subnets the tenant has access to and returns it
+func getSubnet(networkSubnet string, subnetList []subnets.Subnet) *subnets.Subnet {
+	for _, subnet := range subnetList {
+		if subnet.ID == networkSubnet {
+			return &subnet
+		}
+	}
+	return nil
 }
