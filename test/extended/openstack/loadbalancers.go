@@ -41,6 +41,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 	var networkClient *gophercloud.ServiceClient
 	var clientSet *kubernetes.Clientset
 	var cloudProviderConfig *ini.File
+	var loadBalancerServiceTimeout = 5 * time.Minute
 	availableLbProvidersUnderTests := [2]string{"Amphora", "OVN"}
 	lbMethodsWithETPGlobal := map[string]string{
 		"OVN":     "source_ip_port",
@@ -96,7 +97,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			svcPort := int32(8082)
 			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName)
 			jig.Labels = labels
-			svc, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+			svc, err := jig.CreateLoadBalancerService(loadBalancerServiceTimeout, func(svc *v1.Service) {
 				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort, TargetPort: intstr.FromInt(8081)}}
 				svc.Spec.Selector = labels
 			})
@@ -183,7 +184,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			svcPort1 := int32(8082)
 			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName1)
 			jig.Labels = labels
-			svc1, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+			svc1, err := jig.CreateLoadBalancerService(loadBalancerServiceTimeout, func(svc *v1.Service) {
 				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort1, TargetPort: intstr.FromInt(8081)}}
 				svc.Spec.Selector = labels
 			})
@@ -197,7 +198,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			svcPort2 := int32(8083)
 			jig = e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName2)
 			jig.Labels = labels
-			svc2, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+			svc2, err := jig.CreateLoadBalancerService(loadBalancerServiceTimeout, func(svc *v1.Service) {
 				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort2, TargetPort: intstr.FromInt(8081)}}
 				svc.Spec.Selector = labels
 				svc.SetAnnotations(map[string]string{"loadbalancer.openstack.org/load-balancer-id": loadBalancerId})
@@ -249,7 +250,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			monitorMaxRetries := 2
 			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName)
 			jig.Labels = labels
-			svc, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+			svc, err := jig.CreateLoadBalancerService(loadBalancerServiceTimeout, func(svc *v1.Service) {
 				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort, TargetPort: intstr.FromInt(8081)}}
 				svc.Spec.Selector = labels
 				svc.SetAnnotations(map[string]string{
@@ -354,7 +355,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			g.By(fmt.Sprintf("Creating Openshift LoadBalancer Service using the FIP %s on network %s", fip.FloatingIP, fip.FloatingNetworkID))
 			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName)
 			jig.Labels = labels
-			svc, err := jig.CreateLoadBalancerService(5*time.Minute, func(svc *v1.Service) {
+			svc, err := jig.CreateLoadBalancerService(loadBalancerServiceTimeout, func(svc *v1.Service) {
 				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort, TargetPort: intstr.FromInt(8081)}}
 				svc.Spec.Selector = labels
 				svc.Spec.LoadBalancerIP = fip.FloatingIP
