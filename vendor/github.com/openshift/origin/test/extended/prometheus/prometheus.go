@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -13,11 +13,10 @@ import (
 
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/origin/pkg/alerts"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
-	"github.com/prometheus/common/model"
-
 	v1 "k8s.io/api/core/v1"
 	kapierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -89,7 +88,7 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 			exutil.CheckImageStreamLatestTagPopulated, exutil.CheckImageStreamTagNotFound)
 		o.Expect(err).NotTo(o.HaveOccurred())
 
-		url, _, bearerToken, ok := helper.LocatePrometheus(oc)
+		url, _, bearerToken, ok := helper.LocatePrometheusUsingRoutes(oc)
 		if !ok {
 			e2e.Failf("Prometheus could not be located on this cluster, failing prometheus test")
 		}
@@ -97,7 +96,7 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 		if alertingRules == nil {
 			var err error
 
-			alertingRules, err = helper.FetchAlertingRules(oc, url, bearerToken)
+			alertingRules, err = helper.FetchAlertingRules(url, bearerToken)
 			if err != nil {
 				e2e.Failf("Failed to fetch alerting rules: %v", err)
 			}
@@ -203,186 +202,9 @@ var _ = g.Describe("[sig-instrumentation][Late] Alerts", func() {
 	)
 
 	g.It("shouldn't report any unexpected alerts in firing or pending state [apigroup:config.openshift.io]", func() {
-		// Watchdog and AlertmanagerReceiversNotConfigured are expected.
-		if len(os.Getenv("TEST_UNSUPPORTED_ALLOW_VERSION_SKEW")) > 0 {
-			e2eskipper.Skipf("Test is disabled to allow cluster components to have different versions, and skewed versions trigger multiple other alerts")
-		}
-
-		firingAlertsWithBugs := helper.MetricConditions{
-			{
-				Selector: map[string]string{"alertname": "ClusterOperatorDown", "name": "authentication"},
-				Text:     "https://bugzilla.redhat.com/show_bug.cgi?id=1939580",
-			},
-			{
-				Selector: map[string]string{"alertname": "ClusterOperatorDegraded", "name": "authentication"},
-				Text:     "https://bugzilla.redhat.com/show_bug.cgi?id=1939580",
-			},
-			{
-				Selector: map[string]string{"alertname": "KubeAPIErrorBudgetBurn"},
-				Text:     "https://bugzilla.redhat.com/show_bug.cgi?id=1953798",
-				Matches: func(_ *model.Sample) bool {
-					return framework.ProviderIs("gce")
-				},
-			},
-			{
-				Selector: map[string]string{"alertname": "HighlyAvailableWorkloadIncorrectlySpread", "namespace": "openshift-monitoring", "workload": "prometheus-k8s"},
-				Text:     "https://bugzilla.redhat.com/show_bug.cgi?id=1949262",
-			},
-			{
-				Selector: map[string]string{"alertname": "HighlyAvailableWorkloadIncorrectlySpread", "namespace": "openshift-monitoring", "workload": "alertmanager-main"},
-				Text:     "https://bugzilla.redhat.com/show_bug.cgi?id=1955489",
-			},
-			{
-				Selector: map[string]string{"alertname": "KubeJobFailed", "namespace": "openshift-multus"}, // not sure how to do a job_name prefix
-				Text:     "https://bugzilla.redhat.com/show_bug.cgi?id=2054426",
-			},
-		}
-		allowedFiringAlerts := helper.MetricConditions{
-			{
-				Selector: map[string]string{"alertname": "TargetDown", "namespace": "openshift-e2e-loki"},
-				Text:     "Loki is nice to have, but we can allow it to be down",
-			},
-			{
-				Selector: map[string]string{"alertname": "KubePodNotReady", "namespace": "openshift-e2e-loki"},
-				Text:     "Loki is nice to have, but we can allow it to be down",
-			},
-			{
-				Selector: map[string]string{"alertname": "KubeDeploymentReplicasMismatch", "namespace": "openshift-e2e-loki"},
-				Text:     "Loki is nice to have, but we can allow it to be down",
-			},
-			{
-				Selector: map[string]string{"alertname": "HighOverallControlPlaneCPU"},
-				Text:     "high CPU utilization during e2e runs is normal",
-			},
-			{
-				Selector: map[string]string{"alertname": "ExtremelyHighIndividualControlPlaneCPU"},
-				Text:     "high CPU utilization during e2e runs is normal",
-			},
-		}
-
-		if isTechPreviewCluster(oc) {
-			allowedFiringAlerts = append(
-				allowedFiringAlerts,
-				helper.MetricCondition{
-					Selector: map[string]string{"alertname": "TechPreviewNoUpgrade"},
-					Text:     "Allow testing of TechPreviewNoUpgrade clusters, this will only fire when a FeatureGate has been installed",
-				},
-				helper.MetricCondition{
-					Selector: map[string]string{"alertname": "ClusterNotUpgradeable"},
-					Text:     "Allow testing of ClusterNotUpgradeable clusters, this will only fire when a FeatureGate has been installed",
-				})
-		}
-
-		pendingAlertsWithBugs := helper.MetricConditions{}
-		allowedPendingAlerts := helper.MetricConditions{
-			{
-				Selector: map[string]string{"alertname": "HighOverallControlPlaneCPU"},
-				Text:     "high CPU utilization during e2e runs is normal",
-			},
-			{
-				Selector: map[string]string{"alertname": "ExtremelyHighIndividualControlPlaneCPU"},
-				Text:     "high CPU utilization during e2e runs is normal",
-			},
-		}
-
-		// we exclude alerts that have their own separate tests.
-		for _, alertTest := range allowedalerts.AllAlertTests(context.TODO(), nil, 0) {
-			switch alertTest.AlertState() {
-			case allowedalerts.AlertPending:
-				// a pending test covers pending and everything above (firing)
-				allowedPendingAlerts = append(allowedPendingAlerts,
-					helper.MetricCondition{
-						Selector: map[string]string{"alertname": alertTest.AlertName()},
-						Text:     "has a separate e2e test",
-					},
-				)
-				allowedFiringAlerts = append(allowedFiringAlerts,
-					helper.MetricCondition{
-						Selector: map[string]string{"alertname": alertTest.AlertName()},
-						Text:     "has a separate e2e test",
-					},
-				)
-			case allowedalerts.AlertInfo:
-				// an info test covers all firing
-				allowedFiringAlerts = append(allowedFiringAlerts,
-					helper.MetricCondition{
-						Selector: map[string]string{"alertname": alertTest.AlertName()},
-						Text:     "has a separate e2e test",
-					},
-				)
-			}
-		}
-
-		knownViolations := sets.NewString()
-		unexpectedViolations := sets.NewString()
-		unexpectedViolationsAsFlakes := sets.NewString()
-		debug := sets.NewString()
-
 		// we only consider samples since the beginning of the test
-		testDuration := exutil.DurationSinceStartInSeconds().String()
-
-		// Invariant: No non-info level alerts should have fired during the test run
-		firingAlertQuery := fmt.Sprintf(`
-sort_desc(
-count_over_time(ALERTS{alertstate="firing",severity!="info",alertname!~"Watchdog|AlertmanagerReceiversNotConfigured"}[%[1]s:1s])
-) > 0
-`, testDuration)
-		result, err := helper.RunQuery(context.TODO(), oc.NewPrometheusClient(context.TODO()), firingAlertQuery)
-		o.Expect(err).NotTo(o.HaveOccurred(), "unable to check firing alerts during test")
-		for _, series := range result.Data.Result {
-			labels := helper.StripLabels(series.Metric, "alertname", "alertstate", "prometheus")
-			violation := fmt.Sprintf("alert %s fired for %s seconds with labels: %s", series.Metric["alertname"], series.Value, helper.LabelsAsSelector(labels))
-			if cause := allowedFiringAlerts.Matches(series); cause != nil {
-				debug.Insert(fmt.Sprintf("%s (allowed: %s)", violation, cause.Text))
-				continue
-			}
-			if cause := firingAlertsWithBugs.Matches(series); cause != nil {
-				knownViolations.Insert(fmt.Sprintf("%s (open bug: %s)", violation, cause.Text))
-			} else {
-				unexpectedViolations.Insert(violation)
-			}
-		}
-
-		// Invariant: There should be no pending alerts after the test run
-		pendingAlertQuery := fmt.Sprintf(`
-sort_desc(
-  time() * ALERTS + 1
-  -
-  last_over_time((
-    time() * ALERTS{alertname!~"Watchdog|AlertmanagerReceiversNotConfigured",alertstate="pending",severity!="info"}
-    unless
-    ALERTS offset 1s
-  )[%[1]s:1s])
-)
-`, testDuration)
-		result, err = helper.RunQuery(context.TODO(), oc.NewPrometheusClient(context.TODO()), pendingAlertQuery)
-		o.Expect(err).NotTo(o.HaveOccurred(), "unable to retrieve pending alerts after upgrade")
-		for _, series := range result.Data.Result {
-			labels := helper.StripLabels(series.Metric, "alertname", "alertstate", "prometheus")
-			violation := fmt.Sprintf("alert %s pending for %s seconds with labels: %s", series.Metric["alertname"], series.Value, helper.LabelsAsSelector(labels))
-			if cause := allowedPendingAlerts.Matches(series); cause != nil {
-				debug.Insert(fmt.Sprintf("%s (allowed: %s)", violation, cause.Text))
-				continue
-			}
-			if cause := pendingAlertsWithBugs.Matches(series); cause != nil {
-				knownViolations.Insert(fmt.Sprintf("%s (open bug: %s)", violation, cause.Text))
-			} else {
-				// treat pending errors as a flake right now because we are still trying to determine the scope
-				// TODO: move this to unexpectedViolations later
-				unexpectedViolationsAsFlakes.Insert(violation)
-			}
-		}
-
-		if len(debug) > 0 {
-			framework.Logf("Alerts were detected during test run which are allowed:\n\n%s", strings.Join(debug.List(), "\n"))
-		}
-		if len(unexpectedViolations) > 0 {
-			framework.Failf("Unexpected alerts fired or pending after the test run:\n\n%s", strings.Join(unexpectedViolations.List(), "\n"))
-		}
-		if flakes := sets.NewString().Union(knownViolations).Union(unexpectedViolations).Union(unexpectedViolationsAsFlakes); len(flakes) > 0 {
-			testresult.Flakef("Unexpected alert behavior during test:\n\n%s", strings.Join(flakes.List(), "\n"))
-		}
-		framework.Logf("No alerts fired during test run")
+		testDuration := exutil.DurationSinceStartInSeconds()
+		alerts.CheckAlerts(alerts.AllowedAlertsDuringConformance, oc.NewPrometheusClient(context.TODO()), oc.AdminConfigClient(), testDuration, nil)
 	})
 
 	g.It("shouldn't exceed the 650 series limit of total series sent via telemetry from each cluster", func() {
@@ -429,7 +251,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 	var (
 		oc = exutil.NewCLIWithPodSecurityLevel("prometheus", admissionapi.LevelBaseline)
 
-		url, prometheusURL, bearerToken string
+		queryURL, prometheusURL, querySvcURL, prometheusSvcURL, bearerToken string
 	)
 
 	g.BeforeEach(func() {
@@ -439,9 +261,13 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		var ok bool
-		url, prometheusURL, bearerToken, ok = helper.LocatePrometheus(oc)
+		querySvcURL, prometheusSvcURL, bearerToken, ok = helper.LocatePrometheus(oc)
 		if !ok {
-			e2e.Failf("Prometheus could not be located on this cluster, failing prometheus test")
+			e2e.Failf("Prometheus URLs through services could not be located on this cluster, failing prometheus test")
+		}
+		queryURL, prometheusURL, _, ok = helper.LocatePrometheusUsingRoutes(oc)
+		if !ok {
+			e2e.Failf("Prometheus URLs through routes could not be located on this cluster, failing prometheus test")
 		}
 	})
 
@@ -486,7 +312,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 			g.By("checking the prometheus metrics path")
 			var metrics map[string]*dto.MetricFamily
 			o.Expect(wait.PollImmediate(10*time.Second, 2*time.Minute, func() (bool, error) {
-				results, err := getBearerTokenURLViaPod(ns, execPod.Name, fmt.Sprintf("%s/metrics", prometheusURL), bearerToken)
+				results, err := getBearerTokenURLViaPod(ns, execPod.Name, fmt.Sprintf("%s/metrics", prometheusSvcURL), bearerToken)
 				if err != nil {
 					e2e.Logf("unable to get metrics: %v", err)
 					return false, nil
@@ -514,18 +340,18 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 			})).NotTo(o.HaveOccurred(), fmt.Sprintf("Did not find tsdb_samples_appended_total, tsdb_head_samples_appended_total, or prometheus_tsdb_head_samples_appended_total"))
 
 			g.By("verifying the Thanos querier service requires authentication")
-			err := helper.ExpectURLStatusCodeExec(ns, execPod.Name, url, 401, 403)
+			err := helper.ExpectURLStatusCodeExecViaPod(ns, execPod.Name, querySvcURL, 401, 403)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("verifying a service account token is able to authenticate")
-			err = expectBearerTokenURLStatusCodeExec(ns, execPod.Name, fmt.Sprintf("%s/api/v1/targets", url), bearerToken, 200)
+			err = expectBearerTokenURLStatusCodeExec(fmt.Sprintf("%s/api/v1/targets", queryURL), bearerToken, 200)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("verifying a service account token is able to access the Prometheus API")
 			// expect all endpoints within 60 seconds
 			var lastErrs []error
 			o.Expect(wait.PollImmediate(10*time.Second, 2*time.Minute, func() (bool, error) {
-				contents, err := getBearerTokenURLViaPod(ns, execPod.Name, fmt.Sprintf("%s/api/v1/targets", prometheusURL), bearerToken)
+				contents, err := getBearerTokenURL(fmt.Sprintf("%s/api/v1/targets", prometheusURL), bearerToken)
 				o.Expect(err).NotTo(o.HaveOccurred())
 
 				targets := &prometheusTargets{}
@@ -575,7 +401,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 
 			g.By("verifying all targets are exposing metrics over secure channel")
 			var insecureTargets []error
-			contents, err := getBearerTokenURLViaPod(ns, execPod.Name, fmt.Sprintf("%s/api/v1/targets", prometheusURL), bearerToken)
+			contents, err := getBearerTokenURL(fmt.Sprintf("%s/api/v1/targets", prometheusURL), bearerToken)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			targets := &prometheusTargets{}
@@ -669,10 +495,6 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 		})
 
 		g.It("shouldn't report any alerts in firing state apart from Watchdog and AlertmanagerReceiversNotConfigured [Early][apigroup:config.openshift.io]", func() {
-			if len(os.Getenv("TEST_UNSUPPORTED_ALLOW_VERSION_SKEW")) > 0 {
-				e2eskipper.Skipf("Test is disabled to allow cluster components to have different versions, and skewed versions trigger multiple other alerts")
-			}
-
 			// Checking Watchdog alert state is done in "should have a Watchdog alert in firing state".
 			allowedAlertNames := []string{
 				"Watchdog",
@@ -701,16 +523,9 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 		})
 
 		g.It("should provide ingress metrics", func() {
-			ns := oc.SetupProject()
-
-			execPod := exutil.CreateExecPodOrFail(oc.AdminKubeClient(), ns, "execpod")
-			defer func() {
-				oc.AdminKubeClient().CoreV1().Pods(ns).Delete(context.Background(), execPod.Name, *metav1.NewDeleteOptions(1))
-			}()
-
 			var lastErrs []error
 			o.Expect(wait.PollImmediate(10*time.Second, 4*time.Minute, func() (bool, error) {
-				contents, err := getBearerTokenURLViaPod(ns, execPod.Name, fmt.Sprintf("%s/api/v1/targets", prometheusURL), bearerToken)
+				contents, err := getBearerTokenURL(fmt.Sprintf("%s/api/v1/targets", prometheusURL), bearerToken)
 				o.Expect(err).NotTo(o.HaveOccurred())
 
 				targets := &prometheusTargets{}
@@ -888,16 +703,25 @@ func findMetricLabels(f *dto.MetricFamily, labels map[string]string, match strin
 	return result
 }
 
-func expectBearerTokenURLStatusCodeExec(ns, execPodName, url, bearer string, statusCode int) error {
+func expectBearerTokenURLStatusCodeExec(url, bearer string, statusCode int) error {
 	cmd := fmt.Sprintf("curl -k -s -H 'Authorization: Bearer %s' -o /dev/null -w '%%{http_code}' %q", bearer, url)
-	output, err := e2e.RunHostCmd(ns, execPodName, cmd)
+	output, err := exec.Command("bash", "-e", "-c", cmd).Output()
 	if err != nil {
 		return fmt.Errorf("host command failed: %v\n%s", err, output)
 	}
-	if output != strconv.Itoa(statusCode) {
+	if string(output) != strconv.Itoa(statusCode) {
 		return fmt.Errorf("last response from server was not %d: %s", statusCode, output)
 	}
 	return nil
+}
+
+func getBearerTokenURL(url, bearer string) (string, error) {
+	cmd := fmt.Sprintf("curl -s -k -H 'Authorization: Bearer %s' %q", bearer, url)
+	output, err := exec.Command("bash", "-e", "-c", cmd).Output()
+	if err != nil {
+		return "", fmt.Errorf("host command failed: %v\n%s", err, output)
+	}
+	return string(output), nil
 }
 
 func getBearerTokenURLViaPod(ns, execPodName, url, bearer string) (string, error) {
@@ -924,6 +748,9 @@ func telemetryIsEnabled(ctx context.Context, client clientset.Interface) (enable
 func hasPullSecret(ctx context.Context, client clientset.Interface, name string) (enabled error, err error) {
 	scrt, err := client.CoreV1().Secrets("openshift-config").Get(ctx, "pull-secret", metav1.GetOptions{})
 	if err != nil {
+		if kapierrs.IsNotFound(err) {
+			return fmt.Errorf("openshift-config/pull-secret not found"), nil
+		}
 		return nil, fmt.Errorf("could not retrieve pull-secret: %w", err)
 	}
 
