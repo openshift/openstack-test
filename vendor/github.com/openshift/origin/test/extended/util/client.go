@@ -131,7 +131,7 @@ func NewCLI(project string) *CLI {
 	cli := NewCLIWithoutNamespace(project)
 	cli.withoutNamespace = false
 	// create our own project
-	g.BeforeEach(func() { _ = cli.SetupProject() })
+	g.BeforeEach(func() { cli.SetupProject() })
 	return cli
 }
 
@@ -258,7 +258,7 @@ func (c CLI) WithToken(token string) *CLI {
 // All resources will be then created within this project.
 // Returns the name of the new project.
 func (c *CLI) SetupProject() string {
-	exist, err := DoesApiResourceExist(c.AdminConfig(), "projects")
+	exist, err := DoesApiResourceExist(c.AdminConfig(), "projects", "project.openshift.io")
 	o.Expect(err).ToNot(o.HaveOccurred())
 	if exist {
 		return c.setupProject()
@@ -276,9 +276,6 @@ func (c *CLI) setupProject() string {
 	_, err := c.ProjectClient().ProjectV1().ProjectRequests().Create(context.Background(), &projectv1.ProjectRequest{
 		ObjectMeta: metav1.ObjectMeta{Name: newNamespace},
 	}, metav1.CreateOptions{})
-	if apierrors.IsForbidden(err) {
-		err = c.setupSelfProvisionerRoleBinding()
-	}
 	o.Expect(err).NotTo(o.HaveOccurred())
 
 	c.kubeFramework.AddNamespacesToDelete(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: newNamespace}})
@@ -506,64 +503,6 @@ func (c *CLI) setupUserConfig(username string) (*rest.Config, error) {
 	userClientConfig.TLSClientConfig.CertData = csr.Status.Certificate
 	userClientConfig.TLSClientConfig.KeyData = privateKeyPem
 	return userClientConfig, nil
-}
-
-func (c *CLI) setupSelfProvisionerRoleBinding() error {
-	rb := &rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "e2e-self-provisioners",
-		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: rbacv1.SchemeGroupVersion.Group,
-			Kind:     "ClusterRole",
-			Name:     "self-provisioner",
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				APIGroup: rbacv1.SchemeGroupVersion.Group,
-				Kind:     "Group",
-				Name:     "system:authenticated:oauth",
-			},
-		},
-	}
-	_, err := c.AdminKubeClient().RbacV1().ClusterRoleBindings().Create(context.Background(), rb, metav1.CreateOptions{})
-	return err
-}
-
-// SetupProject creates a new project and assign a random user to the project.
-// All resources will be then created within this project.
-// TODO this should be removed.  It's only used by image tests.
-func (c *CLI) CreateProject() string {
-	requiresTestStart()
-	newNamespace := names.SimpleNameGenerator.GenerateName(fmt.Sprintf("e2e-test-%s-", c.kubeFramework.BaseName))
-	framework.Logf("Creating project %q", newNamespace)
-	_, err := c.ProjectClient().ProjectV1().ProjectRequests().Create(context.Background(), &projectv1.ProjectRequest{
-		ObjectMeta: metav1.ObjectMeta{Name: newNamespace},
-	}, metav1.CreateOptions{})
-	if apierrors.IsForbidden(err) {
-		err = c.setupSelfProvisionerRoleBinding()
-	}
-	o.Expect(err).NotTo(o.HaveOccurred())
-
-	actualNs, err := c.AdminKubeClient().CoreV1().Namespaces().Get(context.Background(), newNamespace, metav1.GetOptions{})
-	o.Expect(err).NotTo(o.HaveOccurred())
-	c.kubeFramework.AddNamespacesToDelete(actualNs)
-
-	framework.Logf("Waiting on permissions in project %q ...", newNamespace)
-	err = WaitForSelfSAR(1*time.Second, 60*time.Second, c.KubeClient(), kubeauthorizationv1.SelfSubjectAccessReviewSpec{
-		ResourceAttributes: &kubeauthorizationv1.ResourceAttributes{
-			Namespace: newNamespace,
-			Verb:      "create",
-			Group:     "",
-			Resource:  "pods",
-		},
-	})
-	o.Expect(err).NotTo(o.HaveOccurred())
-
-	err = c.setupNamespacePodSecurity(newNamespace)
-	o.Expect(err).NotTo(o.HaveOccurred())
-
-	return newNamespace
 }
 
 func (c *CLI) setupNamespacePodSecurity(ns string) error {
@@ -860,6 +799,17 @@ func (c *CLI) start(stdOutBuff, stdErrBuff *bytes.Buffer) (*exec.Cmd, error) {
 	return cmd, err
 }
 
+// getStartingIndexForLastN calculates a byte offset in a byte slice such that when using
+// that offset, we get the last N (size) bytes.
+func getStartingIndexForLastN(byteString []byte, size int) int {
+	len := len(byteString)
+	if len < size {
+		// byte slice is less than size, so use all of it.
+		return 0
+	}
+	return len - size
+}
+
 func (c *CLI) outputs(stdOutBuff, stdErrBuff *bytes.Buffer) (string, string, error) {
 	cmd, err := c.start(stdOutBuff, stdErrBuff)
 	if err != nil {
@@ -879,7 +829,8 @@ func (c *CLI) outputs(stdOutBuff, stdErrBuff *bytes.Buffer) (string, string, err
 		return stdOut, stdErr, nil
 	case *exec.ExitError:
 		framework.Logf("Error running %v:\nStdOut>\n%s\nStdErr>\n%s\n", cmd, stdOut, stdErr)
-		return stdOut, stdErr, err
+		wrappedErr := fmt.Errorf("Error running %v:\nStdOut>\n%s\nStdErr>\n%s\n%w\n", cmd, stdOut[getStartingIndexForLastN(stdOutBytes, 4096):], stdErr[getStartingIndexForLastN(stdErrBytes, 4096):], err)
+		return stdOut, stdErr, wrappedErr
 	default:
 		FatalErr(fmt.Errorf("unable to execute %q: %v", c.execPath, err))
 		// unreachable code
@@ -937,7 +888,7 @@ func (c *CLI) CreateUser(prefix string) *userv1.User {
 
 func (c *CLI) GetClientConfigForUser(username string) *rest.Config {
 
-	userAPIExists, err := DoesApiResourceExist(c.AdminConfig(), "users")
+	userAPIExists, err := DoesApiResourceExist(c.AdminConfig(), "users", "user.openshift.io")
 	if err != nil {
 		FatalErr(err)
 	}

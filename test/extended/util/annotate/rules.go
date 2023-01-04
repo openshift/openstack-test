@@ -70,9 +70,6 @@ var (
 			// https://bugzilla.redhat.com/show_bug.cgi?id=2070929
 			`\[sig-network\]\[Feature:EgressIP\]\[apigroup:config.openshift.io\] \[internal-targets\]`,
 
-			// https://bugzilla.redhat.com/show_bug.cgi?id=2093339
-			`\[sig-storage\].* provisioning should provision storage with any volume data source`,
-
 			// https://issues.redhat.com/browse/OCPBUGS-967
 			`\[sig-network\] IngressClass \[Feature:Ingress\] should prevent Ingress creation if more than 1 IngressClass marked as default`,
 
@@ -91,6 +88,10 @@ var (
 			`\[sig-storage\] In-tree Volumes \[Driver: vsphere\] \[Testpattern: Dynamic PV \(delayed binding\)\] topology should provision a volume and schedule a pod with AllowedTopologies`,
 			`\[sig-storage\] In-tree Volumes \[Driver: vsphere\] \[Testpattern: Dynamic PV \(immediate binding\)\] topology should fail to schedule a pod which has topologies that conflict with AllowedTopologies`,
 			`\[sig-storage\] In-tree Volumes \[Driver: vsphere\] \[Testpattern: Dynamic PV \(immediate binding\)\] topology should provision a volume and schedule a pod with AllowedTopologies`,
+			// Skip openstack-specific storage tests in preparation for in-tree cinder provisioner removal
+			// coming with k8s 1.26. This will have to be reverted once 1.26 rebase is effective.
+			// https://issues.redhat.com/browse/OCPBUGS-5029
+			`\[sig-storage\].*\[Driver: cinder\]`,
 		},
 		// tests too slow to be part of conformance
 		"[Slow]": {},
@@ -290,27 +291,8 @@ var (
 		},
 		// tests that don't pass under OVN Kubernetes
 		"[Skipped:Network/OVNKubernetes]": {
-			// https://jira.coreos.com/browse/SDN-510: OVN-K doesn't support session affinity
-			`\[sig-network\] Networking Granular Checks: Services should function for client IP based session affinity: http`,
-			`\[sig-network\] Networking Granular Checks: Services should function for client IP based session affinity: udp`,
-			`\[sig-network\] Services should be able to switch session affinity for NodePort service`,
-			`\[sig-network\] Services should be able to switch session affinity for service with type clusterIP`,
-			`\[sig-network\] Services should have session affinity work for NodePort service`,
-			`\[sig-network\] Services should have session affinity work for service with type clusterIP`,
-			`\[sig-network\] Services should have session affinity timeout work for NodePort service`,
-			`\[sig-network\] Services should have session affinity timeout work for service with type clusterIP`,
-
-			// https://bugzilla.redhat.com/show_bug.cgi?id=1996097 - [Feature:IPv6DualStack] tests are failing in dualstack
-			// https://jira.coreos.com/browse/SDN-510: OVN-K doesn't support session affinity
-			`\[sig-network\] \[Feature:IPv6DualStack\] Granular Checks: Services Secondary IP Family \[LinuxOnly\] should function for client IP based session affinity: http`,
-			`\[sig-network\] \[Feature:IPv6DualStack\] Granular Checks: Services Secondary IP Family \[LinuxOnly\] should function for client IP based session affinity: udp`,
-
 			// ovn-kubernetes does not support named ports
 			`NetworkPolicy.*named port`,
-
-			// https://bugzilla.redhat.com/show_bug.cgi?id=1989169: unidling tests are flaky under ovn-kubernetes
-			`Unidling \[apigroup:apps.openshift.io\]\[apigroup:route.openshift.io\] should work with TCP`,
-			`Unidling \[apigroup:apps.openshift.io\]\[apigroup:route.openshift.io\] should handle many TCP connections`,
 		},
 		"[Skipped:ibmroks]": {
 			// skip Gluster tests (not supported on ROKS worker nodes)

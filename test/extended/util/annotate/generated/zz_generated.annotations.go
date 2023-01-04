@@ -1119,9 +1119,9 @@ var Annotations = map[string]string{
 
 	"[sig-network] Networking Granular Checks: Services should be able to handle large requests: udp": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-network] Networking Granular Checks: Services should function for client IP based session affinity: http [LinuxOnly]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-network] Networking Granular Checks: Services should function for client IP based session affinity: http [LinuxOnly]": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-network] Networking Granular Checks: Services should function for client IP based session affinity: udp [LinuxOnly]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-network] Networking Granular Checks: Services should function for client IP based session affinity: udp [LinuxOnly]": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
 	"[sig-network] Networking Granular Checks: Services should function for endpoint-Service: http": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -1205,9 +1205,9 @@ var Annotations = map[string]string{
 
 	"[sig-network] Services should be able to create a functioning NodePort service [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should be able to switch session affinity for NodePort service [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should be able to switch session affinity for NodePort service [LinuxOnly] [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should be able to switch session affinity for service with type clusterIP [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should be able to switch session affinity for service with type clusterIP [LinuxOnly] [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
 	"[sig-network] Services should be able to up and down services": " [Disabled:Broken] [Suite:k8s]",
 
@@ -1241,13 +1241,13 @@ var Annotations = map[string]string{
 
 	"[sig-network] Services should find a service from listing all namespaces [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should have session affinity timeout work for NodePort service [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKuberenetes] [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should have session affinity timeout work for NodePort service [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKuberenetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should have session affinity timeout work for service with type clusterIP [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKuberenetes] [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should have session affinity timeout work for service with type clusterIP [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKuberenetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should have session affinity work for NodePort service [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should have session affinity work for NodePort service [LinuxOnly] [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should have session affinity work for service with type clusterIP [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should have session affinity work for service with type clusterIP [LinuxOnly] [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
 	"[sig-network] Services should implement service.kubernetes.io/headless": " [Disabled:Broken] [Suite:k8s]",
 
@@ -1283,9 +1283,9 @@ var Annotations = map[string]string{
 
 	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should be able to handle large requests: udp": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for client IP based session affinity: http [LinuxOnly]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for client IP based session affinity: http [LinuxOnly]": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for client IP based session affinity: udp [LinuxOnly]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for client IP based session affinity: udp [LinuxOnly]": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
 	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for endpoint-Service: http": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -1763,7 +1763,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -1803,7 +1803,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -1947,7 +1947,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] CSI Volumes [Driver: csi-hostpath] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -2295,7 +2295,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
-	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:k8s]",
+	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
@@ -2335,7 +2335,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
-	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:k8s]",
+	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
@@ -2479,7 +2479,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
-	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:k8s]",
+	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] CSI Volumes [Driver: pd.csi.storage.gke.io][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
@@ -3145,7 +3145,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -3185,7 +3185,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -3327,7 +3327,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: aws] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -3637,7 +3637,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -3677,7 +3677,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -3819,7 +3819,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: azure-disk] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -4129,7 +4129,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -4171,7 +4171,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -4313,7 +4313,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: azure-file] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -4625,7 +4625,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
@@ -4667,7 +4667,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
@@ -4809,7 +4809,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
@@ -5091,497 +5091,497 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: ceph][Feature:Volumes][Serial] [Testpattern: Pre-provisioned PV (xfs)][Slow] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)(allowExpansion)] volume-expand Verify if offline PVC expansion works": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)(allowExpansion)] volume-expand Verify if offline PVC expansion works": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)(allowExpansion)] volume-expand should resize volume when PVC is edited while pod is using it": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)(allowExpansion)] volume-expand should resize volume when PVC is edited while pod is using it": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv used in a pod that is deleted while the kubelet is down cleans up when the kubelet returns.": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv used in a pod that is deleted while the kubelet is down cleans up when the kubelet returns.": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv used in a pod that is force deleted while the kubelet is down cleans up when the kubelet returns.": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv used in a pod that is force deleted while the kubelet is down cleans up when the kubelet returns.": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv written before kubelet restart is readable after restart.": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv written before kubelet restart is readable after restart.": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with pvc data source in parallel [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with pvc data source in parallel [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with pvc data source": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with pvc data source": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with snapshot data source [Feature:VolumeSnapshotDataSource]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with snapshot data source [Feature:VolumeSnapshotDataSource]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volume-expand should not allow expansion of pvcs without AllowVolumeExpansion property": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volume-expand should not allow expansion of pvcs without AllowVolumeExpansion property": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volume-stress multiple pods should access different volumes repeatedly [Slow] [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volume-stress multiple pods should access different volumes repeatedly [Slow] [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volumeMode should fail to use a volume in a pod with mismatched mode [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volumeMode should fail to use a volume in a pod with mismatched mode [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volumeMode should not mount / map unused volumes in a pod [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volumeMode should not mount / map unused volumes in a pod [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (block volmode)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)(allowExpansion)] volume-expand Verify if offline PVC expansion works": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)(allowExpansion)] volume-expand Verify if offline PVC expansion works": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)(allowExpansion)] volume-expand should resize volume when PVC is edited while pod is using it": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)(allowExpansion)] volume-expand should resize volume when PVC is edited while pod is using it": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] capacity provides storage capacity information": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] capacity provides storage capacity information": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (Always)[LinuxOnly], pod created with an initial fsgroup, new pod fsgroup applied to volume contents": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (Always)[LinuxOnly], pod created with an initial fsgroup, new pod fsgroup applied to volume contents": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (Always)[LinuxOnly], pod created with an initial fsgroup, volume contents ownership changed via chgrp in first pod, new pod with different fsgroup applied to the volume contents": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (Always)[LinuxOnly], pod created with an initial fsgroup, volume contents ownership changed via chgrp in first pod, new pod with different fsgroup applied to the volume contents": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (Always)[LinuxOnly], pod created with an initial fsgroup, volume contents ownership changed via chgrp in first pod, new pod with same fsgroup applied to the volume contents": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (Always)[LinuxOnly], pod created with an initial fsgroup, volume contents ownership changed via chgrp in first pod, new pod with same fsgroup applied to the volume contents": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (OnRootMismatch)[LinuxOnly], pod created with an initial fsgroup, new pod fsgroup applied to volume contents": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (OnRootMismatch)[LinuxOnly], pod created with an initial fsgroup, new pod fsgroup applied to volume contents": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (OnRootMismatch)[LinuxOnly], pod created with an initial fsgroup, volume contents ownership changed via chgrp in first pod, new pod with different fsgroup applied to the volume contents": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (OnRootMismatch)[LinuxOnly], pod created with an initial fsgroup, volume contents ownership changed via chgrp in first pod, new pod with different fsgroup applied to the volume contents": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (OnRootMismatch)[LinuxOnly], pod created with an initial fsgroup, volume contents ownership changed via chgrp in first pod, new pod with same fsgroup skips ownership changes to the volume contents": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] fsgroupchangepolicy (OnRootMismatch)[LinuxOnly], pod created with an initial fsgroup, volume contents ownership changed via chgrp in first pod, new pod with same fsgroup skips ownership changes to the volume contents": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with pvc data source in parallel [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with pvc data source in parallel [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with pvc data source": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with pvc data source": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with snapshot data source [Feature:VolumeSnapshotDataSource]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with snapshot data source [Feature:VolumeSnapshotDataSource]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should be able to unmount after the subpath directory is deleted [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should be able to unmount after the subpath directory is deleted [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should fail if non-existent subpath is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should fail if non-existent subpath is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should fail if subpath directory is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should fail if subpath directory is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should fail if subpath file is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should fail if subpath file is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should fail if subpath with backstepping is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should fail if subpath with backstepping is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support creating multiple subpath from same volumes [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support creating multiple subpath from same volumes [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support existing directories when readOnly specified in the volumeSource": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support existing directories when readOnly specified in the volumeSource": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support existing directory": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support existing directory": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support existing single file [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support existing single file [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support file as subpath [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support file as subpath [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support non-existent path": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support non-existent path": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support readOnly directory specified in the volumeMount": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support readOnly directory specified in the volumeMount": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support readOnly file specified in the volumeMount [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support readOnly file specified in the volumeMount [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support restarting containers using directory as subpath [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support restarting containers using directory as subpath [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support restarting containers using file as subpath [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should support restarting containers using file as subpath [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should unmount if pod is force deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should unmount if pod is force deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should verify container cannot write to subpath readonly volumes [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] subPath should verify container cannot write to subpath readonly volumes [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volume-expand should not allow expansion of pvcs without AllowVolumeExpansion property": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volume-expand should not allow expansion of pvcs without AllowVolumeExpansion property": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volume-stress multiple pods should access different volumes repeatedly [Slow] [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volume-stress multiple pods should access different volumes repeatedly [Slow] [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volumeIO should write files of various sizes, verify size, validate content [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volumeIO should write files of various sizes, verify size, validate content [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (default fs)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (delayed binding)] topology should fail to schedule a pod which has topologies that conflict with AllowedTopologies": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (delayed binding)] topology should fail to schedule a pod which has topologies that conflict with AllowedTopologies": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (delayed binding)] topology should provision a volume and schedule a pod with AllowedTopologies": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (delayed binding)] topology should provision a volume and schedule a pod with AllowedTopologies": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext3)] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext3)] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext3)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext3)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ext4)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv written before kubelet restart is readable after restart.": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv written before kubelet restart is readable after restart.": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] volumeLimits should support volume limits [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] volumeLimits should support volume limits [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] volumeLimits should verify that all csinodes have volume limits": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] volumeLimits should verify that all csinodes have volume limits": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] volumeMode should fail to use a volume in a pod with mismatched mode [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] volumeMode should fail to use a volume in a pod with mismatched mode [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] volumeMode should not mount / map unused volumes in a pod [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (filesystem volmode)] volumeMode should not mount / map unused volumes in a pod [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (immediate binding)] topology should fail to schedule a pod which has topologies that conflict with AllowedTopologies": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (immediate binding)] topology should fail to schedule a pod which has topologies that conflict with AllowedTopologies": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (immediate binding)] topology should provision a volume and schedule a pod with AllowedTopologies": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (immediate binding)] topology should provision a volume and schedule a pod with AllowedTopologies": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)(allowExpansion)][Feature:Windows] volume-expand Verify if offline PVC expansion works": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)(allowExpansion)][Feature:Windows] volume-expand Verify if offline PVC expansion works": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)(allowExpansion)][Feature:Windows] volume-expand should resize volume when PVC is edited while pod is using it": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)(allowExpansion)][Feature:Windows] volume-expand should resize volume when PVC is edited while pod is using it": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with pvc data source in parallel [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with pvc data source in parallel [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with pvc data source": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with pvc data source": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with snapshot data source [Feature:VolumeSnapshotDataSource]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with snapshot data source [Feature:VolumeSnapshotDataSource]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should be able to unmount after the subpath directory is deleted [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should be able to unmount after the subpath directory is deleted [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should fail if non-existent subpath is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should fail if non-existent subpath is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should fail if subpath directory is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should fail if subpath directory is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should fail if subpath file is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should fail if subpath file is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should fail if subpath with backstepping is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should fail if subpath with backstepping is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support creating multiple subpath from same volumes [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support creating multiple subpath from same volumes [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support existing directories when readOnly specified in the volumeSource": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support existing directories when readOnly specified in the volumeSource": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support existing directory": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support existing directory": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support existing single file [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support existing single file [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support file as subpath [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support file as subpath [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support non-existent path": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support non-existent path": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support readOnly directory specified in the volumeMount": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support readOnly directory specified in the volumeMount": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support readOnly file specified in the volumeMount [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support readOnly file specified in the volumeMount [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support restarting containers using directory as subpath [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support restarting containers using directory as subpath [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support restarting containers using file as subpath [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should support restarting containers using file as subpath [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should unmount if pod is force deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should unmount if pod is force deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should verify container cannot write to subpath readonly volumes [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] subPath should verify container cannot write to subpath readonly volumes [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] volume-expand should not allow expansion of pvcs without AllowVolumeExpansion property": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] volume-expand should not allow expansion of pvcs without AllowVolumeExpansion property": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] volumeIO should write files of various sizes, verify size, validate content [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] volumeIO should write files of various sizes, verify size, validate content [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Dynamic PV (xfs)][Slow] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should create read-only inline ephemeral volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should create read-only inline ephemeral volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should create read/write inline ephemeral volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should create read/write inline ephemeral volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should support expansion of pvcs created for ephemeral pvcs": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should support expansion of pvcs created for ephemeral pvcs": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should support multiple inline ephemeral volumes": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should support multiple inline ephemeral volumes": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should support two pods which have the same volume definition": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (block volmode) (late-binding)] ephemeral should support two pods which have the same volume definition": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should create read-only inline ephemeral volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should create read-only inline ephemeral volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should create read/write inline ephemeral volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should create read/write inline ephemeral volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should support expansion of pvcs created for ephemeral pvcs": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should support expansion of pvcs created for ephemeral pvcs": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should support multiple inline ephemeral volumes": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should support multiple inline ephemeral volumes": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should support two pods which have the same volume definition": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (immediate-binding)] ephemeral should support two pods which have the same volume definition": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should create read-only inline ephemeral volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should create read-only inline ephemeral volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should create read/write inline ephemeral volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should create read/write inline ephemeral volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should support expansion of pvcs created for ephemeral pvcs": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should support expansion of pvcs created for ephemeral pvcs": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should support multiple inline ephemeral volumes": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should support multiple inline ephemeral volumes": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should support two pods which have the same volume definition": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs) (late-binding)] ephemeral should support two pods which have the same volume definition": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs)] volumeLimits should support volume limits [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs)] volumeLimits should support volume limits [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs)] volumeLimits should verify that all csinodes have volume limits": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Generic Ephemeral-volume (default fs)] volumeLimits should verify that all csinodes have volume limits": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should be able to unmount after the subpath directory is deleted [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should be able to unmount after the subpath directory is deleted [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should fail if non-existent subpath is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should fail if non-existent subpath is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should fail if subpath directory is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should fail if subpath directory is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should fail if subpath file is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should fail if subpath file is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should fail if subpath with backstepping is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should fail if subpath with backstepping is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support creating multiple subpath from same volumes [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support creating multiple subpath from same volumes [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support existing directories when readOnly specified in the volumeSource": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support existing directories when readOnly specified in the volumeSource": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support existing directory": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support existing directory": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support existing single file [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support existing single file [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support file as subpath [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support file as subpath [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support non-existent path": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support non-existent path": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support readOnly directory specified in the volumeMount": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support readOnly directory specified in the volumeMount": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support readOnly file specified in the volumeMount [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support readOnly file specified in the volumeMount [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support restarting containers using directory as subpath [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support restarting containers using directory as subpath [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support restarting containers using file as subpath [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should support restarting containers using file as subpath [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should unmount if pod is force deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should unmount if pod is force deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should verify container cannot write to subpath readonly volumes [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] subPath should verify container cannot write to subpath readonly volumes [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] volumeIO should write files of various sizes, verify size, validate content [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] volumeIO should write files of various sizes, verify size, validate content [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (default fs)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ext3)] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ext3)] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ext3)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ext3)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ext4)] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ext4)] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ext4)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ext4)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ntfs)][Feature:Windows] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ntfs)][Feature:Windows] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ntfs)][Feature:Windows] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (ntfs)][Feature:Windows] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (xfs)][Slow] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (xfs)][Slow] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (xfs)][Slow] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Inline-volume (xfs)][Slow] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv used in a pod that is deleted while the kubelet is down cleans up when the kubelet returns.": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv used in a pod that is deleted while the kubelet is down cleans up when the kubelet returns.": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv used in a pod that is force deleted while the kubelet is down cleans up when the kubelet returns.": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv used in a pod that is force deleted while the kubelet is down cleans up when the kubelet returns.": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv written before kubelet restart is readable after restart.": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv written before kubelet restart is readable after restart.": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] volumeMode should fail to use a volume in a pod with mismatched mode [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] volumeMode should fail to use a volume in a pod with mismatched mode [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] volumeMode should not mount / map unused volumes in a pod [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] volumeMode should not mount / map unused volumes in a pod [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (block volmode)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should be able to unmount after the subpath directory is deleted [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should be able to unmount after the subpath directory is deleted [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should fail if non-existent subpath is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should fail if non-existent subpath is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should fail if subpath directory is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should fail if subpath directory is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should fail if subpath file is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should fail if subpath file is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should fail if subpath with backstepping is outside the volume [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should fail if subpath with backstepping is outside the volume [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support creating multiple subpath from same volumes [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support creating multiple subpath from same volumes [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support existing directories when readOnly specified in the volumeSource": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support existing directories when readOnly specified in the volumeSource": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support existing directory": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support existing directory": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support existing single file [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support existing single file [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support file as subpath [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support file as subpath [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support non-existent path": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support non-existent path": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support readOnly directory specified in the volumeMount": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support readOnly directory specified in the volumeMount": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support readOnly file specified in the volumeMount [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support readOnly file specified in the volumeMount [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support restarting containers using directory as subpath [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support restarting containers using directory as subpath [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support restarting containers using file as subpath [Slow][LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should support restarting containers using file as subpath [Slow][LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should unmount if pod is force deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should unmount if pod is force deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow][LinuxOnly]": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should verify container cannot write to subpath readonly volumes [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] subPath should verify container cannot write to subpath readonly volumes [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] volumeIO should write files of various sizes, verify size, validate content [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] volumeIO should write files of various sizes, verify size, validate content [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (default fs)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ext3)] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ext3)] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ext3)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ext3)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ext4)] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ext4)] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ext4)] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ext4)] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv written before kubelet restart is readable after restart.": " [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] disruptive[Disruptive][LinuxOnly] Should test that pv written before kubelet restart is readable after restart.": " [Disabled:Unsupported] [Serial] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with different volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should access to two volumes with the same volume mode and retain data across pod recreation on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single read-only volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single volume from pods on different node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the single volume from pods on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the volume and its clone from pods on the same node [LinuxOnly][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] multiVolume [Slow] should concurrently access the volume and restored snapshot from pods on the same node [LinuxOnly][Feature:VolumeSnapshotDataSource][Feature:VolumeSourceXFS]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] volumeMode should fail to use a volume in a pod with mismatched mode [Slow]": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] volumeMode should fail to use a volume in a pod with mismatched mode [Slow]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] volumeMode should not mount / map unused volumes in a pod [LinuxOnly]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (filesystem volmode)] volumeMode should not mount / map unused volumes in a pod [LinuxOnly]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ntfs)][Feature:Windows] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ntfs)][Feature:Windows] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ntfs)][Feature:Windows] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (ntfs)][Feature:Windows] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (xfs)][Slow] volumes should allow exec of files on the volume": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (xfs)][Slow] volumes should allow exec of files on the volume": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (xfs)][Slow] volumes should store data": " [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: cinder] [Testpattern: Pre-provisioned PV (xfs)][Slow] volumes should store data": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (block volmode)(allowExpansion)] volume-expand Verify if offline PVC expansion works": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -5613,7 +5613,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -5655,7 +5655,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -5797,7 +5797,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: emptydir] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -6109,7 +6109,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
 
@@ -6151,7 +6151,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
 
@@ -6293,7 +6293,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: gluster] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Skipped:ibmroks] [Suite:k8s]",
 
@@ -6605,7 +6605,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -6647,7 +6647,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -6789,7 +6789,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: hostPathSymlink] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -7101,7 +7101,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -7143,7 +7143,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -7285,7 +7285,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: hostPath] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -8089,7 +8089,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -8129,7 +8129,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -8271,7 +8271,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: block] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -8581,7 +8581,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -8623,7 +8623,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -8765,7 +8765,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: blockfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -9077,7 +9077,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -9119,7 +9119,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -9261,7 +9261,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-bindmounted] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -9573,7 +9573,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -9615,7 +9615,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -9757,7 +9757,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link-bindmounted] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -10069,7 +10069,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -10111,7 +10111,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -10253,7 +10253,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir-link] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -10565,7 +10565,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -10607,7 +10607,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -10749,7 +10749,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: dir] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -11061,7 +11061,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
@@ -11103,7 +11103,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
@@ -11245,7 +11245,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: gce-localssd-scsi-fs] [Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Skipped:gce] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
@@ -11557,7 +11557,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -11599,7 +11599,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -11741,7 +11741,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: local][LocalVolumeType: tmpfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -12053,7 +12053,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -12095,7 +12095,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -12237,7 +12237,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: nfs] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -12549,7 +12549,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
@@ -12589,7 +12589,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
@@ -12731,7 +12731,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: rbd][Feature:Volumes][Serial] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
@@ -13041,7 +13041,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (block volmode)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (block volmode)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -13083,7 +13083,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (default fs)] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (default fs)] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -13225,7 +13225,7 @@ var Annotations = map[string]string{
 
 	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should mount multiple PV pointing to the same storage on the same node": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Disabled:Broken] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
+	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with any volume data source [Serial]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/serial] [Suite:k8s]",
 
 	"[sig-storage] In-tree Volumes [Driver: vsphere] [Testpattern: Dynamic PV (ntfs)][Feature:Windows] provisioning should provision storage with mount options": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
