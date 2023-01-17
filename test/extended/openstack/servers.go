@@ -104,26 +104,40 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		})
 
 		// https://bugzilla.redhat.com/show_bug.cgi?id=2022627
-		g.It("should include the addresses on the machine specs", func() {
+		g.It("should report all openstack instance addresses on the corresponding Machine object", func() {
+			// N.B. A UPI installation will not have any Machine objects. This test correctly trivially succeeds in that case because it
+			// iterates over Machine objects which exist.
 
-			skipUnlessMachineAPIOperator(dc, clientSet.CoreV1().Namespaces())
 			g.By("fetching machines")
 			machines, err := getMachines(dc)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			foundMachines := 0
+			// Create 2 maps of machine names to addresses: one from the machine specs, and one from OpenStack
+			machineIPs := make(map[string][]string)
+			openstackIPs := make(map[string][]string)
+
+			// Fetch IP addresses of OpenStack instances corresponding to the machines
 			for _, machine := range machines {
-				g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machine.Get("metadata.name")))
+				machineName := machine.Get("metadata.name").String()
+				machineIPs[machineName] = getAddressesFromMachine(machine)
+
+				g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machineName))
 				instance, err := servers.Get(computeClient, machine.Get("metadata.annotations.openstack-resourceId").String()).Extract()
+				o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machineName)
+
 				var gerr gophercloud.ErrDefault404
 				if !errors.As(err, &gerr) {
-					o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machine.Get("metadata.name"))
-					g.By(fmt.Sprintf("Compare addresses with openstack interfaces for machine %q", instance.Name))
-					o.Expect(parseInstanceAddresses(instance.Addresses)).To(o.ConsistOf(getAddressesFromMachine(machine)), "Addresses not matching for instance %q", instance.Name)
-					foundMachines++
+					instanceAddresses, err := parseInstanceAddresses(instance.Addresses)
+					o.Expect(err).NotTo(o.HaveOccurred(), "Error parsing addresses for instance %q", instance.Name)
+					openstackIPs[machineName] = instanceAddresses
 				}
 			}
-			o.Expect(foundMachines).NotTo(o.Equal(0))
+
+			// Assert that the maps are equal, ignoring ordering within the map or of addresses
+			o.Expect(mapKeys(machineIPs)).To(o.ConsistOf(mapKeys(openstackIPs)), "Machine names do not match")
+			for machineName, machineIPs := range machineIPs {
+				o.Expect(machineIPs).To(o.ConsistOf(openstackIPs[machineName]), "Addresses do not match for machine %q", machineName)
+			}
 		})
 	})
 })
@@ -301,4 +315,11 @@ func skipUnlessMachineAPIOperator(dc dynamic.Interface, c coreclient.NamespaceIn
 		return false, nil
 	})
 	o.Expect(err).NotTo(o.HaveOccurred())
+}
+
+func mapKeys[K comparable, V any](m map[K]V) (keys []K) {
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }
