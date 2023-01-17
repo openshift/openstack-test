@@ -27,7 +27,14 @@ verify_generated() {
 	declare new='test/extended/util/annotate/generated/zz_generated.annotations.go'
 	cp "$new" "$old"
 	go generate ./test/extended
-	diff "$old" "$new"
+	if ! diff "$old" "$new"; then
+            echo 'Generated files are out of date'
+            echo 'Run "make update"'
+            rm $old
+            return 1
+        fi
+        rm $old
+        return 0
 }
 
 declare run=0 failed=0 junit_testcases=''
