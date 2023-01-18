@@ -755,7 +755,7 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on instance creation should follow machineset specs": "",
 
-	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on instance creation should include the addresses on the machine specs": "",
+	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on instance creation should report all openstack instance addresses on the corresponding Machine object": "",
 
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should follow PVC specs during resizing for prometheus": "",
 
