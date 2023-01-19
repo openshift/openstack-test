@@ -6,7 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/kubernetes/openshift-hack/e2e/annotate"
 
-	_ "github.com/openshift/origin/test/extended"
+	_ "github.com/openshift/openstack-test/test/extended"
 )
 
 // mergeMaps updates an existing map of string slices with the

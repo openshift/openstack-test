@@ -68,7 +68,20 @@ var (
 			`\[sig-network-edge\]\[Feature:Idling\] Unidling should work with TCP \(while idling\)`,
 		},
 		// tests that may work, but we don't support them
-		"[Disabled:Unsupported]": {},
+		"[Disabled:Unsupported]": {
+			// Skip vSphere-specific storage tests. The standard in-tree storage tests for vSphere
+			// (prefixed with `In-tree Volumes [Driver: vsphere]`) are enough for testing this plugin.
+			// https://bugzilla.redhat.com/show_bug.cgi?id=2019115
+			`\[sig-storage\].*\[Feature:vsphere\]`,
+			// These tests are currently leaking sessions and hence disabling them until
+			// https://bugzilla.redhat.com/show_bug.cgi?id=2022824 is fixed.
+			`\[sig-storage\].+In-tree\s+Volumes\s+\[Driver: vsphere\].*`,
+			// Also, our CI doesn't support topology, so disable those tests
+			`\[sig-storage\] In-tree Volumes \[Driver: vsphere\] \[Testpattern: Dynamic PV \(delayed binding\)\] topology should fail to schedule a pod which has topologies that conflict with AllowedTopologies`,
+			`\[sig-storage\] In-tree Volumes \[Driver: vsphere\] \[Testpattern: Dynamic PV \(delayed binding\)\] topology should provision a volume and schedule a pod with AllowedTopologies`,
+			`\[sig-storage\] In-tree Volumes \[Driver: vsphere\] \[Testpattern: Dynamic PV \(immediate binding\)\] topology should fail to schedule a pod which has topologies that conflict with AllowedTopologies`,
+			`\[sig-storage\] In-tree Volumes \[Driver: vsphere\] \[Testpattern: Dynamic PV \(immediate binding\)\] topology should provision a volume and schedule a pod with AllowedTopologies`,
+		},
 		// tests too slow to be part of conformance
 		"[Slow]": {},
 		// tests that are known flaky
@@ -76,7 +89,11 @@ var (
 			`openshift mongodb replication creating from a template`, // flaking on deployment
 		},
 		// tests that must be run without competition
-		"[Serial]":        {},
+		"[Serial]": {},
+		// tests that can't be run in parallel with a copy of itself
+		"[Serial:Self]": {
+			`\[sig-network\] HostPort validates that there is no conflict between pods with same hostPort but different hostIP and protocol`,
+		},
 		"[Skipped:azure]": {},
 		"[Skipped:ovirt]": {},
 		"[Skipped:gce]":   {},
@@ -96,6 +113,16 @@ var (
 			`\[sig-cli\] Kubectl Port forwarding With a server listening on localhost should support forwarding over websockets`,
 			`\[sig-cli\] Kubectl Port forwarding With a server listening on 0.0.0.0 should support forwarding over websockets`,
 			`\[sig-node\] Pods should support remote command execution over websockets`,
+
+			// These tests are flacky and require internet access
+			// See https://bugzilla.redhat.com/show_bug.cgi?id=2019375
+			`\[sig-builds\]\[Feature:Builds\] build can reference a cluster service with a build being created from new-build should be able to run a build that references a cluster service`,
+			`\[sig-builds\]\[Feature:Builds\] oc new-app should succeed with a --name of 58 characters`,
+			`\[sig-network\] DNS should resolve DNS of partial qualified names for services`,
+			`\[sig-arch\] Only known images used by tests`,
+			`\[sig-network\] DNS should provide DNS for the cluster`,
+			// This test does not work when using in-proxy cluster, see https://bugzilla.redhat.com/show_bug.cgi?id=2084560
+			`\[sig-network\] Networking should provide Internet connection for containers`,
 		},
 		"[Skipped:SingleReplicaTopology]": {
 			`\[sig-apps\] Daemon set \[Serial\] should rollback without unnecessary restarts \[Conformance\]`,
@@ -122,6 +149,7 @@ var (
 			`\[sig-builds\]\[Feature:Builds\]\[valueFrom\] process valueFrom in build strategy environment variables  should successfully resolve valueFrom in s2i build environment variables`,
 			`\[sig-builds\]\[Feature:Builds\]\[volumes\] should mount given secrets and configmaps into the build pod for source strategy builds`,
 			`\[sig-builds\]\[Feature:Builds\]\[volumes\] should mount given secrets and configmaps into the build pod for docker strategy builds`,
+			`\[sig-builds\]\[Feature:Builds\]\[pullsearch\] docker build where the registry is not specified  Building from a Dockerfile whose FROM image ref does not specify the image registry should create a docker build that has buildah search from our predefined list of image registries and succeed`,
 			`\[sig-cli\] oc debug ensure it works with image streams`,
 			`\[sig-cli\] oc builds complex build start-build`,
 			`\[sig-cli\] oc builds complex build webhooks CRUD`,
@@ -131,6 +159,7 @@ var (
 			`\[sig-devex\]\[Feature:Templates\] templateinstance readiness test  should report ready soon after all annotated objects are ready`,
 			`\[sig-operator\] an end user can use OLM can subscribe to the operator`,
 			`\[sig-network\] Networking should provide Internet connection for containers`,
+			`\[sig-imageregistry\]\[Serial\]\[Suite:openshift/registry/serial\] Image signature workflow can push a signed image to openshift registry and verify it`,
 
 			// Need to access non-cached images like ruby and mongodb
 			`\[sig-apps\]\[Feature:DeploymentConfig\] deploymentconfigs with multiple image change triggers should run a successful deployment with a trigger used by different containers`,
@@ -208,6 +237,9 @@ var (
 			`\[sig-instrumentation\] Prometheus when installed on the cluster shouldn't have failing rules evaluation`,
 			`\[sig-instrumentation\] Prometheus when installed on the cluster shouldn't report any alerts in firing state apart from Watchdog and AlertmanagerReceiversNotConfigured \[Early\]`,
 			`\[sig-instrumentation\] Prometheus when installed on the cluster when using openshift-sdn should be able to get the sdn ovs flows`,
+			`\[sig-instrumentation\]\[Late\] OpenShift alerting rules should have a valid severity label`,
+			`\[sig-instrumentation\]\[Late\] OpenShift alerting rules should have description and summary annotations`,
+			`\[sig-instrumentation\]\[Late\] OpenShift alerting rules should have a runbook_url annotation if the alert is critical`,
 			`\[sig-instrumentation\]\[Late\] Alerts should have a Watchdog alert in firing state the entire cluster run`,
 			`\[sig-instrumentation\]\[Late\] Alerts shouldn't exceed the 500 series limit of total series sent via telemetry from each cluster`,
 			`\[sig-instrumentation\]\[Late\] Alerts shouldn't report any alerts in firing or pending state apart from Watchdog and AlertmanagerReceiversNotConfigured and have no gaps in Watchdog firing`,
@@ -264,8 +296,9 @@ var (
 
 			// https://bugzilla.redhat.com/show_bug.cgi?id=1989169: unidling tests are flaky under ovn-kubernetes
 			`Unidling should work with TCP`,
+			`Unidling should handle many TCP connections`,
 		},
-		"[Skipped:ibmcloud]": {
+		"[Skipped:ibmroks]": {
 			// skip Gluster tests (not supported on ROKS worker nodes)
 			// https://bugzilla.redhat.com/show_bug.cgi?id=1825009 - e2e: skip Glusterfs-related tests upstream for rhel7 worker nodes
 			`\[Driver: gluster\]`,
