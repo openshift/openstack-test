@@ -14,14 +14,6 @@ import (
 	"time"
 
 	"github.com/onsi/ginkgo"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-
-	utilflag "k8s.io/component-base/cli/flag"
-	"k8s.io/component-base/logs"
-	"k8s.io/klog/v2"
-	"k8s.io/kubectl/pkg/util/templates"
-
 	"github.com/openshift/library-go/pkg/image/reference"
 	"github.com/openshift/library-go/pkg/serviceability"
 	"github.com/openshift/origin/pkg/monitor"
@@ -30,6 +22,14 @@ import (
 	"github.com/openshift/origin/pkg/version"
 	exutil "github.com/openshift/origin/test/extended/util"
 	"github.com/openshift/origin/test/extended/util/cluster"
+	"github.com/openshift/origin/test/extended/util/disruption/controlplane"
+	"github.com/openshift/origin/test/extended/util/disruption/frontends"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	utilflag "k8s.io/component-base/cli/flag"
+	"k8s.io/component-base/logs"
+	"k8s.io/klog/v2"
+	"k8s.io/kubectl/pkg/util/templates"
 )
 
 func main() {
@@ -95,6 +95,10 @@ func newRunMonitorCommand() *cobra.Command {
 	monitorOpt := &monitor.Options{
 		Out:    os.Stdout,
 		ErrOut: os.Stderr,
+		AdditionalEventIntervalRecorders: []monitor.StartEventIntervalRecorderFunc{
+			controlplane.StartAllAPIMonitoring,
+			frontends.StartAllIngressMonitoring,
+		},
 	}
 	cmd := &cobra.Command{
 		Use:   "run-monitor",
@@ -207,6 +211,14 @@ type runOptions struct {
 	config *cluster.ClusterConfiguration
 }
 
+func NewRunOptions(fromRepository string) *runOptions {
+	return &runOptions{
+		Options: *testginkgo.NewOptions(),
+
+		FromRepository: fromRepository,
+	}
+}
+
 func (opt *runOptions) AsEnv() []string {
 	var args []string
 	args = append(args, "KUBE_TEST_REPO_LIST=") // explicitly prevent selective override
@@ -254,9 +266,7 @@ func (opt *runOptions) SelectSuite(suites testSuites, args []string) (*testSuite
 }
 
 func newRunCommand() *cobra.Command {
-	opt := &runOptions{
-		FromRepository: defaultTestImageMirrorLocation,
-	}
+	opt := NewRunOptions(defaultTestImageMirrorLocation)
 
 	cmd := &cobra.Command{
 		Use:   "run SUITE",
@@ -296,7 +306,7 @@ func newRunCommand() *cobra.Command {
 				if !opt.DryRun {
 					fmt.Fprintf(os.Stderr, "%s version: %s\n", filepath.Base(os.Args[0]), version.Get().String())
 				}
-				err = opt.Run(&suite.TestSuite)
+				err = opt.Run(&suite.TestSuite, "openshift-tests")
 				if suite.PostSuite != nil {
 					suite.PostSuite(opt)
 				}
@@ -309,9 +319,7 @@ func newRunCommand() *cobra.Command {
 }
 
 func newRunUpgradeCommand() *cobra.Command {
-	opt := &runOptions{
-		FromRepository: defaultTestImageMirrorLocation,
-	}
+	opt := NewRunOptions(defaultTestImageMirrorLocation)
 
 	cmd := &cobra.Command{
 		Use:   "run-upgrade SUITE",
@@ -361,7 +369,7 @@ func newRunUpgradeCommand() *cobra.Command {
 				if !opt.DryRun {
 					fmt.Fprintf(os.Stderr, "%s version: %s\n", filepath.Base(os.Args[0]), version.Get().String())
 				}
-				err = opt.Run(&suite.TestSuite)
+				err = opt.Run(&suite.TestSuite, "openshift-tests-upgrade")
 				if suite.PostSuite != nil {
 					suite.PostSuite(opt)
 				}
@@ -435,12 +443,6 @@ func newRunTestCommand() *cobra.Command {
 // any error returned from fn. The function returns fn() or any error encountered while
 // attempting to open the file.
 func mirrorToFile(opt *testginkgo.Options, fn func() error) error {
-	if opt.Out == nil {
-		opt.Out = os.Stdout
-	}
-	if opt.ErrOut == nil {
-		opt.ErrOut = os.Stderr
-	}
 	if len(opt.OutFile) == 0 {
 		return fn()
 	}

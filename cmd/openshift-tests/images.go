@@ -5,10 +5,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
+
+	configv1client "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	"github.com/openshift/library-go/pkg/image/reference"
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
@@ -210,18 +214,38 @@ func pulledInvalidImages(fromRepository string) ginkgo.JUnitForEventsFunc {
 
 	// any image not in the allowed prefixes is considered a failure, as the user
 	// may have added a new test image without calling the appropriate helpers
-	return func(events monitorapi.Intervals, _ time.Duration, _ *rest.Config) []*ginkgo.JUnitTestCase {
+	return func(events monitorapi.Intervals, _ time.Duration, cfg *rest.Config, testSuite string) []*junitapi.JUnitTestCase {
 		imageStreamPrefixes, err := imagePrefixesFromNamespaceImageStreams("openshift")
 		if err != nil {
 			klog.Errorf("Unable to identify image prefixes from the openshift namespace: %v", err)
 		}
 		allowedPrefixes.Insert(imageStreamPrefixes.UnsortedList()...)
 
+		releaseImage, err := getReleaseImage(cfg)
+		if err != nil {
+			klog.Errorf("failed to get release image: %v", err)
+		} else {
+			allowedPrefixes.Insert(releaseImage)
+		}
+
 		allowedPrefixes := allowedPrefixes.List()
 
-		var tests []*ginkgo.JUnitTestCase
+		// these are the possible format we need to work with:
+		// 1. reason/Pulled Container image "quay.io/openshift/community-e2e-images:e2e-7-k8s-gcr-io-e2e-test-images-busybox-1-29-2-cqcP1Tnbm-JjJyUA" already present on machine
+		// 2. reason/Pulled image/quay.io/openshift/community-e2e-images:e2e-7-k8s-gcr-io-e2e-test-images-busybox-1-29-2-cqcP1Tnbm-JjJyUA
+		// the regexp tries to match either image/(group) or image "(group)",
+		// where (group) is constructed from three subgroups divided with /
+		// where each has one or more characters from these:
+		// \w (word characters - [0-9A-Za-z_]), -, :, . (needs escaping)
+		imageRe, err := regexp.Compile(`image/([\w-:\.]+/[\w-:\.]+/[\w-:\.]+)$|image "([\w-:\.]+/[\w-:\.]+/[\w-:\.]+)"`)
+		if err != nil {
+			klog.Errorf("failed to compile regexp for image parsing")
+		}
+
+		var tests []*junitapi.JUnitTestCase
 
 		pulls := make(map[string]sets.String)
+
 		for _, event := range events {
 			// only messages that include a Pulled reason
 			if !strings.Contains(" "+event.Message, " reason/Pulled ") {
@@ -232,11 +256,20 @@ func pulledInvalidImages(fromRepository string) ginkgo.JUnitForEventsFunc {
 				continue
 			}
 
-			parts := strings.Split(event.Message, " ")
-			if len(parts) == 0 {
+			images := imageRe.FindStringSubmatch(event.Message)
+			// the images will contain full match and two group matches, see above
+			// for the regexp definition, so we skip the first in the below for-loop
+			if len(images) < 3 {
 				continue
 			}
-			image := strings.TrimPrefix(parts[len(parts)-1], "image/")
+			image := ""
+			for i := 1; i < len(images); i++ {
+				image = images[i]
+				// the match will be either 2nd or 3rd element in the list
+				if image != "" {
+					break
+				}
+			}
 			if hasAnyStringPrefix(image, allowedPrefixes) || allowedImages.Has(image) {
 				continue
 			}
@@ -244,6 +277,7 @@ func pulledInvalidImages(fromRepository string) ginkgo.JUnitForEventsFunc {
 			if !ok {
 				byImage = sets.NewString()
 				pulls[image] = byImage
+				fmt.Printf("[sig-arch] unknown image: %s (%v)\n", image, event.Message)
 			}
 			byImage.Insert(event.Locator)
 		}
@@ -260,12 +294,18 @@ func pulledInvalidImages(fromRepository string) ginkgo.JUnitForEventsFunc {
 					fmt.Fprintf(buf, "  %s\n", locator)
 				}
 			}
-			tests = append(tests, &ginkgo.JUnitTestCase{
+			tests = append(tests, &junitapi.JUnitTestCase{
 				Name:      "[sig-arch] Only known images used by tests",
 				SystemOut: buf.String(),
-				FailureOutput: &ginkgo.FailureOutput{
+				FailureOutput: &junitapi.FailureOutput{
 					Output: fmt.Sprintf("Cluster accessed images that were not mirrored to the testing repository or already part of the cluster, see test/extended/util/image/README.md in the openshift/origin repo:\n\n%s", buf.String()),
 				},
+			})
+
+		} else {
+			// if the test passed, indicate that too.
+			tests = append(tests, &junitapi.JUnitTestCase{
+				Name: "[sig-arch] Only known images used by tests",
 			})
 		}
 
@@ -330,4 +370,19 @@ func imagePrefixesFromNamespaceImageStreams(ns string) (sets.String, error) {
 		}
 	}
 	return allowedPrefixes, nil
+}
+
+// getReleaseImage does exactly that. We need to add it as exception, as there are some oauth tests that use it to find the
+// oauth server image when the ControlPlaneToplogy is external, where there is no oauth server deployed inside the cluster that
+// could be used: https://github.com/openshift/origin/blob/176aeb92845af9eb50b1d0fe8e98a78dee29215e/test/extended/util/oauthserver/oauthserver.go#L489-L532
+func getReleaseImage(cfg *rest.Config) (string, error) {
+	client, err := configv1client.NewForConfig(cfg)
+	if err != nil {
+		return "", fmt.Errorf("failed to construct configv1client: %w", err)
+	}
+	cv, err := client.ClusterVersions().Get(context.Background(), "version", metav1.GetOptions{})
+	if err != nil {
+		return "", fmt.Errorf("failed to get clusterversion: %w", err)
+	}
+	return cv.Status.Desired.Image, nil
 }

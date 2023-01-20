@@ -107,6 +107,11 @@ func cleanTest(client clientset.Interface, aggrclient *aggregatorclient.Clientse
 	// delete the APIService first to avoid causing discovery errors
 	_ = aggrclient.ApiregistrationV1().APIServices().Delete(context.TODO(), "v1alpha1.wardle.example.com", metav1.DeleteOptions{})
 
+	// this simple sleep makes sure that the sample api server was unregistered from all Kube APIs before tearing down the deployment (otherwise it could make the test to fail)
+	// a more expensive way of doing it would be checking if the sample server was unregistered from all deployed Kube API servers before tearing down the deployment.
+	framework.Logf("sleeping 45 seconds before deleting the sample-apiserver deployment, see %q for more", "https://bugzilla.redhat.com/show_bug.cgi?id=1933144")
+	time.Sleep(time.Second * 45)
+
 	_ = client.AppsV1().Deployments(namespace).Delete(context.TODO(), "sample-apiserver-deployment", metav1.DeleteOptions{})
 	_ = client.CoreV1().Secrets(namespace).Delete(context.TODO(), "sample-apiserver-secret", metav1.DeleteOptions{})
 	_ = client.CoreV1().Services(namespace).Delete(context.TODO(), "sample-api", metav1.DeleteOptions{})
@@ -202,7 +207,6 @@ func TestSampleAPIServer(f *framework.Framework, aggrclient *aggregatorclient.Cl
 	etcdImage := imageutils.GetE2EImage(imageutils.Etcd)
 	podLabels := map[string]string{"app": "sample-apiserver", "apiserver": "true"}
 	replicas := int32(1)
-	zero := int64(0)
 	etcdLocalhostAddress := "127.0.0.1"
 	if framework.TestContext.ClusterIsIPv6() {
 		etcdLocalhostAddress = "::1"
@@ -250,31 +254,10 @@ func TestSampleAPIServer(f *framework.Framework, aggrclient *aggregatorclient.Cl
 			},
 		},
 	}
-	d := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   deploymentName,
-			Labels: podLabels,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: podLabels,
-			},
-			Strategy: appsv1.DeploymentStrategy{
-				Type: appsv1.RollingUpdateDeploymentStrategyType,
-			},
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: podLabels,
-				},
-				Spec: v1.PodSpec{
-					TerminationGracePeriodSeconds: &zero,
-					Containers:                    containers,
-					Volumes:                       volumes,
-				},
-			},
-		},
-	}
+	d := e2edeployment.NewDeployment(deploymentName, replicas, podLabels, "", "", appsv1.RollingUpdateDeploymentStrategyType)
+	d.Spec.Template.Spec.Containers = containers
+	d.Spec.Template.Spec.Volumes = volumes
+
 	deployment, err := client.AppsV1().Deployments(namespace).Create(context.TODO(), d, metav1.CreateOptions{})
 	framework.ExpectNoError(err, "creating deployment %s in namespace %s", deploymentName, namespace)
 
