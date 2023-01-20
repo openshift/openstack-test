@@ -18973,6 +18973,7 @@ func testExtendedTestdataBuildsS2iEnvironmentBuildAppS2iEnvironment() (*asset, e
 var _testExtendedTestdataBuildsS2iEnvironmentBuildAppGemfile = []byte(`source "https://rubygems.org"
 
 gem "rack"
+gem "rackup"
 `)
 
 func testExtendedTestdataBuildsS2iEnvironmentBuildAppGemfileBytes() ([]byte, error) {
@@ -21367,6 +21368,10 @@ items:
           app: imagesourceapp
           deploymentconfig: imagesourceapp
       spec:
+        securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
         containers:
         - image:
           imagePullPolicy: Always
@@ -21380,9 +21385,14 @@ items:
           - containerPort: 8888
             protocol: TCP
           terminationMessagePath: /dev/termination-log
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
         dnsPolicy: ClusterFirst
         restartPolicy: Always
-        securityContext: {}
     triggers:
     - imageChangeParams:
         automatic: true
@@ -21411,6 +21421,10 @@ items:
           app: imagedockerapp
           deploymentconfig: imagedockerapp
       spec:
+        securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
         containers:
         - image:
           imagePullPolicy: Always
@@ -21423,10 +21437,15 @@ items:
             protocol: TCP
           - containerPort: 8888
             protocol: TCP
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
           terminationMessagePath: /dev/termination-log
         dnsPolicy: ClusterFirst
         restartPolicy: Always
-        securityContext: {}
     triggers:
     - imageChangeParams:
         automatic: true
@@ -46594,8 +46613,8 @@ spec:
       - name: openldap-server
         securityContext:
           privileged: true
-        # This image is built from the images/openldap directory. Temporary repo location.
-        image: docker.io/mrogers950/origin-openldap-test:fedora29
+        # This image is built from the openshift/openldap directory.
+        image: quay.io/openshifttest/ldap:1.2
         ports:
         # StartTLS works over 389
         - containerPort: 389
@@ -46740,7 +46759,7 @@ data:
     fi
 
     # Start the slapd service
-    exec slapd -h "ldap:///${HOSTNAME} ldapi:/// ldaps:///${HOSTNAME}" -d $OPENLDAP_DEBUG_LEVEL
+    exec slapd -h "ldap:/// ldapi:/// ldaps:///" -d $OPENLDAP_DEBUG_LEVEL
 `)
 
 func testExtendedTestdataLdapLdapserverScriptsCmYamlBytes() ([]byte, error) {
