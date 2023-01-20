@@ -165,7 +165,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb] The Openstack
 			o.Expect(err).NotTo(o.HaveOccurred())
 			maxSharedLb, err := strconv.Atoi(setting)
 			o.Expect(err).NotTo(o.HaveOccurred())
-			if 2 < maxSharedLb {
+			if maxSharedLb < 2 {
 				e2eskipper.Skipf("Test not applicable when max-shared-lb is lower than 2 and it is %d", maxSharedLb)
 			}
 
