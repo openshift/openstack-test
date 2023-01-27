@@ -767,21 +767,21 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb] The Openstack platform should apply lb-method on UDP Amphora LoadBalancer when an UDP svc with monitors and ETP:Local is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP Amphora LoadBalancer when an UDP svc with monitors and ETP:Local is created on Openshift": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb] The Openstack platform should apply lb-method on UDP OVN LoadBalancer when an UDP svc with monitors and ETP:Local is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP OVN LoadBalancer when an UDP svc with monitors and ETP:Local is created on Openshift": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb] The Openstack platform should create an UDP Amphora LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP Amphora LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb] The Openstack platform should create an UDP Amphora LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP Amphora LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb] The Openstack platform should create an UDP OVN LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP OVN LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb] The Openstack platform should create an UDP OVN LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP OVN LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb] The Openstack platform should re-use an existing UDP Amphora LoadBalancer when new svc is created on Openshift with the proper annotation": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should re-use an existing UDP Amphora LoadBalancer when new svc is created on Openshift with the proper annotation": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb] The Openstack platform should re-use an existing UDP OVN LoadBalancer when new svc is created on Openshift with the proper annotation": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should re-use an existing UDP OVN LoadBalancer when new svc is created on Openshift with the proper annotation": "",
 
 	"[sig-instrumentation] Events API should delete a collection of events [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
