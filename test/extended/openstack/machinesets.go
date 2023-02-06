@@ -12,6 +12,7 @@ import (
 	machinev1alpha1 "github.com/openshift/api/machine/v1alpha1"
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
+	yaml "gopkg.in/yaml.v2"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,8 +22,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/ports"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
@@ -93,7 +94,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to create a Machineset")
 			defer DeleteMachinesetsDefer(rclient, ms)
 
-			clusterID := ms.Spec.Template.ObjectMeta.Labels["machine.openshift.io/cluster-api-cluster"]
 			err = GetMachinesetRetry(rclient, ms, true)
 
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get the new Machineset")
@@ -103,14 +103,17 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			err = GetMachinesetRetry(rclient, ms, false)
 			o.Expect(errors.IsNotFound(err)).To(o.BeTrue(), "Machineset %v was not deleted", ms.Name)
 
-			networkName := clusterID + "-openshift"
+			var config machinev1alpha1.OpenstackProviderSpec
+			err = yaml.Unmarshal(newProviderSpecJson, &config)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to Unmarshal the new Machineset")
 
-			networkListOpts := networks.ListOpts{Name: networkName}
-			networkAllPages, err := networks.List(networkClient, networkListOpts).AllPages()
-			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get networks")
-			allNetworks, err := networks.ExtractNetworks(networkAllPages)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to extract networks")
-			networkID := allNetworks[0].ID
+			subnetListOpts := subnets.ListOpts{ID: config.PrimarySubnet}
+			subnetAllPages, err := subnets.List(networkClient, subnetListOpts).AllPages()
+			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get subnets")
+			allSubnets, err := subnets.ExtractSubnets(subnetAllPages)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to extract subnets")
+			networkID := allSubnets[0].NetworkID
+			e2e.Logf("Subnet Name: %v", allSubnets[0].Name)
 			e2e.Logf("Network ID: %v", networkID)
 			portListOpts := ports.ListOpts{
 				NetworkID: networkID,
