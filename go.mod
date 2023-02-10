@@ -277,5 +277,5 @@ replace (
 
 replace (
 	github.com/gophercloud/gophercloud => github.com/gophercloud/gophercloud v0.9.0
-	github.com/gophercloud/utils => github.com/gophercloud/utils v0.0.0-20200104035643-cb37ab634bff
+	github.com/gophercloud/utils => github.com/gophercloud/utils v0.0.0-20220307143606-8e7800759d16
 )
