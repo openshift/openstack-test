@@ -123,10 +123,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 				g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machineName))
 				instance, err := servers.Get(computeClient, machine.Get("metadata.annotations.openstack-resourceId").String()).Extract()
-				o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machineName)
 
 				var gerr gophercloud.ErrDefault404
 				if !errors.As(err, &gerr) {
+					o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machineName)
 					instanceAddresses, err := parseInstanceAddresses(instance.Addresses)
 					o.Expect(err).NotTo(o.HaveOccurred(), "Error parsing addresses for instance %q", instance.Name)
 					openstackIPs[machineName] = instanceAddresses
