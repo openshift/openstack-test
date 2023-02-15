@@ -3,6 +3,7 @@ module github.com/openshift/openstack-test
 go 1.18
 
 require (
+	github.com/Masterminds/semver v1.5.0
 	github.com/gophercloud/gophercloud v1.0.0
 	github.com/gophercloud/utils v0.0.0-20220307143606-8e7800759d16
 	github.com/onsi/ginkgo/v2 v2.5.0

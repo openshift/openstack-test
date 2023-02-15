@@ -232,6 +232,20 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
+			// Skip for OpenshiftSDN and Octavia version < 2.16 as Octavia UDP-CONNECT type health monitors
+			// don't work with OpenShiftSDN (it incorrectly marks the nodes without local endpoints as ONLINE)
+			// https://issues.redhat.com/browse/OCPBUGS-7229
+			octaviaMinVersion := "v2.16"
+			networkType, err := getNetworkType(oc)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			octaviaGreaterOrEqualV2_16, err := IsOctaviaVersionGreaterThanOrEqual(loadBalancerClient, octaviaMinVersion)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			if networkType == NetworkTypeOpenShiftSDN && !octaviaGreaterOrEqualV2_16 {
+				e2eskipper.Skipf("Test not applicable for %s network type when the Octavia version < %s", NetworkTypeOpenShiftSDN, octaviaMinVersion)
+			}
+
 			g.By("Creating Openshift deployment")
 			labels := map[string]string{"app": "udp-lb-etplocal-dep"}
 			replicas := int32(2)
