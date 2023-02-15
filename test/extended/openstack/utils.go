@@ -9,8 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
+	"github.com/gophercloud/gophercloud"
+	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/apiversions"
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
+	exutil "github.com/openshift/origin/test/extended/util"
 	ini "gopkg.in/ini.v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -21,6 +25,12 @@ import (
 	imageutils "k8s.io/kubernetes/test/utils/image"
 	psapi "k8s.io/pod-security-admission/api"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	NetworkTypeOpenShiftSDN  = "OpenShiftSDN"
+	NetworkTypeOVNKubernetes = "OVNKubernetes"
+	NetworkTypeKuryr         = "Kuryr"
 )
 
 type KuryrNetwork struct {
@@ -189,4 +199,61 @@ func getPropertyValue(sectionName string, propertyName string, cfg *ini.File) (s
 	} else {
 		return "#UNDEFINED#", nil
 	}
+}
+
+func getNetworkType(oc *exutil.CLI) (string, error) {
+	networks, err := oc.AdminConfigClient().ConfigV1().Networks().Get(context.Background(), "cluster", metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	networkType := networks.Status.NetworkType
+	e2e.Logf("Detected network type: %s", networkType)
+	return networkType, nil
+}
+
+func getMaxOctaviaAPIVersion(client *gophercloud.ServiceClient) (*semver.Version, error) {
+	allPages, err := apiversions.List(client).AllPages()
+	if err != nil {
+		return nil, err
+	}
+
+	apiVersions, err := apiversions.ExtractAPIVersions(allPages)
+	if err != nil {
+		return nil, err
+	}
+
+	var max *semver.Version = nil
+	for _, apiVersion := range apiVersions {
+		ver, err := semver.NewVersion(apiVersion.ID)
+
+		if err != nil {
+			// We're ignoring the error, if Octavia is returning anything odd we don't care.
+			e2e.Logf("Error when parsing Octavia API version %s: %v. Ignoring it", apiVersion.ID, err)
+			continue
+		}
+
+		if max == nil || ver.GreaterThan(max) {
+			max = ver
+		}
+	}
+
+	if max == nil {
+		// If we have max == nil at this point, then we couldn't read the versions at all.
+		max = semver.MustParse("v2.0")
+	}
+
+	e2e.Logf("Detected Octavia API: v%s", max)
+
+	return max, nil
+}
+
+func IsOctaviaVersionGreaterThanOrEqual(client *gophercloud.ServiceClient, constraint string) (bool, error) {
+	maxOctaviaVersion, err := getMaxOctaviaAPIVersion(client)
+	if err != nil {
+		return false, err
+	}
+
+	constraintVer := semver.MustParse(constraint)
+
+	return !constraintVer.GreaterThan(maxOctaviaVersion), nil
 }
