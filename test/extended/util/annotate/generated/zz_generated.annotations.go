@@ -767,6 +767,8 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "",
 
+	"[sig-installer][Suite:openshift/openstack][egressip] An egressIP attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType": "",
+
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP Amphora LoadBalancer when an UDP svc with monitors and ETP:Local is created on Openshift": "",
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP OVN LoadBalancer when an UDP svc with monitors and ETP:Local is created on Openshift": "",
