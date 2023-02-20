@@ -12,6 +12,9 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/apiversions"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/external"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
 	exutil "github.com/openshift/origin/test/extended/util"
@@ -256,4 +259,56 @@ func IsOctaviaVersionGreaterThanOrEqual(client *gophercloud.ServiceClient, const
 	constraintVer := semver.MustParse(constraint)
 
 	return !constraintVer.GreaterThan(maxOctaviaVersion), nil
+}
+
+// GetFloatingNetworkID returns a floating network ID.
+func GetFloatingNetworkID(client *gophercloud.ServiceClient) (string, error) {
+	type NetworkWithExternalExt struct {
+		networks.Network
+		external.NetworkExternalExt
+	}
+	var allNetworks []NetworkWithExternalExt
+
+	page, err := networks.List(client, networks.ListOpts{}).AllPages()
+	if err != nil {
+		return "", err
+	}
+
+	err = networks.ExtractNetworksInto(page, &allNetworks)
+	if err != nil {
+		return "", err
+	}
+
+	for _, network := range allNetworks {
+		if network.External && len(network.Subnets) > 0 {
+			page, err := subnets.List(client, subnets.ListOpts{NetworkID: network.ID}).AllPages()
+			if err != nil {
+				return "", err
+			}
+			subnetList, err := subnets.ExtractSubnets(page)
+			if err != nil {
+				return "", err
+			}
+			for _, networkSubnet := range network.Subnets {
+				subnet := getSubnet(networkSubnet, subnetList)
+				if subnet != nil {
+					if subnet.IPVersion == 4 {
+						return network.ID, nil
+					}
+				} else {
+					return network.ID, nil
+				}
+			}
+		}
+	}
+	return "", fmt.Errorf("no network matching the requirements found")
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
