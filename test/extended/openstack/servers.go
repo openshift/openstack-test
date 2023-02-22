@@ -119,10 +119,15 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			// Fetch IP addresses of OpenStack instances corresponding to the machines
 			for _, machine := range machines {
 				machineName := machine.Get("metadata.name").String()
-				machineIPs[machineName] = getAddressesFromMachine(machine)
+				machineAddresses := getAddressesFromMachine(machine)
+				machineResourceID := machine.Get("metadata.annotations.openstack-resourceId").String()
+				if len(machineAddresses) == 0 || len(machineResourceID) == 0 {
+					// Only consider machines that have addresses and a VM in OpenStack.
+					continue
+				}
 
 				g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machineName))
-				instance, err := servers.Get(computeClient, machine.Get("metadata.annotations.openstack-resourceId").String()).Extract()
+				instance, err := servers.Get(computeClient, machineResourceID).Extract()
 
 				var gerr gophercloud.ErrDefault404
 				if !errors.As(err, &gerr) {
@@ -130,7 +135,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 					instanceAddresses, err := parseInstanceAddresses(instance.Addresses)
 					o.Expect(err).NotTo(o.HaveOccurred(), "Error parsing addresses for instance %q", instance.Name)
 					openstackIPs[machineName] = instanceAddresses
+				} else {
+					// A VM for a Machine is missing from OpenStack. It's possible that the test which created the
+					// machine deleted it after we've fetched the list.
+					continue
 				}
+				machineIPs[machineName] = machineAddresses
 			}
 
 			// Assert that the maps are equal, ignoring ordering within the map or of addresses
