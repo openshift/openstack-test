@@ -56,6 +56,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			e2eskipper.Skipf("Test not applicable for Kuryr NetworkType")
 		}
 
+		// TODO revert once https://issues.redhat.com/browse/OSASINFRA-3079 is resolved
+		proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(context.Background(), "cluster", metav1.GetOptions{})
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if proxy.Status.HTTPProxy != "" {
+			e2eskipper.Skipf("Test not applicable for proxy setup")
+		}
+
 		g.By("preparing openstack client")
 		loadBalancerClient, err = client(serviceLoadBalancer)
 		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack LoadBalancer client")
