@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gophercloud/gophercloud"
+	octavialisteners "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/listeners"
 	octavialoadbalancers "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
 	octaviamonitors "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/monitors"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
@@ -403,6 +404,146 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			e2e.Logf("Pod %s successfully accessed through svc loadbalancer on ip %s and port %d", podName, fip.FloatingIP, svcPort)
 		})
 	}
+
+	// Only valid with the Octavia amphora provider. The OVN-Octavia provider does not
+	// support allowed_cidrs in the LB (https://issues.redhat.com/browse/OCPBUGS-2789)
+	g.It("should limit service access on an UDP Amphora LoadBalancer when an UDP LoadBalancer svc setting the loadBalancerSourceRanges spec is created on Openshift", func() {
+
+		// Skipped for OVN-Octavia provider
+		skipIfNotLbProvider("Amphora", cloudProviderConfig)
+
+		g.By("Creating Openshift deployment")
+		depName := "udp-lb-sourceranges-dep"
+		svcPort := int32(8082)
+		labels := map[string]string{"app": depName}
+		drop_sourcerange := "9.9.9.9/32"
+		testDeployment := createTestDeployment(depName, labels, int32(2), v1.ProtocolUDP, 8081)
+		deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+			testDeployment, metav1.CreateOptions{})
+		o.Expect(err).NotTo(o.HaveOccurred())
+		err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+		o.Expect(err).NotTo(o.HaveOccurred())
+
+		g.By(fmt.Sprintf("Creating Openshift LoadBalancer Service with loadBalancerSourceRanges: '%s'", drop_sourcerange))
+		jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), "udp-lb-sourceranges-svc")
+		jig.Labels = labels
+		svc, err := jig.CreateLoadBalancerService(loadBalancerServiceTimeout, func(svc *v1.Service) {
+			svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort, TargetPort: intstr.FromInt(8081)}}
+			svc.Spec.Selector = labels
+			svc.Spec.LoadBalancerSourceRanges = []string{drop_sourcerange}
+		})
+		o.Expect(err).NotTo(o.HaveOccurred())
+
+		g.By("Checks from openshift perspective")
+		loadBalancerId := svc.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]
+		o.Expect(loadBalancerId).ShouldNot(o.BeEmpty(), "load-balancer-id annotation missing")
+		e2e.Logf("LB ID: %s", loadBalancerId)
+		svcIp := svc.Status.LoadBalancer.Ingress[0].IP
+		o.Expect(svcIp).ShouldNot(o.BeEmpty(), "FIP missing on svc Status")
+		e2e.Logf("Service IP: %s", svcIp)
+
+		g.By("Checks from openstack perspective")
+		allPages, err := octavialisteners.List(loadBalancerClient, octavialisteners.ListOpts{LoadbalancerID: loadBalancerId}).AllPages()
+		o.Expect(err).NotTo(o.HaveOccurred())
+		listeners, err := octavialisteners.ExtractListeners(allPages)
+		o.Expect(err).NotTo(o.HaveOccurred())
+
+		// Check there is only one listener in the LB
+		o.Expect(listeners).Should(o.HaveLen(1), "Unexpected number of listeners for LB '%s'", loadBalancerId)
+		listenerId := listeners[0].ID
+		e2e.Logf("LB listener ID: %s", listenerId)
+
+		// Check allowed_cidrs in the LB listener matches with the svc spec
+		o.Expect(listeners[0].AllowedCIDRs).Should(o.ConsistOf([]string{drop_sourcerange}), "Unexpected allowed_cidrs in Openstack LoadBalancer Listener '%s'", listenerId)
+		e2e.Logf("Found expected allowed_cidrs '%v' in Openstack LoadBalancer Listener '%s'", listeners[0].AllowedCIDRs, listenerId)
+
+		// Check there is no connectivity
+		g.By("Connectivity checks - there should be no connectivity")
+		var connNumber int = 5
+		g.By(fmt.Sprintf("Trying to access the service %d times from outside and storing the name of the pods answering", connNumber))
+		results := make(map[string]int)
+		for i := 0; i < connNumber; i++ {
+			// https://github.com/kubernetes/kubernetes/blob/master/test/images/agnhost/README.md#netexec
+			podName, err := getPodNameThroughUdpLb(svcIp, fmt.Sprintf("%d", svcPort), "hostname")
+			if err != nil {
+				e2e.Logf("No connectivity (as expected) while accessing the LoadBalancer service on try %d: %q", i, err)
+			} else {
+				results[podName]++
+			}
+		}
+		e2e.Logf("Pods accessed after '%d' UDP requests: '%v'", connNumber, results)
+		o.Expect(len(results)).Should(o.Equal(0), "There is connectivity to svc pods when it shouldn't: '%v'", results)
+		e2e.Logf("No connectivity to the service as expected")
+
+		// Remove the LoadBalancerSourceRanges spec from the service
+		_, err = jig.UpdateService(func(svc *v1.Service) {
+			svc.Spec.LoadBalancerSourceRanges = nil
+		})
+		o.Expect(err).NotTo(o.HaveOccurred())
+		e2e.Logf("Removed LoadBalancerSourceRanges spec from the service")
+
+		// Wait until allowed_cidrs in the LB listener is updated to 0.0.0.0/0 (all traffic allowed)
+		allowAllAllowedCidrs := []string{"0.0.0.0/0"}
+		e2e.Logf("Expected allowed_cidrs: '%v'", allowAllAllowedCidrs)
+		o.Eventually(func() []string {
+			lbListener, err := octavialisteners.Get(loadBalancerClient, listenerId).Extract()
+			if err != nil {
+				e2e.Logf("Error ocurred: %v, trying next iteration", err)
+				return []string{}
+			}
+			e2e.Logf("Found AllowedCIDRs: %v", lbListener.AllowedCIDRs)
+			return lbListener.AllowedCIDRs
+		}, "10s", "1s").Should(o.ConsistOf(allowAllAllowedCidrs), "Didn't find the expected allowed_cidrs '%v'", allowAllAllowedCidrs)
+		e2e.Logf("Found expected allowed_cidrs '%v' in Openstack LoadBalancer Listener '%s'", allowAllAllowedCidrs, listenerId)
+
+		// Wait until ProvisioningStatus in the LB listener is back to ACTIVE after it's been updated
+		activeProvisioningStatus := "ACTIVE"
+		e2e.Logf("Expected ProvisioningStatus: '%s'", activeProvisioningStatus)
+		o.Eventually(func() string {
+			lbListener, err := octavialisteners.Get(loadBalancerClient, listenerId).Extract()
+			if err != nil {
+				e2e.Logf("Error ocurred: %v, trying next iteration", err)
+				return ""
+			}
+			e2e.Logf("Found ProvisioningStatus: %s", lbListener.ProvisioningStatus)
+			return lbListener.ProvisioningStatus
+		}, "30s", "1s").Should(o.Equal(activeProvisioningStatus), "Didn't find the expected ProvisioningStatus '%s'", activeProvisioningStatus)
+		e2e.Logf("Found expected ProvisioningStatus '%s' in Openstack LoadBalancer Listener '%s'", activeProvisioningStatus, listenerId)
+
+		// Check there is still only one listener in the LB and that the Id matches with the previously stored one
+		allPages, err = octavialisteners.List(loadBalancerClient, octavialisteners.ListOpts{LoadbalancerID: loadBalancerId}).AllPages()
+		o.Expect(err).NotTo(o.HaveOccurred())
+		listeners, err = octavialisteners.ExtractListeners(allPages)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		o.Expect(listeners).Should(o.HaveLen(1), "Unexpected number of listeners for LB '%s'", loadBalancerId)
+		o.Expect(listeners[0].ID).Should((o.Equal(listenerId)), "Listener ID for LB '%s' has changed", loadBalancerId)
+
+		// Check connectivity to the service
+		connNumber = 10
+		g.By(fmt.Sprintf("accessing the service %d times from outside and storing the name of the pods answering", connNumber))
+		results = make(map[string]int)
+		for i := 0; i < connNumber; i++ {
+			// https://github.com/kubernetes/kubernetes/blob/master/test/images/agnhost/README.md#netexec
+			podName, err := getPodNameThroughUdpLb(svcIp, fmt.Sprintf("%d", svcPort), "hostname")
+			if err != nil {
+				e2e.Logf("Error detected while accessing the LoadBalancer service on try %d: %q", i, err)
+			} else {
+				results[podName]++
+			}
+		}
+		e2e.Logf("Pods accessed after '%d' UDP requests: '%v'", connNumber, results)
+		var successConnCount int
+		for podName, connPerPod := range results {
+			e2e.Logf("Pod '%s' has been accessed '%d' times", podName, connPerPod)
+			successConnCount += connPerPod
+		}
+
+		// Check the number of successful connections with some margin (80%) to avoid flakes
+		var connMargin float32 = 0.8
+		minSuccessConn := int(float32(connNumber) * connMargin)
+		o.Expect(successConnCount >= minSuccessConn).To(o.BeTrue(), "Found less successful connections (%d) than the minimum expected of '%d'", successConnCount, minSuccessConn)
+		e2e.Logf("Found expected number of successfull connections: '%d'", connNumber)
+	})
 })
 
 // Check ini.File from cloudProviderConfig and skip the tests if lb-provider is not matching the expected value
