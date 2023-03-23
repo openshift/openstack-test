@@ -26,6 +26,8 @@ aliases:
   qe-approvers:
     - itzikb-redhat
     - rlobillo
+    - eurijon
   qe-reviewers:
     - itzikb-redhat
     - rlobillo
+    - eurijon
