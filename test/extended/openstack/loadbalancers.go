@@ -227,8 +227,16 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			podNames, err := exutil.GetPodNamesByFilter(oc.KubeClient().CoreV1().Pods(oc.Namespace()),
 				exutil.ParseLabelsOrDie(""), func(v1.Pod) bool { return true })
 			o.Expect(err).NotTo(o.HaveOccurred())
+
+			maxAttempts := 100
+			podName := ""
 			for _, svcPort := range [2]int32{svcPort1, svcPort2} {
-				podName, err := getPodNameThroughUdpLb(fip, fmt.Sprintf("%d", svcPort), "hostname")
+				for count := 0; count < maxAttempts; count++ {
+					podName, err = getPodNameThroughUdpLb(fip, fmt.Sprintf("%d", svcPort), "hostname")
+					if err == nil {
+						break
+					}
+				}
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(podName).Should(o.BeElementOf(podNames))
 				e2e.Logf("Pod %s successfully accessed through svc loadbalancer on ip %s and port %d", podName, fip, svcPort)
