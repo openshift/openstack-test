@@ -14,9 +14,7 @@ import (
 	octavialoadbalancers "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
 	octaviamonitors "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/monitors"
 	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/external"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
@@ -681,49 +679,6 @@ func createTestDeployment(depName string, labels map[string]string, replicas int
 		Protocol:      protocol,
 	}}
 	return testDeployment
-}
-
-// GetFloatingNetworkID returns a floating network ID.
-func GetFloatingNetworkID(client *gophercloud.ServiceClient) (string, error) {
-	type NetworkWithExternalExt struct {
-		networks.Network
-		external.NetworkExternalExt
-	}
-	var allNetworks []NetworkWithExternalExt
-
-	page, err := networks.List(client, networks.ListOpts{}).AllPages()
-	if err != nil {
-		return "", err
-	}
-
-	err = networks.ExtractNetworksInto(page, &allNetworks)
-	if err != nil {
-		return "", err
-	}
-
-	for _, network := range allNetworks {
-		if network.External && len(network.Subnets) > 0 {
-			page, err := subnets.List(client, subnets.ListOpts{NetworkID: network.ID}).AllPages()
-			if err != nil {
-				return "", err
-			}
-			subnetList, err := subnets.ExtractSubnets(page)
-			if err != nil {
-				return "", err
-			}
-			for _, networkSubnet := range network.Subnets {
-				subnet := getSubnet(networkSubnet, subnetList)
-				if subnet != nil {
-					if subnet.IPVersion == 4 {
-						return network.ID, nil
-					}
-				} else {
-					return network.ID, nil
-				}
-			}
-		}
-	}
-	return "", fmt.Errorf("no network matching the requirements found")
 }
 
 // getSubnet checks if a Subnet is present in the list of Subnets the tenant has access to and returns it
