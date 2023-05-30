@@ -34,7 +34,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	var workerNodeList *corev1.NodeList
 	var ms dynamic.NamespaceableResourceInterface
 	var controlPlaneGroupName string
-	var workerGroupName string
+	var workerAZGroupNameMap map[string]string
 
 	oc = exutil.NewCLI("openstack")
 
@@ -85,7 +85,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 	// OCP 4.5: https://issues.redhat.com/browse/OSASINFRA-1300
 	g.It("creates Control plane nodes in a server group", func() {
-		g.By("Getting the the Control instances' Server groups")
+		g.By("Checking the Control plane instances are in the same Server Group")
 		{
 			for _, item := range masterNodeList.Items {
 				machineAnnotation := strings.SplitN(item.Annotations["machine.openshift.io/machine"], "/", 2)
@@ -95,10 +95,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				o.Expect(err).NotTo(o.HaveOccurred())
 
 				instancecontrolPlaneGroupNameField := getFromUnstructured(res, "spec", "providerSpec", "value", "serverGroupName")
-				o.Expect(instancecontrolPlaneGroupNameField).NotTo(o.BeNil(), "the Server group name should be present in the Machine definition")
+				o.Expect(instancecontrolPlaneGroupNameField).NotTo(o.BeNil(), "the Server Group name should be present in the Machine definition")
 
 				instancecontrolPlaneGroupName := instancecontrolPlaneGroupNameField.(string)
-				o.Expect(instancecontrolPlaneGroupName).NotTo(o.BeEmpty(), "the Server group name should not be the empty string")
+				o.Expect(instancecontrolPlaneGroupName).NotTo(o.BeEmpty(), "the Server Group name should not be the empty string")
 				if controlPlaneGroupName == "" {
 					controlPlaneGroupName = instancecontrolPlaneGroupName
 				} else {
@@ -106,7 +106,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				}
 			}
 		}
-		g.By("Checking the actual members of the Server group")
+		g.By("Checking the actual members of the Server Group")
 		{
 			serverGroupsWithThatName, err := serverGroupIDsFromName(computeClient, controlPlaneGroupName)
 			o.Expect(serverGroupsWithThatName, err).To(o.HaveLen(1), "the server group name either was not found or is not unique")
@@ -137,8 +137,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	})
 
 	g.It("creates Worker nodes in a server group", func() {
-		g.By("Getting the Worker instances' Server groups")
+		g.By("Checking the Worker instances in a given AZ are in the same Server Group")
 		{
+			workerAZGroupNameMap = map[string]string{}
+
 			for _, item := range workerNodeList.Items {
 				machineAnnotation := strings.SplitN(item.Annotations["machine.openshift.io/machine"], "/", 2)
 				o.Expect(machineAnnotation).To(o.HaveLen(2))
@@ -147,24 +149,33 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				o.Expect(err).NotTo(o.HaveOccurred())
 
 				instanceWorkerGroupNameField := getFromUnstructured(res, "spec", "providerSpec", "value", "serverGroupName")
-				o.Expect(instanceWorkerGroupNameField).NotTo(o.BeNil(), "the Server group name should be present in the Machine definition")
+				o.Expect(instanceWorkerGroupNameField).NotTo(o.BeNil(), "the Server Group name should be present in the Machine definition")
 
 				instanceWorkerGroupName := instanceWorkerGroupNameField.(string)
-				o.Expect(instanceWorkerGroupName).NotTo(o.BeEmpty(), "the Server group name should not be the empty string")
-				if workerGroupName == "" {
-					workerGroupName = instanceWorkerGroupName
-				} else {
+				o.Expect(instanceWorkerGroupName).NotTo(o.BeEmpty(), "the Server Group name should not be the empty string")
+
+				azLabel := item.Labels["topology.kubernetes.io/zone"]
+				o.Expect(azLabel).NotTo(o.BeEmpty())
+
+				if workerGroupName, exists := workerAZGroupNameMap[azLabel]; exists {
 					o.Expect(instanceWorkerGroupName).To(o.Equal(workerGroupName), "two Worker Machines have different workerGroupName set")
+				} else {
+					workerAZGroupNameMap[azLabel] = instanceWorkerGroupName
 				}
 			}
 		}
-		g.By("Checking the actual members of the Server group")
+		g.By("Checking the actual members of the Server Group")
 		{
-			serverGroupsWithThatName, err := serverGroupIDsFromName(computeClient, workerGroupName)
-			o.Expect(serverGroupsWithThatName, err).To(o.HaveLen(1), "the server group name either was not found or is not unique")
+			totalMembers := []string{}
+			for _, workerGroupName := range workerAZGroupNameMap {
+				serverGroupsWithThatName, err := serverGroupIDsFromName(computeClient, workerGroupName)
+				o.Expect(serverGroupsWithThatName, err).To(o.HaveLen(1), "the Server Group name either was not found or is not unique")
 
-			serverGroup, err := servergroups.Get(computeClient, serverGroupsWithThatName[0]).Extract()
-			o.Expect(serverGroup.Members, err).To(o.ContainElements(workerInstanceUUIDs...))
+				serverGroup, err := servergroups.Get(computeClient, serverGroupsWithThatName[0]).Extract()
+				o.Expect(err).NotTo(o.HaveOccurred())
+				totalMembers = append(totalMembers, serverGroup.Members...)
+			}
+			o.Expect(totalMembers).To(o.ContainElements(workerInstanceUUIDs...))
 		}
 
 	})
