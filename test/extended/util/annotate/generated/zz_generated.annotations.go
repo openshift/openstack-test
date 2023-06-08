@@ -41,7 +41,11 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP OVN LoadBalancer when a UDP svc with monitors and ETP:Local is created on Openshift": "",
 
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when LoadBalancerService ingressController is created on Openshift": "",
+
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when LoadBalancerService ingressController is created on Openshift": "",
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
 

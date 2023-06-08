@@ -2,6 +2,7 @@ package openstack
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -20,11 +21,13 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	operatorv1 "github.com/openshift/api/operator/v1"
 	exutil "github.com/openshift/origin/test/extended/util"
 	ini "gopkg.in/ini.v1"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -424,6 +427,62 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			o.Expect(podName).Should(o.BeElementOf(podNames))
 			e2e.Logf("Pod %s successfully accessed through svc loadbalancer on ip %s and port %d", podName, fip.FloatingIP, svcPort)
 		})
+
+		// https://issues.redhat.com/browse/OSASINFRA-2412
+		g.It(fmt.Sprintf("should create a TCP %s LoadBalancer when LoadBalancerService ingressController is created on Openshift", lbProviderUnderTest), func() {
+
+			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
+
+			g.By("Creating ingresscontroller for sharding the OCP in-built canary service")
+			name := "canary-sharding"
+			domain := "sharding-test.apps.shiftstack.com"
+			shardIngressCtrl, err := deployLbIngressController(oc, 10*time.Minute, name, domain, map[string]string{"ingress.openshift.io/canary": "canary_controller"})
+			defer func() {
+				err := oc.AdminOperatorClient().OperatorV1().IngressControllers(shardIngressCtrl.Namespace).Delete(context.Background(), shardIngressCtrl.Name, metav1.DeleteOptions{})
+				o.Expect(err).NotTo(o.HaveOccurred(), "error destroying ingress-controller created during the test")
+			}()
+			o.Expect(err).NotTo(o.HaveOccurred(), "new ingresscontroller did not rollout")
+
+			g.By("Checks from openshift perspective")
+			svc, err := oc.AdminKubeClient().CoreV1().Services("openshift-ingress").Get(context.Background(), "router-"+name, metav1.GetOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred(), "router-%q not found in openshift-ingress namespace", name)
+			o.Expect(svc.Spec.Type).Should(o.Equal(v1.ServiceTypeLoadBalancer), "Unexpected svc Type: %q", svc.Spec.Type)
+			loadBalancerId := svc.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]
+			o.Expect(loadBalancerId).ShouldNot(o.BeEmpty(), "load-balancer-id annotation missing")
+			o.Expect(svc.Status.LoadBalancer.Ingress).ShouldNot(o.BeEmpty(), "svc.Status.LoadBalancer.Ingress should not be empty")
+			svcIp := svc.Status.LoadBalancer.Ingress[0].IP
+			o.Expect(svcIp).ShouldNot(o.BeEmpty(), "FIP missing on svc Status")
+			o.Expect(svc.Spec.ExternalTrafficPolicy).Should(o.Equal(v1.ServiceExternalTrafficPolicyTypeLocal),
+				"Unexpected ExternalTrafficPolicy on svc specs")
+			e2e.Logf("Service with LoadBalancerType exists with public ip %q and it is pointing to openstack loadbalancer with id %q", svcIp, loadBalancerId)
+
+			g.By("Checks from openstack perspective")
+			lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(lb.Provider).Should(o.Equal(strings.ToLower(lbProviderUnderTest)), "Unexpected provider in the Openstack LoadBalancer")
+			//In canary, two pools are created: ports 80 and 443. Checking all existing pools:
+			for i := 0; i < len(svc.Spec.Ports); i++ {
+				poolId := lb.Pools[i].ID
+				pool, err := pools.Get(loadBalancerClient, poolId).Extract()
+				o.Expect(err).NotTo(o.HaveOccurred())
+				o.Expect(pool.Protocol).Should(o.Equal("TCP"), "Unexpected protocol on Openstack LoadBalancer Pool: %q", pool.Name)
+			}
+
+			g.By("Test that the canary service is accessible through new ingressController")
+			route, err := oc.AdminRouteClient().RouteV1().Routes("openshift-ingress-canary").Get(context.Background(), "canary", metav1.GetOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred(), "canary route not found")
+			for i := 0; i < 100; i++ {
+				resp, err := httpsGetWithCustomLookup(route.Spec.Host, svcIp)
+				o.Expect(err).NotTo(o.HaveOccurred())
+				defer resp.Body.Close()
+				o.Expect(resp.Status).Should(o.Equal("200 OK"), "Unexpected response on try #%d", i)
+				body, err := io.ReadAll(resp.Body)
+				o.Expect(err).NotTo(o.HaveOccurred())
+				o.Expect(string(body)).Should(o.Equal("Healthcheck requested\n"), "Unexpected response on try #%d", i)
+				o.Expect(fmt.Sprintf("%q", resp.TLS.PeerCertificates[0].Subject)).Should(o.Equal("\"CN=*."+domain+"\""), "Unexpected response on try #%d", i)
+			}
+			e2e.Logf("Canary service successfully accessed through new ingressController")
+		})
 	}
 
 	// Only valid with the Octavia amphora provider. The OVN-Octavia provider does not
@@ -809,4 +868,93 @@ func getMembersMatchingStatus(client *gophercloud.ServiceClient, pool *pools.Poo
 		}
 	}
 	return members, nil
+}
+
+// Deploy ingressController with Type "LoadBalancerService" and wait until it is ready
+func deployLbIngressController(oc *exutil.CLI, timeout time.Duration, name, domain string, routeSelectorlabels map[string]string) (*operatorv1.IngressController, error) {
+
+	var ingressControllerLbAvailableConditions = []operatorv1.OperatorCondition{
+		{Type: operatorv1.IngressControllerAvailableConditionType, Status: operatorv1.ConditionTrue},
+		{Type: operatorv1.LoadBalancerManagedIngressConditionType, Status: operatorv1.ConditionTrue},
+		{Type: operatorv1.LoadBalancerReadyIngressConditionType, Status: operatorv1.ConditionTrue},
+		{Type: "Admitted", Status: operatorv1.ConditionTrue},
+	}
+	ingressCtrl := &operatorv1.IngressController{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: "openshift-ingress-operator",
+		},
+		Spec: operatorv1.IngressControllerSpec{
+			Domain: domain,
+			EndpointPublishingStrategy: &operatorv1.EndpointPublishingStrategy{
+				Type: operatorv1.LoadBalancerServiceStrategyType,
+			},
+			RouteSelector: &metav1.LabelSelector{
+				MatchLabels: routeSelectorlabels,
+			},
+		},
+	}
+	_, err := oc.AdminOperatorClient().OperatorV1().IngressControllers(ingressCtrl.Namespace).Create(context.Background(), ingressCtrl, metav1.CreateOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return ingressCtrl, waitForIngressControllerCondition(oc, timeout, types.NamespacedName{Namespace: ingressCtrl.Namespace, Name: ingressCtrl.Name}, ingressControllerLbAvailableConditions...)
+}
+
+func waitForIngressControllerCondition(oc *exutil.CLI, timeout time.Duration, name types.NamespacedName, conditions ...operatorv1.OperatorCondition) error {
+	return wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
+		ic, err := oc.AdminOperatorClient().OperatorV1().IngressControllers(name.Namespace).Get(context.Background(), name.Name, metav1.GetOptions{})
+		if err != nil {
+			e2e.Logf("failed to get ingresscontroller %s/%s: %v, retrying...", name.Namespace, name.Name, err)
+			return false, nil
+		}
+		expected := operatorConditionMap(conditions...)
+		current := operatorConditionMap(ic.Status.Conditions...)
+		met := conditionsMatchExpected(expected, current)
+		if !met {
+			e2e.Logf("ingresscontroller %s/%s conditions not met; wanted %+v, got %+v, retrying...", name.Namespace, name.Name, expected, current)
+		}
+		return met, nil
+	})
+}
+
+// Create https GET towards a given domain using a given IP on transport level. Returns the response or error.
+func httpsGetWithCustomLookup(url string, ip string) (*http.Response, error) {
+
+	// Create a custom resolver that overrides DNS lookups
+	resolver := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			// Perform custom DNS resolution here
+			ip := ip
+			dialer := net.Dialer{
+				Timeout: time.Second * 10,
+			}
+			return dialer.DialContext(ctx, network, ip+":443")
+		},
+	}
+
+	// Create a custom HTTP transport with the custom resolver
+	transport := &http.Transport{
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+		DialContext:           resolver.Dial,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	// Create an HTTP client with the custom transport
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   30 * time.Second,
+	}
+	defer client.CloseIdleConnections()
+
+	// Send an HTTP GET request
+	resp, err := client.Get("https://" + url)
+	if err != nil {
+		return nil, err
+	}
+	return resp, err
 }

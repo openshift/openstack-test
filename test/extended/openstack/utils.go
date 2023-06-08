@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 	machinev1 "github.com/openshift/api/machine/v1beta1"
+	operatorv1 "github.com/openshift/api/operator/v1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
 	exutil "github.com/openshift/origin/test/extended/util"
 	ini "gopkg.in/ini.v1"
@@ -311,4 +313,22 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func operatorConditionMap(conditions ...operatorv1.OperatorCondition) map[string]string {
+	conds := map[string]string{}
+	for _, cond := range conditions {
+		conds[cond.Type] = string(cond.Status)
+	}
+	return conds
+}
+
+func conditionsMatchExpected(expected, actual map[string]string) bool {
+	filtered := map[string]string{}
+	for k := range actual {
+		if _, comparable := expected[k]; comparable {
+			filtered[k] = actual[k]
+		}
+	}
+	return reflect.DeepEqual(expected, filtered)
 }
