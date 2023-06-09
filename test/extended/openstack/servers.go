@@ -42,6 +42,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	var clientSet *kubernetes.Clientset
 	var computeClient *gophercloud.ServiceClient
 
+	var ctx context.Context
+	g.BeforeEach(func() {
+		ctx = context.Background()
+	})
+
 	g.Context("on instance creation", func() {
 
 		g.BeforeEach(func() {
@@ -59,9 +64,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 		g.It("should follow machineset specs", func() {
 
-			skipUnlessMachineAPIOperator(dc, clientSet.CoreV1().Namespaces())
+			skipUnlessMachineAPIOperator(ctx, dc, clientSet.CoreV1().Namespaces())
 			g.By("fetching worker machineSets")
-			machineSets, err := listWorkerMachineSets(dc)
+			machineSets, err := listWorkerMachineSets(ctx, dc)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			if len(machineSets) == 0 {
 				e2eskipper.Skipf("Expects at least one worker machineset. Found none.")
@@ -75,7 +80,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				imageMachineSet := machineSet.Get("spec.template.spec.providerSpec.value.image").String()
 				sgMachineSets := getSecurityGroupNames(machineSet)
 				g.By(fmt.Sprintf("Getting the machines specs created by the machineset %q", nameMachineSet))
-				machines, err := getMachinesFromMachineSet(dc, nameMachineSet)
+				machines, err := getMachinesFromMachineSet(ctx, dc, nameMachineSet)
 				o.Expect(machines, err).To(o.HaveLen(replicasMachineSet),
 					"Number of replicas not matching for machineset %q", nameMachineSet)
 
@@ -109,7 +114,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			// iterates over Machine objects which exist.
 
 			g.By("fetching machines")
-			machines, err := getMachines(dc)
+			machines, err := getMachines(ctx, dc)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			// Create 2 maps of machine names to addresses: one from the machine specs, and one from OpenStack
@@ -153,13 +158,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 })
 
 // listWorkerMachineSets lists all worker machineSets
-func listWorkerMachineSets(dc dynamic.Interface) ([]objx.Map, error) {
+func listWorkerMachineSets(ctx context.Context, dc dynamic.Interface) ([]objx.Map, error) {
 	mc := dc.Resource(schema.GroupVersionResource{
 		Group:    machineAPIGroup,
 		Version:  "v1beta1",
 		Resource: "machinesets",
 	}).Namespace(machineAPINamespace)
-	obj, err := mc.List(context.Background(), metav1.ListOptions{})
+	obj, err := mc.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -177,13 +182,13 @@ func listWorkerMachineSets(dc dynamic.Interface) ([]objx.Map, error) {
 }
 
 // getMachines lists all machines in the cluster
-func getMachines(dc dynamic.Interface) ([]objx.Map, error) {
+func getMachines(ctx context.Context, dc dynamic.Interface) ([]objx.Map, error) {
 	mc := dc.Resource(schema.GroupVersionResource{
 		Group:    machineAPIGroup,
 		Version:  "v1beta1",
 		Resource: "machines",
 	}).Namespace(machineAPINamespace)
-	obj, err := mc.List(context.Background(), metav1.ListOptions{})
+	obj, err := mc.List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -191,8 +196,8 @@ func getMachines(dc dynamic.Interface) ([]objx.Map, error) {
 }
 
 // getMachinesFromMachineSet lists all worker machines beloging to msName machineset
-func getMachinesFromMachineSet(dc dynamic.Interface, msName string) ([]objx.Map, error) {
-	machines, err := getMachines(dc)
+func getMachinesFromMachineSet(ctx context.Context, dc dynamic.Interface, msName string) ([]objx.Map, error) {
+	machines, err := getMachines(ctx, dc)
 	if err != nil {
 		return nil, err
 	}
@@ -295,13 +300,13 @@ func parseInstanceAddresses(addresses map[string]interface{}) ([]string, error) 
 // If machines are not installed it skips the test case.
 // It then checks to see if the `openshift-machine-api` namespace is installed.
 // If the namespace is not present it skips the test case.
-func skipUnlessMachineAPIOperator(dc dynamic.Interface, c coreclient.NamespaceInterface) {
+func skipUnlessMachineAPIOperator(ctx context.Context, dc dynamic.Interface, c coreclient.NamespaceInterface) {
 	machineClient := dc.Resource(schema.GroupVersionResource{Group: "machine.openshift.io", Resource: "machines", Version: "v1beta1"})
 
 	err := wait.PollImmediate(time.Second, time.Minute, func() (bool, error) {
 		// Listing the resource will return an IsNotFound error when the CRD has not been installed.
 		// Otherwise it would return an empty list.
-		_, err := machineClient.List(context.Background(), metav1.ListOptions{})
+		_, err := machineClient.List(ctx, metav1.ListOptions{})
 		if err == nil {
 			return true, nil
 		}
@@ -314,7 +319,7 @@ func skipUnlessMachineAPIOperator(dc dynamic.Interface, c coreclient.NamespaceIn
 	o.Expect(err).NotTo(o.HaveOccurred())
 
 	err = wait.PollImmediate(time.Second, time.Minute, func() (bool, error) {
-		_, err := c.Get(context.Background(), "openshift-machine-api", metav1.GetOptions{})
+		_, err := c.Get(ctx, "openshift-machine-api", metav1.GetOptions{})
 		if err == nil {
 			return true, nil
 		}

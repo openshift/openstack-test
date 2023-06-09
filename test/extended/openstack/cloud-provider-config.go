@@ -29,6 +29,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 		skip      []string //Slice of properties that are not expected to be present in the internal configMaps
 	}
 
+	var ctx context.Context
+	g.BeforeEach(func() {
+		ctx = context.Background()
+	})
+
 	g.Context("on cloud provider configuration", func() {
 
 		g.BeforeEach(func() {
@@ -69,14 +74,16 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 				},
 			}
 
-			userCfg, err := getConfig(clientSet,
+			userCfg, err := getConfig(ctx,
+				clientSet,
 				userConfigMap.namespace,
 				userConfigMap.name,
 				userConfigMap.key)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			for _, internalConfigMap := range internalConfigMaps {
-				intCfg, err := getConfig(clientSet,
+				intCfg, err := getConfig(ctx,
+					clientSet,
 					internalConfigMap.namespace,
 					internalConfigMap.name,
 					internalConfigMap.key)
@@ -125,10 +132,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 			o.Expect(err).NotTo(o.HaveOccurred())
 			c, err := configv1client.NewForConfig(cfg)
 			o.Expect(err).NotTo(o.HaveOccurred())
-			network, err := c.ConfigV1().Networks().Get(context.Background(), "cluster", metav1.GetOptions{})
+			network, err := c.ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			ccmCfg, err := getConfig(clientSet,
+			ccmCfg, err := getConfig(ctx,
+				clientSet,
 				ccmConfigMap.namespace,
 				ccmConfigMap.name,
 				ccmConfigMap.key)
@@ -167,14 +175,14 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 			expectedSecretName := "openstack-credentials"
 
 			g.By(fmt.Sprintf("Getting the secret managed by role %q in %q namespace", openstackCredsRole, systemNamespace))
-			role, err := clientSet.RbacV1().Roles(systemNamespace).Get(context.TODO(), openstackCredsRole, metav1.GetOptions{})
+			role, err := clientSet.RbacV1().Roles(systemNamespace).Get(ctx, openstackCredsRole, metav1.GetOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error getting role %q in %q namespace", openstackCredsRole, systemNamespace)
 			o.Expect(role.Rules[0].ResourceNames[0]).To(o.Equal(expectedSecretName),
 				"Unexpected resourceName on role %q in %q namespace", openstackCredsRole, systemNamespace)
 
 			g.By(fmt.Sprintf("Getting the openstack auth url from clouds.conf in secret %q in %q namespace",
 				expectedSecretName, systemNamespace))
-			secret, err := clientSet.CoreV1().Secrets(systemNamespace).Get(context.TODO(), expectedSecretName, metav1.GetOptions{})
+			secret, err := clientSet.CoreV1().Secrets(systemNamespace).Get(ctx, expectedSecretName, metav1.GetOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "Secret %q not found in %q namespace", expectedSecretName, systemNamespace)
 			conf, err := ini.Load([]byte(secret.Data["clouds.conf"]))
 			o.Expect(err).NotTo(o.HaveOccurred(),

@@ -34,6 +34,7 @@ import (
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform", func() {
+	var ctx context.Context
 
 	oc := exutil.NewCLI("openstack")
 	var loadBalancerClient *gophercloud.ServiceClient
@@ -48,15 +49,16 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 	}
 
 	g.BeforeEach(func() {
+		ctx = context.Background()
 
-		network, err := oc.AdminConfigClient().ConfigV1().Networks().Get(context.Background(), "cluster", metav1.GetOptions{})
+		network, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 		if network.Status.NetworkType == "Kuryr" {
 			e2eskipper.Skipf("Test not applicable for Kuryr NetworkType")
 		}
 
 		// TODO revert once https://issues.redhat.com/browse/OSASINFRA-3079 is resolved
-		proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(context.Background(), "cluster", metav1.GetOptions{})
+		proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(ctx, "cluster", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 		if proxy.Status.HTTPProxy != "" {
 			e2eskipper.Skipf("Test not applicable for proxy setup")
@@ -73,7 +75,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		g.By("Gathering cloud-provider-config")
-		cloudProviderConfig, err = getConfig(oc.AdminKubeClient(),
+		cloudProviderConfig, err = getConfig(ctx,
+			oc.AdminKubeClient(),
 			"openshift-config",
 			"cloud-provider-config",
 			"config")
@@ -92,7 +95,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			g.By("Creating Openshift deployment")
 			labels := map[string]string{"app": "udp-lb-default-dep"}
 			testDeployment := createTestDeployment("udp-lb-default-dep", labels, 2, v1.ProtocolUDP, 8081)
-			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
 			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
@@ -136,7 +139,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			lbMethod, err := getClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", strings.ToLower(pool.LBMethod))
-			nodeList, err := clientSet.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+			nodeList, err := clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
 			expectedNumberOfMembers := len(nodeList.Items)
 			o.Expect(waitUntilNmembersReady(loadBalancerClient, pool, expectedNumberOfMembers, "NO_MONITOR|ONLINE")).NotTo(o.HaveOccurred(),
@@ -154,7 +157,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				}
 			}
 			e2e.Logf("Pods accessed after 100 UDP requests:\n%v\n", results)
-			pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(context.Background(), metav1.ListOptions{})
+			pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(ctx, metav1.ListOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			// ETP:Local not configured so the defined lbMethod is not applied, but the one on 'lbMethodsWithETPGlobal' var.
@@ -179,7 +182,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			g.By("Creating Openshift deployment")
 			labels := map[string]string{"app": "udp-lb-shared-dep"}
 			testDeployment := createTestDeployment("udp-lb-shared-dep", labels, 2, v1.ProtocolUDP, 8081)
-			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
 			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
@@ -250,7 +253,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			// don't work with OpenShiftSDN (it incorrectly marks the nodes without local endpoints as ONLINE)
 			// https://issues.redhat.com/browse/OCPBUGS-7229
 			octaviaMinVersion := "v2.16"
-			networkType, err := getNetworkType(oc)
+			networkType, err := getNetworkType(ctx, oc)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			octaviaGreaterOrEqualV2_16, err := IsOctaviaVersionGreaterThanOrEqual(loadBalancerClient, octaviaMinVersion)
@@ -264,7 +267,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			labels := map[string]string{"app": "udp-lb-etplocal-dep"}
 			replicas := int32(2)
 			testDeployment := createTestDeployment("udp-lb-etplocal-dep", labels, replicas, v1.ProtocolUDP, 8081)
-			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
 			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
@@ -338,7 +341,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				}
 			}
 			e2e.Logf("Pods accessed after 100 UDP requests:\n%v\n", results)
-			pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(context.Background(), metav1.ListOptions{})
+			pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(ctx, metav1.ListOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
 			//lbMethod can be something different to ROUND_ROBIN as monitors && ETP:Local are enabled on this test:
 			o.Expect(isLbMethodApplied(lbMethod, results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
@@ -374,7 +377,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			svcPort := int32(8022)
 			labels := map[string]string{"app": depName}
 			testDeployment := createTestDeployment(depName, labels, 2, v1.ProtocolUDP, 8081)
-			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
 			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
@@ -424,7 +427,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		labels := map[string]string{"app": depName}
 		drop_sourcerange := "9.9.9.9/32"
 		testDeployment := createTestDeployment(depName, labels, int32(2), v1.ProtocolUDP, 8081)
-		deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(context.TODO(),
+		deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 			testDeployment, metav1.CreateOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 		err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)

@@ -31,6 +31,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	var clientSet *kubernetes.Clientset
 	var volumeClient *gophercloud.ServiceClient
 
+	var ctx context.Context
+	g.BeforeEach(func() {
+		ctx = context.Background()
+	})
+
 	g.Context("on volume creation", func() {
 
 		g.BeforeEach(func() {
@@ -50,12 +55,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		// https://access.redhat.com/solutions/5325711
 		g.It("should follow PVC specs during resizing for prometheus", func() {
 
-			if !isPersistentStorageEnabledOnPrometheusK8s(clientSet) {
+			if !isPersistentStorageEnabledOnPrometheusK8s(ctx, clientSet) {
 				e2eskipper.Skipf("openshift-monitoring does not have Persistent Storage enabled.")
 			}
 
 			g.By("Gather prometheus PVCs before resizing")
-			initial_pvcs, err := getMonitoringPvcs(dc)
+			initial_pvcs, err := getMonitoringPvcs(ctx, dc)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("Gather Openstack cinder volumes for the PVCs before resizing")
@@ -80,12 +85,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			pvc_interface := dc.Resource(pvc_schema).Namespace("openshift-monitoring")
 
 			//oc patch --type=merge --patch='{"spec":{"paused":true}}' Prometheus/k8s -n openshift-monitoring
-			_, err = prometheus_interface.Patch(context.Background(), "k8s",
+			_, err = prometheus_interface.Patch(ctx, "k8s",
 				types.MergePatchType, []byte(`{"spec": {"paused": true}}`), metav1.PatchOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "failure pausing prometheus")
 
 			//oc scale statefulset.apps/prometheus-k8s -n openshift-monitoring --replicas=0
-			_, err = stateful_interface.Patch(context.Background(), "prometheus-k8s",
+			_, err = stateful_interface.Patch(ctx, "prometheus-k8s",
 				types.MergePatchType, []byte(`{"spec": {"replicas": 0}}`), metav1.PatchOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "failure scaling down prometheus-k8s")
 
@@ -96,19 +101,19 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				o.Expect(vols).To(o.HaveLen(1), "unexpected number of volumes for %q", pvc.Get("metadata.name"))
 				new_size := vols[0].Size + 1
 				resize_spec := []byte(fmt.Sprintf(`{"spec": {"resources": {"requests":{"storage": "%dGi"}}}}`, new_size))
-				_, err = pvc_interface.Patch(context.Background(), pvc.Get("metadata.name").String(),
+				_, err = pvc_interface.Patch(ctx, pvc.Get("metadata.name").String(),
 					types.MergePatchType, resize_spec, metav1.PatchOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred(), "failure changing storage size on the PVC")
 			}
 
 			//oc patch --type=merge --patch='{"spec":{"paused":false}}' Prometheus/k8s -n openshift-monitoring
-			_, err = prometheus_interface.Patch(context.Background(), "k8s",
+			_, err = prometheus_interface.Patch(ctx, "k8s",
 				types.MergePatchType, []byte(`{"spec": {"paused": false}}`), metav1.PatchOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "failure resuming prometheus")
 
 			//oc scale statefulset.apps/prometheus-k8s -n openshift-monitoring --replicas=<number of existing pvcs
 			replicas_spec := []byte(fmt.Sprintf(`{"spec": {"replicas": %d}}`, len(initial_pvcs)))
-			_, err = stateful_interface.Patch(context.Background(), "prometheus-k8s",
+			_, err = stateful_interface.Patch(ctx, "prometheus-k8s",
 				types.MergePatchType, replicas_spec, metav1.PatchOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "failure scaling up prometheus-k8s")
 			time.Sleep(5 * time.Second) // Give time to the cluster to apply the changes
@@ -119,7 +124,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			o.Expect(err).NotTo(o.HaveOccurred(), "timeout waiting for prometheus=k8s pods going to running state after the resize")
 
 			g.By("Gather prometheus PVCs after resizing")
-			resized_pvcs, err := getMonitoringPvcs(dc)
+			resized_pvcs, err := getMonitoringPvcs(ctx, dc)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(resized_pvcs).To(o.HaveLen(len(initial_pvcs)), "unexpected number of PVCs after resizing")
 
@@ -181,10 +186,10 @@ func checkSizeConsistency(pvcs []objx.Map, volumes []volumes.Volume) error {
 }
 
 // return list of PVCs defined in openshift-monitoring namespace
-func getMonitoringPvcs(dc dynamic.Interface) ([]objx.Map, error) {
+func getMonitoringPvcs(ctx context.Context, dc dynamic.Interface) ([]objx.Map, error) {
 	pvc_schema := schema.GroupVersionResource{Group: "", Version: "v1", Resource: "persistentvolumeclaims"}
 	obj, err := dc.Resource(pvc_schema).Namespace("openshift-monitoring").
-		List(context.Background(), metav1.ListOptions{})
+		List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -208,9 +213,9 @@ func getVolumesFromName(client *gophercloud.ServiceClient, volumeName string) ([
 	return volumes, nil
 }
 
-func isPersistentStorageEnabledOnPrometheusK8s(kubeClient kubernetes.Interface) bool {
+func isPersistentStorageEnabledOnPrometheusK8s(ctx context.Context, kubeClient kubernetes.Interface) bool {
 	cmClient := kubeClient.CoreV1().ConfigMaps("openshift-monitoring")
-	config, err := cmClient.Get(context.TODO(), "cluster-monitoring-config", metav1.GetOptions{})
+	config, err := cmClient.Get(ctx, "cluster-monitoring-config", metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		return false
 	}
