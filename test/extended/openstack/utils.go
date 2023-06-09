@@ -123,7 +123,7 @@ func CreatePod(ctx context.Context, clientSet *kubernetes.Clientset, nsName stri
 	}
 	p, err := clientSet.CoreV1().Pods(nsName).Create(ctx, pod, metav1.CreateOptions{})
 	if err == nil {
-		err = e2epod.WaitTimeoutForPodReadyInNamespace(clientSet, p.Name, nsName, e2e.PodStartShortTimeout)
+		err = e2epod.WaitTimeoutForPodReadyInNamespace(ctx, clientSet, p.Name, nsName, e2e.PodStartShortTimeout)
 	}
 	return p, err
 }
@@ -156,7 +156,7 @@ func GetMachinesetRetry(ctx context.Context, client runtimeclient.Client, ms *ma
 	const delay = 10
 	retries := 1
 	for retries < maxRetries {
-		_, err = framework.GetMachineSet(client, ms.Name)
+		_, err = framework.GetMachineSet(ctx, client, ms.Name)
 
 		if err != nil == shouldExist {
 			retries += 1

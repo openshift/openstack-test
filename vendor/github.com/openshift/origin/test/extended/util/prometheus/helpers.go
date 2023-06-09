@@ -13,6 +13,7 @@ import (
 
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	exutil "github.com/openshift/origin/test/extended/util"
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -25,8 +26,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	watchtools "k8s.io/client-go/tools/watch"
-	"k8s.io/kubernetes/pkg/client/conditions"
 	"k8s.io/kubernetes/test/e2e/framework"
+	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 )
 
 const (
@@ -60,7 +61,7 @@ func waitForServiceAccountInNamespace(c clientset.Interface, ns, serviceAccountN
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	_, err = watchtools.UntilWithoutRetry(ctx, w, conditions.ServiceAccountHasSecrets)
+	_, err = watchtools.UntilWithoutRetry(ctx, w, exutil.ServiceAccountHasSecrets)
 	return err
 }
 
@@ -127,9 +128,17 @@ func GetPrometheusSABearerToken(oc *exutil.CLI) string {
 }
 
 type MetricCondition struct {
+	// TODO: Remove in favor of explicit fields
 	Selector map[string]string
-	Text     string
-	Matches  func(sample *model.Sample) bool
+
+	AlertName      string
+	AlertNamespace string
+	AlertLevel     string
+
+	// Text is the description of why this alert condition matched.
+	Text string
+
+	Matches func(sample *model.Sample) bool
 }
 
 type MetricConditions []MetricCondition
@@ -145,6 +154,20 @@ func (c MetricConditions) Matches(sample *model.Sample) *MetricCondition {
 		}
 		if matches && (condition.Matches == nil || condition.Matches(sample)) {
 			return &c[i]
+		}
+	}
+	return nil
+}
+
+func (c MetricConditions) MatchesInterval(alertInterval monitorapi.EventInterval) *MetricCondition {
+
+	// Parse out the alertInterval:
+	checkAlertName := monitorapi.AlertFromLocator(alertInterval.Locator)
+	checkAlertNamespace := monitorapi.NamespaceFromLocator(alertInterval.Locator)
+
+	for _, condition := range c {
+		if checkAlertName == condition.AlertName && checkAlertNamespace == condition.AlertNamespace {
+			return &condition
 		}
 	}
 	return nil
@@ -263,7 +286,7 @@ func ExpectURLStatusCodeExec(url string, statusCodes ...int) error {
 // upon failure or if status return code is not equal to any of the statusCodes.
 func ExpectURLStatusCodeExecViaPod(ns, execPodName, url string, statusCodes ...int) error {
 	cmd := fmt.Sprintf("curl -k -s -o /dev/null -w '%%{http_code}' %q", url)
-	output, err := framework.RunHostCmd(ns, execPodName, cmd)
+	output, err := e2eoutput.RunHostCmd(ns, execPodName, cmd)
 	if err != nil {
 		return fmt.Errorf("host command failed: %v\n%s", err, output)
 	}

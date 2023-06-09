@@ -48,6 +48,32 @@ func testKubeletToAPIServerGracefulTermination(events monitorapi.Intervals) []*j
 	return tests
 }
 
+func testErrImagePullUnrecognizedSignatureFormat(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] kubelet logs do not contain ErrImagePull unrecognized signature format"
+	success := &junitapi.JUnitTestCase{Name: testName}
+
+	var failures []string
+	for _, event := range events {
+		if strings.Contains(event.Message, "reason/ErrImagePull UnrecognizedSignatureFormat") {
+			failures = append(failures, fmt.Sprintf("%v - %v", event.Locator, event.Message))
+		}
+	}
+
+	if len(failures) == 0 {
+		return []*junitapi.JUnitTestCase{success}
+	}
+
+	failure := &junitapi.JUnitTestCase{
+		Name:      testName,
+		SystemOut: strings.Join(failures, "\n"),
+		FailureOutput: &junitapi.FailureOutput{
+			Output: fmt.Sprintf("%d kubelet logs contain errors from ErrImagePull unrecognized signature format.\n\n%v", len(failures), strings.Join(failures, "\n")),
+		},
+	}
+	// TODO: marked flaky until we have monitored it for consistency
+	return []*junitapi.JUnitTestCase{failure, success}
+}
+
 func testHttpConnectionLost(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
 	const testName = "[sig-node] kubelet logs do not contain http client connection lost errors"
 	success := &junitapi.JUnitTestCase{Name: testName}
@@ -71,6 +97,60 @@ func testHttpConnectionLost(events monitorapi.Intervals) []*junitapi.JUnitTestCa
 		},
 	}
 	// TODO: marked flaky until we have monitored it for consistency
+	return []*junitapi.JUnitTestCase{failure, success}
+}
+
+func testAnonymousCertConnectionFailure(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] kubelet should not use an anonymous user"
+
+	var failures []string
+	for _, event := range events {
+		if strings.Contains(event.Message, "reason/FailedToAuthenticateWithOpenShiftUser") {
+			failures = append(failures, fmt.Sprintf("%v - %v", event.Locator, event.Message))
+		}
+	}
+
+	if len(failures) == 0 {
+		success := &junitapi.JUnitTestCase{Name: testName}
+		return []*junitapi.JUnitTestCase{success}
+	}
+
+	failure := &junitapi.JUnitTestCase{
+		Name:      testName,
+		SystemOut: strings.Join(failures, "\n"),
+		FailureOutput: &junitapi.FailureOutput{
+			Output: fmt.Sprintf("kubelet logs contain %d failures using an anonymous user .\n\n%v", len(failures), strings.Join(failures, "\n")),
+		},
+	}
+	// add success to flake the test because this fails very commonly.
+	success := &junitapi.JUnitTestCase{Name: testName}
+	return []*junitapi.JUnitTestCase{failure, success}
+}
+
+func testFailedToDeleteCGroupsPath(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-node] kubelet should be able to delete cgroups path"
+
+	var failures []string
+	for _, event := range events {
+		if strings.Contains(event.Message, "reason/FailedToDeleteCGroupsPath") {
+			failures = append(failures, fmt.Sprintf("%v - %v", event.Locator, event.Message))
+		}
+	}
+
+	if len(failures) == 0 {
+		success := &junitapi.JUnitTestCase{Name: testName}
+		return []*junitapi.JUnitTestCase{success}
+	}
+
+	failure := &junitapi.JUnitTestCase{
+		Name:      testName,
+		SystemOut: strings.Join(failures, "\n"),
+		FailureOutput: &junitapi.FailureOutput{
+			Output: fmt.Sprintf("kubelet logs contain %d failures to delete cgroups path.\n\n%v", len(failures), strings.Join(failures, "\n")),
+		},
+	}
+	// add success to flake the test because this fails very commonly.
+	success := &junitapi.JUnitTestCase{Name: testName}
 	return []*junitapi.JUnitTestCase{failure, success}
 }
 
@@ -109,24 +189,25 @@ func testContainerFailures(events monitorapi.Intervals) []*junitapi.JUnitTestCas
 		if !strings.Contains(event.Locator, "ns/openshift-") {
 			continue
 		}
+		reason := monitorapi.ReasonFrom(event.Message)
+		code := monitorapi.AnnotationsFromMessage(event.Message)[monitorapi.AnnotationContainerExitCode]
 		switch {
 		// errors during container start should be highlighted because they are unexpected
-		case strings.Contains(event.Message, "reason/ContainerWait "):
-			// excluded https://bugzilla.redhat.com/show_bug.cgi?id=1933760
-			if strings.Contains(event.Message, "possible container status clear") || strings.Contains(event.Message, "cause/ContainerCreating ") {
+		case reason == monitorapi.ContainerReasonContainerWait:
+			if strings.Contains(event.Message, "cause/ContainerCreating ") {
 				continue
 			}
 			failures = append(failures, fmt.Sprintf("%v - %v", event.Locator, event.Message))
 
 		// workload containers should never exit non-zero during normal operations
-		case strings.Contains(event.Message, "reason/ContainerExit") && !strings.Contains(event.Message, "code/0"):
+		case reason == monitorapi.ContainerReasonContainerExit && code != "0":
 			containerExits[event.Locator] = append(containerExits[event.Locator], event.Message)
 		}
 	}
 
 	var excessiveExits []string
 	for locator, messages := range containerExits {
-		if len(messages) > 1 {
+		if len(messages) > 0 {
 			messageSet := sets.NewString(messages...)
 			excessiveExits = append(excessiveExits, fmt.Sprintf("%s restarted %d times:\n%s", locator, len(messages), strings.Join(messageSet.List(), "\n")))
 		}

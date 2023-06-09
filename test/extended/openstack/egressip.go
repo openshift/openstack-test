@@ -22,6 +22,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	e2e "k8s.io/kubernetes/test/e2e/framework"
+	"k8s.io/kubernetes/test/e2e/framework/node"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
@@ -97,8 +98,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		// "dummy" is added as value for the label key just because RemoveLabelOffNode is not
 		// able to remove the key if it doesn't have any value
 		g.By(fmt.Sprintf("Labeling the primary node '%s' with '%s'", primaryWorker.Name, egressAssignableLabelKey))
-		e2e.AddOrUpdateLabelOnNode(clientSet, primaryWorker.Name, egressAssignableLabelKey, "dummy")
-		defer e2e.RemoveLabelOffNode(clientSet, primaryWorker.Name, egressAssignableLabelKey)
+		node.AddOrUpdateLabelOnNode(clientSet, primaryWorker.Name, egressAssignableLabelKey, "dummy")
+		defer node.RemoveLabelOffNode(clientSet, primaryWorker.Name, egressAssignableLabelKey)
 
 		g.By(fmt.Sprintf("Getting the EgressIP network from the '%s' annotation", egressIPConfigAnnotationKey))
 		egressIPNetCidrStr, err := getEgressIPNetwork(primaryWorker)
@@ -159,8 +160,8 @@ spec:
 
 		// Label the secondary worker node as EgressIP assignable node
 		g.By(fmt.Sprintf("Labeling the secondary node '%s' with '%s'", secondaryWorker.Name, egressAssignableLabelKey))
-		e2e.AddOrUpdateLabelOnNode(clientSet, secondaryWorker.Name, egressAssignableLabelKey, "dummy")
-		defer e2e.RemoveLabelOffNode(clientSet, secondaryWorker.Name, egressAssignableLabelKey)
+		node.AddOrUpdateLabelOnNode(clientSet, secondaryWorker.Name, egressAssignableLabelKey, "dummy")
+		defer node.RemoveLabelOffNode(clientSet, secondaryWorker.Name, egressAssignableLabelKey)
 
 		// Check the assigned node in CloudPrivateIPConfig is kept with the primary EgressIP worker node
 		g.By("Checking the CloudPrivateIPConfig object and the assigned node after adding a second EgressIP assignable node")
@@ -195,7 +196,7 @@ spec:
 		e2e.Logf("Fixed IP (%s) attached to FIP '%s'", egressIPAddrStr, fip.FloatingIP)
 
 		g.By("Removing the egress-assignable label from the primary worker node (simulates a node failover)")
-		e2e.RemoveLabelOffNode(clientSet, primaryWorker.Name, egressAssignableLabelKey)
+		node.RemoveLabelOffNode(clientSet, primaryWorker.Name, egressAssignableLabelKey)
 
 		g.By("Waiting until CloudPrivateIPConfig is updated with the secondary worker as assigned node")
 		waitOk, err = waitCloudPrivateIPConfigAssignedNode(ctx, cloudNetworkClientset, egressIPAddrStr, secondaryWorker.Name)

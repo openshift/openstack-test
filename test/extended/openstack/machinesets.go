@@ -81,7 +81,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			err = configv1.AddToScheme(scheme.Scheme)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to add Config to scheme")
 
-			newMachinesetParams := framework.BuildMachineSetParams(rclient, 1)
+			newMachinesetParams := framework.BuildMachineSetParams(ctx, rclient, 1)
 			rawBytes, err = json.Marshal(newMachinesetParams.ProviderSpec.Value)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error marshaling new MachineSet Provider Spec")
 

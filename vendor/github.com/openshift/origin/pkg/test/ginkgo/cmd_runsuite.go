@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -15,10 +16,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/onsi/ginkgo/v2"
+
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/openshift/origin/pkg/monitor"
 	"github.com/openshift/origin/pkg/riskanalysis"
 	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
-	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const (
@@ -156,8 +160,39 @@ func (opt *Options) Run(suite *TestSuite, junitSuiteName string) error {
 
 	tests, err := testsForSuite()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed reading origin test suites: %w", err)
 	}
+
+	if len(os.Getenv("OPENSHIFT_SKIP_EXTERNAL_TESTS")) == 0 {
+		fmt.Fprintf(opt.Out, "Attempting to pull tests from external binary...\n")
+		externalTests, err := externalTestsForSuite(ctx)
+		if err == nil {
+			filteredTests := []*testCase{}
+			for _, test := range tests {
+				// tests contains all the tests "registered" in openshif-tests binary,
+				// this also includes vendored k8s tests, since this path assumes we're
+				// using external binary to run these tests we need to remove them
+				// from the final lists, which contains:
+				// 1. origin tests, only
+				// 2. k8s tests, coming from external binary
+				if !strings.Contains(test.name, "[Suite:k8s]") {
+					filteredTests = append(filteredTests, test)
+				}
+			}
+			tests = append(filteredTests, externalTests...)
+			fmt.Fprintf(opt.Out, "Got %d tests from external binary\n", len(externalTests))
+		} else {
+			fmt.Fprintf(opt.Out, "Falling back to built-in suite, failed reading external test suites: %v\n", err)
+		}
+	} else {
+		fmt.Fprintf(opt.Out, "Using built-in tests only due to OPENSHIFT_SKIP_EXTERNAL_TESTS being set\n")
+	}
+
+	// this ensures the tests are always run in random order to avoid
+	// any intra-tests dependencies
+	suiteConfig, _ := ginkgo.GinkgoConfiguration()
+	r := rand.New(rand.NewSource(suiteConfig.RandomSeed))
+	r.Shuffle(len(tests), func(i, j int) { tests[i], tests[j] = tests[j], tests[i] })
 
 	discoveryClient, err := getDiscoveryClient()
 	if err != nil {
@@ -414,11 +449,13 @@ func (opt *Options) Run(suite *TestSuite, junitSuiteName string) error {
 		q := newParallelTestQueue(testRunnerContext)
 		q.Execute(testCtx, retries, parallelism, testOutputConfig, abortFn)
 
-		var flaky []string
+		var flaky, skipped []string
 		var repeatFailures []*testCase
 		for _, test := range retries {
 			if test.success {
 				flaky = append(flaky, test.name)
+			} else if test.skipped {
+				skipped = append(skipped, test.name)
 			} else {
 				repeatFailures = append(repeatFailures, test)
 			}
@@ -438,6 +475,25 @@ func (opt *Options) Run(suite *TestSuite, junitSuiteName string) error {
 			sort.Strings(flaky)
 			fmt.Fprintf(opt.Out, "Flaky tests:\n\n%s\n\n", strings.Join(flaky, "\n"))
 		}
+		if len(skipped) > 0 {
+			// If a retry test got skipped, it means we very likely failed a precondition in the first failure, so
+			// we need to remove the failure case.
+			var withoutPreconditionFailures []*testCase
+		testLoop:
+			for _, t := range tests {
+				for _, st := range skipped {
+					if t.name == st && t.failed {
+						continue testLoop
+					}
+					withoutPreconditionFailures = append(withoutPreconditionFailures, t)
+				}
+			}
+			tests = withoutPreconditionFailures
+			failing = repeatFailures
+			sort.Strings(skipped)
+			fmt.Fprintf(opt.Out, "Skipped tests that failed a precondition:\n\n%s\n\n", strings.Join(skipped, "\n"))
+
+		}
 	}
 
 	// monitor the cluster while the tests are running and report any detected anomalies
@@ -456,6 +512,8 @@ func (opt *Options) Run(suite *TestSuite, junitSuiteName string) error {
 		}
 	}
 
+	// default is empty string as that is what entries prior to adding this will have
+	wasMasterNodeUpdated := ""
 	if events := opt.MonitorEventsOptions.GetEvents(); len(events) > 0 {
 		var buf *bytes.Buffer
 		syntheticTestResults, buf, _ = createSyntheticTestsFromMonitor(events, duration)
@@ -497,6 +555,8 @@ func (opt *Options) Run(suite *TestSuite, junitSuiteName string) error {
 				fmt.Fprintf(opt.ErrOut, "error: Failed to write monitor data: %v\n", err)
 			}
 		}
+
+		wasMasterNodeUpdated = monitor.WasMasterNodeUpdated(events)
 	}
 
 	// report the outcome of the test
@@ -511,7 +571,7 @@ func (opt *Options) Run(suite *TestSuite, junitSuiteName string) error {
 			fmt.Fprintf(opt.Out, "error: Unable to write e2e JUnit xml results: %v", err)
 		}
 
-		if err := riskanalysis.WriteJobRunTestFailureSummary(opt.JUnitDir, timeSuffix, finalSuiteResults); err != nil {
+		if err := riskanalysis.WriteJobRunTestFailureSummary(opt.JUnitDir, timeSuffix, finalSuiteResults, wasMasterNodeUpdated); err != nil {
 			fmt.Fprintf(opt.Out, "error: Unable to write e2e job run failures summary: %v", err)
 		}
 	}

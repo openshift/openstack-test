@@ -27,6 +27,7 @@
 // examples/quickstarts/rails-postgresql-persistent.json
 // examples/quickstarts/rails-postgresql.json
 // examples/hello-openshift/Dockerfile
+// examples/hello-openshift/go.mod
 // examples/hello-openshift/hello-pod.json
 // examples/hello-openshift/hello-project.json
 // examples/jenkins/application-template.json
@@ -175,6 +176,7 @@
 // test/extended/testdata/builds/webhook/github/testdata/pushevent.json
 // test/extended/testdata/builds/webhook/gitlab/testdata/pushevent-not-master-branch.json
 // test/extended/testdata/builds/webhook/gitlab/testdata/pushevent.json
+// test/extended/testdata/cli/test-release-image-references.json
 // test/extended/testdata/cluster/master-vert.yaml
 // test/extended/testdata/cluster/quickstarts/cakephp-mysql.json
 // test/extended/testdata/cluster/quickstarts/dancer-mysql.json
@@ -208,11 +210,9 @@
 // test/extended/testdata/cmd/test/cmd/quota.sh
 // test/extended/testdata/cmd/test/cmd/secrets.sh
 // test/extended/testdata/cmd/test/cmd/set-data.sh
-// test/extended/testdata/cmd/test/cmd/set-image.sh
 // test/extended/testdata/cmd/test/cmd/set-liveness-probe.sh
 // test/extended/testdata/cmd/test/cmd/setbuildhook.sh
 // test/extended/testdata/cmd/test/cmd/setbuildsecret.sh
-// test/extended/testdata/cmd/test/cmd/templates.sh
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-stibuild.json
@@ -336,6 +336,8 @@
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json
+// test/extended/testdata/kernel/rt-tests-environment.yaml
+// test/extended/testdata/kernel/rt-tests-pod.yaml
 // test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt
 // test/extended/testdata/ldap/groupsync/ad/blacklist_openshift.txt
 // test/extended/testdata/ldap/groupsync/ad/ldapgroupuids.txt
@@ -410,7 +412,9 @@
 // test/extended/testdata/mixed-api-versions.yaml
 // test/extended/testdata/multi-namespace-pipeline.yaml
 // test/extended/testdata/multi-namespace-template.yaml
+// test/extended/testdata/multinetpolicy/deny-ingress-pod-a.yml
 // test/extended/testdata/net-attach-defs/bridge-nad.yml
+// test/extended/testdata/net-attach-defs/macvlan-nad.yml
 // test/extended/testdata/net-attach-defs/whereabouts-nad.yml
 // test/extended/testdata/net-attach-defs/whereabouts-race-awake.yml
 // test/extended/testdata/net-attach-defs/whereabouts-race-sleepy.yml
@@ -420,6 +424,9 @@
 // test/extended/testdata/oauthserver/oauth-sa.yaml
 // test/extended/testdata/olm/operatorgroup.yaml
 // test/extended/testdata/olm/subscription.yaml
+// test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml
+// test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml
+// test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml
 // test/extended/testdata/releases/payload-1/etcd-operator/image-references
 // test/extended/testdata/releases/payload-1/etcd-operator/manifest.yaml
 // test/extended/testdata/releases/payload-1/image-registry/10_image-registry_crd.yaml
@@ -445,6 +452,10 @@
 // test/extended/testdata/service-serving-cert/nginx-serving-cert.conf
 // test/extended/testdata/signer-buildconfig.yaml
 // test/extended/testdata/stable-busybox.yaml
+// test/extended/testdata/storage/inline/csi-sharedresourcerole.yaml
+// test/extended/testdata/storage/inline/csi-sharedresourcerolebinding.yaml
+// test/extended/testdata/storage/inline/csi-sharedsecret.yaml
+// test/extended/testdata/storage/inline/secret.yaml
 // test/extended/testdata/templates/crunchydata-pod.json
 // test/extended/testdata/templates/guestbook.json
 // test/extended/testdata/templates/guestbook_list.json
@@ -460,6 +471,7 @@
 // test/extended/testdata/test-secret.json
 // test/extended/testdata/verifyservice-pipeline-template.yaml
 // e2echart/e2e-chart-template.html
+// e2echart/non-spyglass-e2e-chart-template.html
 // e2echart/test-risk-analysis.html
 package testdata
 
@@ -13309,6 +13321,26 @@ func examplesHelloOpenshiftDockerfile() (*asset, error) {
 	return a, nil
 }
 
+var _examplesHelloOpenshiftGoMod = []byte(`module github.com/openshift/origin/examples/hello-openshift
+
+go 1.19
+`)
+
+func examplesHelloOpenshiftGoModBytes() ([]byte, error) {
+	return _examplesHelloOpenshiftGoMod, nil
+}
+
+func examplesHelloOpenshiftGoMod() (*asset, error) {
+	bytes, err := examplesHelloOpenshiftGoModBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "examples/hello-openshift/go.mod", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _examplesHelloOpenshiftHelloPodJson = []byte(`{
   "kind": "Pod",
   "apiVersion": "v1",
@@ -18735,7 +18767,7 @@ func testExtendedTestdataBuildsDockerAddDockerfile() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataBuildsDockerAddDockerAddEnvDockerfile = []byte(`FROM centos
+var _testExtendedTestdataBuildsDockerAddDockerAddEnvDockerfile = []byte(`FROM registry.redhat.io/ubi8/ubi-minimal
 ENV foo=foo
 ADD ./${foo} /tmp/foo
 `)
@@ -24119,6 +24151,3159 @@ func testExtendedTestdataBuildsWebhookGitlabTestdataPusheventJson() (*asset, err
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/builds/webhook/gitlab/testdata/pushevent.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataCliTestReleaseImageReferencesJson = []byte(`{
+  "kind": "ImageStream",
+  "apiVersion": "image.openshift.io/v1",
+  "metadata": {
+    "name": "4.13.0-rc.0",
+    "creationTimestamp": "2023-03-20T15:10:52Z",
+    "annotations": {
+      "release.openshift.io/from-image-stream": "ocp/4.13-art-latest-2023-03-19-052243",
+      "release.openshift.io/from-release": "registry.ci.openshift.org/ocp/release:4.13.0-0.nightly-2023-03-19-052243"
+    }
+  },
+  "spec": {
+    "lookupPolicy": {
+      "local": false
+    },
+    "tags": [
+      {
+        "name": "agent-installer-api-server",
+        "annotations": {
+          "io.openshift.build.commit.id": "869bbf48e516af94a80cd351327c08aefb5b563b",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/assisted-service"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:be61fad30e596cfadc440081c6b97c9c7b31dfd41b333e3916b5eca84663009c"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "agent-installer-csr-approver",
+        "annotations": {
+          "io.openshift.build.commit.id": "6160d18379195ac3f65ab3898429936a95522fd0",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/assisted-installer"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:23e31102f5390e60b7a72023ea6c7667d405e42dd83735fca1f0f96cf671a82e"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "agent-installer-node-agent",
+        "annotations": {
+          "io.openshift.build.commit.id": "2bfea2c7035757cdb1e58fa9f854b56ac6d62366",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/assisted-installer-agent"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c5d46e66f6ed6640db15a4d2c47b75976a42bdedd953656e89bf3298fbd0d50f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "agent-installer-orchestrator",
+        "annotations": {
+          "io.openshift.build.commit.id": "6160d18379195ac3f65ab3898429936a95522fd0",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/assisted-installer"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ca81e1f40fd6b49ce87b9d5cb2e90e4020b112f725d63b0e14c6b4a6f6f97cba"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "alibaba-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "b5200baa784513b77437809c63fcc80cfd53c9df",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-alibaba-cloud"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ee53132cfdc5ae6c65e35b947422e4a0e81f5fbf5d3916e679ec382c31b869fb"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "alibaba-cloud-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "68c0ecfcdcfaa375450f0af1b7f8c6083e3f122f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/alibaba-cloud-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:773580ce51a55c984aecc8088b11b24f2fd3bfbd67f16306148c9f4ce898e5ab"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "alibaba-disk-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "0f4b92ab502068edc6cad4c0d070f44c06842092",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/alibaba-disk-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:aca1aa1ee037086cc4c327d5ff87f3e7f7d8dc6e90ef09f3b29f26934a85e9e4"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "alibaba-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "4c0f96a692dee91100d7085c05a68f3efb7e281d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-provider-alibaba"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6aca4be4556f9641c76e6be2bceb370d83a82a9f894e7e2314505ead9da270ff"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "apiserver-network-proxy",
+        "annotations": {
+          "io.openshift.build.commit.id": "61e198ca00b9426e2f7309cf2818ac74426486ff",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/apiserver-network-proxy"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8e0680bd4f38dd06caef26c0dd80a88fcd181cef3525452bf34ba9e11327ab5f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "aws-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "946daa07dbf49c4a1860a1c3fc4c05fa685c6590",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-aws"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:43ce153beba81e30ca2cf4f513c2ecbf992368077c43c09069adbc195b4aa95a"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "aws-cluster-api-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "4251ed32deecad37706c6b90ecb187882386609a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-provider-aws"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:326887644764547f3d81d5dc35615a4bef5005b68f1864e68f1c63b3143d88ad"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "aws-ebs-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "d8fa531075bd9e3da26a58e05fc906bc84e2625e",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/aws-ebs-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:57f524dade9dfab2170d530abeba6be1c2d65e5651ac927307376358572b2140"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "aws-ebs-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "03aebf48c71bdfd1e32f2ab48b38b029b1a7681d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/aws-ebs-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:189279778e9140f0b47f3e8c58ac6262cf1dbe573ae1a651e8a6e675b7d7b369"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "aws-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "9c6a95fea21143b255479a1d142da839794a3dcc",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-api-provider-aws"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c9f622d5408462011492d823946b98c1043c08d2ecf2a264dc9d90f48084a9c8"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "aws-pod-identity-webhook",
+        "annotations": {
+          "io.openshift.build.commit.id": "4969655df4169f19092e173b16c56c79d3a3383e",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/aws-pod-identity-webhook"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:4e248571068c87bc5b2f69bd4fc2bc3934d8bcd2b2a7fecadc754a30e06ac592"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "azure-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "ce2ddad6686e14327c3b27befbf8c46b1b2dc68c",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-azure"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e2592c9a914d389bed20e0e192e0dedede67c1da1f77074eccad2845350c214f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "azure-cloud-node-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "ce2ddad6686e14327c3b27befbf8c46b1b2dc68c",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-azure"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b20a087288d9c99e571d216218403f22112fc15f1181a45e9bb2db91866cca4f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "azure-cluster-api-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "9885d4d37ed74d764eb83a826f3a7b013ed83d12",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-provider-azure"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a424d7a7602bf21e61fb75436a5c6936d84d4d08f85e3204cfcd103c1e7f2373"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "azure-disk-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "202e8afa8f1899d4cd1843d9e09cf8832ae0eff7",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/azure-disk-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6f033c6e704ad25934a8c8f1551f0cf8a7399fffc9ba2818e65b58dd65a65506"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "azure-disk-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "67bda47232a73fe3877815d7901353f4f74ebeb0",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/azure-disk-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c15be489e34dcb43fee4eddc8770883552dd104f6d5950e13725f8bfe9d42a2f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "azure-file-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "fd94a035e3d9dedce048f7e5f271e7ed6bea822f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/azure-file-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d99d909234985991021d286a19449852115b75ec3c5898c90a475523d15c9d74"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "azure-file-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "994c32c927a69df33f83aed440cc150e8d270341",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/azure-file-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f335e6c8d5a7022e4763c1e6a93ba7cc338893ab05033ff064835800c1baac5b"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "azure-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "3405d8c4b87fc22a5ac355cd4a9611a38aa1f3cc",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-api-provider-azure"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:88abbe74050a26898b1df159639198b71ed035f414a054a1400e9e87f41881f6"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "baremetal-installer",
+        "annotations": {
+          "io.openshift.build.commit.id": "f11c21e5e98c0f19516a0c0b13b8350a8f636b36",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/installer"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:0e7f7901b263d03790b777eab79b956ca1c84bfa412a2e435f6d4956233cbe17"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "baremetal-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "0a751899f22b8d17ed4e0c3c029739b30d02cce3",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-provider-baremetal"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:83745caa069d90bf5cd873492b41996c317f32be1c0b78ef22d2d5940d3b3140"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "baremetal-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "8e073a67123ad0a81e04780801b718440f1c1699",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/baremetal-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:cf910fdbc632ea976338b6d0d098537e5e4531407326744523ad378f0e848cfa"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "baremetal-runtimecfg",
+        "annotations": {
+          "io.openshift.build.commit.id": "5847e8945c4997c5257c9f4f74cde0800e555866",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/baremetal-runtimecfg"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d6e932edff04477fe06480dba7598c4363a4328939165db36e07a6a1094295cb"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cli",
+        "annotations": {
+          "io.openshift.build.commit.id": "eed143055ede731029931ad204b19cd2f565ef1a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/oc"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c66da0adc83e5e6db1824ff5cf204610d36f29fc0c7a8352b24795f58151eefe"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cli-artifacts",
+        "annotations": {
+          "io.openshift.build.commit.id": "eed143055ede731029931ad204b19cd2f565ef1a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/oc"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ec5351e220112a5b70451310b563175ae713c4d2864765c861b969730515a21b"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cloud-credential-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "65ec23ac0053c16a9a7b3c61af088c81b19b9f76",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-credential-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:023392c216b04a82b69315c210827b2776d95583bee16754f55577573553cad4"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cloud-network-config-controller",
+        "annotations": {
+          "io.openshift.build.commit.id": "f4aeb704324972cf816f74a8a96534fd17c0c549",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-network-config-controller"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:737fbb45ea282de2eba6ed7c7e0112d62d31a74ed0dc6b9d0b1ad01975227945"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-authentication-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "453de141dcf9d0ac95d45cee1c8112f539ba3a24",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-authentication-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c8b9deb101306eca89fb04662fd5266a3704ad19d6e54cae5ae79e373c0ec62d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-autoscaler",
+        "annotations": {
+          "io.openshift.build.commit.id": "c58c53bf7a82ee46414c7f7c0f2e0e438da93eeb",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/kubernetes-autoscaler"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c467b900f27e1ca4c5dc1aecca5080951091eb4570cb92d88ab190057e86b98b"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-autoscaler-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "99a0e2bacb4beacc58ea0c203c247f35fdf57ee1",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-autoscaler-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1b696ffc14cdc67e31403d1a6308c7448d7970ed7f872ec18fea9c2017029814"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-baremetal-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "53d370a7c26b1b7fefbd445a9522ba4250651702",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-baremetal-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a4f74849d28d578b213bb837750fbc967abe1cf433ad7611dde27be1f15baf36"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-bootstrap",
+        "annotations": {
+          "io.openshift.build.commit.id": "49fe1bdba1ab15b1a89797d7bb1d4d66de57fbeb",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-bootstrap"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:86c881be1f36093222cafe3ca1fe4ab87078bfcb679365f464fecc79d4927226"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-capi-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "0142186bad9acc2d7950663129a4ef82c32a5610",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:4680640d747de1f13f7139d352900f04c2a3411d82e29aa787c3cef5cbbb1c7c"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-capi-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "eb2c1be0761ee00620c7170ee6ec82edd3bd5f62",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-capi-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d22c10405c7b525b1fe7c4f4a196280ff437fd9fbc97bb66bf544fc2f5e89c1f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-cloud-controller-manager-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "96d7eab7aff0bc4f1da46d994891e8aca298343d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-cloud-controller-manager-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:77345c48a82b167f67364ffd41788160b5d06e746946d9ea67191fa18cf34806"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-config-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "4aa594ce8515f8780e7271d46e8d3da07ea27e0b",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-config-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6eca04bc4045ccf6694e6e0c94453e9c1d8dcbb669a58419603b3c2aab18488b"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-control-plane-machine-set-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "2c110ec111fe3a791983d6935fc0d398ca626297",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-control-plane-machine-set-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:278a7aba8f50daaaa56984563a5ca591493989e3353eda2da9516f45a35ee7ed"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-csi-snapshot-controller-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "22d0f40fd1d1d13ce10c6a09039be9a20e275878",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-csi-snapshot-controller-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:85e377fa5f92f13c07ca57eeaa575f7ef80ed954ae231f70ca70bfbe173b070b"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-dns-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "d96022a4d0d091955d73e7e99fc8cc81db56c86a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-dns-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ecfd2df94486e0570eeb0f88a5696ecaa0e1e54bc67d342aab3a6167863175fe"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-etcd-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "aaeed42bd30481fafb0258b3522abc02986fa8e1",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-etcd-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d5f169ad45e402da4067e53b4821e0ff888012716b072013145cf3d09d14fa88"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-image-registry-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "86635851e94d656cddecabf4c13ef31b90d3e994",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-image-registry-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d049299956446154ed1d1c21e5d4561bb452b41f6c3bf17a48f3550a2c998cbe"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-ingress-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "6aa482c551de22016dc2b6c87ca11ef4ac2be04d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-ingress-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6de5d1e6d774c20a0c3bd4d4c544234519bc4528e5535f24d0cf78a6788b4056"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-kube-apiserver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "5cec361179f3658986890a87d0b51f40a1da89ad",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-kube-apiserver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:7816a6f699e70da73dcee8a12e526ad0b234f6ced09ded67d81d55db54b577c9"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-kube-cluster-api-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "b8428eb60d727565fefa4e37c845d704913cf0c5",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:3c9948ba348597c53edd064e84f39326ab25829be83ad116a29110c0f82f005d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-kube-controller-manager-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "4ca346ef97def3697f1aa0368c9b35459b9b2f59",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-kube-controller-manager-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:23c30c160f461075478682516ada5b744edc1a68f24b89b7066693afccf3333f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-kube-scheduler-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "d3978864fb58063235be176c18fe50457b5223f3",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-kube-scheduler-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:4c52e0d353383738834a2786a775a7b58a504abc15118dfd8db5cb5a233f802f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-kube-storage-version-migrator-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "9f475980d1e6a70f0e9400aec6f15e5f5a6132b6",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-kube-storage-version-migrator-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fc8e1a30ec145b1e91f862880b9866d48abe8056fe69edd94d760739137b6d4a"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-machine-approver",
+        "annotations": {
+          "io.openshift.build.commit.id": "d0d9df7e0463c05e4aa59452d0a69a97f06b6190",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-machine-approver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:90fd3983343e366cb4df6f35efa1527e4b5da93e90558f23aa416cb9c453375e"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-monitoring-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "45815e820f0a751bef4a42b96c53ff0fc16978ec",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-monitoring-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:9a1e35d8ae26fad862261135aaaa0658befbaccf9ffba55291dc4e8a95c20546"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-network-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "040d5efed272789341b16858f63c2d0bcdb71b50",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-network-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5d8e73d86d1b77620f415e1552aaccc3b38aa2959467df2ebe586bd9a7e11892"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-node-tuning-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "61ed06ca1249b3ff7c16da11988498a659c91fd3",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-node-tuning-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e3f88ca4f79ec5b7e3a2323f32da8564c02bbd269ff1e87ad3ad602df95a8106"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-openshift-apiserver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "304a06d06a70b56d7f99042c5384b4ffb9287e16",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-openshift-apiserver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:55b8c96568666d4340d71558c31742bd8b5c02ab0cca7913fa41586d5f2de697"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-openshift-controller-manager-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "7867c26e6c91e2cc279317dfc080befe63a60749",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-openshift-controller-manager-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:aa8066a640500eaaf14c73b769e8792c0b420a927adb8db98ec47d9440a85d32"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-platform-operators-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "42b454506fc84dc0ff34713dbe34ad89fcf961ac",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/platform-operators"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ac6ad44dece9b419527e047c54b033f1897d9ae3d5c9b57166952650ac8293f9"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-policy-controller",
+        "annotations": {
+          "io.openshift.build.commit.id": "ac01e3463245f2dd9312145368d7f4099a8a0bb9",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-policy-controller"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:40fec19020202ba3b7f09460bc0cb52fc001941fbb3a3fa7d1ca34a2e9ebf0e9"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-samples-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "03b7091c58c02c20a8b218f2373812d6c62e20ea",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-samples-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b3066c35df5c02d6013ee2944ff5d100cdf41fb0d25076ce846d6e094b36d45c"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-storage-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "e8b9f8ee17a5687878c7ac2e65f44f4ee4c5f8e5",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-storage-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:2a4719dd49c67aa02ad187264977e0b64ad2b0d6725e99b1d460567663961ef4"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-update-keys",
+        "annotations": {
+          "io.openshift.build.commit.id": "2796e1732615521e818be82663058e0a3f1b3941",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-update-keys"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8876a35e2920d5751133b611cfa3b51aa9d96f06933dbe05635a924a9c39ba4c"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "cluster-version-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "7e34cd1a936ddba872fd8ed4dd8ed43d1065b631",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-version-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8dcd7fa3602050dab6844799713f283cc43cc664204be55aa9073d64d14084c4"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "configmap-reloader",
+        "annotations": {
+          "io.openshift.build.commit.id": "9adad592e7d9bd5a723add16488e68365a64977f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/configmap-reload"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5e8ca6243af10b08be45460ba07a74a9ba0d3d150ac23b3d6e926c395450b0c1"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "console",
+        "annotations": {
+          "io.openshift.build.commit.id": "9bee14b4c9443ae36847bc99f650fb4d1fe053f3",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/console"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:2f8ed86b29b0df00f0cfb8b6d170e5fa8d9b0092ee92140788ec5a0a1eb60a10"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "console-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "91684e461ad99334fb12fc4041746128b14c4dae",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/console-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e6dd6ba37d430e9e8e248b4c5911ef0903f8bd8d05451ed65eeb1d9d2b3c42e4"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "container-networking-plugins",
+        "annotations": {
+          "io.openshift.build.commit.id": "4655073266cb14756783bb06378224048f0dd3e3",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/containernetworking-plugins"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:be088cb9218a248cd4a616132c8daf531502c7b85404aadb0b73e76f8dba01df"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "coredns",
+        "annotations": {
+          "io.openshift.build.commit.id": "5560e4ad8c343c211f0b2f9d85ce7331b20b87cb",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/coredns"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a604c96952da5e59f104a305e0c8303d474e33ef345b8c534fd677f189d05299"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-driver-manila",
+        "annotations": {
+          "io.openshift.build.commit.id": "af5c48da935694ed5263a5a163318b52564977df",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-openstack"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:54768f02635c0915ee01f3ec667a3bbf03cb96a75d57198319699d6cd8ca916b"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-driver-manila-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "e540ced4cc5deba7ce3309931d797fe9eb8b9573",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-driver-manila-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c90152758a4418ba6321b0c7784375f83dea60111b1255634fe398d92703cf8e"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-driver-nfs",
+        "annotations": {
+          "io.openshift.build.commit.id": "2b914c2161722ebf11f9275fa29e00a0b1306da1",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-driver-nfs"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6bdeeb8f791a20b4bf5da39869b1ef9e6a3250d1ee67dda7f34a308be2c201fb"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-driver-shared-resource",
+        "annotations": {
+          "io.openshift.build.commit.id": "d4685ceb2b13ac6ce60e1b7997a99dea7173649d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-driver-shared-resource"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:baad49891aba4931054081f4d87e545313ef736c9b5c4567e24b7800f6ad0725"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-driver-shared-resource-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "fedb7b7ff15a02986d54276b87173c5cd5e41f46",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-driver-shared-resource-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fdcacc80d1741848bfb5e2a71fc849ae52513ddd272abf89b9da444a87e90f48"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-driver-shared-resource-webhook",
+        "annotations": {
+          "io.openshift.build.commit.id": "d4685ceb2b13ac6ce60e1b7997a99dea7173649d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-driver-shared-resource"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1080935300ee25959cc2dc4d3f4e2c54cdc0db99c2c3b7e5ee2123d4698845bf"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-external-attacher",
+        "annotations": {
+          "io.openshift.build.commit.id": "335d78a21fd46fc7faea74b7716f66f112da8eaf",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-external-attacher"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:726ed98ed8df6da72ea0aaecf62714470ad60d9e5665b65286271e92e4f46c1d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-external-provisioner",
+        "annotations": {
+          "io.openshift.build.commit.id": "0dc83f5f1bd118247eaf0f91030c321da9c88aa3",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-external-provisioner"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:77941761aca0cba770d56fcf4d213512b4dd959aa49d3f50c9da02a7aee8d62e"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-external-resizer",
+        "annotations": {
+          "io.openshift.build.commit.id": "3b2067091212995ce901d65504e794177632c55c",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-external-resizer"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:66daa08f96501fa939342eafe2de7be5307656a3ff3ec9bde82664905c695bb6"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-external-snapshotter",
+        "annotations": {
+          "io.openshift.build.commit.id": "e7114303c69b82fec51ab65ba15ec7b58be3b12f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-external-snapshotter"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:281a8f2be0f5afefc956d758928a761a97ac9a5b3e1f4f5785717906d791a5e3"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-livenessprobe",
+        "annotations": {
+          "io.openshift.build.commit.id": "c785aa6755bf96a4d39b4a804b7a826485965227",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-livenessprobe"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:0fbffd94ea750eac9dcef360d12a6ca41746915f50f44fb7ed2be1a71c128487"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-node-driver-registrar",
+        "annotations": {
+          "io.openshift.build.commit.id": "ee27c345e10faa88b1cf6436ac7922a7e5318a18",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-node-driver-registrar"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f8022fba7aebc67e52a69bf57825548b74484dea32dd6d5758fc1f592e6dc821"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-snapshot-controller",
+        "annotations": {
+          "io.openshift.build.commit.id": "e7114303c69b82fec51ab65ba15ec7b58be3b12f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-external-snapshotter"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f6985210e2dec2b96cd8cd1dc6965ce2710b23b2c515d9ae67a694245bd41082"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "csi-snapshot-validation-webhook",
+        "annotations": {
+          "io.openshift.build.commit.id": "e7114303c69b82fec51ab65ba15ec7b58be3b12f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/csi-external-snapshotter"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e7a32310238d69d56d35be8f7de426bdbedf96ff73edcd198698ac174c6d3c34"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "deployer",
+        "annotations": {
+          "io.openshift.build.commit.id": "eed143055ede731029931ad204b19cd2f565ef1a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/oc"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:60eaeef7848be3f86d22f5db7de382d1eac9e3d0cb24eca75b0cddc25f0baeda"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "docker-builder",
+        "annotations": {
+          "io.openshift.build.commit.id": "a63ac04216a3616bd86988c4117e0db4df873aac",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/builder"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:10db13a028712249b51ea042f073542a1fbcea4bc6de94db7aa2b698a2a30930"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "docker-registry",
+        "annotations": {
+          "io.openshift.build.commit.id": "f414ba7310818c39af1eaf8239e056cb6f146128",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/image-registry"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c31fa588cb4f0e3350b4642471bf1615b7e3f85d138bdb880d6724ba4caba0d7"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "driver-toolkit",
+        "annotations": {
+          "io.openshift.build.commit.id": "967d9d324b00595e22d7835a4979b95dbc2e355d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/driver-toolkit"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:cefb02b8cb7b27cd2439c7546272d153ea9233d6f62ceb8657fa50abd7ce11a5"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "egress-router-cni",
+        "annotations": {
+          "io.openshift.build.commit.id": "879b72bf6305ef394291ed1b4c5eeb3b11917633",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/egress-router-cni"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5a14e0c908f369adb40d2902d6f331cab420ad5928887f8de7cd082057a2f633"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "etcd",
+        "annotations": {
+          "io.openshift.build.commit.id": "13c18c444a8c6a86ccbba16cce664008f5f948bd",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/etcd"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:61f249fe0adadafbd49133d1be1ef71228f0a3ecadf2b182c8343e94ecb3dc7b"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "gcp-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "9b7ca987656ad184730a6b430dcd846f5bc75db5",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-gcp"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:204a427d828364db9201f4b82ac99b2f574a07455b1ddd5b3d232f1059bf1fcc"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "gcp-cluster-api-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "baf133cb8c200c1200363c97442382a9f9dab011",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-provider-gcp"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:14585290b75baf3ddea1e3580febb965daa4969e411cec451fcdc10684ee2b19"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "gcp-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "ca53af896fba13f3c11f56e450f65e6744d3b049",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-api-provider-gcp"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:7cb3f6f5391c4ce1b4d473add422131c1fa994b1d34a863645ce836e301c2dfa"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "gcp-pd-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "c5ae6f5d4a62ecc686259cc680514f1ae9f1f733",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/gcp-pd-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1cc85f7c27b6368fbf80703d49d4a53a2b1d4192fecfb8615043ad5706561fbf"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "gcp-pd-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "d151ef0f5268ccdedf5bb43b649d4cab13b21d68",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/gcp-pd-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:566025885a03ca4bdce52d93f013a0fbc3c65cfa435c975a59d4906a9337e45c"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "haproxy-router",
+        "annotations": {
+          "io.openshift.build.commit.id": "69eda4bd427c3f27d9993afa35461f4fc1dc0357",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/router"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:0743d54d3acaf6558295618248ff446b4352dde0234d52465d7578c7c261e6fd"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "hyperkube",
+        "annotations": {
+          "io.openshift.build.commit.id": "06e8c46c9f0d3f6bfcd1e146c09647e4b634e4eb",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/kubernetes",
+          "io.openshift.build.version-display-names": "",
+          "io.openshift.build.versions": "kubernetes=1.26.2"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f07ab081508d10035f9be64166a3f97d4b0706ec8f30dbcba7377686aaaba865"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "hypershift",
+        "annotations": {
+          "io.openshift.build.commit.id": "f4a73f2ff5f742cf719d5304505ed71fe2ecc1ba",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/hypershift"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c15d153d062bd964578a8359c3f340c4208064ba2531225832e5d643aea351fe"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ibm-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "1640c42033631b3e8847c9867772666e898dfd01",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-ibm"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:16a7ce1d05c49179fd10ae4defd742fbcbe2a6183b5b69453141090fe97d8087"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ibm-vpc-block-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "66dcaf9a0591ec321828cec5ee24f0a4df0e5080",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ibm-vpc-block-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:cc561d9c2a0070b55f5a3d9d8ee59decc697731c973cd152e55b6a9c69729c6a"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ibm-vpc-block-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "e83df2f32ae88c84c15a12741a970607b20228ec",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ibm-vpc-block-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:651e3ee87e97feb297450b326a13d0139a69d8671b5195627f9f2397a07674f7"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ibm-vpc-node-label-updater",
+        "annotations": {
+          "io.openshift.build.commit.id": "283a614ee34e83afa065338dee25d4ee202c8aeb",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ibm-vpc-node-label-updater"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:4f5ce98c592ce9c8a151332632cb5f2a2fd057244ff897e8adde87e57ef19624"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ibmcloud-cluster-api-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "70e411ce00c9d12c5b0e983771df8bcf4750b17f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-provider-ibmcloud"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:17dbbde09dba21d5fec0c99fa355f3976a3c58f79da24c4373f83127e43074ca"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ibmcloud-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "c75f7e3e7a3b7525aa2d540f86fd7477e7800608",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-api-provider-ibmcloud"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8326f0a011caaed347e3e2d61e5b54fbcb70babe4c5e969056b170bc446a304f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "insights-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "6b00277feb1396a372620c18a7c5f79a8a17834f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/insights-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:7cb4c45f3e100ceddafee4c6ccd57d79f5a6627686484aba625c1486c2ffc1c8"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "installer",
+        "annotations": {
+          "io.openshift.build.commit.id": "f11c21e5e98c0f19516a0c0b13b8350a8f636b36",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/installer"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1e0619a786d968b04e775d08f8cf3924c8a27491de979989d299a52d1866e6fc"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "installer-artifacts",
+        "annotations": {
+          "io.openshift.build.commit.id": "f11c21e5e98c0f19516a0c0b13b8350a8f636b36",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/installer"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5f2a50bcdffe039e7de99c5c645a2c392d574864b09e27f2224e1c4da33d4c2f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ironic",
+        "annotations": {
+          "io.openshift.build.commit.id": "7aa7039683a9bec98c59cb47996e61960ae81a64",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ironic-image"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:10c4a509ff86b79b6205af506763b0dfc26d633563ac5b42d8d9995b6dc803b1"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ironic-agent",
+        "annotations": {
+          "io.openshift.build.commit.id": "ee5bee32747e1053fc6add76fcdd98f5816b27ba",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ironic-agent-image"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c8cebb491a7999a6f9747c9ba5d9130a0d2947dc0c0ef19c714aede75aa19adf"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ironic-machine-os-downloader",
+        "annotations": {
+          "io.openshift.build.commit.id": "2ba6060dc968488a495fbcd1250cfb186e4ada78",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ironic-rhcos-downloader"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:80c8240f47fd980b62a0c5844c3b5b29e046bc94d327adb32dc3b6abdf2cfc73"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ironic-static-ip-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "f524f2c9451ff0808beb54bece660640f58e8a3d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ironic-static-ip-manager"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b73358cd52b82fa5d9a241e6ea5c60e877d12597159e9e670b2190454e8f6bb3"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "k8s-prometheus-adapter",
+        "annotations": {
+          "io.openshift.build.commit.id": "b2e401059a11d23923adba51eeb82cbd5d75b7fc",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/k8s-prometheus-adapter"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:bbc27b4ea8b6ed06d8490b60e95b36bda21f09f15ec3f25f901c8dffc32292d9"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "keepalived-ipfailover",
+        "annotations": {
+          "io.openshift.build.commit.id": "42aa9c3e0e8c49358a74f9de8da8eca896c51892",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/images"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1644285dd756def306241c11b99c663d73595bf5da8cbf355f107e587a3c1995"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "kube-proxy",
+        "annotations": {
+          "io.openshift.build.commit.id": "b58a257b896d774e0a092612be250fb9414af5ca",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/sdn"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:431478f63a87d00b4ef84e97c88c4c996ee97907fe517a230841344675603873"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "kube-rbac-proxy",
+        "annotations": {
+          "io.openshift.build.commit.id": "0aa2830ed7359fd8cd0e2f7db0ed96a733c5990e",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/kube-rbac-proxy"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5795789f6e56ae0c7644ae2380c6d88d6b2a88d64ab8581064bc746f0a97b52d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "kube-state-metrics",
+        "annotations": {
+          "io.openshift.build.commit.id": "4b9698489404f06195ba8a4646d58d67e13501d4",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/kube-state-metrics"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:48772f8b25db5f426c168026f3e89252389ea1c6bf3e508f670bffb24ee6e8e7"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "kube-storage-version-migrator",
+        "annotations": {
+          "io.openshift.build.commit.id": "bad104d13ba95bc850f5aaf96436f793d7985864",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/kubernetes-kube-storage-version-migrator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:39ef66439265e28941d847694107b349dff04d9cc64f0b713882e1895ea2acb9"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "kubevirt-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "ee2033ecd471dc9fc08d101c421a04916f4f55c5",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-kubevirt"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b03d7d629a8551f28d12e21a42c0fdfd41177c67e285af38bc1f02472fe5689e"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "kubevirt-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "efa0b9432bf0f44a965dc978ada75ea9b0f3e511",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/kubevirt-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:bc62908bdc8b6ca58a4d3aa029e4688682b90486d555cef8bd9ea92fc55f32fe"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "kuryr-cni",
+        "annotations": {
+          "io.openshift.build.commit.id": "672973fc0a6788667c382fb4ed1a5c5996cc8181",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/kuryr-kubernetes"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:572a2ff575e3862de7539384beee12c9b61b20ab4d391d08eed1bcfcaa4e5ad6"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "kuryr-controller",
+        "annotations": {
+          "io.openshift.build.commit.id": "672973fc0a6788667c382fb4ed1a5c5996cc8181",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/kuryr-kubernetes"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5603918ff567594261e572a4ea422703cf52a84a4e040c9898167ce6712b4857"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "libvirt-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "e55e92c14b2cd4925f8489f5f074015a64ed5713",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-provider-libvirt"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f1fc06ae50980fabb0f06fe8a7fa54b2ff804337a18d8054ed6e848030df6a8f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "machine-api-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "866531e2f52c624c0e6dd711fc125f30bfe171cf",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-api-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fae409a0e6467f2d4e5e1cd0974a33f71fddf6f3b567c278b3a9aad56aa0f089"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "machine-config-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "40575b862f7bd42a2c40c8e6b7203cd4c29b0021",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-config-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:438b7282ad388ca861674acf7331b7bf0d53b78112dbb12c964e9f5605e0b3f6"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "machine-image-customization-controller",
+        "annotations": {
+          "io.openshift.build.commit.id": "94e8789385209b3a4044abc9f38d456b5d744f7b",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/image-customization-controller"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d4ddfc967d0ed1a0ae60872e37d261b3ea5ee7f3972ece0990b1cf7bf3fdde61"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "machine-os-content",
+        "annotations": {
+          "io.openshift.build.commit.id": "",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "",
+          "io.openshift.build.version-display-names": "machine-os=CentOS Stream CoreOS",
+          "io.openshift.build.versions": "machine-os=413.92.202303190222-0"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:987669130c9effc1b9479f24d61d85f5f0abc7ebec3502c8b551374ab3fac6d3"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "machine-os-images",
+        "annotations": {
+          "io.openshift.build.commit.id": "11473df90664a3c2c56ea6d265f1232b4ca37605",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-os-images"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:83f86c33e8a7a515be30cd72371f7160f37132cf291398071e013ba78aa5dc19"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "multus-admission-controller",
+        "annotations": {
+          "io.openshift.build.commit.id": "d6d52a7a7df2243056c5db83cc10885ac2ca775b",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/multus-admission-controller"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:3c3cca6e2da92a6cd38e7f20f77bffc675895bd800157fdb50261b7f7ea9fc90"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "multus-cni",
+        "annotations": {
+          "io.openshift.build.commit.id": "3f9b2d036b6cbc562aca9269bbeb7d0be198549c",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/multus-cni"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e15e4dbebc9b2ec1d44a393eb125a07564afd83dcf1154fd3a7bf2955aa0b13a"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "multus-networkpolicy",
+        "annotations": {
+          "io.openshift.build.commit.id": "98a0bad1071074f0c04c35ff209f0333c5d7274b",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/multus-networkpolicy"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:04b0a6e1969b6925073e59efedf79b5f28c7e3838ae2082cc8787a935914dede"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "multus-route-override-cni",
+        "annotations": {
+          "io.openshift.build.commit.id": "6644ac7ba8481b2c7b035390d20d28ba4b55c5ab",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/route-override-cni"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:4903dfa59fc0fcc3521f6431d51c6ed0ef563b0c63614a2df44ee4d447ab6c5d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "multus-whereabouts-ipam-cni",
+        "annotations": {
+          "io.openshift.build.commit.id": "7517829eb1574d5852e3e53108fdff24f552da25",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/whereabouts-cni"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:2d56a44d5d9429dc668e476de36d9fa1083fbc948fd3a1c799a3733c9af4894b"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "must-gather",
+        "annotations": {
+          "io.openshift.build.commit.id": "5eca0cb65ea6dd13f907d1f7493ed237f07e3906",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/must-gather"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f6488dc68d872e1aeeaa0fbc00278f5d9b3f434d9eec436d10b31ae8367fddad"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "network-interface-bond-cni",
+        "annotations": {
+          "io.openshift.build.commit.id": "674f4753981739cff77f2ba05f203c2685a02c3f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/bond-cni"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:56dec1af3c24148179ab45f9137ba74876f4287121f07aa32dc7a3643da749a9"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "network-metrics-daemon",
+        "annotations": {
+          "io.openshift.build.commit.id": "e72c8ad1581132817c09e23295f55425a14a5c58",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/network-metrics-daemon"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6a5e01ac462952a60254c8a9a0f43cce8b323da60014d37a49250a2e586142a5"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "network-tools",
+        "annotations": {
+          "io.openshift.build.commit.id": "b4098c67659217e36ac7077229b25bbe2c3e5f38",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/network-tools"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:4eb12728facf6c326c9e30f1d96b7f8754ed18d1afc7b4b420bfecb045c4fe19"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "nutanix-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "bc449492731076867420964be5ce3217fbcfda14",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-nutanix"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a4c103b81e2e4225200389f66a6857c47918d522091390a9dd5c1dd6b50ddfc9"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "nutanix-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "e0f567fc40892d28487ad12a24705f88ff67ba84",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-api-provider-nutanix"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d72c31f32cc38bdf61e1b407ae3a18f61a2031cd14c869e33dd5ec205ddc0a77"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "oauth-apiserver",
+        "annotations": {
+          "io.openshift.build.commit.id": "41c2dfea104b3c686a00b068654843b48b4db53f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/oauth-apiserver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:0755461bb6ec987da5c44b85947d02eba8df0b0816923f397cee3f235303a74d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "oauth-proxy",
+        "annotations": {
+          "io.openshift.build.commit.id": "03e5b13b8b7087dd70abfd70efb4c5b92f800a4f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/oauth-proxy"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:4e32e949909c4b9d7e400356a9c6e6c236bc2715f7a3cbdf6fe54e0b2612d154"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "oauth-server",
+        "annotations": {
+          "io.openshift.build.commit.id": "7e584f112a4ee8423ed027a15cc3f345ee09b267",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/oauth-server"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:2156db516db2fda43363a063c11f91bd201dde2de7eb4fbab9c1210d17e699ba"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "oc-mirror",
+        "annotations": {
+          "io.openshift.build.commit.id": "c718c7405d9d7cbb6899cd7b215da5118d75ac18",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/oc-mirror"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c1624f4ee7a202b2bd507b779aaf697e4f6578b9069d17efbbf6a1eae3ec9911"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "olm-rukpak",
+        "annotations": {
+          "io.openshift.build.commit.id": "66b3e551fc2730beb4c46d478166b38766c5f346",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/operator-framework-rukpak"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:0be44c9402996b5add5663280050b77b71501ccd8f19d650401b169713a1aae1"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "openshift-apiserver",
+        "annotations": {
+          "io.openshift.build.commit.id": "dcbeee1e73552153c7c70a7d274d0862deaa9710",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/openshift-apiserver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:558f0eb88863582cd8532a701904559e7d9be443b2eefc4688e2c0fc04cae08d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "openshift-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "87de83867ac51730f506138ee790a56ca21d9fc9",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/openshift-controller-manager"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:03d999968e93d76624e3d10f22591abfbfdaaf2dd8f315abf64cdc590ab64195"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "openshift-state-metrics",
+        "annotations": {
+          "io.openshift.build.commit.id": "7beb8807e2c0092b5e580a29903ff060140d8ff0",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/openshift-state-metrics"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:907363827442bc34c33be580ea3ac30198ca65f46a95eb80b2c5255e24d173f3"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "openstack-cinder-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "af5c48da935694ed5263a5a163318b52564977df",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-openstack"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e7cd85685a000763b309a19422a29d42adbf98bfa9f3b1d6eda7ed77f69f6074"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "openstack-cinder-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "14fcca54f20d18045e382cc0699f97e4a1e760ac",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/openstack-cinder-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b9e7109d5f1417a35649b5959f48d70e1b44f60eae1f36f2fb49a973ae9d89d0"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "openstack-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "af5c48da935694ed5263a5a163318b52564977df",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-openstack"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:14845814cc3f542024dc45fea251a0ee5354310310c6d9bf7856743c91d07db0"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "openstack-machine-api-provider",
+        "annotations": {
+          "io.openshift.build.commit.id": "bcb08a7835c08d20606d75757228fd03fbb20dab",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-api-provider-openstack"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e6dcb3896d2e0fd85548f7add2d7c315a2fa1d80eb6742be7e3d00d9051531ce"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "operator-lifecycle-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "d4219045431cb6a35ad0d1b5d5fdb0b09adf1430",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/operator-framework-olm"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:497121bfdb3b293af2c939af393bfbda39aeace9d754f7288a244cd7ec2662d7"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "operator-marketplace",
+        "annotations": {
+          "io.openshift.build.commit.id": "cfce6b5024f56305304599cd49dfbbe2b5d8ed3d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/operator-framework/operator-marketplace"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:3e8bda93aae5c360f971e4532706ab6a95eb260e026a6704f837016cab6525fb"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "operator-registry",
+        "annotations": {
+          "io.openshift.build.commit.id": "d4219045431cb6a35ad0d1b5d5fdb0b09adf1430",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/operator-framework-olm"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:bfdc8d5477d1e6fd5da73df41c9213456dddae9f61c2ca0db9a9b9747a857c9d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ovirt-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "f21b470f4927f97eca93a0a390cffccd7d724043",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ovirt-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:16f87e31a6b9ea1c7af5fe67cbee491211d17ec836dbde991939accbad61b257"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ovirt-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "3e49f77c34922a7e2ce675825cb5ff3bca3a6dbd",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ovirt-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:44b3dbecb7e1908fcb8e05ed40dc6799581f84559cbe63af1c997bf65f43879a"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ovirt-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "22d89b3fd9e2e395a62f71092487d26c8940052e",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-provider-ovirt"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:aef7c938ed5acf805fc1afb90c4c9f0f5fa15004cedc1e636bb5264f6d419a8f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ovn-kubernetes-microshift-rhel-9",
+        "annotations": {
+          "io.openshift.build.commit.id": "dd45efd39e5db428d4578ed6787e6c08b79e2df5",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ovn-kubernetes"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:2188b2c01e6641000541562862ff033a648d15551ffbc7f75a39893a0a83f466"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "ovn-kubernetes-rhel-9",
+        "annotations": {
+          "io.openshift.build.commit.id": "dd45efd39e5db428d4578ed6787e6c08b79e2df5",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ovn-kubernetes"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5c1300e2d232a5e06e02a291d2de9a8be62cfed1d0f25dd8f0db5c6c20aa2967"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "pod",
+        "annotations": {
+          "io.openshift.build.commit.id": "06e8c46c9f0d3f6bfcd1e146c09647e4b634e4eb",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/kubernetes"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:9a21858c61e35722a243df3593c0329e90c4f78c334b21177da3a2f94f9c14dc"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "powervs-block-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "6c96aeab7d866ef2798240989ff6a4b4ae5ebf2d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ibm-powervs-block-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:db48507979ddad297c8b0ad9726f49dc52cb157948e384915532cb137a409579"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "powervs-block-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "215326fa33b9093cf071cd0a690d98e6e1dc9a0b",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/ibm-powervs-block-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:036b285246f982d8c90b9980f89b611c4c01ad6d82f19a3e29744885c573e61d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "powervs-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "e52cfc59b051b6574f8bbbb4be4579ab3d72611a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-powervs"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b8d372d7a65dec03aeeb576755d93c6edc37896f7402ad4dc4febe4eed48849d"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "powervs-machine-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "bf49c5c1b07137baa766b4d78b9e9c2650ef59ad",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/machine-api-provider-powervs"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:591d9b9b8c423c98354f9e93cb53feae5eb731e34b6ae0acea108f3760abe319"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "prom-label-proxy",
+        "annotations": {
+          "io.openshift.build.commit.id": "b501d5e2aff82d46a141223636b522aeae95b915",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/prom-label-proxy"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:b8541443d5c6c0d31959a8e5f8d6a525d43bb4df66be563603d282f48bdeb304"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "prometheus",
+        "annotations": {
+          "io.openshift.build.commit.id": "d8ea2c4f037abbf3f0fad5b6179ccf24ba9d9e4d",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/prometheus"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d1cdf8e55288584a04e1a403133d4508bac27808a20427a18aee85a92c367316"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "prometheus-alertmanager",
+        "annotations": {
+          "io.openshift.build.commit.id": "f44d574d8e170d6788cfbf2bdbc866d3e1fc1054",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/prometheus-alertmanager"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:d1a766de06530f7008fc155e6239f6e3d63b816deeb24c6d520ef1980d748050"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "prometheus-config-reloader",
+        "annotations": {
+          "io.openshift.build.commit.id": "9cd6788ed2cb30982c8b9d6ec8f8c7e72b30d7df",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/prometheus-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ff0062cc5aad6c3c8538f4b9a2572191f60181c9c15e9a94de2661aafba2df83"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "prometheus-node-exporter",
+        "annotations": {
+          "io.openshift.build.commit.id": "10dc380d4ce996d2557b10991b3f7623a4551e21",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/node_exporter"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:1f4a21a1dba07ad90fdf2a59a4462e11e25567c6a30bdde0a1eb837e44c5573e"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "prometheus-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "9cd6788ed2cb30982c8b9d6ec8f8c7e72b30d7df",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/prometheus-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:3f0c9dc9888697e244d61cd89f8fe5a61dcb09dc100889be738db21b2fc5bbf7"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "prometheus-operator-admission-webhook",
+        "annotations": {
+          "io.openshift.build.commit.id": "9cd6788ed2cb30982c8b9d6ec8f8c7e72b30d7df",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/prometheus-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:381e2218fd1d860bdb72a28d8fc34e1d5e7c3674bf1d0005583d70800dcd79d2"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "rhel-coreos",
+        "annotations": {
+          "io.openshift.build.commit.id": "",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": ""
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:42e45dd0ba1be3d2681972d6d38c42008c70ddb8c5a96f1f770a11f9bbfb048f"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "rhel-coreos-extensions",
+        "annotations": {
+          "io.openshift.build.commit.id": "",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": ""
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:c5ec77bcf92641781a9b42823dd176c4920aeed48f9c22e96b40bd6d1d3e60c2"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "route-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "d7a8e22db412b6fabb7028ca0da8de8f3d9ac3c3",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/route-controller-manager"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:884971410b4691a0666287eb389e07a425040d4fc90665c864aa9f4728d4599c"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "sdn",
+        "annotations": {
+          "io.openshift.build.commit.id": "b58a257b896d774e0a092612be250fb9414af5ca",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/sdn"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8deebae3c688a760967547128a800f51d355355837070ae987d6dcd60c914766"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "service-ca-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "1b89fdce3fcccecdc5fdb705fe674cd4bfc58a2a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/service-ca-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:7f7cb6554c1dc9b5b3b58f162f592062e5c63bf24c5ed90a62074e117be3f743"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "telemeter",
+        "annotations": {
+          "io.openshift.build.commit.id": "ee1ba4699b82ecb2033f886af12b9e2e451d2296",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/telemeter"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:942a1ba76f95d02ba681afbb7d1aea28d457fb2a9d967cacc2233bb243588990"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "tests",
+        "annotations": {
+          "io.openshift.build.commit.id": "3163d5f1655ba939cc0957f60925d6304b299168",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/origin"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:fa40f288a884fadc8f3a9167a5224a1ad5c93263e9ea1b61eb646f80355566fc"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "thanos",
+        "annotations": {
+          "io.openshift.build.commit.id": "b6f11a5b2d63ca6269fcbd7b9488d8a8e9188d9a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/thanos"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a898acb346b7aae546bb9dc31e43266415a096fa755241b56acb5969190584f9"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "tools",
+        "annotations": {
+          "io.openshift.build.commit.id": "eed143055ede731029931ad204b19cd2f565ef1a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/oc"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ce4412c7a4664f4a5346c5cf0cdd3f63365de70371c3c2f5fd2a41ba6e71562a"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "vsphere-cloud-controller-manager",
+        "annotations": {
+          "io.openshift.build.commit.id": "e9a65389e8c45d79dea428c0610b7fdd0b6f5be6",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cloud-provider-vsphere"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:5027567a29a12409916016f764ba1edab132fba9fbeecc3d1b346b232bbc0b94"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "vsphere-cluster-api-controllers",
+        "annotations": {
+          "io.openshift.build.commit.id": "24e08ddf65fd387ea7c71e229b13e47d6cd3643f",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/cluster-api-provider-vsphere"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:741cac2c8604976554b1aca24721275db091675a571fd65216c507b6c787c423"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "vsphere-csi-driver",
+        "annotations": {
+          "io.openshift.build.commit.id": "e4408a3c04c3f485c6f344bdc786d15a5c84b05a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/vmware-vsphere-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:7716f88f50e2099db28b0a763a9b32bc1f78b870f34260512ceb987c1a62baa3"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "vsphere-csi-driver-operator",
+        "annotations": {
+          "io.openshift.build.commit.id": "9eb1e6c10c5fe27899d60353ae3ba8f77ace7fe1",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/vmware-vsphere-csi-driver-operator"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f2505692e0c903b692a69e55c5525684969cca38e04b29eba04868e5fe5b4761"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "vsphere-csi-driver-syncer",
+        "annotations": {
+          "io.openshift.build.commit.id": "e4408a3c04c3f485c6f344bdc786d15a5c84b05a",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/vmware-vsphere-csi-driver"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:27c5e80f8fd9cb783f4b343389529c691b70a491b4e3907d55a94d7323399ff5"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      },
+      {
+        "name": "vsphere-problem-detector",
+        "annotations": {
+          "io.openshift.build.commit.id": "ca408db88a70cfa5aefa3128dff971a555994c29",
+          "io.openshift.build.commit.ref": "",
+          "io.openshift.build.source-location": "https://github.com/openshift/vsphere-problem-detector"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:62a8f9c08cb12d8b9be52a4414b1b3e15592f951d15f7fff492746677385c614"
+        },
+        "generation": null,
+        "importPolicy": {},
+        "referencePolicy": {
+          "type": ""
+        }
+      }
+    ]
+  },
+  "status": {
+    "dockerImageRepository": ""
+  }
+}`)
+
+func testExtendedTestdataCliTestReleaseImageReferencesJsonBytes() ([]byte, error) {
+	return _testExtendedTestdataCliTestReleaseImageReferencesJson, nil
+}
+
+func testExtendedTestdataCliTestReleaseImageReferencesJson() (*asset, error) {
+	bytes, err := testExtendedTestdataCliTestReleaseImageReferencesJsonBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/cli/test-release-image-references.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -30479,8 +33664,8 @@ os::cmd::expect_failure 'oc get imageStreams nodejs'
 os::cmd::expect_failure 'oc get imageStreams postgresql'
 os::cmd::expect_failure 'oc get imageStreams mongodb'
 os::cmd::expect_failure 'oc get imageStreams wildfly'
-os::cmd::try_until_success 'oc get imagestreamTags mysql:5.6'
-os::cmd::try_until_success 'oc get imagestreamTags mysql:5.7'
+os::cmd::try_until_success 'oc get imagestreamTags mariadb:10.3'
+os::cmd::try_until_success 'oc get imagestreamTags mariadb:10.5'
 os::cmd::expect_success_and_text "oc get imagestreams mysql --template='{{ index .metadata.annotations \"openshift.io/image.dockerRepositoryCheck\"}}'" '[0-9]{4}\-[0-9]{2}\-[0-9]{2}' # expect a date like YYYY-MM-DD
 os::cmd::expect_success 'oc describe istag/mysql:latest'
 os::cmd::expect_success_and_text 'oc describe istag/mysql:latest' 'Environment:'
@@ -30505,100 +33690,100 @@ echo "imageStreams: ok"
 os::test::junit::declare_suite_end
 
 os::test::junit::declare_suite_start "cmd/images${IMAGES_TESTS_POSTFIX:-}/import-image"
-# should follow the latest reference to 5.6 and update that, and leave latest unchanged
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 1).from.kind}}'" 'DockerImage'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 2).from.kind}}'" 'ImageStreamTag'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 2).from.name}}'" '5.7'
+# should follow the latest reference to 10.3 and update that, and leave latest unchanged
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 1).from.kind}}'" 'DockerImage'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.name}}'" '10.5'
 # import existing tag (implicit latest)
-os::cmd::expect_success_and_text 'oc import-image mysql' 'sha256:'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 1).from.kind}}'" 'DockerImage'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 2).from.kind}}'" 'ImageStreamTag'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 2).from.name}}'" '5.7'
+os::cmd::expect_success_and_text 'oc import-image mariadb' 'sha256:'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 1).from.kind}}'" 'DockerImage'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.name}}'" '10.5'
 # should prevent changing source
-os::cmd::expect_failure_and_text 'oc import-image mysql --from=quay.io/openshifttest/hello-openshift:openshift' "use the 'tag' command if you want to change the source"
-os::cmd::expect_success 'oc describe is/mysql'
+os::cmd::expect_failure_and_text 'oc import-image mariadb --from=quay.io/openshifttest/hello-openshift:openshift' "use the 'tag' command if you want to change the source"
+os::cmd::expect_success 'oc describe is/mariadb'
 # import existing tag (explicit)
-os::cmd::expect_success_and_text 'oc import-image mysql:5.6' "sha256:"
-os::cmd::expect_success_and_text 'oc import-image mysql:latest' "sha256:"
+os::cmd::expect_success_and_text 'oc import-image mariadb:10.3' "sha256:"
+os::cmd::expect_success_and_text 'oc import-image mariadb:latest' "sha256:"
 # import existing image stream creating new tag
-os::cmd::expect_success_and_text 'oc import-image mysql:external --from=quay.io/openshifttest/hello-openshift:openshift' "sha256:"
-os::cmd::expect_success_and_text "oc get istag/mysql:external --template='{{.tag.from.kind}}'" 'DockerImage'
-os::cmd::expect_success_and_text "oc get istag/mysql:external --template='{{.tag.from.name}}'" 'quay.io/openshifttest/hello-openshift:openshift'
+os::cmd::expect_success_and_text 'oc import-image mariadb:external --from=quay.io/openshifttest/hello-openshift:openshift' "sha256:"
+os::cmd::expect_success_and_text "oc get istag/mariadb:external --template='{{.tag.from.kind}}'" 'DockerImage'
+os::cmd::expect_success_and_text "oc get istag/mariadb:external --template='{{.tag.from.name}}'" 'quay.io/openshifttest/hello-openshift:openshift'
 # import creates new image stream with single tag
-os::cmd::expect_failure_and_text 'oc import-image mysql-new-single:latest --from=quay.io/openshifttest/hello-openshift:openshift' '\-\-confirm'
-os::cmd::expect_success_and_text 'oc import-image mysql-new-single:latest --from=quay.io/openshifttest/hello-openshift:openshift --confirm' 'sha256:'
-os::cmd::expect_success_and_text "oc get is/mysql-new-single --template='{{(len .spec.tags)}}'" '1'
-os::cmd::expect_success 'oc delete is/mysql-new-single'
+os::cmd::expect_failure_and_text 'oc import-image mariadb-new-single:latest --from=quay.io/openshifttest/hello-openshift:openshift' '\-\-confirm'
+os::cmd::expect_success_and_text 'oc import-image mariadb-new-single:latest --from=quay.io/openshifttest/hello-openshift:openshift --confirm' 'sha256:'
+os::cmd::expect_success_and_text "oc get is/mariadb-new-single --template='{{(len .spec.tags)}}'" '1'
+os::cmd::expect_success 'oc delete is/mariadb-new-single'
 # import creates new image stream with all tags
-os::cmd::expect_failure_and_text 'oc import-image mysql-new-all --from=quay.io/openshifttest/hello-openshift --all' '\-\-confirm'
-os::cmd::expect_success_and_text 'oc import-image mysql-new-all --from=quay.io/openshifttest/hello-openshift --all --confirm --request-timeout=1m' 'sha256:'
-name=$(oc get istag/mysql-new-all:openshift --template='{{ .image.metadata.name }}')
+os::cmd::expect_failure_and_text 'oc import-image mariadb-new-all --from=quay.io/openshifttest/hello-openshift --all' '\-\-confirm'
+os::cmd::expect_success_and_text 'oc import-image mariadb-new-all --from=quay.io/openshifttest/hello-openshift --all --confirm --request-timeout=1m' 'sha256:'
+name=$(oc get istag/mariadb-new-all:openshift --template='{{ .image.metadata.name }}')
 echo "import-image: ok"
 os::test::junit::declare_suite_end
 
 os::test::junit::declare_suite_start "cmd/images${IMAGES_TESTS_POSTFIX:-}/tag"
 # oc tag
-os::cmd::expect_success 'oc tag mysql:latest mysql:tag1 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 4).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag mariadb:latest mariadb:tag1 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 4).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_success "oc tag mysql@${name} mysql:tag2 --alias"
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 5).from.kind}}'" 'ImageStreamImage'
+os::cmd::expect_success "oc tag mariadb@${name} mariadb:tag2 --alias"
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 5).from.kind}}'" 'ImageStreamImage'
 
-os::cmd::expect_success 'oc tag mysql:notfound mysql:tag3 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 6).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag mariadb:notfound mariadb:tag3 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 6).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_success 'oc tag --source=imagestreamtag mysql:latest mysql:tag4 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 7).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag --source=imagestreamtag mariadb:latest mariadb:tag4 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 7).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_success 'oc tag --source=istag mysql:latest mysql:tag5 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 8).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag --source=istag mariadb:latest mariadb:tag5 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 8).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_success "oc tag --source=imagestreamimage mysql@${name} mysql:tag6 --alias"
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 9).from.kind}}'" 'ImageStreamImage'
+os::cmd::expect_success "oc tag --source=imagestreamimage mariadb@${name} mariadb:tag6 --alias"
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 9).from.kind}}'" 'ImageStreamImage'
 
-os::cmd::expect_success "oc tag --source=isimage mysql@${name} mysql:tag7 --alias"
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 10).from.kind}}'" 'ImageStreamImage'
+os::cmd::expect_success "oc tag --source=isimage mariadb@${name} mariadb:tag7 --alias"
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 10).from.kind}}'" 'ImageStreamImage'
 
-os::cmd::expect_success 'oc tag --source=docker mysql:latest mysql:tag8 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 11).from.kind}}'" 'DockerImage'
+os::cmd::expect_success 'oc tag --source=docker mariadb:latest mariadb:tag8 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 11).from.kind}}'" 'DockerImage'
 
-os::cmd::expect_success 'oc tag mysql:latest mysql:zzz mysql:yyy --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 12).from.kind}}'" 'ImageStreamTag'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 13).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag mariadb:latest mariadb:zzz mariadb:yyy --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 12).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 13).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_failure_and_text 'oc tag mysql:latest tagtest:tag1 --alias' 'cannot set alias across'
+os::cmd::expect_failure_and_text 'oc tag mariadb:latest tagtest:tag1 --alias' 'cannot set alias across'
 
 # label image
-imgsha256=$(oc get istag/mysql:latest --template='{{ .image.metadata.name }}')
+imgsha256=$(oc get istag/mariadb:latest --template='{{ .image.metadata.name }}')
 os::cmd::expect_success "oc label image ${imgsha256} foo=bar || true"
 os::cmd::expect_success_and_text "oc get image ${imgsha256} --show-labels" 'foo=bar'
 
 # tag labeled image
-os::cmd::expect_success 'oc label is/mysql labelA=value'
-os::cmd::expect_success 'oc tag mysql:latest mysql:labeled'
-os::cmd::expect_success_and_text "oc get istag/mysql:labeled -o jsonpath='{.metadata.labels.labelA}'" 'value'
+os::cmd::expect_success 'oc label is/mariadb labelA=value'
+os::cmd::expect_success 'oc tag mariadb:latest mariadb:labeled'
+os::cmd::expect_success_and_text "oc get istag/mariadb:labeled -o jsonpath='{.metadata.labels.labelA}'" 'value'
 # test copying tags
 os::cmd::expect_success 'oc tag quay.io/openshift/origin-cli:4.6 newrepo:latest'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).from.kind}}'" 'DockerImage'
-os::cmd::try_until_success 'oc get istag/mysql:5.6'
+os::cmd::try_until_success 'oc get istag/mariadb:10.3'
 # default behavior is to copy the current image, but since this is an external image we preserve the dockerImageReference
-os::cmd::expect_success 'oc tag mysql:5.6 newrepo:latest'
+os::cmd::expect_success 'oc tag mariadb:10.3 newrepo:latest'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
-os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .status.tags 0 \"items\" 0).dockerImageReference}}'" '^registry.centos.org/centos/mysql-56-centos7@sha256:'
+os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .status.tags 0 \"items\" 0).dockerImageReference}}'" '^quay.io/centos7/mariadb-103-centos7@sha256:'
 # when copying a tag that points to the internal registry, update the container image reference
 #os::cmd::expect_success "oc tag test:new newrepo:direct"
 #os::cmd::expect_success_and_text 'oc get istag/newrepo:direct -o jsonpath={.image.dockerImageReference}' "/$project/newrepo@sha256:"
 # test references
-os::cmd::expect_success 'oc tag mysql:5.6 reference:latest --reference'
+os::cmd::expect_success 'oc tag mariadb:10.3 reference:latest --reference'
 os::cmd::expect_success_and_text "oc get is/reference --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
 os::cmd::expect_success_and_text "oc get is/reference --template='{{(index .spec.tags 0).reference}}'" 'true'
 # create a second project to test tagging across projects
 os::cmd::expect_success 'oc new-project test-cmd-images-2'
-os::cmd::expect_success "oc tag $project/mysql:5.6 newrepo:latest"
+os::cmd::expect_success "oc tag $project/mariadb:10.3 newrepo:latest"
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
-os::cmd::expect_success_and_text 'oc get istag/newrepo:latest -o jsonpath={.image.dockerImageReference}' 'registry.centos.org/centos/mysql-56-centos7@sha256:'
+os::cmd::expect_success_and_text 'oc get istag/newrepo:latest -o jsonpath={.image.dockerImageReference}' 'quay.io/centos7/mariadb-103-centos7@sha256:'
 # tag across projects without specifying the source's project
-os::cmd::expect_success_and_text "oc tag newrepo:latest '${project}/mysql:tag1'" "mysql:tag1 set to"
+os::cmd::expect_success_and_text "oc tag newrepo:latest '${project}/mariadb:tag1'" "mariadb:tag1 set to"
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).name}}'" "latest"
 # tagging an image with a DockerImageReference that points to the internal registry across namespaces updates the reference
 #os::cmd::expect_success "oc tag $project/test:new newrepo:direct"
@@ -30612,10 +33797,10 @@ os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.t
 #os::cmd::expect_success_and_text 'oc get istag/newrepo:indirect -o jsonpath={.image.dockerImageReference}' "/$project/test@sha256:"
 os::cmd::expect_success "oc project $project"
 # test scheduled and insecure tagging
-os::cmd::expect_success 'oc tag --source=docker mysql:5.7 newrepo:latest --scheduled'
+os::cmd::expect_success 'oc tag --source=docker mariadb:10.5 newrepo:latest --scheduled'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).importPolicy.scheduled}}'" 'true'
-os::cmd::expect_success_and_text "oc describe is/newrepo" 'updates automatically from registry mysql:5.7'
-os::cmd::expect_success 'oc tag --source=docker mysql:5.7 newrepo:latest --insecure'
+os::cmd::expect_success_and_text "oc describe is/newrepo" 'updates automatically from registry mariadb:10.5'
+os::cmd::expect_success 'oc tag --source=docker mariadb:10.5 newrepo:latest --insecure'
 os::cmd::expect_success_and_text "oc describe is/newrepo" 'will use insecure HTTPS or HTTP connections'
 os::cmd::expect_success_and_not_text "oc describe is/newrepo" 'updates automatically from'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).importPolicy.insecure}}'" 'true'
@@ -30623,11 +33808,11 @@ os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.t
 # test creating streams that don't exist
 os::cmd::expect_failure_and_text 'oc get imageStreams tagtest1' 'not found'
 os::cmd::expect_failure_and_text 'oc get imageStreams tagtest2' 'not found'
-os::cmd::expect_success 'oc tag mysql:latest tagtest1:latest tagtest2:latest'
+os::cmd::expect_success 'oc tag mariadb:latest tagtest1:latest tagtest2:latest'
 os::cmd::expect_success_and_text "oc get is/tagtest1 --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
 os::cmd::expect_success_and_text "oc get is/tagtest2 --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
 os::cmd::expect_success 'oc delete is/tagtest1 is/tagtest2'
-os::cmd::expect_success_and_text 'oc tag mysql:latest tagtest:new1' 'Tag tagtest:new1 set to mysql@sha256:'
+os::cmd::expect_success_and_text 'oc tag mariadb:latest tagtest:new1' 'Tag tagtest:new1 set to mariadb@sha256:'
 
 # test deleting a spec tag using oc tag
 os::cmd::expect_success 'oc create -f ${TEST_DATA}/test-stream.yaml'
@@ -30786,7 +33971,7 @@ os::cmd::expect_success 'oc new-project quota-images --as=deads  --as-group=syst
 os::cmd::expect_success 'oc create quota -n quota-images is-quota --hard openshift.io/imagestreams=1'
 os::cmd::try_until_success 'oc tag -n quota-images openshift/hello-openshift myis2:v2'
 os::cmd::expect_failure_and_text 'oc tag -n quota-images busybox mybox:v1' "exceeded quota"
-os::cmd::expect_failure_and_text 'oc import-image centos -n quota-images --from=registry.centos.org/centos:latest --confirm=true' "exceeded quota"
+os::cmd::expect_failure_and_text 'oc import-image centos -n quota-images --from=quay.io/centos7:latest --confirm=true' "exceeded quota"
 os::cmd::expect_success 'oc delete project quota-images'
 
 echo "imagestreams: ok"
@@ -31055,72 +34240,6 @@ func testExtendedTestdataCmdTestCmdSetDataSh() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataCmdTestCmdSetImageSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete all,templates --all
-  exit 0
-) &>/dev/null
-
-
-os::test::junit::declare_suite_start "cmd/oc/set/image"
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/test-deployment-config.yaml'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/hello-openshift/hello-pod.json'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/image-streams/image-streams-centos7.json'
-os::cmd::try_until_success 'oc get imagestreamtags ruby:2.7-ubi8'
-
-# test --local flag
-os::cmd::expect_failure_and_text 'oc set image dc/test-deployment-config ruby-helloworld=ruby:2.7-ubi8 --local' 'you must specify resources by --filename when --local is set.'
-# test --dry-run flag with -o formats
-os::cmd::expect_success_and_text 'oc set image dc/test-deployment-config ruby-helloworld=ruby:2.7-ubi8 --source=istag --dry-run' 'test-deployment-config'
-os::cmd::expect_success_and_text 'oc set image dc/test-deployment-config ruby-helloworld=ruby:2.7-ubi8 --source=istag --dry-run -o name' 'deploymentconfig.apps.openshift.io/test-deployment-config'
-os::cmd::expect_success_and_text 'oc set image dc/test-deployment-config ruby-helloworld=ruby:2.7-ubi8 --source=istag --dry-run' 'deploymentconfig.apps.openshift.io/test-deployment-config image updated \(dry run\)'
-
-os::cmd::expect_success 'oc set image dc/test-deployment-config ruby-helloworld=ruby:2.7-ubi8 --source=istag'
-os::cmd::expect_success_and_text "oc get dc/test-deployment-config -o jsonpath='{.spec.template.spec.containers[0].image}'" 'image-registry.openshift-image-registry.svc:5000/cmd-set-image/ruby'
-
-os::cmd::expect_success 'oc set image dc/test-deployment-config ruby-helloworld=ruby:2.7-ubi8 --source=istag'
-os::cmd::expect_success_and_text "oc get dc/test-deployment-config -o jsonpath='{.spec.template.spec.containers[0].image}'" 'image-registry.openshift-image-registry.svc:5000/cmd-set-image/ruby'
-
-os::cmd::expect_failure 'oc set image dc/test-deployment-config ruby-helloworld=ruby:XYZ --source=istag'
-os::cmd::expect_failure 'oc set image dc/test-deployment-config ruby-helloworld=ruby:XYZ --source=isimage'
-
-os::cmd::expect_success 'oc set image dc/test-deployment-config ruby-helloworld=nginx'
-os::cmd::expect_success_and_text "oc get dc/test-deployment-config -o jsonpath='{.spec.template.spec.containers[0].image}'" 'nginx'
-
-os::cmd::expect_success 'oc set image pod/hello-openshift hello-openshift=nginx'
-os::cmd::expect_success_and_text "oc get pod/hello-openshift -o jsonpath='{.spec.containers[0].image}'" 'nginx'
-
-os::cmd::expect_success 'oc set image pod/hello-openshift hello-openshift=nginx:1.9.1'
-os::cmd::expect_success_and_text "oc get pod/hello-openshift -o jsonpath='{.spec.containers[0].image}'" 'nginx:1.9.1'
-
-os::cmd::expect_success 'oc set image pods,dc *=ruby:2.7-ubi8 --all --source=imagestreamtag'
-os::cmd::expect_success_and_text "oc get pod/hello-openshift -o jsonpath='{.spec.containers[0].image}'" 'image-registry.openshift-image-registry.svc:5000/cmd-set-image/ruby'
-os::cmd::expect_success_and_text "oc get dc/test-deployment-config -o jsonpath='{.spec.template.spec.containers[0].image}'" 'image-registry.openshift-image-registry.svc:5000/cmd-set-image/ruby'
-
-echo "set-image: ok"
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdSetImageShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdSetImageSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdSetImageSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdSetImageShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/set-image.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _testExtendedTestdataCmdTestCmdSetLivenessProbeSh = []byte(`#!/bin/bash
 source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
 trap os::test::junit::reconcile_output EXIT
@@ -31291,230 +34410,6 @@ func testExtendedTestdataCmdTestCmdSetbuildsecretSh() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/setbuildsecret.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdTemplatesSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete all,templates --all
-  oc delete template/ruby-helloworld-sample -n openshift
-  oc delete project test-template-project
-  oc delete user someval someval=moreval someval=moreval2 someval=moreval3
-  exit 0
-) &>/dev/null
-
-
-os::test::junit::declare_suite_start "cmd/templates"
-# This test validates template commands
-
-os::test::junit::declare_suite_start "cmd/templates/basic"
-os::cmd::expect_success 'oc get templates'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/application-template-dockerbuild.json'
-os::cmd::expect_success 'oc get templates'
-os::cmd::expect_success 'oc get templates ruby-helloworld-sample'
-os::cmd::expect_success 'oc get template ruby-helloworld-sample -o json | oc process -f -'
-os::cmd::expect_success 'oc process ruby-helloworld-sample'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o template --template "{{.kind}}"'    "List"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o go-template --template "{{.kind}}"' "List"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o go-template={{.kind}}'              "List"
-os::cmd::expect_success 'oc process ruby-helloworld-sample -o go-template-file=/dev/null'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o jsonpath --template "{.kind}"' "List"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o jsonpath={.kind}'              "List"
-os::cmd::expect_success 'oc process ruby-helloworld-sample -o jsonpath-file=/dev/null'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o describe' "ruby-27-centos7"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o json'     "ruby-27-centos7"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o yaml'     "ruby-27-centos7"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o name'     "ruby-27-centos7"
-os::cmd::expect_success_and_text 'oc describe templates ruby-helloworld-sample' "BuildConfig.*ruby-sample-build"
-os::cmd::expect_success 'oc delete templates ruby-helloworld-sample'
-os::cmd::expect_success 'oc get templates'
-# TODO: create directly from template
-echo "templates: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/config"
-guestbook_template="${TEST_DATA}/templates/guestbook.json"
-os::cmd::expect_success "oc process -f '${guestbook_template}' -l app=guestbook | oc create -f -"
-os::cmd::expect_success_and_text 'oc status' 'frontend-service'
-echo "template+config: ok"
-
-os::test::junit::declare_suite_start "cmd/templates/local-config"
-# Processes the template locally
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --local -l app=guestbook -o yaml" "app: guestbook"
-# Processes the template locally and get the same output in YAML
-new="$(mktemp -d)"
-os::cmd::expect_success 'oc process -f "${guestbook_template}" --local -l app=guestbook -o yaml ADMIN_USERNAME=au ADMIN_PASSWORD=ap REDIS_PASSWORD=rp > "${new}/localtemplate"'
-os::cmd::expect_success 'oc process -f "${guestbook_template}" -l app=guestbook -o yaml ADMIN_USERNAME=au ADMIN_PASSWORD=ap REDIS_PASSWORD=rp > "${new}/remotetemplate"'
-os::cmd::expect_success 'diff "${new}/localtemplate" "${new}/remotetemplate"'
-# Does not even try to hit the server
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --local -l app=guestbook -o yaml --server 0.0.0.0:1" "app: guestbook"
-echo "template+config+local: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/parameters"
-guestbook_params="${TEST_DATA}/templates/guestbook.env"
-# Individually specified parameter values are honored
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' -p ADMIN_USERNAME=myuser -p ADMIN_PASSWORD=mypassword" '"myuser"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' -p ADMIN_USERNAME=myuser -p ADMIN_PASSWORD=mypassword" '"mypassword"'
-# Argument values are honored
-os::cmd::expect_success_and_text "oc process ADMIN_USERNAME=myuser ADMIN_PASSWORD=mypassword -f '${guestbook_template}'"       '"myuser"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' ADMIN_USERNAME=myuser ADMIN_PASSWORD=mypassword"       '"mypassword"'
-# Argument values with commas are honored
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/application-template-stibuild.json'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample MYSQL_USER=myself MYSQL_PASSWORD=my,1%pa=s'        '"myself"'
-os::cmd::expect_success_and_text 'oc process MYSQL_USER=myself MYSQL_PASSWORD=my,1%pa=s ruby-helloworld-sample'        '"my,1%pa=s"'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -p MYSQL_USER=myself -p MYSQL_PASSWORD=my,1%pa=s'  '"myself"'
-os::cmd::expect_success_and_text 'oc process -p MYSQL_USER=myself -p MYSQL_PASSWORD=my,1%pa=s ruby-helloworld-sample'  '"my,1%pa=s"'
-# Argument values can be read from file
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}'" '"root"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}'" '"adminpass"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}'" '"redispass"'
-# Argument values can be read from stdin
-os::cmd::expect_success_and_text "cat '${guestbook_params}' | oc process -f '${guestbook_template}' --param-file=-" '"root"'
-os::cmd::expect_success_and_text "cat '${guestbook_params}' | oc process -f '${guestbook_template}' --param-file=-" '"adminpass"'
-os::cmd::expect_success_and_text "cat '${guestbook_params}' | oc process -f '${guestbook_template}' --param-file=-" '"redispass"'
-# Argument values from command line have precedence over those from file
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}' -p ADMIN_USERNAME=myuser"     'ignoring value from file'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}' -p ADMIN_USERNAME=myuser"     '"myuser"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}' -p ADMIN_PASSWORD=mypassword" '"mypassword"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}' -p REDIS_PASSWORD=rrr"        '"rrr"'
-# Set template parameters from parameter file with multiline values
-os::cmd::expect_success_and_text "oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=${TEST_DATA}/templates/template_required_params.env -o yaml" 'first$'
-os::cmd::expect_success 'oc delete template ruby-helloworld-sample'
-# Parameter file failure cases
-os::cmd::expect_failure_and_text "oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=does/not/exist"  'no such file or directory'
-os::cmd::expect_failure_and_text "oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=${TEST_DATA}"   'is a directory'
-os::cmd::expect_failure_and_text "oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=/dev/null"       'parameter required_param is required and must be specified'
-os::cmd::expect_success "oc process -f '${guestbook_template}' --param-file=/dev/null --param-file='${guestbook_params}'"
-os::cmd::expect_failure_and_text "echo 'fo%(o=bar' | oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=-"        'invalid parameter assignment'
-os::cmd::expect_failure_and_text "echo 'S P A C E S=test' | oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=-" 'invalid parameter assignment'
-# Handle absent parameter
-os::cmd::expect_failure_and_text "oc process -f '${guestbook_template}' -p ABSENT_PARAMETER=absent" 'unknown parameter name'
-os::cmd::expect_success "oc process -f '${guestbook_template}' -p ABSENT_PARAMETER=absent --ignore-unknown-parameters"
-echo "template+parameters: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/data-precision"
-# Run as cluster-admin to allow choosing any supplemental groups we want
-# Ensure large integers survive unstructured JSON creation
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/templates/template-type-precision.json'
-# ... and processing
-os::cmd::expect_success_and_text 'oc process template-type-precision' '1000030003'
-os::cmd::expect_success_and_text 'oc process template-type-precision' '2147483647'
-os::cmd::expect_success_and_text 'oc process template-type-precision' '9223372036854775807'
-# ... and re-encoding as structured resources
-os::cmd::expect_success 'oc process template-type-precision | oc create -f -'
-# ... and persisting
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' '1000030003'
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' '2147483647'
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' '9223372036854775807'
-# Ensure patch computation preserves data
-patch='{"metadata":{"annotations":{"comment":"patch comment"}}}'
-os::cmd::expect_success "oc patch pod template-type-precision -p '${patch}'"
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' '9223372036854775807'
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' 'patch comment'
-os::cmd::expect_success 'oc delete template/template-type-precision'
-os::cmd::expect_success 'oc delete pod/template-type-precision'
-echo "template data precision: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/different-namespaces"
-#os::cmd::expect_success 'oc create -f ${TEST_DATA}/application-template-dockerbuild.json -n openshift'
-#os::cmd::expect_success 'oc policy add-role-to-user admin test-user'
-#new="$(mktemp -d)/tempconfig"
-#os::cmd::expect_success "oc config view --raw > ${new}"
-#old="${KUBECONFIG}"
-#export KUBECONFIG=${new}
-#os::cmd::expect_success 'oc login -u test-user -p password'
-#os::cmd::expect_success 'oc new-project test-template-project'
-## make sure the permissions on the new project are set up
-#os::cmd::try_until_success 'oc get templates'
-#os::cmd::expect_success 'oc create -f ${TEST_DATA}/application-template-dockerbuild.json'
-#os::cmd::expect_success 'oc process template/ruby-helloworld-sample'
-#os::cmd::expect_success 'oc process templates/ruby-helloworld-sample'
-#os::cmd::expect_success 'oc process openshift//ruby-helloworld-sample'
-#os::cmd::expect_success 'oc process openshift/template/ruby-helloworld-sample'
-#os::cmd::expect_success 'oc get template ruby-helloworld-sample -n openshift -o yaml | oc process -f -'
-#export KUBECONFIG=${old}
-echo "processing templates in different namespace: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/process"
-# This test validates oc process
-# fail to process two templates by name
-os::cmd::expect_failure_and_text 'oc process name1 name2' 'template name must be specified only once'
-# fail to pass a filename or template by name
-os::cmd::expect_failure_and_text 'oc process' 'Must pass a filename or name of stored template'
-# can't ask for parameters and try process the template
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --param=someval' '\-\-parameters flag does not process the template, can.t be used with \-\-param'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters -p someval' '\-\-parameters flag does not process the template, can.t be used with \-\-param'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --labels=someval' '\-\-parameters flag does not process the template, can.t be used with \-\-labels'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters -l someval' '\-\-parameters flag does not process the template, can.t be used with \-\-labels'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --output=yaml' '\-\-parameters flag does not process the template, can.t be used with \-\-output'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters -o yaml' '\-\-parameters flag does not process the template, can.t be used with \-\-output'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --raw' '\-\-parameters flag does not process the template, can.t be used with \-\-raw'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --template=someval' '\-\-parameters flag does not process the template, can.t be used with \-\-template'
-# providing a value more than once should fail
-os::cmd::expect_failure_and_text 'oc process template-name key=value key=value' 'provided more than once: key'
-os::cmd::expect_failure_and_text 'oc process template-name --param=key=value --param=key=value' 'provided more than once: key'
-os::cmd::expect_failure_and_text 'oc process template-name key=value --param=key=value' 'provided more than once: key'
-os::cmd::expect_failure_and_text 'oc process template-name key=value other=foo --param=key=value --param=other=baz' 'provided more than once: key, other'
-required_params="${TEST_DATA}/templates/template_required_params.yaml"
-# providing something other than a template is not OK
-os::cmd::expect_failure_and_text "oc process -f '${TEST_DATA}/templates/basic-users-binding.json'" 'not a valid Template but'
-# not providing required parameter should fail
-os::cmd::expect_failure_and_text "oc process -f '${required_params}'" 'parameter required_param is required and must be specified'
-# not providing an optional param is OK
-os::cmd::expect_success "oc process -f '${required_params}' --param=required_param=someval"
-os::cmd::expect_success "oc process -f '${required_params}' -p required_param=someval | oc create -f -"
-# parameters with multiple equal signs are OK
-os::cmd::expect_success "oc process -f '${required_params}' required_param=someval=moreval | oc create -f -"
-os::cmd::expect_success "oc process -f '${required_params}' -p required_param=someval=moreval2 | oc create -f -"
-os::cmd::expect_success "oc process -f '${required_params}' -p required_param=someval=moreval3 | oc create -f -"
-# we should have overwritten the template param
-os::cmd::expect_success_and_text 'oc get user someval -o jsonpath={.metadata.name}' 'someval'
-os::cmd::expect_success_and_text 'oc get user someval=moreval -o jsonpath={.metadata.name}' 'someval=moreval'
-os::cmd::expect_success_and_text 'oc get user someval=moreval2 -o jsonpath={.metadata.name}' 'someval=moreval2'
-os::cmd::expect_success_and_text 'oc get user someval=moreval3 -o jsonpath={.metadata.name}' 'someval=moreval3'
-# providing a value not in the template should fail
-os::cmd::expect_failure_and_text "oc process -f '${required_params}' --param=required_param=someval --param=other_param=otherval" 'unknown parameter name "other_param"'
-# failure on values fails the entire call
-os::cmd::expect_failure_and_text "oc process -f '${required_params}' --param=required_param=someval --param=optional_param" 'invalid parameter assignment in'
-# failure on labels fails the entire call
-os::cmd::expect_failure_and_text "oc process -f '${required_params}' --param=required_param=someval --labels======" 'error parsing labels'
-# values are not split on commas, required parameter is not recognized
-os::cmd::expect_failure_and_text "oc process -f '${required_params}' --param=optional_param=a,required_param=b" 'parameter required_param is required and must be specified'
-# warning is printed iff --value/--param looks like two k-v pairs separated by comma
-os::cmd::expect_success_and_text "oc process -f '${required_params}' --param=required_param=a,b=c,d" 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_not_text "oc process -f '${required_params}' --param=required_param=a_b_c_d" 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_not_text "oc process -f '${required_params}' --param=required_param=a,b,c,d" 'no longer accepts comma-separated list'
-# warning is not printed for template values passed as positional arguments
-os::cmd::expect_success_and_not_text "oc process -f '${required_params}' required_param=a,b=c,d" 'no longer accepts comma-separated list'
-# set template parameter to contents of file
-os::cmd::expect_success_and_text "oc process -f '${required_params}' --param=required_param='` + "`" + `cat ${TEST_DATA}/templates/multiline.txt` + "`" + `'" 'also,with=commas'
-echo "process: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdTemplatesShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdTemplatesSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdTemplatesSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdTemplatesShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/templates.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -33043,7 +35938,7 @@ var _testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson = []byte(`
     "containers": [
       {
         "name": "hello-openshift",
-        "image": "registry.k8s.io/e2e-test-images/agnhost:2.40",
+        "image": "registry.k8s.io/e2e-test-images/agnhost:2.43",
         "args": ["netexec"],
         "ports": [
           {
@@ -33347,7 +36242,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/httpd-24-centos7:latest"
+              "name": "quay.io/centos7/httpd-24-centos7:latest"
             },
             "name": "2.4",
             "referencePolicy": {
@@ -33427,7 +36322,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "ImageStreamTag",
-              "name": "10.2"
+              "name": "10.5"
             },
             "name": "latest",
             "referencePolicy": {
@@ -33441,31 +36336,31 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
               "openshift.io/display-name": "MariaDB 10.1",
               "openshift.io/provider-display-name": "Red Hat, Inc.",
               "tags": "database,mariadb",
-              "version": "10.1"
+              "version": "10.3"
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mariadb-101-centos7:latest"
+              "name": "quay.io/centos7/mariadb-103-centos7:latest"
             },
-            "name": "10.1",
+            "name": "10.3",
             "referencePolicy": {
               "type": "Local"
             }
           },
           {
             "annotations": {
-              "description": "Provides a MariaDB 10.2 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mariadb-container/blob/master/10.2/README.md.",
+              "description": "Provides a MariaDB 10.5 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mariadb-container/blob/master/10.2/README.md.",
               "iconClass": "icon-mariadb",
-              "openshift.io/display-name": "MariaDB 10.2",
+              "openshift.io/display-name": "MariaDB 10.5",
               "openshift.io/provider-display-name": "Red Hat, Inc.",
               "tags": "database,mariadb",
-              "version": "10.2"
+              "version": "10.5"
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mariadb-102-centos7:latest"
+              "name": "quay.io/centos7/mariadb-105-centos7:latest"
             },
-            "name": "10.2",
+            "name": "10.5",
             "referencePolicy": {
               "type": "Local"
             }
@@ -33512,7 +36407,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mongodb-26-centos7:latest"
+              "name": "quay.io/centos7/mongodb-26-centos7:latest"
             },
             "name": "2.7",
             "referencePolicy": {
@@ -33530,7 +36425,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mongodb-32-centos7:latest"
+              "name": "quay.io/centos7/mongodb-32-centos7:latest"
             },
             "name": "3.2",
             "referencePolicy": {
@@ -33548,7 +36443,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mongodb-34-centos7:latest"
+              "name": "quay.io/centos7/mongodb-34-centos7:latest"
             },
             "name": "3.4",
             "referencePolicy": {
@@ -33579,7 +36474,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "ImageStreamTag",
-              "name": "5.7"
+              "name": "8"
             },
             "name": "latest",
             "referencePolicy": {
@@ -33588,36 +36483,18 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
           },
           {
             "annotations": {
-              "description": "Provides a MySQL 5.6 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mysql-container/blob/master/README.md.",
+              "description": "Provides a MySQL 8 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mysql-container/blob/master/README.md.",
               "iconClass": "icon-mysql-database",
-              "openshift.io/display-name": "MySQL 5.6",
+              "openshift.io/display-name": "MySQL 8",
               "openshift.io/provider-display-name": "Red Hat, Inc.",
               "tags": "hidden,mysql",
-              "version": "5.6"
+              "version": "8"
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mysql-56-centos7:latest"
+              "name": "quay.io/centos7/mysql-80-centos7:latest"
             },
-            "name": "5.6",
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "annotations": {
-              "description": "Provides a MySQL 5.7 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mysql-container/blob/master/README.md.",
-              "iconClass": "icon-mysql-database",
-              "openshift.io/display-name": "MySQL 5.7",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "tags": "mysql",
-              "version": "5.7"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mysql-57-centos7:latest"
-            },
-            "name": "5.7",
+            "name": "8",
             "referencePolicy": {
               "type": "Local"
             }
@@ -33649,7 +36526,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/nginx-114-centos7:latest"
+              "name": "quay.io/centos7/nginx-114-centos7:latest"
             },
             "name": "1.14",
             "referencePolicy": {
@@ -33669,7 +36546,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/nginx-116-centos7:latest"
+              "name": "quay.io/centos7/nginx-116-centos7:latest"
             },
             "name": "1.16",
             "referencePolicy": {
@@ -33740,7 +36617,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/nodejs-10-centos7:latest"
+              "name": "quay.io/centos7/nodejs-10-centos7:latest"
             },
             "name": "10",
             "referencePolicy": {
@@ -33759,7 +36636,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/nodejs-12-centos7:latest"
+              "name": "quay.io/centos7/nodejs-12-centos7:latest"
             },
             "name": "12",
             "referencePolicy": {
@@ -33889,7 +36766,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/php-70-centos7:latest"
+              "name": "quay.io/centos7/php-70-centos7:latest"
             },
             "name": "7.0",
             "referencePolicy": {
@@ -33909,7 +36786,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/php-71-centos7:latest"
+              "name": "quay.io/centos7/php-71-centos7:latest"
             },
             "name": "7.1",
             "referencePolicy": {
@@ -33958,7 +36835,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/postgresql-95-centos7:latest"
+              "name": "quay.io/centos7/postgresql-95-centos7:latest"
             },
             "name": "9.5",
             "referencePolicy": {
@@ -33976,7 +36853,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/postgresql-96-centos7:latest"
+              "name": "quay.io/centos7/postgresql-96-centos7:latest"
             },
             "name": "9.6",
             "referencePolicy": {
@@ -34029,7 +36906,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/python-27-centos7:latest"
+              "name": "quay.io/centos7/python-27-centos7:latest"
             },
             "name": "2.7",
             "referencePolicy": {
@@ -34049,7 +36926,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/python-36-centos7:latest"
+              "name": "quay.io/centos7/python-36-centos7:latest"
             },
             "name": "3.6",
             "referencePolicy": {
@@ -34098,7 +36975,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/redis-5-centos7:latest"
+              "name": "quay.io/centos7/redis-5-centos7:latest"
             },
             "name": "5",
             "referencePolicy": {
@@ -37172,7 +40049,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.40
+                image: registry.k8s.io/e2e-test-images/agnhost:2.43
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -39939,6 +42816,11 @@ spec:
   - type: Allow
     to:
       cidrSelector: 8.8.8.8/32
+  - type: Allow
+    to:
+      nodeSelector:
+        matchLabels:
+          node-role.kubernetes.io/control-plane: ''
   - type: Deny
     to:
       cidrSelector: 0.0.0.0/0
@@ -41372,7 +44254,7 @@ items:
           replicationcontroller: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.40
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.43
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675" ]
           ports:
@@ -41438,7 +44320,7 @@ items:
           deploymentconfig: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.40
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.43
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -42017,6 +44899,104 @@ func testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson() (*asset, error) 
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataKernelRtTestsEnvironmentYaml = []byte(`kind: Project
+apiVersion: project.openshift.io/v1
+metadata:
+  name: ci-realtime-testbed
+  labels:
+    kubernetes.io/metadata.name: rt-tests
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+  annotations:
+    workload.openshift.io/allowed: management
+    openshift.io/node-selector: "node-role.kubernetes.io/worker="
+spec: {}
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rt-tests
+  namespace: ci-realtime-testbed
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:openshift:scc:privileged
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:privileged
+subjects:
+  - kind: ServiceAccount
+    name: rt-tests
+    namespace: ci-realtime-testbed`)
+
+func testExtendedTestdataKernelRtTestsEnvironmentYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataKernelRtTestsEnvironmentYaml, nil
+}
+
+func testExtendedTestdataKernelRtTestsEnvironmentYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataKernelRtTestsEnvironmentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/kernel/rt-tests-environment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataKernelRtTestsPodYaml = []byte(`apiVersion: v1
+kind: Pod
+metadata:
+  name: rt-tests
+  namespace: ci-realtime-testbed
+spec:
+  hostPID: true
+  hostIPC: true
+  hostNetwork: true
+  volumes:
+  - name: host
+    hostPath:
+      path: /sys/kernel/debug
+      type: Directory
+  containers:
+    - name: rt-tests
+      image: image-registry.openshift-image-registry.svc:5000/openshift/tests
+      command:
+        - "sh"
+        - "-c"
+        - "sleep 999999"
+      resources: {}
+      securityContext:
+        privileged: true
+      volumeMounts:
+      - mountPath: /sys/kernel/debug
+        name: host
+  serviceAccount: rt-tests
+  serviceAccountName: rt-tests
+  terminationGracePeriodSeconds: 30`)
+
+func testExtendedTestdataKernelRtTestsPodYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataKernelRtTestsPodYaml, nil
+}
+
+func testExtendedTestdataKernelRtTestsPodYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataKernelRtTestsPodYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/kernel/rt-tests-pod.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -45539,6 +48519,36 @@ func testExtendedTestdataMultiNamespaceTemplateYaml() (*asset, error) {
 	return a, nil
 }
 
+var _testExtendedTestdataMultinetpolicyDenyIngressPodAYml = []byte(`apiVersion: k8s.cni.cncf.io/v1beta1
+kind: MultiNetworkPolicy
+metadata:
+  generateName: deny-ingress-pod-a
+  annotations:
+    k8s.v1.cni.cncf.io/policy-for: macvlan1-nad
+spec:
+  podSelector:
+    matchLabels:
+      pod: a
+  policyTypes:
+    - Ingress
+  ingress: []
+`)
+
+func testExtendedTestdataMultinetpolicyDenyIngressPodAYmlBytes() ([]byte, error) {
+	return _testExtendedTestdataMultinetpolicyDenyIngressPodAYml, nil
+}
+
+func testExtendedTestdataMultinetpolicyDenyIngressPodAYml() (*asset, error) {
+	bytes, err := testExtendedTestdataMultinetpolicyDenyIngressPodAYmlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/multinetpolicy/deny-ingress-pod-a.yml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataNetAttachDefsBridgeNadYml = []byte(`apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
 metadata:
@@ -45569,6 +48579,38 @@ func testExtendedTestdataNetAttachDefsBridgeNadYml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/net-attach-defs/bridge-nad.yml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNetAttachDefsMacvlanNadYml = []byte(`apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: macvlan1-nad
+spec:   
+  config: '{
+            "cniVersion": "0.3.1",
+            "name": "macvlan1-nad",
+            "plugins": [
+                {
+                    "type": "macvlan",
+                    "capabilities": { "ips": true },
+                    "mode": "bridge",
+                    "ipam": { "type": "static" }
+                }]
+        }'`)
+
+func testExtendedTestdataNetAttachDefsMacvlanNadYmlBytes() ([]byte, error) {
+	return _testExtendedTestdataNetAttachDefsMacvlanNadYml, nil
+}
+
+func testExtendedTestdataNetAttachDefsMacvlanNadYml() (*asset, error) {
+	bytes, err := testExtendedTestdataNetAttachDefsMacvlanNadYmlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/net-attach-defs/macvlan-nad.yml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -45967,6 +49009,161 @@ func testExtendedTestdataOlmSubscriptionYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/olm/subscription.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml = []byte(`---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: always-allow-policy
+spec:
+  maxUnavailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      app: nginx-with-delayed-ready
+
+`)
+
+func testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml, nil
+}
+
+func testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml = []byte(`---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: if-healthy-budget-policy
+spec:
+  maxUnavailable: 1
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+  selector:
+    matchLabels:
+      app: nginx-with-delayed-ready
+
+`)
+
+func testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml, nil
+}
+
+func testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml = []byte(`---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: nginx-with-delayed-ready
+  labels:
+    app: nginx-with-delayed-ready
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-with-delayed-ready
+  template:
+    metadata:
+      labels:
+        app: nginx-with-delayed-ready
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: nginx-with-delayed-ready
+          image: registry.k8s.io/e2e-test-images/nginx:1.15-4
+          command:
+            - /usr/sbin/nginx
+          args:
+            - "-g"
+            - "daemon off;"
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 40
+            successThreshold: 2
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: conf
+              mountPath: /etc/nginx/conf.d
+            - name: tmp
+              mountPath: /var/cache/nginx
+            - name: tmp2
+              mountPath: /var/run
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: conf
+          configMap:
+            name: nginx-conf
+        - name: tmp
+          emptyDir: {}
+        - name: tmp2
+          emptyDir: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  default.conf: |
+    server {
+        listen 8080;
+        server_name  localhost;
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/share/nginx/html;
+        }
+    }
+`)
+
+func testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml, nil
+}
+
+func testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -46392,7 +49589,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -46410,7 +49607,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -46445,7 +49642,7 @@ items:
       app: serving-cert
   spec:
     containers:
-    - image: registry.k8s.io/e2e-test-images/nginx:1.15-2
+    - image: registry.k8s.io/e2e-test-images/nginx:1.15-4
       name: serve
       command:
         - /usr/sbin/nginx
@@ -46462,7 +49659,7 @@ items:
         mountPath: /etc/nginx
       - name: tmp
         mountPath: /var/cache/nginx
-      - name: tmp
+      - name: tmp2
         mountPath: /var/run
     volumes:
     - name: conf
@@ -46649,7 +49846,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -46677,22 +49874,21 @@ var _testExtendedTestdataRouterRouterHttpEchoServerYaml = []byte(`apiVersion: v1
 kind: List
 metadata: {}
 items:
-- apiVersion: apps.openshift.io/v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1
+  kind: Deployment
   metadata:
     name: router-http-echo
   spec:
     replicas: 1
     selector:
-      app: router-http-echo
-      deploymentconfig: router-http-echo
+      matchLabels:
+        app: router-http-echo
     strategy:
-      type: Rolling
+      type: RollingUpdate
     template:
       metadata:
         labels:
           app: router-http-echo
-          deploymentconfig: router-http-echo
       spec:
         containers:
         - image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
@@ -46826,7 +50022,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -46844,7 +50040,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -47475,6 +50671,127 @@ func testExtendedTestdataStableBusyboxYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/stable-busybox.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataStorageInlineCsiSharedresourceroleYaml = []byte(`apiVersion: authorization.openshift.io/v1
+kind: Role
+metadata:
+  name: shared-resource-my-share
+rules:
+- apiGroups:
+    - sharedresource.openshift.io
+  resources:
+    - sharedsecrets
+  resourceNames:
+    - my-share
+  verbs:
+    - use
+`)
+
+func testExtendedTestdataStorageInlineCsiSharedresourceroleYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataStorageInlineCsiSharedresourceroleYaml, nil
+}
+
+func testExtendedTestdataStorageInlineCsiSharedresourceroleYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataStorageInlineCsiSharedresourceroleYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/storage/inline/csi-sharedresourcerole.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml = []byte(`kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: "inline-volume-csi-roles-template"
+labels:
+  createdBy: "inline-volume-csi-roles-template"
+parameters:
+  - description: "The namespace to create roles in."
+    name: NAMESPACE
+    required: true
+objects:
+  - apiVersion: authorization.openshift.io/v1
+    kind: RoleBinding
+    metadata:
+      name: shared-resource-my-share
+      namespace: ${NAMESPACE}
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: shared-resource-my-share
+      namespace: ${NAMESPACE}
+    subjects:
+    - kind: ServiceAccount
+      name: default
+      namespace: ${NAMESPACE}
+`)
+
+func testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml, nil
+}
+
+func testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/storage/inline/csi-sharedresourcerolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataStorageInlineCsiSharedsecretYaml = []byte(`apiVersion: sharedresource.openshift.io/v1alpha1
+kind: SharedSecret
+metadata:
+  name: my-share
+spec:
+  secretRef:
+    name: my-secret
+    namespace: default
+`)
+
+func testExtendedTestdataStorageInlineCsiSharedsecretYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataStorageInlineCsiSharedsecretYaml, nil
+}
+
+func testExtendedTestdataStorageInlineCsiSharedsecretYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataStorageInlineCsiSharedsecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/storage/inline/csi-sharedsecret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataStorageInlineSecretYaml = []byte(`apiVersion: v1
+data:
+  key: bXktc2VjcmV0LXZhbHVl # my-secret-value
+kind: Secret
+metadata:
+  name: my-secret
+type: Opaque
+`)
+
+func testExtendedTestdataStorageInlineSecretYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataStorageInlineSecretYaml, nil
+}
+
+func testExtendedTestdataStorageInlineSecretYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataStorageInlineSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/storage/inline/secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -48247,7 +51564,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.40
+                image: registry.k8s.io/e2e-test-images/agnhost:2.43
 `)
 
 func testExtendedTestdataTemplatesTemplateinstance_badobjectYamlBytes() ([]byte, error) {
@@ -48307,7 +51624,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.40
+                image: registry.k8s.io/e2e-test-images/agnhost:2.43
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -49211,7 +52528,31 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         return false
     }
 
+    function isPodLog(eventInterval) {
+        if (eventInterval.locator.includes("src/podLog")) {
+            return true
+        }
+        return false
+    }
+
+    function isInterestingOrPathological(eventInterval) {
+        if (eventInterval.message.includes("pathological/true") || (eventInterval.message.includes("interesting/true"))) {
+            return true
+        }
+        return false
+    }
+
     function isPod(eventInterval) {
+        // this check was added to keep the repeating events out fo the "pods" section
+        const nTimes = new RegExp("\\(\\d+ times\\)")
+        if (eventInterval.message.match(nTimes)) {
+            return false
+        }
+        // this check was added to avoid the events from the "interesting-events" section from being
+        // duplicated in the "pods" section.
+        if (isInterestingOrPathological(eventInterval)) {
+            return false
+        }
         if (eventInterval.locator.includes("pod/") && !eventInterval.locator.includes("alert/")) {
             return true
         }
@@ -49246,6 +52587,13 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         return false
     }
 
+    function isKubeletStartupProbeFailure(eventInterval) {
+        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/StartupProbeFailed"))) {
+            return true
+        }
+        return false
+    }
+
     function isE2EFailed(eventInterval) {
         if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Failed")) {
             return true
@@ -49264,6 +52612,14 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Passed")) {
             return true
         }
+        return false
+    }
+
+    function isGracefulShutdownActivity(eventInterval) {
+        if (eventInterval.locator.includes("shutdown/graceful")) {
+            return true
+        }
+
         return false
     }
 
@@ -49297,6 +52653,30 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         }
         return false
     }
+
+    function interestingEvents(item) {
+        if (item.message.includes("pathological/true")) {
+            if (item.message.includes("interesting/true")) {
+                return [item.locator, ` + "`" + ` (pathological known)` + "`" + `, "PathologicalKnown"];
+            } else {
+                return [item.locator, ` + "`" + ` (pathological new)` + "`" + `, "PathologicalNew"];
+            }
+        }
+        if (item.message.includes("interesting/true")) {
+		    return [item.locator, ` + "`" + ` (interesting event)` + "`" + `, "InterestingEvent"];
+        }
+	}
+
+    function podLogs(item) {
+        if (item.level == "Warning") {
+            return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogWarning"];
+        }
+        if (item.level == "Error") {
+            return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogError"];
+        }
+        return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogInfo"];
+    }
+
 
     const reReason = new RegExp("(^| )reason/([^ ]+)")
     function podStateValue(item) {
@@ -49336,6 +52716,9 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
             if (m[2] == "ReadinessErrored") {
                 return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessErrored"];
             }
+        }
+        if (m && isKubeletStartupProbeFailure(item)){
+            return [item.locator, ` + "`" + ` (kubelet container startupProbe)` + "`" + `, "StartupProbeFailed"];
         }
 
         return [item.locator, "", "Unknown"];
@@ -49385,6 +52768,27 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
         // color as critical if nothing matches so that we notice that something has gone wrong
         return [item.locator, "", "AlertCritical"]
+    }
+
+    function apiserverDisruptionValue(item) {
+        // TODO: isolate DNS error into CIClusterDisruption
+        return [item.locator, "", "Disruption"]
+    }
+
+    function apiserverShutdownValue(item) {
+        // TODO: isolate DNS error into CIClusterDisruption
+        return [item.locator, "", "GracefulShutdownInterval"]
+    }
+
+    function disruptionValue(item) {
+        // We classify these disruption samples with this message if it thinks
+        // it looks like a problem in the CI cluster running the tests, not the cluster under test.
+        // (typically DNS lookup problems)
+        let ciClusterDisruption = item.message.indexOf("likely a problem in cluster running tests")
+        if (ciClusterDisruption != -1) {
+            return [item.locator, "", "CIClusterDisruption"]
+        }
+        return [item.locator, "", "Disruption"]
     }
 
     function getDurationString(durationSeconds) {
@@ -49482,6 +52886,9 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
             return e1.label < e2.label ? -1 : e1.label > e2.label;
         })
 
+        timelineGroups.push({group: "pod-logs", data: []})
+        createTimelineData(podLogs, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isPodLog, regex)
+
         timelineGroups.push({group: "alerts", data: []})
         createTimelineData(alertSeverity, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isAlert, regex)
         // leaving this for posterity so future me (or someone else) can try it, but I think ordering by name makes the
@@ -49504,7 +52911,10 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         })
 
         timelineGroups.push({group: "endpoint-availability", data: []})
-        createTimelineData("Failed", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEndpointConnectivity, regex)
+        createTimelineData(disruptionValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEndpointConnectivity, regex)
+
+        timelineGroups.push({group: "shutdown-interval", data: []})
+        createTimelineData(apiserverShutdownValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isGracefulShutdownActivity, regex)
 
         timelineGroups.push({group: "e2e-test-failed", data: []})
         createTimelineData("Failed", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isE2EFailed, regex)
@@ -49514,6 +52924,9 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
         timelineGroups.push({group: "e2e-test-passed", data: []})
         createTimelineData("Passed", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isE2EPassed, regex)
+
+        timelineGroups.push({group: "interesting-events", data: []})
+        createTimelineData(interestingEvents, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isInterestingOrPathological, regex)
 
         var segmentFunc = function (segment) {
             // for (var i in data) {
@@ -49541,19 +52954,25 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         const myChart = TimelinesChart();
         var ordinalScale = d3.scaleOrdinal()
             .domain([
+                'InterestingEvent', 'PathologicalKnown', "PathologicalNew", // interesting and pathological events
                 'AlertInfo', 'AlertPending', 'AlertWarning', 'AlertCritical', // alerts
                 'OperatorUnavailable', 'OperatorDegraded', 'OperatorProgressing', // operators
                 'Update', 'Drain', 'Reboot', 'OperatingSystemUpdate', 'NodeNotReady', // nodes
                 'Passed', 'Skipped', 'Flaked', 'Failed',  // tests
-                'PodCreated', 'PodScheduled', 'PodTerminating','ContainerWait', 'ContainerStart', 'ContainerNotReady', 'ContainerReady', 'ContainerReadinessFailed', 'ContainerReadinessErrored',  // pods
-                'Degraded', 'Upgradeable', 'False', 'Unknown'])
+                'PodCreated', 'PodScheduled', 'PodTerminating','ContainerWait', 'ContainerStart', 'ContainerNotReady', 'ContainerReady', 'ContainerReadinessFailed', 'ContainerReadinessErrored',  'StartupProbeFailed', // pods
+                'CIClusterDisruption', 'Disruption', // disruption
+                'Degraded', 'Upgradeable', 'False', 'Unknown',
+                'PodLogInfo', 'PodLogWarning', 'PodLogError'])
             .range([
+                '#6E6E6E', '#0000ff', '#d0312d', // pathological and interesting events
                 '#fada5e','#fada5e','#ffa500', '#d0312d',  // alerts
                 '#d0312d', '#ffa500', '#fada5e', // operators
                 '#1e7bd9', '#4294e6', '#6aaef2', '#96cbff', '#fada5e', // nodes
                 '#3cb043', '#ceba76', '#ffa500', '#d0312d', // tests
-                '#96cbff', '#1e7bd9', '#ffa500', '#ca8dfd', '#9300ff', '#fada5e','#3cb043', '#d0312d', '#d0312d', // pods
-                '#b65049', '#32b8b6', '#ffffff', '#bbbbbb']);
+                '#96cbff', '#1e7bd9', '#ffa500', '#ca8dfd', '#9300ff', '#fada5e','#3cb043', '#d0312d', '#d0312d', '#c90076', // pods
+                '#96cbff', '#d0312d', // disruption
+                '#b65049', '#32b8b6', '#ffffff', '#bbbbbb',
+                '#96cbff', '#fada5e', '#d0312d']);
         myChart.
         data(timelineGroups).
         useUtc(true).
@@ -49590,6 +53009,905 @@ func e2echartE2eChartTemplateHtml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "e2echart/e2e-chart-template.html", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>EVENT_INTERVAL_TITLE_GOES_HERE</title>
+    <script src="https://unpkg.com/timelines-chart"></script>
+    <script src="https://d3js.org/d3-array.v1.min.js"></script>
+    <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+    <script src="https://d3js.org/d3-color.v1.min.js"></script>
+    <script src="https://d3js.org/d3-format.v1.min.js"></script>
+    <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+    <script src="https://d3js.org/d3-time.v1.min.js"></script>
+    <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+    <script src="https://d3js.org/d3-scale.v2.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        /**
+        * @license
+        * Lodash <https://lodash.com/>
+        * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
+        * Released under MIT license <https://lodash.com/license>
+        * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+        * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+        */
+       (function(){function n(n,t,r){switch(r.length){case 0:return n.call(t);case 1:return n.call(t,r[0]);case 2:return n.call(t,r[0],r[1]);case 3:return n.call(t,r[0],r[1],r[2])}return n.apply(t,r)}function t(n,t,r,e){for(var u=-1,i=null==n?0:n.length;++u<i;){var o=n[u];t(e,o,r(o),n)}return e}function r(n,t){for(var r=-1,e=null==n?0:n.length;++r<e&&t(n[r],r,n)!==!1;);return n}function e(n,t){for(var r=null==n?0:n.length;r--&&t(n[r],r,n)!==!1;);return n}function u(n,t){for(var r=-1,e=null==n?0:n.length;++r<e;)if(!t(n[r],r,n))return!1;
+       return!0}function i(n,t){for(var r=-1,e=null==n?0:n.length,u=0,i=[];++r<e;){var o=n[r];t(o,r,n)&&(i[u++]=o)}return i}function o(n,t){return!!(null==n?0:n.length)&&y(n,t,0)>-1}function f(n,t,r){for(var e=-1,u=null==n?0:n.length;++e<u;)if(r(t,n[e]))return!0;return!1}function c(n,t){for(var r=-1,e=null==n?0:n.length,u=Array(e);++r<e;)u[r]=t(n[r],r,n);return u}function a(n,t){for(var r=-1,e=t.length,u=n.length;++r<e;)n[u+r]=t[r];return n}function l(n,t,r,e){var u=-1,i=null==n?0:n.length;for(e&&i&&(r=n[++u]);++u<i;)r=t(r,n[u],u,n);
+       return r}function s(n,t,r,e){var u=null==n?0:n.length;for(e&&u&&(r=n[--u]);u--;)r=t(r,n[u],u,n);return r}function h(n,t){for(var r=-1,e=null==n?0:n.length;++r<e;)if(t(n[r],r,n))return!0;return!1}function p(n){return n.split("")}function _(n){return n.match($t)||[]}function v(n,t,r){var e;return r(n,function(n,r,u){if(t(n,r,u))return e=r,!1}),e}function g(n,t,r,e){for(var u=n.length,i=r+(e?1:-1);e?i--:++i<u;)if(t(n[i],i,n))return i;return-1}function y(n,t,r){return t===t?Z(n,t,r):g(n,b,r)}function d(n,t,r,e){
+       for(var u=r-1,i=n.length;++u<i;)if(e(n[u],t))return u;return-1}function b(n){return n!==n}function w(n,t){var r=null==n?0:n.length;return r?k(n,t)/r:Cn}function m(n){return function(t){return null==t?X:t[n]}}function x(n){return function(t){return null==n?X:n[t]}}function j(n,t,r,e,u){return u(n,function(n,u,i){r=e?(e=!1,n):t(r,n,u,i)}),r}function A(n,t){var r=n.length;for(n.sort(t);r--;)n[r]=n[r].value;return n}function k(n,t){for(var r,e=-1,u=n.length;++e<u;){var i=t(n[e]);i!==X&&(r=r===X?i:r+i);
+       }return r}function O(n,t){for(var r=-1,e=Array(n);++r<n;)e[r]=t(r);return e}function I(n,t){return c(t,function(t){return[t,n[t]]})}function R(n){return n?n.slice(0,H(n)+1).replace(Lt,""):n}function z(n){return function(t){return n(t)}}function E(n,t){return c(t,function(t){return n[t]})}function S(n,t){return n.has(t)}function W(n,t){for(var r=-1,e=n.length;++r<e&&y(t,n[r],0)>-1;);return r}function L(n,t){for(var r=n.length;r--&&y(t,n[r],0)>-1;);return r}function C(n,t){for(var r=n.length,e=0;r--;)n[r]===t&&++e;
+       return e}function U(n){return"\\"+Yr[n]}function B(n,t){return null==n?X:n[t]}function T(n){return Nr.test(n)}function $(n){return Pr.test(n)}function D(n){for(var t,r=[];!(t=n.next()).done;)r.push(t.value);return r}function M(n){var t=-1,r=Array(n.size);return n.forEach(function(n,e){r[++t]=[e,n]}),r}function F(n,t){return function(r){return n(t(r))}}function N(n,t){for(var r=-1,e=n.length,u=0,i=[];++r<e;){var o=n[r];o!==t&&o!==cn||(n[r]=cn,i[u++]=r)}return i}function P(n){var t=-1,r=Array(n.size);
+       return n.forEach(function(n){r[++t]=n}),r}function q(n){var t=-1,r=Array(n.size);return n.forEach(function(n){r[++t]=[n,n]}),r}function Z(n,t,r){for(var e=r-1,u=n.length;++e<u;)if(n[e]===t)return e;return-1}function K(n,t,r){for(var e=r+1;e--;)if(n[e]===t)return e;return e}function V(n){return T(n)?J(n):_e(n)}function G(n){return T(n)?Y(n):p(n)}function H(n){for(var t=n.length;t--&&Ct.test(n.charAt(t)););return t}function J(n){for(var t=Mr.lastIndex=0;Mr.test(n);)++t;return t}function Y(n){return n.match(Mr)||[];
+       }function Q(n){return n.match(Fr)||[]}var X,nn="4.17.21",tn=200,rn="Unsupported core-js use. Try https://npms.io/search?q=ponyfill.",en="Expected a function",un="Invalid ` + "`" + `variable` + "`" + ` option passed into ` + "`" + `_.template` + "`" + `",on="__lodash_hash_undefined__",fn=500,cn="__lodash_placeholder__",an=1,ln=2,sn=4,hn=1,pn=2,_n=1,vn=2,gn=4,yn=8,dn=16,bn=32,wn=64,mn=128,xn=256,jn=512,An=30,kn="...",On=800,In=16,Rn=1,zn=2,En=3,Sn=1/0,Wn=9007199254740991,Ln=1.7976931348623157e308,Cn=NaN,Un=4294967295,Bn=Un-1,Tn=Un>>>1,$n=[["ary",mn],["bind",_n],["bindKey",vn],["curry",yn],["curryRight",dn],["flip",jn],["partial",bn],["partialRight",wn],["rearg",xn]],Dn="[object Arguments]",Mn="[object Array]",Fn="[object AsyncFunction]",Nn="[object Boolean]",Pn="[object Date]",qn="[object DOMException]",Zn="[object Error]",Kn="[object Function]",Vn="[object GeneratorFunction]",Gn="[object Map]",Hn="[object Number]",Jn="[object Null]",Yn="[object Object]",Qn="[object Promise]",Xn="[object Proxy]",nt="[object RegExp]",tt="[object Set]",rt="[object String]",et="[object Symbol]",ut="[object Undefined]",it="[object WeakMap]",ot="[object WeakSet]",ft="[object ArrayBuffer]",ct="[object DataView]",at="[object Float32Array]",lt="[object Float64Array]",st="[object Int8Array]",ht="[object Int16Array]",pt="[object Int32Array]",_t="[object Uint8Array]",vt="[object Uint8ClampedArray]",gt="[object Uint16Array]",yt="[object Uint32Array]",dt=/\b__p \+= '';/g,bt=/\b(__p \+=) '' \+/g,wt=/(__e\(.*?\)|\b__t\)) \+\n'';/g,mt=/&(?:amp|lt|gt|quot|#39);/g,xt=/[&<>"']/g,jt=RegExp(mt.source),At=RegExp(xt.source),kt=/<%-([\s\S]+?)%>/g,Ot=/<%([\s\S]+?)%>/g,It=/<%=([\s\S]+?)%>/g,Rt=/\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/,zt=/^\w*$/,Et=/[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g,St=/[\\^$.*+?()[\]{}|]/g,Wt=RegExp(St.source),Lt=/^\s+/,Ct=/\s/,Ut=/\{(?:\n\/\* \[wrapped with .+\] \*\/)?\n?/,Bt=/\{\n\/\* \[wrapped with (.+)\] \*/,Tt=/,? & /,$t=/[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g,Dt=/[()=,{}\[\]\/\s]/,Mt=/\\(\\)?/g,Ft=/\$\{([^\\}]*(?:\\.[^\\}]*)*)\}/g,Nt=/\w*$/,Pt=/^[-+]0x[0-9a-f]+$/i,qt=/^0b[01]+$/i,Zt=/^\[object .+?Constructor\]$/,Kt=/^0o[0-7]+$/i,Vt=/^(?:0|[1-9]\d*)$/,Gt=/[\xc0-\xd6\xd8-\xf6\xf8-\xff\u0100-\u017f]/g,Ht=/($^)/,Jt=/['\n\r\u2028\u2029\\]/g,Yt="\\ud800-\\udfff",Qt="\\u0300-\\u036f",Xt="\\ufe20-\\ufe2f",nr="\\u20d0-\\u20ff",tr=Qt+Xt+nr,rr="\\u2700-\\u27bf",er="a-z\\xdf-\\xf6\\xf8-\\xff",ur="\\xac\\xb1\\xd7\\xf7",ir="\\x00-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\xbf",or="\\u2000-\\u206f",fr=" \\t\\x0b\\f\\xa0\\ufeff\\n\\r\\u2028\\u2029\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u202f\\u205f\\u3000",cr="A-Z\\xc0-\\xd6\\xd8-\\xde",ar="\\ufe0e\\ufe0f",lr=ur+ir+or+fr,sr="['\u2019]",hr="["+Yt+"]",pr="["+lr+"]",_r="["+tr+"]",vr="\\d+",gr="["+rr+"]",yr="["+er+"]",dr="[^"+Yt+lr+vr+rr+er+cr+"]",br="\\ud83c[\\udffb-\\udfff]",wr="(?:"+_r+"|"+br+")",mr="[^"+Yt+"]",xr="(?:\\ud83c[\\udde6-\\uddff]){2}",jr="[\\ud800-\\udbff][\\udc00-\\udfff]",Ar="["+cr+"]",kr="\\u200d",Or="(?:"+yr+"|"+dr+")",Ir="(?:"+Ar+"|"+dr+")",Rr="(?:"+sr+"(?:d|ll|m|re|s|t|ve))?",zr="(?:"+sr+"(?:D|LL|M|RE|S|T|VE))?",Er=wr+"?",Sr="["+ar+"]?",Wr="(?:"+kr+"(?:"+[mr,xr,jr].join("|")+")"+Sr+Er+")*",Lr="\\d*(?:1st|2nd|3rd|(?![123])\\dth)(?=\\b|[A-Z_])",Cr="\\d*(?:1ST|2ND|3RD|(?![123])\\dTH)(?=\\b|[a-z_])",Ur=Sr+Er+Wr,Br="(?:"+[gr,xr,jr].join("|")+")"+Ur,Tr="(?:"+[mr+_r+"?",_r,xr,jr,hr].join("|")+")",$r=RegExp(sr,"g"),Dr=RegExp(_r,"g"),Mr=RegExp(br+"(?="+br+")|"+Tr+Ur,"g"),Fr=RegExp([Ar+"?"+yr+"+"+Rr+"(?="+[pr,Ar,"$"].join("|")+")",Ir+"+"+zr+"(?="+[pr,Ar+Or,"$"].join("|")+")",Ar+"?"+Or+"+"+Rr,Ar+"+"+zr,Cr,Lr,vr,Br].join("|"),"g"),Nr=RegExp("["+kr+Yt+tr+ar+"]"),Pr=/[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/,qr=["Array","Buffer","DataView","Date","Error","Float32Array","Float64Array","Function","Int8Array","Int16Array","Int32Array","Map","Math","Object","Promise","RegExp","Set","String","Symbol","TypeError","Uint8Array","Uint8ClampedArray","Uint16Array","Uint32Array","WeakMap","_","clearTimeout","isFinite","parseInt","setTimeout"],Zr=-1,Kr={};
+       Kr[at]=Kr[lt]=Kr[st]=Kr[ht]=Kr[pt]=Kr[_t]=Kr[vt]=Kr[gt]=Kr[yt]=!0,Kr[Dn]=Kr[Mn]=Kr[ft]=Kr[Nn]=Kr[ct]=Kr[Pn]=Kr[Zn]=Kr[Kn]=Kr[Gn]=Kr[Hn]=Kr[Yn]=Kr[nt]=Kr[tt]=Kr[rt]=Kr[it]=!1;var Vr={};Vr[Dn]=Vr[Mn]=Vr[ft]=Vr[ct]=Vr[Nn]=Vr[Pn]=Vr[at]=Vr[lt]=Vr[st]=Vr[ht]=Vr[pt]=Vr[Gn]=Vr[Hn]=Vr[Yn]=Vr[nt]=Vr[tt]=Vr[rt]=Vr[et]=Vr[_t]=Vr[vt]=Vr[gt]=Vr[yt]=!0,Vr[Zn]=Vr[Kn]=Vr[it]=!1;var Gr={"\xc0":"A","\xc1":"A","\xc2":"A","\xc3":"A","\xc4":"A","\xc5":"A","\xe0":"a","\xe1":"a","\xe2":"a","\xe3":"a","\xe4":"a","\xe5":"a",
+       "\xc7":"C","\xe7":"c","\xd0":"D","\xf0":"d","\xc8":"E","\xc9":"E","\xca":"E","\xcb":"E","\xe8":"e","\xe9":"e","\xea":"e","\xeb":"e","\xcc":"I","\xcd":"I","\xce":"I","\xcf":"I","\xec":"i","\xed":"i","\xee":"i","\xef":"i","\xd1":"N","\xf1":"n","\xd2":"O","\xd3":"O","\xd4":"O","\xd5":"O","\xd6":"O","\xd8":"O","\xf2":"o","\xf3":"o","\xf4":"o","\xf5":"o","\xf6":"o","\xf8":"o","\xd9":"U","\xda":"U","\xdb":"U","\xdc":"U","\xf9":"u","\xfa":"u","\xfb":"u","\xfc":"u","\xdd":"Y","\xfd":"y","\xff":"y","\xc6":"Ae",
+       "\xe6":"ae","\xde":"Th","\xfe":"th","\xdf":"ss","\u0100":"A","\u0102":"A","\u0104":"A","\u0101":"a","\u0103":"a","\u0105":"a","\u0106":"C","\u0108":"C","\u010a":"C","\u010c":"C","\u0107":"c","\u0109":"c","\u010b":"c","\u010d":"c","\u010e":"D","\u0110":"D","\u010f":"d","\u0111":"d","\u0112":"E","\u0114":"E","\u0116":"E","\u0118":"E","\u011a":"E","\u0113":"e","\u0115":"e","\u0117":"e","\u0119":"e","\u011b":"e","\u011c":"G","\u011e":"G","\u0120":"G","\u0122":"G","\u011d":"g","\u011f":"g","\u0121":"g",
+       "\u0123":"g","\u0124":"H","\u0126":"H","\u0125":"h","\u0127":"h","\u0128":"I","\u012a":"I","\u012c":"I","\u012e":"I","\u0130":"I","\u0129":"i","\u012b":"i","\u012d":"i","\u012f":"i","\u0131":"i","\u0134":"J","\u0135":"j","\u0136":"K","\u0137":"k","\u0138":"k","\u0139":"L","\u013b":"L","\u013d":"L","\u013f":"L","\u0141":"L","\u013a":"l","\u013c":"l","\u013e":"l","\u0140":"l","\u0142":"l","\u0143":"N","\u0145":"N","\u0147":"N","\u014a":"N","\u0144":"n","\u0146":"n","\u0148":"n","\u014b":"n","\u014c":"O",
+       "\u014e":"O","\u0150":"O","\u014d":"o","\u014f":"o","\u0151":"o","\u0154":"R","\u0156":"R","\u0158":"R","\u0155":"r","\u0157":"r","\u0159":"r","\u015a":"S","\u015c":"S","\u015e":"S","\u0160":"S","\u015b":"s","\u015d":"s","\u015f":"s","\u0161":"s","\u0162":"T","\u0164":"T","\u0166":"T","\u0163":"t","\u0165":"t","\u0167":"t","\u0168":"U","\u016a":"U","\u016c":"U","\u016e":"U","\u0170":"U","\u0172":"U","\u0169":"u","\u016b":"u","\u016d":"u","\u016f":"u","\u0171":"u","\u0173":"u","\u0174":"W","\u0175":"w",
+       "\u0176":"Y","\u0177":"y","\u0178":"Y","\u0179":"Z","\u017b":"Z","\u017d":"Z","\u017a":"z","\u017c":"z","\u017e":"z","\u0132":"IJ","\u0133":"ij","\u0152":"Oe","\u0153":"oe","\u0149":"'n","\u017f":"s"},Hr={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"},Jr={"&amp;":"&","&lt;":"<","&gt;":">","&quot;":'"',"&#39;":"'"},Yr={"\\":"\\","'":"'","\n":"n","\r":"r","\u2028":"u2028","\u2029":"u2029"},Qr=parseFloat,Xr=parseInt,ne="object"==typeof global&&global&&global.Object===Object&&global,te="object"==typeof self&&self&&self.Object===Object&&self,re=ne||te||Function("return this")(),ee="object"==typeof exports&&exports&&!exports.nodeType&&exports,ue=ee&&"object"==typeof module&&module&&!module.nodeType&&module,ie=ue&&ue.exports===ee,oe=ie&&ne.process,fe=function(){
+       try{var n=ue&&ue.require&&ue.require("util").types;return n?n:oe&&oe.binding&&oe.binding("util")}catch(n){}}(),ce=fe&&fe.isArrayBuffer,ae=fe&&fe.isDate,le=fe&&fe.isMap,se=fe&&fe.isRegExp,he=fe&&fe.isSet,pe=fe&&fe.isTypedArray,_e=m("length"),ve=x(Gr),ge=x(Hr),ye=x(Jr),de=function p(x){function Z(n){if(cc(n)&&!bh(n)&&!(n instanceof Ct)){if(n instanceof Y)return n;if(bl.call(n,"__wrapped__"))return eo(n)}return new Y(n)}function J(){}function Y(n,t){this.__wrapped__=n,this.__actions__=[],this.__chain__=!!t,
+       this.__index__=0,this.__values__=X}function Ct(n){this.__wrapped__=n,this.__actions__=[],this.__dir__=1,this.__filtered__=!1,this.__iteratees__=[],this.__takeCount__=Un,this.__views__=[]}function $t(){var n=new Ct(this.__wrapped__);return n.__actions__=Tu(this.__actions__),n.__dir__=this.__dir__,n.__filtered__=this.__filtered__,n.__iteratees__=Tu(this.__iteratees__),n.__takeCount__=this.__takeCount__,n.__views__=Tu(this.__views__),n}function Yt(){if(this.__filtered__){var n=new Ct(this);n.__dir__=-1,
+       n.__filtered__=!0}else n=this.clone(),n.__dir__*=-1;return n}function Qt(){var n=this.__wrapped__.value(),t=this.__dir__,r=bh(n),e=t<0,u=r?n.length:0,i=Oi(0,u,this.__views__),o=i.start,f=i.end,c=f-o,a=e?f:o-1,l=this.__iteratees__,s=l.length,h=0,p=Hl(c,this.__takeCount__);if(!r||!e&&u==c&&p==c)return wu(n,this.__actions__);var _=[];n:for(;c--&&h<p;){a+=t;for(var v=-1,g=n[a];++v<s;){var y=l[v],d=y.iteratee,b=y.type,w=d(g);if(b==zn)g=w;else if(!w){if(b==Rn)continue n;break n}}_[h++]=g}return _}function Xt(n){
+       var t=-1,r=null==n?0:n.length;for(this.clear();++t<r;){var e=n[t];this.set(e[0],e[1])}}function nr(){this.__data__=is?is(null):{},this.size=0}function tr(n){var t=this.has(n)&&delete this.__data__[n];return this.size-=t?1:0,t}function rr(n){var t=this.__data__;if(is){var r=t[n];return r===on?X:r}return bl.call(t,n)?t[n]:X}function er(n){var t=this.__data__;return is?t[n]!==X:bl.call(t,n)}function ur(n,t){var r=this.__data__;return this.size+=this.has(n)?0:1,r[n]=is&&t===X?on:t,this}function ir(n){
+       var t=-1,r=null==n?0:n.length;for(this.clear();++t<r;){var e=n[t];this.set(e[0],e[1])}}function or(){this.__data__=[],this.size=0}function fr(n){var t=this.__data__,r=Wr(t,n);return!(r<0)&&(r==t.length-1?t.pop():Ll.call(t,r,1),--this.size,!0)}function cr(n){var t=this.__data__,r=Wr(t,n);return r<0?X:t[r][1]}function ar(n){return Wr(this.__data__,n)>-1}function lr(n,t){var r=this.__data__,e=Wr(r,n);return e<0?(++this.size,r.push([n,t])):r[e][1]=t,this}function sr(n){var t=-1,r=null==n?0:n.length;for(this.clear();++t<r;){
+       var e=n[t];this.set(e[0],e[1])}}function hr(){this.size=0,this.__data__={hash:new Xt,map:new(ts||ir),string:new Xt}}function pr(n){var t=xi(this,n).delete(n);return this.size-=t?1:0,t}function _r(n){return xi(this,n).get(n)}function vr(n){return xi(this,n).has(n)}function gr(n,t){var r=xi(this,n),e=r.size;return r.set(n,t),this.size+=r.size==e?0:1,this}function yr(n){var t=-1,r=null==n?0:n.length;for(this.__data__=new sr;++t<r;)this.add(n[t])}function dr(n){return this.__data__.set(n,on),this}function br(n){
+       return this.__data__.has(n)}function wr(n){this.size=(this.__data__=new ir(n)).size}function mr(){this.__data__=new ir,this.size=0}function xr(n){var t=this.__data__,r=t.delete(n);return this.size=t.size,r}function jr(n){return this.__data__.get(n)}function Ar(n){return this.__data__.has(n)}function kr(n,t){var r=this.__data__;if(r instanceof ir){var e=r.__data__;if(!ts||e.length<tn-1)return e.push([n,t]),this.size=++r.size,this;r=this.__data__=new sr(e)}return r.set(n,t),this.size=r.size,this}function Or(n,t){
+       var r=bh(n),e=!r&&dh(n),u=!r&&!e&&mh(n),i=!r&&!e&&!u&&Oh(n),o=r||e||u||i,f=o?O(n.length,hl):[],c=f.length;for(var a in n)!t&&!bl.call(n,a)||o&&("length"==a||u&&("offset"==a||"parent"==a)||i&&("buffer"==a||"byteLength"==a||"byteOffset"==a)||Ci(a,c))||f.push(a);return f}function Ir(n){var t=n.length;return t?n[tu(0,t-1)]:X}function Rr(n,t){return Xi(Tu(n),Mr(t,0,n.length))}function zr(n){return Xi(Tu(n))}function Er(n,t,r){(r===X||Gf(n[t],r))&&(r!==X||t in n)||Br(n,t,r)}function Sr(n,t,r){var e=n[t];
+       bl.call(n,t)&&Gf(e,r)&&(r!==X||t in n)||Br(n,t,r)}function Wr(n,t){for(var r=n.length;r--;)if(Gf(n[r][0],t))return r;return-1}function Lr(n,t,r,e){return ys(n,function(n,u,i){t(e,n,r(n),i)}),e}function Cr(n,t){return n&&$u(t,Pc(t),n)}function Ur(n,t){return n&&$u(t,qc(t),n)}function Br(n,t,r){"__proto__"==t&&Tl?Tl(n,t,{configurable:!0,enumerable:!0,value:r,writable:!0}):n[t]=r}function Tr(n,t){for(var r=-1,e=t.length,u=il(e),i=null==n;++r<e;)u[r]=i?X:Mc(n,t[r]);return u}function Mr(n,t,r){return n===n&&(r!==X&&(n=n<=r?n:r),
+       t!==X&&(n=n>=t?n:t)),n}function Fr(n,t,e,u,i,o){var f,c=t&an,a=t&ln,l=t&sn;if(e&&(f=i?e(n,u,i,o):e(n)),f!==X)return f;if(!fc(n))return n;var s=bh(n);if(s){if(f=zi(n),!c)return Tu(n,f)}else{var h=zs(n),p=h==Kn||h==Vn;if(mh(n))return Iu(n,c);if(h==Yn||h==Dn||p&&!i){if(f=a||p?{}:Ei(n),!c)return a?Mu(n,Ur(f,n)):Du(n,Cr(f,n))}else{if(!Vr[h])return i?n:{};f=Si(n,h,c)}}o||(o=new wr);var _=o.get(n);if(_)return _;o.set(n,f),kh(n)?n.forEach(function(r){f.add(Fr(r,t,e,r,n,o))}):jh(n)&&n.forEach(function(r,u){
+       f.set(u,Fr(r,t,e,u,n,o))});var v=l?a?di:yi:a?qc:Pc,g=s?X:v(n);return r(g||n,function(r,u){g&&(u=r,r=n[u]),Sr(f,u,Fr(r,t,e,u,n,o))}),f}function Nr(n){var t=Pc(n);return function(r){return Pr(r,n,t)}}function Pr(n,t,r){var e=r.length;if(null==n)return!e;for(n=ll(n);e--;){var u=r[e],i=t[u],o=n[u];if(o===X&&!(u in n)||!i(o))return!1}return!0}function Gr(n,t,r){if("function"!=typeof n)throw new pl(en);return Ws(function(){n.apply(X,r)},t)}function Hr(n,t,r,e){var u=-1,i=o,a=!0,l=n.length,s=[],h=t.length;
+       if(!l)return s;r&&(t=c(t,z(r))),e?(i=f,a=!1):t.length>=tn&&(i=S,a=!1,t=new yr(t));n:for(;++u<l;){var p=n[u],_=null==r?p:r(p);if(p=e||0!==p?p:0,a&&_===_){for(var v=h;v--;)if(t[v]===_)continue n;s.push(p)}else i(t,_,e)||s.push(p)}return s}function Jr(n,t){var r=!0;return ys(n,function(n,e,u){return r=!!t(n,e,u)}),r}function Yr(n,t,r){for(var e=-1,u=n.length;++e<u;){var i=n[e],o=t(i);if(null!=o&&(f===X?o===o&&!bc(o):r(o,f)))var f=o,c=i}return c}function ne(n,t,r,e){var u=n.length;for(r=kc(r),r<0&&(r=-r>u?0:u+r),
+       e=e===X||e>u?u:kc(e),e<0&&(e+=u),e=r>e?0:Oc(e);r<e;)n[r++]=t;return n}function te(n,t){var r=[];return ys(n,function(n,e,u){t(n,e,u)&&r.push(n)}),r}function ee(n,t,r,e,u){var i=-1,o=n.length;for(r||(r=Li),u||(u=[]);++i<o;){var f=n[i];t>0&&r(f)?t>1?ee(f,t-1,r,e,u):a(u,f):e||(u[u.length]=f)}return u}function ue(n,t){return n&&bs(n,t,Pc)}function oe(n,t){return n&&ws(n,t,Pc)}function fe(n,t){return i(t,function(t){return uc(n[t])})}function _e(n,t){t=ku(t,n);for(var r=0,e=t.length;null!=n&&r<e;)n=n[no(t[r++])];
+       return r&&r==e?n:X}function de(n,t,r){var e=t(n);return bh(n)?e:a(e,r(n))}function we(n){return null==n?n===X?ut:Jn:Bl&&Bl in ll(n)?ki(n):Ki(n)}function me(n,t){return n>t}function xe(n,t){return null!=n&&bl.call(n,t)}function je(n,t){return null!=n&&t in ll(n)}function Ae(n,t,r){return n>=Hl(t,r)&&n<Gl(t,r)}function ke(n,t,r){for(var e=r?f:o,u=n[0].length,i=n.length,a=i,l=il(i),s=1/0,h=[];a--;){var p=n[a];a&&t&&(p=c(p,z(t))),s=Hl(p.length,s),l[a]=!r&&(t||u>=120&&p.length>=120)?new yr(a&&p):X}p=n[0];
+       var _=-1,v=l[0];n:for(;++_<u&&h.length<s;){var g=p[_],y=t?t(g):g;if(g=r||0!==g?g:0,!(v?S(v,y):e(h,y,r))){for(a=i;--a;){var d=l[a];if(!(d?S(d,y):e(n[a],y,r)))continue n}v&&v.push(y),h.push(g)}}return h}function Oe(n,t,r,e){return ue(n,function(n,u,i){t(e,r(n),u,i)}),e}function Ie(t,r,e){r=ku(r,t),t=Gi(t,r);var u=null==t?t:t[no(jo(r))];return null==u?X:n(u,t,e)}function Re(n){return cc(n)&&we(n)==Dn}function ze(n){return cc(n)&&we(n)==ft}function Ee(n){return cc(n)&&we(n)==Pn}function Se(n,t,r,e,u){
+       return n===t||(null==n||null==t||!cc(n)&&!cc(t)?n!==n&&t!==t:We(n,t,r,e,Se,u))}function We(n,t,r,e,u,i){var o=bh(n),f=bh(t),c=o?Mn:zs(n),a=f?Mn:zs(t);c=c==Dn?Yn:c,a=a==Dn?Yn:a;var l=c==Yn,s=a==Yn,h=c==a;if(h&&mh(n)){if(!mh(t))return!1;o=!0,l=!1}if(h&&!l)return i||(i=new wr),o||Oh(n)?pi(n,t,r,e,u,i):_i(n,t,c,r,e,u,i);if(!(r&hn)){var p=l&&bl.call(n,"__wrapped__"),_=s&&bl.call(t,"__wrapped__");if(p||_){var v=p?n.value():n,g=_?t.value():t;return i||(i=new wr),u(v,g,r,e,i)}}return!!h&&(i||(i=new wr),vi(n,t,r,e,u,i));
+       }function Le(n){return cc(n)&&zs(n)==Gn}function Ce(n,t,r,e){var u=r.length,i=u,o=!e;if(null==n)return!i;for(n=ll(n);u--;){var f=r[u];if(o&&f[2]?f[1]!==n[f[0]]:!(f[0]in n))return!1}for(;++u<i;){f=r[u];var c=f[0],a=n[c],l=f[1];if(o&&f[2]){if(a===X&&!(c in n))return!1}else{var s=new wr;if(e)var h=e(a,l,c,n,t,s);if(!(h===X?Se(l,a,hn|pn,e,s):h))return!1}}return!0}function Ue(n){return!(!fc(n)||Di(n))&&(uc(n)?kl:Zt).test(to(n))}function Be(n){return cc(n)&&we(n)==nt}function Te(n){return cc(n)&&zs(n)==tt;
+       }function $e(n){return cc(n)&&oc(n.length)&&!!Kr[we(n)]}function De(n){return"function"==typeof n?n:null==n?La:"object"==typeof n?bh(n)?Ze(n[0],n[1]):qe(n):Fa(n)}function Me(n){if(!Mi(n))return Vl(n);var t=[];for(var r in ll(n))bl.call(n,r)&&"constructor"!=r&&t.push(r);return t}function Fe(n){if(!fc(n))return Zi(n);var t=Mi(n),r=[];for(var e in n)("constructor"!=e||!t&&bl.call(n,e))&&r.push(e);return r}function Ne(n,t){return n<t}function Pe(n,t){var r=-1,e=Hf(n)?il(n.length):[];return ys(n,function(n,u,i){
+       e[++r]=t(n,u,i)}),e}function qe(n){var t=ji(n);return 1==t.length&&t[0][2]?Ni(t[0][0],t[0][1]):function(r){return r===n||Ce(r,n,t)}}function Ze(n,t){return Bi(n)&&Fi(t)?Ni(no(n),t):function(r){var e=Mc(r,n);return e===X&&e===t?Nc(r,n):Se(t,e,hn|pn)}}function Ke(n,t,r,e,u){n!==t&&bs(t,function(i,o){if(u||(u=new wr),fc(i))Ve(n,t,o,r,Ke,e,u);else{var f=e?e(Ji(n,o),i,o+"",n,t,u):X;f===X&&(f=i),Er(n,o,f)}},qc)}function Ve(n,t,r,e,u,i,o){var f=Ji(n,r),c=Ji(t,r),a=o.get(c);if(a)return Er(n,r,a),X;var l=i?i(f,c,r+"",n,t,o):X,s=l===X;
+       if(s){var h=bh(c),p=!h&&mh(c),_=!h&&!p&&Oh(c);l=c,h||p||_?bh(f)?l=f:Jf(f)?l=Tu(f):p?(s=!1,l=Iu(c,!0)):_?(s=!1,l=Wu(c,!0)):l=[]:gc(c)||dh(c)?(l=f,dh(f)?l=Rc(f):fc(f)&&!uc(f)||(l=Ei(c))):s=!1}s&&(o.set(c,l),u(l,c,e,i,o),o.delete(c)),Er(n,r,l)}function Ge(n,t){var r=n.length;if(r)return t+=t<0?r:0,Ci(t,r)?n[t]:X}function He(n,t,r){t=t.length?c(t,function(n){return bh(n)?function(t){return _e(t,1===n.length?n[0]:n)}:n}):[La];var e=-1;return t=c(t,z(mi())),A(Pe(n,function(n,r,u){return{criteria:c(t,function(t){
+       return t(n)}),index:++e,value:n}}),function(n,t){return Cu(n,t,r)})}function Je(n,t){return Ye(n,t,function(t,r){return Nc(n,r)})}function Ye(n,t,r){for(var e=-1,u=t.length,i={};++e<u;){var o=t[e],f=_e(n,o);r(f,o)&&fu(i,ku(o,n),f)}return i}function Qe(n){return function(t){return _e(t,n)}}function Xe(n,t,r,e){var u=e?d:y,i=-1,o=t.length,f=n;for(n===t&&(t=Tu(t)),r&&(f=c(n,z(r)));++i<o;)for(var a=0,l=t[i],s=r?r(l):l;(a=u(f,s,a,e))>-1;)f!==n&&Ll.call(f,a,1),Ll.call(n,a,1);return n}function nu(n,t){for(var r=n?t.length:0,e=r-1;r--;){
+       var u=t[r];if(r==e||u!==i){var i=u;Ci(u)?Ll.call(n,u,1):yu(n,u)}}return n}function tu(n,t){return n+Nl(Ql()*(t-n+1))}function ru(n,t,r,e){for(var u=-1,i=Gl(Fl((t-n)/(r||1)),0),o=il(i);i--;)o[e?i:++u]=n,n+=r;return o}function eu(n,t){var r="";if(!n||t<1||t>Wn)return r;do t%2&&(r+=n),t=Nl(t/2),t&&(n+=n);while(t);return r}function uu(n,t){return Ls(Vi(n,t,La),n+"")}function iu(n){return Ir(ra(n))}function ou(n,t){var r=ra(n);return Xi(r,Mr(t,0,r.length))}function fu(n,t,r,e){if(!fc(n))return n;t=ku(t,n);
+       for(var u=-1,i=t.length,o=i-1,f=n;null!=f&&++u<i;){var c=no(t[u]),a=r;if("__proto__"===c||"constructor"===c||"prototype"===c)return n;if(u!=o){var l=f[c];a=e?e(l,c,f):X,a===X&&(a=fc(l)?l:Ci(t[u+1])?[]:{})}Sr(f,c,a),f=f[c]}return n}function cu(n){return Xi(ra(n))}function au(n,t,r){var e=-1,u=n.length;t<0&&(t=-t>u?0:u+t),r=r>u?u:r,r<0&&(r+=u),u=t>r?0:r-t>>>0,t>>>=0;for(var i=il(u);++e<u;)i[e]=n[e+t];return i}function lu(n,t){var r;return ys(n,function(n,e,u){return r=t(n,e,u),!r}),!!r}function su(n,t,r){
+       var e=0,u=null==n?e:n.length;if("number"==typeof t&&t===t&&u<=Tn){for(;e<u;){var i=e+u>>>1,o=n[i];null!==o&&!bc(o)&&(r?o<=t:o<t)?e=i+1:u=i}return u}return hu(n,t,La,r)}function hu(n,t,r,e){var u=0,i=null==n?0:n.length;if(0===i)return 0;t=r(t);for(var o=t!==t,f=null===t,c=bc(t),a=t===X;u<i;){var l=Nl((u+i)/2),s=r(n[l]),h=s!==X,p=null===s,_=s===s,v=bc(s);if(o)var g=e||_;else g=a?_&&(e||h):f?_&&h&&(e||!p):c?_&&h&&!p&&(e||!v):!p&&!v&&(e?s<=t:s<t);g?u=l+1:i=l}return Hl(i,Bn)}function pu(n,t){for(var r=-1,e=n.length,u=0,i=[];++r<e;){
+       var o=n[r],f=t?t(o):o;if(!r||!Gf(f,c)){var c=f;i[u++]=0===o?0:o}}return i}function _u(n){return"number"==typeof n?n:bc(n)?Cn:+n}function vu(n){if("string"==typeof n)return n;if(bh(n))return c(n,vu)+"";if(bc(n))return vs?vs.call(n):"";var t=n+"";return"0"==t&&1/n==-Sn?"-0":t}function gu(n,t,r){var e=-1,u=o,i=n.length,c=!0,a=[],l=a;if(r)c=!1,u=f;else if(i>=tn){var s=t?null:ks(n);if(s)return P(s);c=!1,u=S,l=new yr}else l=t?[]:a;n:for(;++e<i;){var h=n[e],p=t?t(h):h;if(h=r||0!==h?h:0,c&&p===p){for(var _=l.length;_--;)if(l[_]===p)continue n;
+       t&&l.push(p),a.push(h)}else u(l,p,r)||(l!==a&&l.push(p),a.push(h))}return a}function yu(n,t){return t=ku(t,n),n=Gi(n,t),null==n||delete n[no(jo(t))]}function du(n,t,r,e){return fu(n,t,r(_e(n,t)),e)}function bu(n,t,r,e){for(var u=n.length,i=e?u:-1;(e?i--:++i<u)&&t(n[i],i,n););return r?au(n,e?0:i,e?i+1:u):au(n,e?i+1:0,e?u:i)}function wu(n,t){var r=n;return r instanceof Ct&&(r=r.value()),l(t,function(n,t){return t.func.apply(t.thisArg,a([n],t.args))},r)}function mu(n,t,r){var e=n.length;if(e<2)return e?gu(n[0]):[];
+       for(var u=-1,i=il(e);++u<e;)for(var o=n[u],f=-1;++f<e;)f!=u&&(i[u]=Hr(i[u]||o,n[f],t,r));return gu(ee(i,1),t,r)}function xu(n,t,r){for(var e=-1,u=n.length,i=t.length,o={};++e<u;){r(o,n[e],e<i?t[e]:X)}return o}function ju(n){return Jf(n)?n:[]}function Au(n){return"function"==typeof n?n:La}function ku(n,t){return bh(n)?n:Bi(n,t)?[n]:Cs(Ec(n))}function Ou(n,t,r){var e=n.length;return r=r===X?e:r,!t&&r>=e?n:au(n,t,r)}function Iu(n,t){if(t)return n.slice();var r=n.length,e=zl?zl(r):new n.constructor(r);
+       return n.copy(e),e}function Ru(n){var t=new n.constructor(n.byteLength);return new Rl(t).set(new Rl(n)),t}function zu(n,t){return new n.constructor(t?Ru(n.buffer):n.buffer,n.byteOffset,n.byteLength)}function Eu(n){var t=new n.constructor(n.source,Nt.exec(n));return t.lastIndex=n.lastIndex,t}function Su(n){return _s?ll(_s.call(n)):{}}function Wu(n,t){return new n.constructor(t?Ru(n.buffer):n.buffer,n.byteOffset,n.length)}function Lu(n,t){if(n!==t){var r=n!==X,e=null===n,u=n===n,i=bc(n),o=t!==X,f=null===t,c=t===t,a=bc(t);
+       if(!f&&!a&&!i&&n>t||i&&o&&c&&!f&&!a||e&&o&&c||!r&&c||!u)return 1;if(!e&&!i&&!a&&n<t||a&&r&&u&&!e&&!i||f&&r&&u||!o&&u||!c)return-1}return 0}function Cu(n,t,r){for(var e=-1,u=n.criteria,i=t.criteria,o=u.length,f=r.length;++e<o;){var c=Lu(u[e],i[e]);if(c){if(e>=f)return c;return c*("desc"==r[e]?-1:1)}}return n.index-t.index}function Uu(n,t,r,e){for(var u=-1,i=n.length,o=r.length,f=-1,c=t.length,a=Gl(i-o,0),l=il(c+a),s=!e;++f<c;)l[f]=t[f];for(;++u<o;)(s||u<i)&&(l[r[u]]=n[u]);for(;a--;)l[f++]=n[u++];return l;
+       }function Bu(n,t,r,e){for(var u=-1,i=n.length,o=-1,f=r.length,c=-1,a=t.length,l=Gl(i-f,0),s=il(l+a),h=!e;++u<l;)s[u]=n[u];for(var p=u;++c<a;)s[p+c]=t[c];for(;++o<f;)(h||u<i)&&(s[p+r[o]]=n[u++]);return s}function Tu(n,t){var r=-1,e=n.length;for(t||(t=il(e));++r<e;)t[r]=n[r];return t}function $u(n,t,r,e){var u=!r;r||(r={});for(var i=-1,o=t.length;++i<o;){var f=t[i],c=e?e(r[f],n[f],f,r,n):X;c===X&&(c=n[f]),u?Br(r,f,c):Sr(r,f,c)}return r}function Du(n,t){return $u(n,Is(n),t)}function Mu(n,t){return $u(n,Rs(n),t);
+       }function Fu(n,r){return function(e,u){var i=bh(e)?t:Lr,o=r?r():{};return i(e,n,mi(u,2),o)}}function Nu(n){return uu(function(t,r){var e=-1,u=r.length,i=u>1?r[u-1]:X,o=u>2?r[2]:X;for(i=n.length>3&&"function"==typeof i?(u--,i):X,o&&Ui(r[0],r[1],o)&&(i=u<3?X:i,u=1),t=ll(t);++e<u;){var f=r[e];f&&n(t,f,e,i)}return t})}function Pu(n,t){return function(r,e){if(null==r)return r;if(!Hf(r))return n(r,e);for(var u=r.length,i=t?u:-1,o=ll(r);(t?i--:++i<u)&&e(o[i],i,o)!==!1;);return r}}function qu(n){return function(t,r,e){
+       for(var u=-1,i=ll(t),o=e(t),f=o.length;f--;){var c=o[n?f:++u];if(r(i[c],c,i)===!1)break}return t}}function Zu(n,t,r){function e(){return(this&&this!==re&&this instanceof e?i:n).apply(u?r:this,arguments)}var u=t&_n,i=Gu(n);return e}function Ku(n){return function(t){t=Ec(t);var r=T(t)?G(t):X,e=r?r[0]:t.charAt(0),u=r?Ou(r,1).join(""):t.slice(1);return e[n]()+u}}function Vu(n){return function(t){return l(Ra(ca(t).replace($r,"")),n,"")}}function Gu(n){return function(){var t=arguments;switch(t.length){
+       case 0:return new n;case 1:return new n(t[0]);case 2:return new n(t[0],t[1]);case 3:return new n(t[0],t[1],t[2]);case 4:return new n(t[0],t[1],t[2],t[3]);case 5:return new n(t[0],t[1],t[2],t[3],t[4]);case 6:return new n(t[0],t[1],t[2],t[3],t[4],t[5]);case 7:return new n(t[0],t[1],t[2],t[3],t[4],t[5],t[6])}var r=gs(n.prototype),e=n.apply(r,t);return fc(e)?e:r}}function Hu(t,r,e){function u(){for(var o=arguments.length,f=il(o),c=o,a=wi(u);c--;)f[c]=arguments[c];var l=o<3&&f[0]!==a&&f[o-1]!==a?[]:N(f,a);
+       return o-=l.length,o<e?oi(t,r,Qu,u.placeholder,X,f,l,X,X,e-o):n(this&&this!==re&&this instanceof u?i:t,this,f)}var i=Gu(t);return u}function Ju(n){return function(t,r,e){var u=ll(t);if(!Hf(t)){var i=mi(r,3);t=Pc(t),r=function(n){return i(u[n],n,u)}}var o=n(t,r,e);return o>-1?u[i?t[o]:o]:X}}function Yu(n){return gi(function(t){var r=t.length,e=r,u=Y.prototype.thru;for(n&&t.reverse();e--;){var i=t[e];if("function"!=typeof i)throw new pl(en);if(u&&!o&&"wrapper"==bi(i))var o=new Y([],!0)}for(e=o?e:r;++e<r;){
+       i=t[e];var f=bi(i),c="wrapper"==f?Os(i):X;o=c&&$i(c[0])&&c[1]==(mn|yn|bn|xn)&&!c[4].length&&1==c[9]?o[bi(c[0])].apply(o,c[3]):1==i.length&&$i(i)?o[f]():o.thru(i)}return function(){var n=arguments,e=n[0];if(o&&1==n.length&&bh(e))return o.plant(e).value();for(var u=0,i=r?t[u].apply(this,n):e;++u<r;)i=t[u].call(this,i);return i}})}function Qu(n,t,r,e,u,i,o,f,c,a){function l(){for(var y=arguments.length,d=il(y),b=y;b--;)d[b]=arguments[b];if(_)var w=wi(l),m=C(d,w);if(e&&(d=Uu(d,e,u,_)),i&&(d=Bu(d,i,o,_)),
+       y-=m,_&&y<a){return oi(n,t,Qu,l.placeholder,r,d,N(d,w),f,c,a-y)}var x=h?r:this,j=p?x[n]:n;return y=d.length,f?d=Hi(d,f):v&&y>1&&d.reverse(),s&&c<y&&(d.length=c),this&&this!==re&&this instanceof l&&(j=g||Gu(j)),j.apply(x,d)}var s=t&mn,h=t&_n,p=t&vn,_=t&(yn|dn),v=t&jn,g=p?X:Gu(n);return l}function Xu(n,t){return function(r,e){return Oe(r,n,t(e),{})}}function ni(n,t){return function(r,e){var u;if(r===X&&e===X)return t;if(r!==X&&(u=r),e!==X){if(u===X)return e;"string"==typeof r||"string"==typeof e?(r=vu(r),
+       e=vu(e)):(r=_u(r),e=_u(e)),u=n(r,e)}return u}}function ti(t){return gi(function(r){return r=c(r,z(mi())),uu(function(e){var u=this;return t(r,function(t){return n(t,u,e)})})})}function ri(n,t){t=t===X?" ":vu(t);var r=t.length;if(r<2)return r?eu(t,n):t;var e=eu(t,Fl(n/V(t)));return T(t)?Ou(G(e),0,n).join(""):e.slice(0,n)}function ei(t,r,e,u){function i(){for(var r=-1,c=arguments.length,a=-1,l=u.length,s=il(l+c),h=this&&this!==re&&this instanceof i?f:t;++a<l;)s[a]=u[a];for(;c--;)s[a++]=arguments[++r];
+       return n(h,o?e:this,s)}var o=r&_n,f=Gu(t);return i}function ui(n){return function(t,r,e){return e&&"number"!=typeof e&&Ui(t,r,e)&&(r=e=X),t=Ac(t),r===X?(r=t,t=0):r=Ac(r),e=e===X?t<r?1:-1:Ac(e),ru(t,r,e,n)}}function ii(n){return function(t,r){return"string"==typeof t&&"string"==typeof r||(t=Ic(t),r=Ic(r)),n(t,r)}}function oi(n,t,r,e,u,i,o,f,c,a){var l=t&yn,s=l?o:X,h=l?X:o,p=l?i:X,_=l?X:i;t|=l?bn:wn,t&=~(l?wn:bn),t&gn||(t&=~(_n|vn));var v=[n,t,u,p,s,_,h,f,c,a],g=r.apply(X,v);return $i(n)&&Ss(g,v),g.placeholder=e,
+       Yi(g,n,t)}function fi(n){var t=al[n];return function(n,r){if(n=Ic(n),r=null==r?0:Hl(kc(r),292),r&&Zl(n)){var e=(Ec(n)+"e").split("e");return e=(Ec(t(e[0]+"e"+(+e[1]+r)))+"e").split("e"),+(e[0]+"e"+(+e[1]-r))}return t(n)}}function ci(n){return function(t){var r=zs(t);return r==Gn?M(t):r==tt?q(t):I(t,n(t))}}function ai(n,t,r,e,u,i,o,f){var c=t&vn;if(!c&&"function"!=typeof n)throw new pl(en);var a=e?e.length:0;if(a||(t&=~(bn|wn),e=u=X),o=o===X?o:Gl(kc(o),0),f=f===X?f:kc(f),a-=u?u.length:0,t&wn){var l=e,s=u;
+       e=u=X}var h=c?X:Os(n),p=[n,t,r,e,u,l,s,i,o,f];if(h&&qi(p,h),n=p[0],t=p[1],r=p[2],e=p[3],u=p[4],f=p[9]=p[9]===X?c?0:n.length:Gl(p[9]-a,0),!f&&t&(yn|dn)&&(t&=~(yn|dn)),t&&t!=_n)_=t==yn||t==dn?Hu(n,t,f):t!=bn&&t!=(_n|bn)||u.length?Qu.apply(X,p):ei(n,t,r,e);else var _=Zu(n,t,r);return Yi((h?ms:Ss)(_,p),n,t)}function li(n,t,r,e){return n===X||Gf(n,gl[r])&&!bl.call(e,r)?t:n}function si(n,t,r,e,u,i){return fc(n)&&fc(t)&&(i.set(t,n),Ke(n,t,X,si,i),i.delete(t)),n}function hi(n){return gc(n)?X:n}function pi(n,t,r,e,u,i){
+       var o=r&hn,f=n.length,c=t.length;if(f!=c&&!(o&&c>f))return!1;var a=i.get(n),l=i.get(t);if(a&&l)return a==t&&l==n;var s=-1,p=!0,_=r&pn?new yr:X;for(i.set(n,t),i.set(t,n);++s<f;){var v=n[s],g=t[s];if(e)var y=o?e(g,v,s,t,n,i):e(v,g,s,n,t,i);if(y!==X){if(y)continue;p=!1;break}if(_){if(!h(t,function(n,t){if(!S(_,t)&&(v===n||u(v,n,r,e,i)))return _.push(t)})){p=!1;break}}else if(v!==g&&!u(v,g,r,e,i)){p=!1;break}}return i.delete(n),i.delete(t),p}function _i(n,t,r,e,u,i,o){switch(r){case ct:if(n.byteLength!=t.byteLength||n.byteOffset!=t.byteOffset)return!1;
+       n=n.buffer,t=t.buffer;case ft:return!(n.byteLength!=t.byteLength||!i(new Rl(n),new Rl(t)));case Nn:case Pn:case Hn:return Gf(+n,+t);case Zn:return n.name==t.name&&n.message==t.message;case nt:case rt:return n==t+"";case Gn:var f=M;case tt:var c=e&hn;if(f||(f=P),n.size!=t.size&&!c)return!1;var a=o.get(n);if(a)return a==t;e|=pn,o.set(n,t);var l=pi(f(n),f(t),e,u,i,o);return o.delete(n),l;case et:if(_s)return _s.call(n)==_s.call(t)}return!1}function vi(n,t,r,e,u,i){var o=r&hn,f=yi(n),c=f.length;if(c!=yi(t).length&&!o)return!1;
+       for(var a=c;a--;){var l=f[a];if(!(o?l in t:bl.call(t,l)))return!1}var s=i.get(n),h=i.get(t);if(s&&h)return s==t&&h==n;var p=!0;i.set(n,t),i.set(t,n);for(var _=o;++a<c;){l=f[a];var v=n[l],g=t[l];if(e)var y=o?e(g,v,l,t,n,i):e(v,g,l,n,t,i);if(!(y===X?v===g||u(v,g,r,e,i):y)){p=!1;break}_||(_="constructor"==l)}if(p&&!_){var d=n.constructor,b=t.constructor;d!=b&&"constructor"in n&&"constructor"in t&&!("function"==typeof d&&d instanceof d&&"function"==typeof b&&b instanceof b)&&(p=!1)}return i.delete(n),
+       i.delete(t),p}function gi(n){return Ls(Vi(n,X,_o),n+"")}function yi(n){return de(n,Pc,Is)}function di(n){return de(n,qc,Rs)}function bi(n){for(var t=n.name+"",r=fs[t],e=bl.call(fs,t)?r.length:0;e--;){var u=r[e],i=u.func;if(null==i||i==n)return u.name}return t}function wi(n){return(bl.call(Z,"placeholder")?Z:n).placeholder}function mi(){var n=Z.iteratee||Ca;return n=n===Ca?De:n,arguments.length?n(arguments[0],arguments[1]):n}function xi(n,t){var r=n.__data__;return Ti(t)?r["string"==typeof t?"string":"hash"]:r.map;
+       }function ji(n){for(var t=Pc(n),r=t.length;r--;){var e=t[r],u=n[e];t[r]=[e,u,Fi(u)]}return t}function Ai(n,t){var r=B(n,t);return Ue(r)?r:X}function ki(n){var t=bl.call(n,Bl),r=n[Bl];try{n[Bl]=X;var e=!0}catch(n){}var u=xl.call(n);return e&&(t?n[Bl]=r:delete n[Bl]),u}function Oi(n,t,r){for(var e=-1,u=r.length;++e<u;){var i=r[e],o=i.size;switch(i.type){case"drop":n+=o;break;case"dropRight":t-=o;break;case"take":t=Hl(t,n+o);break;case"takeRight":n=Gl(n,t-o)}}return{start:n,end:t}}function Ii(n){var t=n.match(Bt);
+       return t?t[1].split(Tt):[]}function Ri(n,t,r){t=ku(t,n);for(var e=-1,u=t.length,i=!1;++e<u;){var o=no(t[e]);if(!(i=null!=n&&r(n,o)))break;n=n[o]}return i||++e!=u?i:(u=null==n?0:n.length,!!u&&oc(u)&&Ci(o,u)&&(bh(n)||dh(n)))}function zi(n){var t=n.length,r=new n.constructor(t);return t&&"string"==typeof n[0]&&bl.call(n,"index")&&(r.index=n.index,r.input=n.input),r}function Ei(n){return"function"!=typeof n.constructor||Mi(n)?{}:gs(El(n))}function Si(n,t,r){var e=n.constructor;switch(t){case ft:return Ru(n);
+       case Nn:case Pn:return new e(+n);case ct:return zu(n,r);case at:case lt:case st:case ht:case pt:case _t:case vt:case gt:case yt:return Wu(n,r);case Gn:return new e;case Hn:case rt:return new e(n);case nt:return Eu(n);case tt:return new e;case et:return Su(n)}}function Wi(n,t){var r=t.length;if(!r)return n;var e=r-1;return t[e]=(r>1?"& ":"")+t[e],t=t.join(r>2?", ":" "),n.replace(Ut,"{\n/* [wrapped with "+t+"] */\n")}function Li(n){return bh(n)||dh(n)||!!(Cl&&n&&n[Cl])}function Ci(n,t){var r=typeof n;
+       return t=null==t?Wn:t,!!t&&("number"==r||"symbol"!=r&&Vt.test(n))&&n>-1&&n%1==0&&n<t}function Ui(n,t,r){if(!fc(r))return!1;var e=typeof t;return!!("number"==e?Hf(r)&&Ci(t,r.length):"string"==e&&t in r)&&Gf(r[t],n)}function Bi(n,t){if(bh(n))return!1;var r=typeof n;return!("number"!=r&&"symbol"!=r&&"boolean"!=r&&null!=n&&!bc(n))||(zt.test(n)||!Rt.test(n)||null!=t&&n in ll(t))}function Ti(n){var t=typeof n;return"string"==t||"number"==t||"symbol"==t||"boolean"==t?"__proto__"!==n:null===n}function $i(n){
+       var t=bi(n),r=Z[t];if("function"!=typeof r||!(t in Ct.prototype))return!1;if(n===r)return!0;var e=Os(r);return!!e&&n===e[0]}function Di(n){return!!ml&&ml in n}function Mi(n){var t=n&&n.constructor;return n===("function"==typeof t&&t.prototype||gl)}function Fi(n){return n===n&&!fc(n)}function Ni(n,t){return function(r){return null!=r&&(r[n]===t&&(t!==X||n in ll(r)))}}function Pi(n){var t=Cf(n,function(n){return r.size===fn&&r.clear(),n}),r=t.cache;return t}function qi(n,t){var r=n[1],e=t[1],u=r|e,i=u<(_n|vn|mn),o=e==mn&&r==yn||e==mn&&r==xn&&n[7].length<=t[8]||e==(mn|xn)&&t[7].length<=t[8]&&r==yn;
+       if(!i&&!o)return n;e&_n&&(n[2]=t[2],u|=r&_n?0:gn);var f=t[3];if(f){var c=n[3];n[3]=c?Uu(c,f,t[4]):f,n[4]=c?N(n[3],cn):t[4]}return f=t[5],f&&(c=n[5],n[5]=c?Bu(c,f,t[6]):f,n[6]=c?N(n[5],cn):t[6]),f=t[7],f&&(n[7]=f),e&mn&&(n[8]=null==n[8]?t[8]:Hl(n[8],t[8])),null==n[9]&&(n[9]=t[9]),n[0]=t[0],n[1]=u,n}function Zi(n){var t=[];if(null!=n)for(var r in ll(n))t.push(r);return t}function Ki(n){return xl.call(n)}function Vi(t,r,e){return r=Gl(r===X?t.length-1:r,0),function(){for(var u=arguments,i=-1,o=Gl(u.length-r,0),f=il(o);++i<o;)f[i]=u[r+i];
+       i=-1;for(var c=il(r+1);++i<r;)c[i]=u[i];return c[r]=e(f),n(t,this,c)}}function Gi(n,t){return t.length<2?n:_e(n,au(t,0,-1))}function Hi(n,t){for(var r=n.length,e=Hl(t.length,r),u=Tu(n);e--;){var i=t[e];n[e]=Ci(i,r)?u[i]:X}return n}function Ji(n,t){if(("constructor"!==t||"function"!=typeof n[t])&&"__proto__"!=t)return n[t]}function Yi(n,t,r){var e=t+"";return Ls(n,Wi(e,ro(Ii(e),r)))}function Qi(n){var t=0,r=0;return function(){var e=Jl(),u=In-(e-r);if(r=e,u>0){if(++t>=On)return arguments[0]}else t=0;
+       return n.apply(X,arguments)}}function Xi(n,t){var r=-1,e=n.length,u=e-1;for(t=t===X?e:t;++r<t;){var i=tu(r,u),o=n[i];n[i]=n[r],n[r]=o}return n.length=t,n}function no(n){if("string"==typeof n||bc(n))return n;var t=n+"";return"0"==t&&1/n==-Sn?"-0":t}function to(n){if(null!=n){try{return dl.call(n)}catch(n){}try{return n+""}catch(n){}}return""}function ro(n,t){return r($n,function(r){var e="_."+r[0];t&r[1]&&!o(n,e)&&n.push(e)}),n.sort()}function eo(n){if(n instanceof Ct)return n.clone();var t=new Y(n.__wrapped__,n.__chain__);
+       return t.__actions__=Tu(n.__actions__),t.__index__=n.__index__,t.__values__=n.__values__,t}function uo(n,t,r){t=(r?Ui(n,t,r):t===X)?1:Gl(kc(t),0);var e=null==n?0:n.length;if(!e||t<1)return[];for(var u=0,i=0,o=il(Fl(e/t));u<e;)o[i++]=au(n,u,u+=t);return o}function io(n){for(var t=-1,r=null==n?0:n.length,e=0,u=[];++t<r;){var i=n[t];i&&(u[e++]=i)}return u}function oo(){var n=arguments.length;if(!n)return[];for(var t=il(n-1),r=arguments[0],e=n;e--;)t[e-1]=arguments[e];return a(bh(r)?Tu(r):[r],ee(t,1));
+       }function fo(n,t,r){var e=null==n?0:n.length;return e?(t=r||t===X?1:kc(t),au(n,t<0?0:t,e)):[]}function co(n,t,r){var e=null==n?0:n.length;return e?(t=r||t===X?1:kc(t),t=e-t,au(n,0,t<0?0:t)):[]}function ao(n,t){return n&&n.length?bu(n,mi(t,3),!0,!0):[]}function lo(n,t){return n&&n.length?bu(n,mi(t,3),!0):[]}function so(n,t,r,e){var u=null==n?0:n.length;return u?(r&&"number"!=typeof r&&Ui(n,t,r)&&(r=0,e=u),ne(n,t,r,e)):[]}function ho(n,t,r){var e=null==n?0:n.length;if(!e)return-1;var u=null==r?0:kc(r);
+       return u<0&&(u=Gl(e+u,0)),g(n,mi(t,3),u)}function po(n,t,r){var e=null==n?0:n.length;if(!e)return-1;var u=e-1;return r!==X&&(u=kc(r),u=r<0?Gl(e+u,0):Hl(u,e-1)),g(n,mi(t,3),u,!0)}function _o(n){return(null==n?0:n.length)?ee(n,1):[]}function vo(n){return(null==n?0:n.length)?ee(n,Sn):[]}function go(n,t){return(null==n?0:n.length)?(t=t===X?1:kc(t),ee(n,t)):[]}function yo(n){for(var t=-1,r=null==n?0:n.length,e={};++t<r;){var u=n[t];e[u[0]]=u[1]}return e}function bo(n){return n&&n.length?n[0]:X}function wo(n,t,r){
+       var e=null==n?0:n.length;if(!e)return-1;var u=null==r?0:kc(r);return u<0&&(u=Gl(e+u,0)),y(n,t,u)}function mo(n){return(null==n?0:n.length)?au(n,0,-1):[]}function xo(n,t){return null==n?"":Kl.call(n,t)}function jo(n){var t=null==n?0:n.length;return t?n[t-1]:X}function Ao(n,t,r){var e=null==n?0:n.length;if(!e)return-1;var u=e;return r!==X&&(u=kc(r),u=u<0?Gl(e+u,0):Hl(u,e-1)),t===t?K(n,t,u):g(n,b,u,!0)}function ko(n,t){return n&&n.length?Ge(n,kc(t)):X}function Oo(n,t){return n&&n.length&&t&&t.length?Xe(n,t):n;
+       }function Io(n,t,r){return n&&n.length&&t&&t.length?Xe(n,t,mi(r,2)):n}function Ro(n,t,r){return n&&n.length&&t&&t.length?Xe(n,t,X,r):n}function zo(n,t){var r=[];if(!n||!n.length)return r;var e=-1,u=[],i=n.length;for(t=mi(t,3);++e<i;){var o=n[e];t(o,e,n)&&(r.push(o),u.push(e))}return nu(n,u),r}function Eo(n){return null==n?n:Xl.call(n)}function So(n,t,r){var e=null==n?0:n.length;return e?(r&&"number"!=typeof r&&Ui(n,t,r)?(t=0,r=e):(t=null==t?0:kc(t),r=r===X?e:kc(r)),au(n,t,r)):[]}function Wo(n,t){
+       return su(n,t)}function Lo(n,t,r){return hu(n,t,mi(r,2))}function Co(n,t){var r=null==n?0:n.length;if(r){var e=su(n,t);if(e<r&&Gf(n[e],t))return e}return-1}function Uo(n,t){return su(n,t,!0)}function Bo(n,t,r){return hu(n,t,mi(r,2),!0)}function To(n,t){if(null==n?0:n.length){var r=su(n,t,!0)-1;if(Gf(n[r],t))return r}return-1}function $o(n){return n&&n.length?pu(n):[]}function Do(n,t){return n&&n.length?pu(n,mi(t,2)):[]}function Mo(n){var t=null==n?0:n.length;return t?au(n,1,t):[]}function Fo(n,t,r){
+       return n&&n.length?(t=r||t===X?1:kc(t),au(n,0,t<0?0:t)):[]}function No(n,t,r){var e=null==n?0:n.length;return e?(t=r||t===X?1:kc(t),t=e-t,au(n,t<0?0:t,e)):[]}function Po(n,t){return n&&n.length?bu(n,mi(t,3),!1,!0):[]}function qo(n,t){return n&&n.length?bu(n,mi(t,3)):[]}function Zo(n){return n&&n.length?gu(n):[]}function Ko(n,t){return n&&n.length?gu(n,mi(t,2)):[]}function Vo(n,t){return t="function"==typeof t?t:X,n&&n.length?gu(n,X,t):[]}function Go(n){if(!n||!n.length)return[];var t=0;return n=i(n,function(n){
+       if(Jf(n))return t=Gl(n.length,t),!0}),O(t,function(t){return c(n,m(t))})}function Ho(t,r){if(!t||!t.length)return[];var e=Go(t);return null==r?e:c(e,function(t){return n(r,X,t)})}function Jo(n,t){return xu(n||[],t||[],Sr)}function Yo(n,t){return xu(n||[],t||[],fu)}function Qo(n){var t=Z(n);return t.__chain__=!0,t}function Xo(n,t){return t(n),n}function nf(n,t){return t(n)}function tf(){return Qo(this)}function rf(){return new Y(this.value(),this.__chain__)}function ef(){this.__values__===X&&(this.__values__=jc(this.value()));
+       var n=this.__index__>=this.__values__.length;return{done:n,value:n?X:this.__values__[this.__index__++]}}function uf(){return this}function of(n){for(var t,r=this;r instanceof J;){var e=eo(r);e.__index__=0,e.__values__=X,t?u.__wrapped__=e:t=e;var u=e;r=r.__wrapped__}return u.__wrapped__=n,t}function ff(){var n=this.__wrapped__;if(n instanceof Ct){var t=n;return this.__actions__.length&&(t=new Ct(this)),t=t.reverse(),t.__actions__.push({func:nf,args:[Eo],thisArg:X}),new Y(t,this.__chain__)}return this.thru(Eo);
+       }function cf(){return wu(this.__wrapped__,this.__actions__)}function af(n,t,r){var e=bh(n)?u:Jr;return r&&Ui(n,t,r)&&(t=X),e(n,mi(t,3))}function lf(n,t){return(bh(n)?i:te)(n,mi(t,3))}function sf(n,t){return ee(yf(n,t),1)}function hf(n,t){return ee(yf(n,t),Sn)}function pf(n,t,r){return r=r===X?1:kc(r),ee(yf(n,t),r)}function _f(n,t){return(bh(n)?r:ys)(n,mi(t,3))}function vf(n,t){return(bh(n)?e:ds)(n,mi(t,3))}function gf(n,t,r,e){n=Hf(n)?n:ra(n),r=r&&!e?kc(r):0;var u=n.length;return r<0&&(r=Gl(u+r,0)),
+       dc(n)?r<=u&&n.indexOf(t,r)>-1:!!u&&y(n,t,r)>-1}function yf(n,t){return(bh(n)?c:Pe)(n,mi(t,3))}function df(n,t,r,e){return null==n?[]:(bh(t)||(t=null==t?[]:[t]),r=e?X:r,bh(r)||(r=null==r?[]:[r]),He(n,t,r))}function bf(n,t,r){var e=bh(n)?l:j,u=arguments.length<3;return e(n,mi(t,4),r,u,ys)}function wf(n,t,r){var e=bh(n)?s:j,u=arguments.length<3;return e(n,mi(t,4),r,u,ds)}function mf(n,t){return(bh(n)?i:te)(n,Uf(mi(t,3)))}function xf(n){return(bh(n)?Ir:iu)(n)}function jf(n,t,r){return t=(r?Ui(n,t,r):t===X)?1:kc(t),
+       (bh(n)?Rr:ou)(n,t)}function Af(n){return(bh(n)?zr:cu)(n)}function kf(n){if(null==n)return 0;if(Hf(n))return dc(n)?V(n):n.length;var t=zs(n);return t==Gn||t==tt?n.size:Me(n).length}function Of(n,t,r){var e=bh(n)?h:lu;return r&&Ui(n,t,r)&&(t=X),e(n,mi(t,3))}function If(n,t){if("function"!=typeof t)throw new pl(en);return n=kc(n),function(){if(--n<1)return t.apply(this,arguments)}}function Rf(n,t,r){return t=r?X:t,t=n&&null==t?n.length:t,ai(n,mn,X,X,X,X,t)}function zf(n,t){var r;if("function"!=typeof t)throw new pl(en);
+       return n=kc(n),function(){return--n>0&&(r=t.apply(this,arguments)),n<=1&&(t=X),r}}function Ef(n,t,r){t=r?X:t;var e=ai(n,yn,X,X,X,X,X,t);return e.placeholder=Ef.placeholder,e}function Sf(n,t,r){t=r?X:t;var e=ai(n,dn,X,X,X,X,X,t);return e.placeholder=Sf.placeholder,e}function Wf(n,t,r){function e(t){var r=h,e=p;return h=p=X,d=t,v=n.apply(e,r)}function u(n){return d=n,g=Ws(f,t),b?e(n):v}function i(n){var r=n-y,e=n-d,u=t-r;return w?Hl(u,_-e):u}function o(n){var r=n-y,e=n-d;return y===X||r>=t||r<0||w&&e>=_;
+       }function f(){var n=fh();return o(n)?c(n):(g=Ws(f,i(n)),X)}function c(n){return g=X,m&&h?e(n):(h=p=X,v)}function a(){g!==X&&As(g),d=0,h=y=p=g=X}function l(){return g===X?v:c(fh())}function s(){var n=fh(),r=o(n);if(h=arguments,p=this,y=n,r){if(g===X)return u(y);if(w)return As(g),g=Ws(f,t),e(y)}return g===X&&(g=Ws(f,t)),v}var h,p,_,v,g,y,d=0,b=!1,w=!1,m=!0;if("function"!=typeof n)throw new pl(en);return t=Ic(t)||0,fc(r)&&(b=!!r.leading,w="maxWait"in r,_=w?Gl(Ic(r.maxWait)||0,t):_,m="trailing"in r?!!r.trailing:m),
+       s.cancel=a,s.flush=l,s}function Lf(n){return ai(n,jn)}function Cf(n,t){if("function"!=typeof n||null!=t&&"function"!=typeof t)throw new pl(en);var r=function(){var e=arguments,u=t?t.apply(this,e):e[0],i=r.cache;if(i.has(u))return i.get(u);var o=n.apply(this,e);return r.cache=i.set(u,o)||i,o};return r.cache=new(Cf.Cache||sr),r}function Uf(n){if("function"!=typeof n)throw new pl(en);return function(){var t=arguments;switch(t.length){case 0:return!n.call(this);case 1:return!n.call(this,t[0]);case 2:
+       return!n.call(this,t[0],t[1]);case 3:return!n.call(this,t[0],t[1],t[2])}return!n.apply(this,t)}}function Bf(n){return zf(2,n)}function Tf(n,t){if("function"!=typeof n)throw new pl(en);return t=t===X?t:kc(t),uu(n,t)}function $f(t,r){if("function"!=typeof t)throw new pl(en);return r=null==r?0:Gl(kc(r),0),uu(function(e){var u=e[r],i=Ou(e,0,r);return u&&a(i,u),n(t,this,i)})}function Df(n,t,r){var e=!0,u=!0;if("function"!=typeof n)throw new pl(en);return fc(r)&&(e="leading"in r?!!r.leading:e,u="trailing"in r?!!r.trailing:u),
+       Wf(n,t,{leading:e,maxWait:t,trailing:u})}function Mf(n){return Rf(n,1)}function Ff(n,t){return ph(Au(t),n)}function Nf(){if(!arguments.length)return[];var n=arguments[0];return bh(n)?n:[n]}function Pf(n){return Fr(n,sn)}function qf(n,t){return t="function"==typeof t?t:X,Fr(n,sn,t)}function Zf(n){return Fr(n,an|sn)}function Kf(n,t){return t="function"==typeof t?t:X,Fr(n,an|sn,t)}function Vf(n,t){return null==t||Pr(n,t,Pc(t))}function Gf(n,t){return n===t||n!==n&&t!==t}function Hf(n){return null!=n&&oc(n.length)&&!uc(n);
+       }function Jf(n){return cc(n)&&Hf(n)}function Yf(n){return n===!0||n===!1||cc(n)&&we(n)==Nn}function Qf(n){return cc(n)&&1===n.nodeType&&!gc(n)}function Xf(n){if(null==n)return!0;if(Hf(n)&&(bh(n)||"string"==typeof n||"function"==typeof n.splice||mh(n)||Oh(n)||dh(n)))return!n.length;var t=zs(n);if(t==Gn||t==tt)return!n.size;if(Mi(n))return!Me(n).length;for(var r in n)if(bl.call(n,r))return!1;return!0}function nc(n,t){return Se(n,t)}function tc(n,t,r){r="function"==typeof r?r:X;var e=r?r(n,t):X;return e===X?Se(n,t,X,r):!!e;
+       }function rc(n){if(!cc(n))return!1;var t=we(n);return t==Zn||t==qn||"string"==typeof n.message&&"string"==typeof n.name&&!gc(n)}function ec(n){return"number"==typeof n&&Zl(n)}function uc(n){if(!fc(n))return!1;var t=we(n);return t==Kn||t==Vn||t==Fn||t==Xn}function ic(n){return"number"==typeof n&&n==kc(n)}function oc(n){return"number"==typeof n&&n>-1&&n%1==0&&n<=Wn}function fc(n){var t=typeof n;return null!=n&&("object"==t||"function"==t)}function cc(n){return null!=n&&"object"==typeof n}function ac(n,t){
+       return n===t||Ce(n,t,ji(t))}function lc(n,t,r){return r="function"==typeof r?r:X,Ce(n,t,ji(t),r)}function sc(n){return vc(n)&&n!=+n}function hc(n){if(Es(n))throw new fl(rn);return Ue(n)}function pc(n){return null===n}function _c(n){return null==n}function vc(n){return"number"==typeof n||cc(n)&&we(n)==Hn}function gc(n){if(!cc(n)||we(n)!=Yn)return!1;var t=El(n);if(null===t)return!0;var r=bl.call(t,"constructor")&&t.constructor;return"function"==typeof r&&r instanceof r&&dl.call(r)==jl}function yc(n){
+       return ic(n)&&n>=-Wn&&n<=Wn}function dc(n){return"string"==typeof n||!bh(n)&&cc(n)&&we(n)==rt}function bc(n){return"symbol"==typeof n||cc(n)&&we(n)==et}function wc(n){return n===X}function mc(n){return cc(n)&&zs(n)==it}function xc(n){return cc(n)&&we(n)==ot}function jc(n){if(!n)return[];if(Hf(n))return dc(n)?G(n):Tu(n);if(Ul&&n[Ul])return D(n[Ul]());var t=zs(n);return(t==Gn?M:t==tt?P:ra)(n)}function Ac(n){if(!n)return 0===n?n:0;if(n=Ic(n),n===Sn||n===-Sn){return(n<0?-1:1)*Ln}return n===n?n:0}function kc(n){
+       var t=Ac(n),r=t%1;return t===t?r?t-r:t:0}function Oc(n){return n?Mr(kc(n),0,Un):0}function Ic(n){if("number"==typeof n)return n;if(bc(n))return Cn;if(fc(n)){var t="function"==typeof n.valueOf?n.valueOf():n;n=fc(t)?t+"":t}if("string"!=typeof n)return 0===n?n:+n;n=R(n);var r=qt.test(n);return r||Kt.test(n)?Xr(n.slice(2),r?2:8):Pt.test(n)?Cn:+n}function Rc(n){return $u(n,qc(n))}function zc(n){return n?Mr(kc(n),-Wn,Wn):0===n?n:0}function Ec(n){return null==n?"":vu(n)}function Sc(n,t){var r=gs(n);return null==t?r:Cr(r,t);
+       }function Wc(n,t){return v(n,mi(t,3),ue)}function Lc(n,t){return v(n,mi(t,3),oe)}function Cc(n,t){return null==n?n:bs(n,mi(t,3),qc)}function Uc(n,t){return null==n?n:ws(n,mi(t,3),qc)}function Bc(n,t){return n&&ue(n,mi(t,3))}function Tc(n,t){return n&&oe(n,mi(t,3))}function $c(n){return null==n?[]:fe(n,Pc(n))}function Dc(n){return null==n?[]:fe(n,qc(n))}function Mc(n,t,r){var e=null==n?X:_e(n,t);return e===X?r:e}function Fc(n,t){return null!=n&&Ri(n,t,xe)}function Nc(n,t){return null!=n&&Ri(n,t,je);
+       }function Pc(n){return Hf(n)?Or(n):Me(n)}function qc(n){return Hf(n)?Or(n,!0):Fe(n)}function Zc(n,t){var r={};return t=mi(t,3),ue(n,function(n,e,u){Br(r,t(n,e,u),n)}),r}function Kc(n,t){var r={};return t=mi(t,3),ue(n,function(n,e,u){Br(r,e,t(n,e,u))}),r}function Vc(n,t){return Gc(n,Uf(mi(t)))}function Gc(n,t){if(null==n)return{};var r=c(di(n),function(n){return[n]});return t=mi(t),Ye(n,r,function(n,r){return t(n,r[0])})}function Hc(n,t,r){t=ku(t,n);var e=-1,u=t.length;for(u||(u=1,n=X);++e<u;){var i=null==n?X:n[no(t[e])];
+       i===X&&(e=u,i=r),n=uc(i)?i.call(n):i}return n}function Jc(n,t,r){return null==n?n:fu(n,t,r)}function Yc(n,t,r,e){return e="function"==typeof e?e:X,null==n?n:fu(n,t,r,e)}function Qc(n,t,e){var u=bh(n),i=u||mh(n)||Oh(n);if(t=mi(t,4),null==e){var o=n&&n.constructor;e=i?u?new o:[]:fc(n)&&uc(o)?gs(El(n)):{}}return(i?r:ue)(n,function(n,r,u){return t(e,n,r,u)}),e}function Xc(n,t){return null==n||yu(n,t)}function na(n,t,r){return null==n?n:du(n,t,Au(r))}function ta(n,t,r,e){return e="function"==typeof e?e:X,
+       null==n?n:du(n,t,Au(r),e)}function ra(n){return null==n?[]:E(n,Pc(n))}function ea(n){return null==n?[]:E(n,qc(n))}function ua(n,t,r){return r===X&&(r=t,t=X),r!==X&&(r=Ic(r),r=r===r?r:0),t!==X&&(t=Ic(t),t=t===t?t:0),Mr(Ic(n),t,r)}function ia(n,t,r){return t=Ac(t),r===X?(r=t,t=0):r=Ac(r),n=Ic(n),Ae(n,t,r)}function oa(n,t,r){if(r&&"boolean"!=typeof r&&Ui(n,t,r)&&(t=r=X),r===X&&("boolean"==typeof t?(r=t,t=X):"boolean"==typeof n&&(r=n,n=X)),n===X&&t===X?(n=0,t=1):(n=Ac(n),t===X?(t=n,n=0):t=Ac(t)),n>t){
+       var e=n;n=t,t=e}if(r||n%1||t%1){var u=Ql();return Hl(n+u*(t-n+Qr("1e-"+((u+"").length-1))),t)}return tu(n,t)}function fa(n){return Qh(Ec(n).toLowerCase())}function ca(n){return n=Ec(n),n&&n.replace(Gt,ve).replace(Dr,"")}function aa(n,t,r){n=Ec(n),t=vu(t);var e=n.length;r=r===X?e:Mr(kc(r),0,e);var u=r;return r-=t.length,r>=0&&n.slice(r,u)==t}function la(n){return n=Ec(n),n&&At.test(n)?n.replace(xt,ge):n}function sa(n){return n=Ec(n),n&&Wt.test(n)?n.replace(St,"\\$&"):n}function ha(n,t,r){n=Ec(n),t=kc(t);
+       var e=t?V(n):0;if(!t||e>=t)return n;var u=(t-e)/2;return ri(Nl(u),r)+n+ri(Fl(u),r)}function pa(n,t,r){n=Ec(n),t=kc(t);var e=t?V(n):0;return t&&e<t?n+ri(t-e,r):n}function _a(n,t,r){n=Ec(n),t=kc(t);var e=t?V(n):0;return t&&e<t?ri(t-e,r)+n:n}function va(n,t,r){return r||null==t?t=0:t&&(t=+t),Yl(Ec(n).replace(Lt,""),t||0)}function ga(n,t,r){return t=(r?Ui(n,t,r):t===X)?1:kc(t),eu(Ec(n),t)}function ya(){var n=arguments,t=Ec(n[0]);return n.length<3?t:t.replace(n[1],n[2])}function da(n,t,r){return r&&"number"!=typeof r&&Ui(n,t,r)&&(t=r=X),
+       (r=r===X?Un:r>>>0)?(n=Ec(n),n&&("string"==typeof t||null!=t&&!Ah(t))&&(t=vu(t),!t&&T(n))?Ou(G(n),0,r):n.split(t,r)):[]}function ba(n,t,r){return n=Ec(n),r=null==r?0:Mr(kc(r),0,n.length),t=vu(t),n.slice(r,r+t.length)==t}function wa(n,t,r){var e=Z.templateSettings;r&&Ui(n,t,r)&&(t=X),n=Ec(n),t=Sh({},t,e,li);var u,i,o=Sh({},t.imports,e.imports,li),f=Pc(o),c=E(o,f),a=0,l=t.interpolate||Ht,s="__p += '",h=sl((t.escape||Ht).source+"|"+l.source+"|"+(l===It?Ft:Ht).source+"|"+(t.evaluate||Ht).source+"|$","g"),p="//# sourceURL="+(bl.call(t,"sourceURL")?(t.sourceURL+"").replace(/\s/g," "):"lodash.templateSources["+ ++Zr+"]")+"\n";
+       n.replace(h,function(t,r,e,o,f,c){return e||(e=o),s+=n.slice(a,c).replace(Jt,U),r&&(u=!0,s+="' +\n__e("+r+") +\n'"),f&&(i=!0,s+="';\n"+f+";\n__p += '"),e&&(s+="' +\n((__t = ("+e+")) == null ? '' : __t) +\n'"),a=c+t.length,t}),s+="';\n";var _=bl.call(t,"variable")&&t.variable;if(_){if(Dt.test(_))throw new fl(un)}else s="with (obj) {\n"+s+"\n}\n";s=(i?s.replace(dt,""):s).replace(bt,"$1").replace(wt,"$1;"),s="function("+(_||"obj")+") {\n"+(_?"":"obj || (obj = {});\n")+"var __t, __p = ''"+(u?", __e = _.escape":"")+(i?", __j = Array.prototype.join;\nfunction print() { __p += __j.call(arguments, '') }\n":";\n")+s+"return __p\n}";
+       var v=Xh(function(){return cl(f,p+"return "+s).apply(X,c)});if(v.source=s,rc(v))throw v;return v}function ma(n){return Ec(n).toLowerCase()}function xa(n){return Ec(n).toUpperCase()}function ja(n,t,r){if(n=Ec(n),n&&(r||t===X))return R(n);if(!n||!(t=vu(t)))return n;var e=G(n),u=G(t);return Ou(e,W(e,u),L(e,u)+1).join("")}function Aa(n,t,r){if(n=Ec(n),n&&(r||t===X))return n.slice(0,H(n)+1);if(!n||!(t=vu(t)))return n;var e=G(n);return Ou(e,0,L(e,G(t))+1).join("")}function ka(n,t,r){if(n=Ec(n),n&&(r||t===X))return n.replace(Lt,"");
+       if(!n||!(t=vu(t)))return n;var e=G(n);return Ou(e,W(e,G(t))).join("")}function Oa(n,t){var r=An,e=kn;if(fc(t)){var u="separator"in t?t.separator:u;r="length"in t?kc(t.length):r,e="omission"in t?vu(t.omission):e}n=Ec(n);var i=n.length;if(T(n)){var o=G(n);i=o.length}if(r>=i)return n;var f=r-V(e);if(f<1)return e;var c=o?Ou(o,0,f).join(""):n.slice(0,f);if(u===X)return c+e;if(o&&(f+=c.length-f),Ah(u)){if(n.slice(f).search(u)){var a,l=c;for(u.global||(u=sl(u.source,Ec(Nt.exec(u))+"g")),u.lastIndex=0;a=u.exec(l);)var s=a.index;
+       c=c.slice(0,s===X?f:s)}}else if(n.indexOf(vu(u),f)!=f){var h=c.lastIndexOf(u);h>-1&&(c=c.slice(0,h))}return c+e}function Ia(n){return n=Ec(n),n&&jt.test(n)?n.replace(mt,ye):n}function Ra(n,t,r){return n=Ec(n),t=r?X:t,t===X?$(n)?Q(n):_(n):n.match(t)||[]}function za(t){var r=null==t?0:t.length,e=mi();return t=r?c(t,function(n){if("function"!=typeof n[1])throw new pl(en);return[e(n[0]),n[1]]}):[],uu(function(e){for(var u=-1;++u<r;){var i=t[u];if(n(i[0],this,e))return n(i[1],this,e)}})}function Ea(n){
+       return Nr(Fr(n,an))}function Sa(n){return function(){return n}}function Wa(n,t){return null==n||n!==n?t:n}function La(n){return n}function Ca(n){return De("function"==typeof n?n:Fr(n,an))}function Ua(n){return qe(Fr(n,an))}function Ba(n,t){return Ze(n,Fr(t,an))}function Ta(n,t,e){var u=Pc(t),i=fe(t,u);null!=e||fc(t)&&(i.length||!u.length)||(e=t,t=n,n=this,i=fe(t,Pc(t)));var o=!(fc(e)&&"chain"in e&&!e.chain),f=uc(n);return r(i,function(r){var e=t[r];n[r]=e,f&&(n.prototype[r]=function(){var t=this.__chain__;
+       if(o||t){var r=n(this.__wrapped__);return(r.__actions__=Tu(this.__actions__)).push({func:e,args:arguments,thisArg:n}),r.__chain__=t,r}return e.apply(n,a([this.value()],arguments))})}),n}function $a(){return re._===this&&(re._=Al),this}function Da(){}function Ma(n){return n=kc(n),uu(function(t){return Ge(t,n)})}function Fa(n){return Bi(n)?m(no(n)):Qe(n)}function Na(n){return function(t){return null==n?X:_e(n,t)}}function Pa(){return[]}function qa(){return!1}function Za(){return{}}function Ka(){return"";
+       }function Va(){return!0}function Ga(n,t){if(n=kc(n),n<1||n>Wn)return[];var r=Un,e=Hl(n,Un);t=mi(t),n-=Un;for(var u=O(e,t);++r<n;)t(r);return u}function Ha(n){return bh(n)?c(n,no):bc(n)?[n]:Tu(Cs(Ec(n)))}function Ja(n){var t=++wl;return Ec(n)+t}function Ya(n){return n&&n.length?Yr(n,La,me):X}function Qa(n,t){return n&&n.length?Yr(n,mi(t,2),me):X}function Xa(n){return w(n,La)}function nl(n,t){return w(n,mi(t,2))}function tl(n){return n&&n.length?Yr(n,La,Ne):X}function rl(n,t){return n&&n.length?Yr(n,mi(t,2),Ne):X;
+       }function el(n){return n&&n.length?k(n,La):0}function ul(n,t){return n&&n.length?k(n,mi(t,2)):0}x=null==x?re:be.defaults(re.Object(),x,be.pick(re,qr));var il=x.Array,ol=x.Date,fl=x.Error,cl=x.Function,al=x.Math,ll=x.Object,sl=x.RegExp,hl=x.String,pl=x.TypeError,_l=il.prototype,vl=cl.prototype,gl=ll.prototype,yl=x["__core-js_shared__"],dl=vl.toString,bl=gl.hasOwnProperty,wl=0,ml=function(){var n=/[^.]+$/.exec(yl&&yl.keys&&yl.keys.IE_PROTO||"");return n?"Symbol(src)_1."+n:""}(),xl=gl.toString,jl=dl.call(ll),Al=re._,kl=sl("^"+dl.call(bl).replace(St,"\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g,"$1.*?")+"$"),Ol=ie?x.Buffer:X,Il=x.Symbol,Rl=x.Uint8Array,zl=Ol?Ol.allocUnsafe:X,El=F(ll.getPrototypeOf,ll),Sl=ll.create,Wl=gl.propertyIsEnumerable,Ll=_l.splice,Cl=Il?Il.isConcatSpreadable:X,Ul=Il?Il.iterator:X,Bl=Il?Il.toStringTag:X,Tl=function(){
+       try{var n=Ai(ll,"defineProperty");return n({},"",{}),n}catch(n){}}(),$l=x.clearTimeout!==re.clearTimeout&&x.clearTimeout,Dl=ol&&ol.now!==re.Date.now&&ol.now,Ml=x.setTimeout!==re.setTimeout&&x.setTimeout,Fl=al.ceil,Nl=al.floor,Pl=ll.getOwnPropertySymbols,ql=Ol?Ol.isBuffer:X,Zl=x.isFinite,Kl=_l.join,Vl=F(ll.keys,ll),Gl=al.max,Hl=al.min,Jl=ol.now,Yl=x.parseInt,Ql=al.random,Xl=_l.reverse,ns=Ai(x,"DataView"),ts=Ai(x,"Map"),rs=Ai(x,"Promise"),es=Ai(x,"Set"),us=Ai(x,"WeakMap"),is=Ai(ll,"create"),os=us&&new us,fs={},cs=to(ns),as=to(ts),ls=to(rs),ss=to(es),hs=to(us),ps=Il?Il.prototype:X,_s=ps?ps.valueOf:X,vs=ps?ps.toString:X,gs=function(){
+       function n(){}return function(t){if(!fc(t))return{};if(Sl)return Sl(t);n.prototype=t;var r=new n;return n.prototype=X,r}}();Z.templateSettings={escape:kt,evaluate:Ot,interpolate:It,variable:"",imports:{_:Z}},Z.prototype=J.prototype,Z.prototype.constructor=Z,Y.prototype=gs(J.prototype),Y.prototype.constructor=Y,Ct.prototype=gs(J.prototype),Ct.prototype.constructor=Ct,Xt.prototype.clear=nr,Xt.prototype.delete=tr,Xt.prototype.get=rr,Xt.prototype.has=er,Xt.prototype.set=ur,ir.prototype.clear=or,ir.prototype.delete=fr,
+       ir.prototype.get=cr,ir.prototype.has=ar,ir.prototype.set=lr,sr.prototype.clear=hr,sr.prototype.delete=pr,sr.prototype.get=_r,sr.prototype.has=vr,sr.prototype.set=gr,yr.prototype.add=yr.prototype.push=dr,yr.prototype.has=br,wr.prototype.clear=mr,wr.prototype.delete=xr,wr.prototype.get=jr,wr.prototype.has=Ar,wr.prototype.set=kr;var ys=Pu(ue),ds=Pu(oe,!0),bs=qu(),ws=qu(!0),ms=os?function(n,t){return os.set(n,t),n}:La,xs=Tl?function(n,t){return Tl(n,"toString",{configurable:!0,enumerable:!1,value:Sa(t),
+       writable:!0})}:La,js=uu,As=$l||function(n){return re.clearTimeout(n)},ks=es&&1/P(new es([,-0]))[1]==Sn?function(n){return new es(n)}:Da,Os=os?function(n){return os.get(n)}:Da,Is=Pl?function(n){return null==n?[]:(n=ll(n),i(Pl(n),function(t){return Wl.call(n,t)}))}:Pa,Rs=Pl?function(n){for(var t=[];n;)a(t,Is(n)),n=El(n);return t}:Pa,zs=we;(ns&&zs(new ns(new ArrayBuffer(1)))!=ct||ts&&zs(new ts)!=Gn||rs&&zs(rs.resolve())!=Qn||es&&zs(new es)!=tt||us&&zs(new us)!=it)&&(zs=function(n){var t=we(n),r=t==Yn?n.constructor:X,e=r?to(r):"";
+       if(e)switch(e){case cs:return ct;case as:return Gn;case ls:return Qn;case ss:return tt;case hs:return it}return t});var Es=yl?uc:qa,Ss=Qi(ms),Ws=Ml||function(n,t){return re.setTimeout(n,t)},Ls=Qi(xs),Cs=Pi(function(n){var t=[];return 46===n.charCodeAt(0)&&t.push(""),n.replace(Et,function(n,r,e,u){t.push(e?u.replace(Mt,"$1"):r||n)}),t}),Us=uu(function(n,t){return Jf(n)?Hr(n,ee(t,1,Jf,!0)):[]}),Bs=uu(function(n,t){var r=jo(t);return Jf(r)&&(r=X),Jf(n)?Hr(n,ee(t,1,Jf,!0),mi(r,2)):[]}),Ts=uu(function(n,t){
+       var r=jo(t);return Jf(r)&&(r=X),Jf(n)?Hr(n,ee(t,1,Jf,!0),X,r):[]}),$s=uu(function(n){var t=c(n,ju);return t.length&&t[0]===n[0]?ke(t):[]}),Ds=uu(function(n){var t=jo(n),r=c(n,ju);return t===jo(r)?t=X:r.pop(),r.length&&r[0]===n[0]?ke(r,mi(t,2)):[]}),Ms=uu(function(n){var t=jo(n),r=c(n,ju);return t="function"==typeof t?t:X,t&&r.pop(),r.length&&r[0]===n[0]?ke(r,X,t):[]}),Fs=uu(Oo),Ns=gi(function(n,t){var r=null==n?0:n.length,e=Tr(n,t);return nu(n,c(t,function(n){return Ci(n,r)?+n:n}).sort(Lu)),e}),Ps=uu(function(n){
+       return gu(ee(n,1,Jf,!0))}),qs=uu(function(n){var t=jo(n);return Jf(t)&&(t=X),gu(ee(n,1,Jf,!0),mi(t,2))}),Zs=uu(function(n){var t=jo(n);return t="function"==typeof t?t:X,gu(ee(n,1,Jf,!0),X,t)}),Ks=uu(function(n,t){return Jf(n)?Hr(n,t):[]}),Vs=uu(function(n){return mu(i(n,Jf))}),Gs=uu(function(n){var t=jo(n);return Jf(t)&&(t=X),mu(i(n,Jf),mi(t,2))}),Hs=uu(function(n){var t=jo(n);return t="function"==typeof t?t:X,mu(i(n,Jf),X,t)}),Js=uu(Go),Ys=uu(function(n){var t=n.length,r=t>1?n[t-1]:X;return r="function"==typeof r?(n.pop(),
+       r):X,Ho(n,r)}),Qs=gi(function(n){var t=n.length,r=t?n[0]:0,e=this.__wrapped__,u=function(t){return Tr(t,n)};return!(t>1||this.__actions__.length)&&e instanceof Ct&&Ci(r)?(e=e.slice(r,+r+(t?1:0)),e.__actions__.push({func:nf,args:[u],thisArg:X}),new Y(e,this.__chain__).thru(function(n){return t&&!n.length&&n.push(X),n})):this.thru(u)}),Xs=Fu(function(n,t,r){bl.call(n,r)?++n[r]:Br(n,r,1)}),nh=Ju(ho),th=Ju(po),rh=Fu(function(n,t,r){bl.call(n,r)?n[r].push(t):Br(n,r,[t])}),eh=uu(function(t,r,e){var u=-1,i="function"==typeof r,o=Hf(t)?il(t.length):[];
+       return ys(t,function(t){o[++u]=i?n(r,t,e):Ie(t,r,e)}),o}),uh=Fu(function(n,t,r){Br(n,r,t)}),ih=Fu(function(n,t,r){n[r?0:1].push(t)},function(){return[[],[]]}),oh=uu(function(n,t){if(null==n)return[];var r=t.length;return r>1&&Ui(n,t[0],t[1])?t=[]:r>2&&Ui(t[0],t[1],t[2])&&(t=[t[0]]),He(n,ee(t,1),[])}),fh=Dl||function(){return re.Date.now()},ch=uu(function(n,t,r){var e=_n;if(r.length){var u=N(r,wi(ch));e|=bn}return ai(n,e,t,r,u)}),ah=uu(function(n,t,r){var e=_n|vn;if(r.length){var u=N(r,wi(ah));e|=bn;
+       }return ai(t,e,n,r,u)}),lh=uu(function(n,t){return Gr(n,1,t)}),sh=uu(function(n,t,r){return Gr(n,Ic(t)||0,r)});Cf.Cache=sr;var hh=js(function(t,r){r=1==r.length&&bh(r[0])?c(r[0],z(mi())):c(ee(r,1),z(mi()));var e=r.length;return uu(function(u){for(var i=-1,o=Hl(u.length,e);++i<o;)u[i]=r[i].call(this,u[i]);return n(t,this,u)})}),ph=uu(function(n,t){return ai(n,bn,X,t,N(t,wi(ph)))}),_h=uu(function(n,t){return ai(n,wn,X,t,N(t,wi(_h)))}),vh=gi(function(n,t){return ai(n,xn,X,X,X,t)}),gh=ii(me),yh=ii(function(n,t){
+       return n>=t}),dh=Re(function(){return arguments}())?Re:function(n){return cc(n)&&bl.call(n,"callee")&&!Wl.call(n,"callee")},bh=il.isArray,wh=ce?z(ce):ze,mh=ql||qa,xh=ae?z(ae):Ee,jh=le?z(le):Le,Ah=se?z(se):Be,kh=he?z(he):Te,Oh=pe?z(pe):$e,Ih=ii(Ne),Rh=ii(function(n,t){return n<=t}),zh=Nu(function(n,t){if(Mi(t)||Hf(t))return $u(t,Pc(t),n),X;for(var r in t)bl.call(t,r)&&Sr(n,r,t[r])}),Eh=Nu(function(n,t){$u(t,qc(t),n)}),Sh=Nu(function(n,t,r,e){$u(t,qc(t),n,e)}),Wh=Nu(function(n,t,r,e){$u(t,Pc(t),n,e);
+       }),Lh=gi(Tr),Ch=uu(function(n,t){n=ll(n);var r=-1,e=t.length,u=e>2?t[2]:X;for(u&&Ui(t[0],t[1],u)&&(e=1);++r<e;)for(var i=t[r],o=qc(i),f=-1,c=o.length;++f<c;){var a=o[f],l=n[a];(l===X||Gf(l,gl[a])&&!bl.call(n,a))&&(n[a]=i[a])}return n}),Uh=uu(function(t){return t.push(X,si),n(Mh,X,t)}),Bh=Xu(function(n,t,r){null!=t&&"function"!=typeof t.toString&&(t=xl.call(t)),n[t]=r},Sa(La)),Th=Xu(function(n,t,r){null!=t&&"function"!=typeof t.toString&&(t=xl.call(t)),bl.call(n,t)?n[t].push(r):n[t]=[r]},mi),$h=uu(Ie),Dh=Nu(function(n,t,r){
+       Ke(n,t,r)}),Mh=Nu(function(n,t,r,e){Ke(n,t,r,e)}),Fh=gi(function(n,t){var r={};if(null==n)return r;var e=!1;t=c(t,function(t){return t=ku(t,n),e||(e=t.length>1),t}),$u(n,di(n),r),e&&(r=Fr(r,an|ln|sn,hi));for(var u=t.length;u--;)yu(r,t[u]);return r}),Nh=gi(function(n,t){return null==n?{}:Je(n,t)}),Ph=ci(Pc),qh=ci(qc),Zh=Vu(function(n,t,r){return t=t.toLowerCase(),n+(r?fa(t):t)}),Kh=Vu(function(n,t,r){return n+(r?"-":"")+t.toLowerCase()}),Vh=Vu(function(n,t,r){return n+(r?" ":"")+t.toLowerCase()}),Gh=Ku("toLowerCase"),Hh=Vu(function(n,t,r){
+       return n+(r?"_":"")+t.toLowerCase()}),Jh=Vu(function(n,t,r){return n+(r?" ":"")+Qh(t)}),Yh=Vu(function(n,t,r){return n+(r?" ":"")+t.toUpperCase()}),Qh=Ku("toUpperCase"),Xh=uu(function(t,r){try{return n(t,X,r)}catch(n){return rc(n)?n:new fl(n)}}),np=gi(function(n,t){return r(t,function(t){t=no(t),Br(n,t,ch(n[t],n))}),n}),tp=Yu(),rp=Yu(!0),ep=uu(function(n,t){return function(r){return Ie(r,n,t)}}),up=uu(function(n,t){return function(r){return Ie(n,r,t)}}),ip=ti(c),op=ti(u),fp=ti(h),cp=ui(),ap=ui(!0),lp=ni(function(n,t){
+       return n+t},0),sp=fi("ceil"),hp=ni(function(n,t){return n/t},1),pp=fi("floor"),_p=ni(function(n,t){return n*t},1),vp=fi("round"),gp=ni(function(n,t){return n-t},0);return Z.after=If,Z.ary=Rf,Z.assign=zh,Z.assignIn=Eh,Z.assignInWith=Sh,Z.assignWith=Wh,Z.at=Lh,Z.before=zf,Z.bind=ch,Z.bindAll=np,Z.bindKey=ah,Z.castArray=Nf,Z.chain=Qo,Z.chunk=uo,Z.compact=io,Z.concat=oo,Z.cond=za,Z.conforms=Ea,Z.constant=Sa,Z.countBy=Xs,Z.create=Sc,Z.curry=Ef,Z.curryRight=Sf,Z.debounce=Wf,Z.defaults=Ch,Z.defaultsDeep=Uh,
+       Z.defer=lh,Z.delay=sh,Z.difference=Us,Z.differenceBy=Bs,Z.differenceWith=Ts,Z.drop=fo,Z.dropRight=co,Z.dropRightWhile=ao,Z.dropWhile=lo,Z.fill=so,Z.filter=lf,Z.flatMap=sf,Z.flatMapDeep=hf,Z.flatMapDepth=pf,Z.flatten=_o,Z.flattenDeep=vo,Z.flattenDepth=go,Z.flip=Lf,Z.flow=tp,Z.flowRight=rp,Z.fromPairs=yo,Z.functions=$c,Z.functionsIn=Dc,Z.groupBy=rh,Z.initial=mo,Z.intersection=$s,Z.intersectionBy=Ds,Z.intersectionWith=Ms,Z.invert=Bh,Z.invertBy=Th,Z.invokeMap=eh,Z.iteratee=Ca,Z.keyBy=uh,Z.keys=Pc,Z.keysIn=qc,
+       Z.map=yf,Z.mapKeys=Zc,Z.mapValues=Kc,Z.matches=Ua,Z.matchesProperty=Ba,Z.memoize=Cf,Z.merge=Dh,Z.mergeWith=Mh,Z.method=ep,Z.methodOf=up,Z.mixin=Ta,Z.negate=Uf,Z.nthArg=Ma,Z.omit=Fh,Z.omitBy=Vc,Z.once=Bf,Z.orderBy=df,Z.over=ip,Z.overArgs=hh,Z.overEvery=op,Z.overSome=fp,Z.partial=ph,Z.partialRight=_h,Z.partition=ih,Z.pick=Nh,Z.pickBy=Gc,Z.property=Fa,Z.propertyOf=Na,Z.pull=Fs,Z.pullAll=Oo,Z.pullAllBy=Io,Z.pullAllWith=Ro,Z.pullAt=Ns,Z.range=cp,Z.rangeRight=ap,Z.rearg=vh,Z.reject=mf,Z.remove=zo,Z.rest=Tf,
+       Z.reverse=Eo,Z.sampleSize=jf,Z.set=Jc,Z.setWith=Yc,Z.shuffle=Af,Z.slice=So,Z.sortBy=oh,Z.sortedUniq=$o,Z.sortedUniqBy=Do,Z.split=da,Z.spread=$f,Z.tail=Mo,Z.take=Fo,Z.takeRight=No,Z.takeRightWhile=Po,Z.takeWhile=qo,Z.tap=Xo,Z.throttle=Df,Z.thru=nf,Z.toArray=jc,Z.toPairs=Ph,Z.toPairsIn=qh,Z.toPath=Ha,Z.toPlainObject=Rc,Z.transform=Qc,Z.unary=Mf,Z.union=Ps,Z.unionBy=qs,Z.unionWith=Zs,Z.uniq=Zo,Z.uniqBy=Ko,Z.uniqWith=Vo,Z.unset=Xc,Z.unzip=Go,Z.unzipWith=Ho,Z.update=na,Z.updateWith=ta,Z.values=ra,Z.valuesIn=ea,
+       Z.without=Ks,Z.words=Ra,Z.wrap=Ff,Z.xor=Vs,Z.xorBy=Gs,Z.xorWith=Hs,Z.zip=Js,Z.zipObject=Jo,Z.zipObjectDeep=Yo,Z.zipWith=Ys,Z.entries=Ph,Z.entriesIn=qh,Z.extend=Eh,Z.extendWith=Sh,Ta(Z,Z),Z.add=lp,Z.attempt=Xh,Z.camelCase=Zh,Z.capitalize=fa,Z.ceil=sp,Z.clamp=ua,Z.clone=Pf,Z.cloneDeep=Zf,Z.cloneDeepWith=Kf,Z.cloneWith=qf,Z.conformsTo=Vf,Z.deburr=ca,Z.defaultTo=Wa,Z.divide=hp,Z.endsWith=aa,Z.eq=Gf,Z.escape=la,Z.escapeRegExp=sa,Z.every=af,Z.find=nh,Z.findIndex=ho,Z.findKey=Wc,Z.findLast=th,Z.findLastIndex=po,
+       Z.findLastKey=Lc,Z.floor=pp,Z.forEach=_f,Z.forEachRight=vf,Z.forIn=Cc,Z.forInRight=Uc,Z.forOwn=Bc,Z.forOwnRight=Tc,Z.get=Mc,Z.gt=gh,Z.gte=yh,Z.has=Fc,Z.hasIn=Nc,Z.head=bo,Z.identity=La,Z.includes=gf,Z.indexOf=wo,Z.inRange=ia,Z.invoke=$h,Z.isArguments=dh,Z.isArray=bh,Z.isArrayBuffer=wh,Z.isArrayLike=Hf,Z.isArrayLikeObject=Jf,Z.isBoolean=Yf,Z.isBuffer=mh,Z.isDate=xh,Z.isElement=Qf,Z.isEmpty=Xf,Z.isEqual=nc,Z.isEqualWith=tc,Z.isError=rc,Z.isFinite=ec,Z.isFunction=uc,Z.isInteger=ic,Z.isLength=oc,Z.isMap=jh,
+       Z.isMatch=ac,Z.isMatchWith=lc,Z.isNaN=sc,Z.isNative=hc,Z.isNil=_c,Z.isNull=pc,Z.isNumber=vc,Z.isObject=fc,Z.isObjectLike=cc,Z.isPlainObject=gc,Z.isRegExp=Ah,Z.isSafeInteger=yc,Z.isSet=kh,Z.isString=dc,Z.isSymbol=bc,Z.isTypedArray=Oh,Z.isUndefined=wc,Z.isWeakMap=mc,Z.isWeakSet=xc,Z.join=xo,Z.kebabCase=Kh,Z.last=jo,Z.lastIndexOf=Ao,Z.lowerCase=Vh,Z.lowerFirst=Gh,Z.lt=Ih,Z.lte=Rh,Z.max=Ya,Z.maxBy=Qa,Z.mean=Xa,Z.meanBy=nl,Z.min=tl,Z.minBy=rl,Z.stubArray=Pa,Z.stubFalse=qa,Z.stubObject=Za,Z.stubString=Ka,
+       Z.stubTrue=Va,Z.multiply=_p,Z.nth=ko,Z.noConflict=$a,Z.noop=Da,Z.now=fh,Z.pad=ha,Z.padEnd=pa,Z.padStart=_a,Z.parseInt=va,Z.random=oa,Z.reduce=bf,Z.reduceRight=wf,Z.repeat=ga,Z.replace=ya,Z.result=Hc,Z.round=vp,Z.runInContext=p,Z.sample=xf,Z.size=kf,Z.snakeCase=Hh,Z.some=Of,Z.sortedIndex=Wo,Z.sortedIndexBy=Lo,Z.sortedIndexOf=Co,Z.sortedLastIndex=Uo,Z.sortedLastIndexBy=Bo,Z.sortedLastIndexOf=To,Z.startCase=Jh,Z.startsWith=ba,Z.subtract=gp,Z.sum=el,Z.sumBy=ul,Z.template=wa,Z.times=Ga,Z.toFinite=Ac,Z.toInteger=kc,
+       Z.toLength=Oc,Z.toLower=ma,Z.toNumber=Ic,Z.toSafeInteger=zc,Z.toString=Ec,Z.toUpper=xa,Z.trim=ja,Z.trimEnd=Aa,Z.trimStart=ka,Z.truncate=Oa,Z.unescape=Ia,Z.uniqueId=Ja,Z.upperCase=Yh,Z.upperFirst=Qh,Z.each=_f,Z.eachRight=vf,Z.first=bo,Ta(Z,function(){var n={};return ue(Z,function(t,r){bl.call(Z.prototype,r)||(n[r]=t)}),n}(),{chain:!1}),Z.VERSION=nn,r(["bind","bindKey","curry","curryRight","partial","partialRight"],function(n){Z[n].placeholder=Z}),r(["drop","take"],function(n,t){Ct.prototype[n]=function(r){
+       r=r===X?1:Gl(kc(r),0);var e=this.__filtered__&&!t?new Ct(this):this.clone();return e.__filtered__?e.__takeCount__=Hl(r,e.__takeCount__):e.__views__.push({size:Hl(r,Un),type:n+(e.__dir__<0?"Right":"")}),e},Ct.prototype[n+"Right"]=function(t){return this.reverse()[n](t).reverse()}}),r(["filter","map","takeWhile"],function(n,t){var r=t+1,e=r==Rn||r==En;Ct.prototype[n]=function(n){var t=this.clone();return t.__iteratees__.push({iteratee:mi(n,3),type:r}),t.__filtered__=t.__filtered__||e,t}}),r(["head","last"],function(n,t){
+       var r="take"+(t?"Right":"");Ct.prototype[n]=function(){return this[r](1).value()[0]}}),r(["initial","tail"],function(n,t){var r="drop"+(t?"":"Right");Ct.prototype[n]=function(){return this.__filtered__?new Ct(this):this[r](1)}}),Ct.prototype.compact=function(){return this.filter(La)},Ct.prototype.find=function(n){return this.filter(n).head()},Ct.prototype.findLast=function(n){return this.reverse().find(n)},Ct.prototype.invokeMap=uu(function(n,t){return"function"==typeof n?new Ct(this):this.map(function(r){
+       return Ie(r,n,t)})}),Ct.prototype.reject=function(n){return this.filter(Uf(mi(n)))},Ct.prototype.slice=function(n,t){n=kc(n);var r=this;return r.__filtered__&&(n>0||t<0)?new Ct(r):(n<0?r=r.takeRight(-n):n&&(r=r.drop(n)),t!==X&&(t=kc(t),r=t<0?r.dropRight(-t):r.take(t-n)),r)},Ct.prototype.takeRightWhile=function(n){return this.reverse().takeWhile(n).reverse()},Ct.prototype.toArray=function(){return this.take(Un)},ue(Ct.prototype,function(n,t){var r=/^(?:filter|find|map|reject)|While$/.test(t),e=/^(?:head|last)$/.test(t),u=Z[e?"take"+("last"==t?"Right":""):t],i=e||/^find/.test(t);
+       u&&(Z.prototype[t]=function(){var t=this.__wrapped__,o=e?[1]:arguments,f=t instanceof Ct,c=o[0],l=f||bh(t),s=function(n){var t=u.apply(Z,a([n],o));return e&&h?t[0]:t};l&&r&&"function"==typeof c&&1!=c.length&&(f=l=!1);var h=this.__chain__,p=!!this.__actions__.length,_=i&&!h,v=f&&!p;if(!i&&l){t=v?t:new Ct(this);var g=n.apply(t,o);return g.__actions__.push({func:nf,args:[s],thisArg:X}),new Y(g,h)}return _&&v?n.apply(this,o):(g=this.thru(s),_?e?g.value()[0]:g.value():g)})}),r(["pop","push","shift","sort","splice","unshift"],function(n){
+       var t=_l[n],r=/^(?:push|sort|unshift)$/.test(n)?"tap":"thru",e=/^(?:pop|shift)$/.test(n);Z.prototype[n]=function(){var n=arguments;if(e&&!this.__chain__){var u=this.value();return t.apply(bh(u)?u:[],n)}return this[r](function(r){return t.apply(bh(r)?r:[],n)})}}),ue(Ct.prototype,function(n,t){var r=Z[t];if(r){var e=r.name+"";bl.call(fs,e)||(fs[e]=[]),fs[e].push({name:t,func:r})}}),fs[Qu(X,vn).name]=[{name:"wrapper",func:X}],Ct.prototype.clone=$t,Ct.prototype.reverse=Yt,Ct.prototype.value=Qt,Z.prototype.at=Qs,
+       Z.prototype.chain=tf,Z.prototype.commit=rf,Z.prototype.next=ef,Z.prototype.plant=of,Z.prototype.reverse=ff,Z.prototype.toJSON=Z.prototype.valueOf=Z.prototype.value=cf,Z.prototype.first=Z.prototype.head,Ul&&(Z.prototype[Ul]=uf),Z},be=de();"function"==typeof define&&"object"==typeof define.amd&&define.amd?(re._=be,define(function(){return be})):ue?((ue.exports=be)._=be,ee._=be):re._=be}).call(this);
+
+    </script>
+</head>
+<body>
+<div class="container">
+    <div id="search" class="form-group">
+        <form>
+            <div class="form-row" id="positive-selection-header-row">
+                <div class="form-group col-md-2" id="not-column">
+                    <label for="not_1" style="display: flex; justify-content: center; align-items: center; margin-bottom:10px;">Not</label>
+                </div>
+                <div class="form-group col-md-2" id="regex-column">
+                    <label for="filterInput">General RegExp</label>
+                </div>
+                <div class="form-group col-md-2" id="lodash-column">
+                    <label for="lodash"><a href="https://www.geeksforgeeks.org/lodash-_-matches-method/">Lodash Match String</a></label>
+                </div>
+                <div class="form-group col-md-2" id="namespace-column">
+                    <label for="namespace">Namespace</label>
+                </div>
+                <div class="form-group col-md-2" id="category-column">
+                    <label for="category">Category</label>
+                </div>
+            </div>
+            <small class="positive-filter-form form-text text-muted">For each line, if all inputs match an event it will be displayed.  If any line matches, an event will displayed.  Nots are evaluated last.  Without any filter, everything is displayed.</small>
+        </form>
+    </div>
+</div>
+
+<div id="chart"></div>
+
+<div class="modal" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resource</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <pre><code id="myModalContent"></code></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var eventIntervals = EVENT_INTERVAL_JSON_GOES_HERE
+</script>
+
+<script>
+    // Re-render the chart with input as a regexp. Timeout for event debouncing.
+    var clearAndRenderChart =  _.debounce(function(e) {
+        document.getElementById("chart").innerHTML = "";
+        renderChart();
+    }, 250);
+
+
+    notInputTemplate = ` + "`" + `
+                    <input class="positive-selection-fields form-control form-control-sm" type="checkbox" id="not_INPUT_NUMBER" style="margin-top: 16px; margin-bottom: 18px;">
+` + "`" + `
+    regexInputTemplate = ` + "`" + `
+                    <input class="positive-selection-fields form-control form-control-sm" type="text" id="filterInput_INPUT_NUMBER">
+` + "`" + `
+    lodashInputTemplate = ` + "`" + `
+                    <input class="positive-selection-fields form-control form-control-sm" type="text" id="lodash_INPUT_NUMBER">
+` + "`" + `
+    namespaceInputTemplate = ` + "`" + `
+                    <input class="positive-selection-fields form-control form-control-sm" type="text" id="namespace_INPUT_NUMBER">
+` + "`" + `
+    categoryInputTemplate = ` + "`" + `
+                    <select class="positive-selection-fields form-control form-control-sm" type="text" id="category_INPUT_NUMBER">
+                        <option value="" selected=true ></option>
+                        <option value="operator_unavailable">Operator Unavailable</option>
+                        <option value="operator_degraded">Operator Degraded</option>
+                        <option value="operator_progressing">Operator Progressing</option>
+                        <option value="pods">Pods</option>
+                        <option value="pod_logs">Pod Logs</option>
+                        <option value="alerts">Alerts</option>
+                        <option value="node_state">Node State</option>
+                        <option value="endpoint_availability">Endpoint Availability</option>
+                        <option value="e2e_test_passed">e2e Test Passed</option>
+                        <option value="e2e_test_failed">e2e Test Failed</option>
+                        <option value="e2e_test_flaked">e2e Test Flaked</option>
+                        <option value="interesting_events">Interesting Events</option>
+                    </select>
+` + "`" + `
+
+
+    numPositiveSelectors = 10
+    for (i = 0; i < numPositiveSelectors; i++){
+        $( "#not-column" ).append(notInputTemplate.replaceAll("INPUT_NUMBER", i))
+        $( "#regex-column" ).append(regexInputTemplate.replaceAll("INPUT_NUMBER", i))
+        $( "#lodash-column" ).append(lodashInputTemplate.replaceAll("INPUT_NUMBER", i))
+        $( "#namespace-column" ).append(namespaceInputTemplate.replaceAll("INPUT_NUMBER", i))
+        $( "#category-column" ).append(categoryInputTemplate.replaceAll("INPUT_NUMBER", i))
+    }
+
+    $( ".positive-selection-fields" ).on('input', clearAndRenderChart);
+
+
+    $(document).on("keydown", "form", function(event) {
+        return event.key != "Enter";
+    });
+
+    // Structure the locator data and then categorize the event
+    _.forEach(eventIntervals.items, function(eventInterval) {
+        eventInterval.locatorObj = {};
+        if (eventInterval.locator.startsWith("e2e-test/")) {
+            var value = eventInterval.locator.slice(eventInterval.locator.indexOf('/') + 1);
+            eventInterval.locatorObj.e2e_test = value;
+        }
+        else {
+            var locatorChunks = eventInterval.locator.split(" ");
+            _.forEach(locatorChunks, function(chunk){
+                var key = chunk.slice(0, chunk.indexOf('/'));
+                var value = chunk.slice(chunk.indexOf('/') + 1);
+                eventInterval.locatorObj[key] = value;
+            });
+        }
+
+        // TODO Wasn't clear if an event is only supposed to be in one category or if it can show up in multiple, with the existing implementation
+        // it can show up more than once if it passes more than one of the category checks. If it is meant to only be one category this
+        // could be something simpler like eventInterval.category = "operator-degraded" instead.
+        // Not hypthetical, found events that passed isPodLogs also passed isPods.
+
+        // Categorizing the events once on page load will save time on filtering later
+        eventInterval.categories = {};
+        var categorized = false;
+        eventInterval.categories.operator_unavailable = isOperatorAvailable(eventInterval);
+        eventInterval.categories.operator_progressing = isOperatorProgressing(eventInterval);
+        eventInterval.categories.operator_degraded = isOperatorDegraded(eventInterval);
+        eventInterval.categories.pods = isPod(eventInterval);
+        eventInterval.categories.pod_logs = isPodLog(eventInterval);
+        eventInterval.categories.interesting_events = isInterestingOrPathological(eventInterval);
+        eventInterval.categories.alerts = isAlert(eventInterval);
+        eventInterval.categories.node_state = isNodeState(eventInterval);
+        eventInterval.categories.e2e_test_failed = isE2EFailed(eventInterval);
+        eventInterval.categories.e2e_test_flaked = isE2EFlaked(eventInterval);
+        eventInterval.categories.e2e_test_passed = isE2EPassed(eventInterval);
+        eventInterval.categories.endpoint_availability = isEndpointConnectivity(eventInterval);
+        eventInterval.categories.uncategorized = !_.some(eventInterval.categories); // will save time later during filtering and re-rendering since we don't render any uncategorized events
+    });
+
+    function isOperatorAvailable(eventInterval) {
+        if (eventInterval.locator.startsWith("clusteroperator/") && eventInterval.message.includes("condition/Available") && eventInterval.message.includes("status/False")) {
+            return true
+        }
+        return false
+    }
+
+    function isOperatorDegraded(eventInterval) {
+        if (eventInterval.locator.startsWith("clusteroperator/") && eventInterval.message.includes("condition/Degraded") && eventInterval.message.includes("status/True")) {
+            return true
+        }
+        return false
+    }
+
+    function isOperatorProgressing(eventInterval) {
+        if (eventInterval.locator.startsWith("clusteroperator/") && eventInterval.message.includes("condition/Progressing") && eventInterval.message.includes("status/True")) {
+            return true
+        }
+        return false
+    }
+
+    function isPodLog(eventInterval) {
+        if (eventInterval.locator.includes("src/podLog")) {
+            return true
+        }
+        return false
+    }
+
+    function isInterestingOrPathological(eventInterval) {
+        if (eventInterval.message.includes("pathological/true") || (eventInterval.message.includes("interesting/true"))) {
+            return true
+        }
+        return false
+    }
+
+    function isPod(eventInterval) {
+        // this check was added to keep the repeating events out fo the "pods" section
+        const nTimes = new RegExp("\\(\\d+ times\\)")
+        if (eventInterval.message.match(nTimes)) {
+            return false
+        }
+        // this check was added to avoid the events from the "interesting-events" section from being
+        // duplicated in the "pods" section.
+        if (isInterestingOrPathological(eventInterval)) {
+            return false
+        }
+        if (eventInterval.locator.includes("pod/") && !eventInterval.locator.includes("alert/")) {
+            return true
+        }
+        return false
+    }
+
+    function isPodLifecycle(eventInterval) {
+        if (eventInterval.locator.includes("pod/") && (eventInterval.message.includes("reason/Created") || eventInterval.message.includes("reason/Scheduled") || eventInterval.message.includes("reason/GracefulDelete"))) {
+            return true
+        }
+        return false
+    }
+
+    function isContainerLifecycle(eventInterval) {
+        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/ContainerExit") || eventInterval.message.includes("reason/ContainerStart") || eventInterval.message.includes("reason/ContainerWait"))) {
+            return true
+        }
+        return false
+    }
+
+    function isContainerReadiness(eventInterval) {
+        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/Ready") || eventInterval.message.includes("reason/NotReady"))) {
+            return true
+        }
+        return false
+    }
+
+    function isKubeletReadinessCheck(eventInterval) {
+        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/ReadinessFailed") || eventInterval.message.includes("reason/ReadinessErrored"))) {
+            return true
+        }
+        return false
+    }
+
+    function isKubeletStartupProbeFailure(eventInterval) {
+        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/StartupProbeFailed"))) {
+            return true
+        }
+        return false
+    }
+
+    function isE2EFailed(eventInterval) {
+        if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Failed")) {
+            return true
+        }
+        return false
+    }
+
+    function isE2EFlaked(eventInterval) {
+        if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Flaked")) {
+            return true
+        }
+        return false
+    }
+
+    function isE2EPassed(eventInterval) {
+        if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Passed")) {
+            return true
+        }
+        return false
+    }
+
+    function isEndpointConnectivity(eventInterval) {
+        if (!eventInterval.message.includes("reason/DisruptionBegan") && !eventInterval.message.includes("reason/DisruptionSamplerOutageBegan")){
+            return false
+        }
+        if (eventInterval.locator.includes("disruption/")) {
+            return true
+        }
+        if (eventInterval.locator.startsWith("ns/e2e-k8s-service-lb-available")) {
+            return true
+        }
+        if (eventInterval.locator.includes(" route/")) {
+            return true
+        }
+
+        return false
+    }
+
+    function isNodeState(eventInterval) {
+        if (eventInterval.locator.startsWith("node/")) {
+            return (eventInterval.message.startsWith("reason/NodeUpdate ") || eventInterval.message.includes("node is not ready"))
+        }
+        return false
+    }
+
+    function isAlert(eventInterval) {
+        if (eventInterval.locator.startsWith("alert/")) {
+            return true
+        }
+        return false
+    }
+
+    function interestingEvents(item) {
+        if (item.message.includes("pathological/true")) {
+            if (item.message.includes("interesting/true")) {
+                return [item.locator, ` + "`" + ` (pathological known)` + "`" + `, "PathologicalKnown"];
+            } else {
+                return [item.locator, ` + "`" + ` (pathological new)` + "`" + `, "PathologicalNew"];
+            }
+        }
+        if (item.message.includes("interesting/true")) {
+            return [item.locator, ` + "`" + ` (interesting event)` + "`" + `, "InterestingEvent"];
+        }
+    }
+
+    function podLogs(item) {
+        if (item.level == "Warning") {
+            return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogWarning"];
+        }
+        if (item.level == "Error") {
+            return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogError"];
+        }
+        return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogInfo"];
+    }
+
+
+    const reReason = new RegExp("(^| )reason/([^ ]+)")
+    function podStateValue(item) {
+        let m = item.message.match(reReason);
+
+        if (m && isPodLifecycle(item)){
+            if (m[2] == "Created") {
+                return [item.locator, ` + "`" + ` (pod lifecycle)` + "`" + `, "PodCreated"];
+            }
+            if (m[2] == "Scheduled") {
+                return [item.locator, ` + "`" + ` (pod lifecycle)` + "`" + `, "PodScheduled"];
+            }
+            if (m[2] == "GracefulDelete") {
+                return [item.locator, ` + "`" + ` (pod lifecycle)` + "`" + `, "PodTerminating"];
+            }
+        }
+        if (m && isContainerLifecycle(item)){
+            if (m[2] == "ContainerWait") {
+                return [item.locator, ` + "`" + ` (container lifecycle)` + "`" + `, "ContainerWait"];
+            }
+            if (m[2] == "ContainerStart") {
+                return [item.locator, ` + "`" + ` (container lifecycle)` + "`" + `, "ContainerStart"];
+            }
+        }
+        if (m && isContainerReadiness(item)){
+            if (m[2] == "NotReady") {
+                return [item.locator, ` + "`" + ` (container readiness)` + "`" + `, "ContainerNotReady"];
+            }
+            if (m[2] == "Ready") {
+                return [item.locator, ` + "`" + ` (container readiness)` + "`" + `, "ContainerReady"];
+            }
+        }
+        if (m && isKubeletReadinessCheck(item)){
+            if (m[2] == "ReadinessFailed") {
+                return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessFailed"];
+            }
+            if (m[2] == "ReadinessErrored") {
+                return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessErrored"];
+            }
+        }
+        if (m && isKubeletStartupProbeFailure(item)){
+            return [item.locator, ` + "`" + ` (kubelet container startupProbe)` + "`" + `, "StartupProbeFailed"];
+        }
+
+        return [item.locator, "", "Unknown"];
+    }
+
+    const rePhase = new RegExp("(^| )phase/([^ ]+)")
+    function nodeStateValue(item) {
+        let roles = ""
+        let i = item.message.indexOf("roles/")
+        if (i != -1) {
+            roles = item.message.substring(i+"roles/".length)
+            let j = roles.indexOf(" ")
+            if (j != -1) {
+                roles = roles.substring(0, j)
+            }
+        }
+
+        if (item.message.includes("node is not ready")) {
+            return [item.locator, ` + "`" + ` (${roles},not ready)` + "`" + `, "NodeNotReady"]
+        }
+        let m = item.message.match(rePhase);
+        if (m && m[2] != "Update") {
+            return [item.locator, ` + "`" + ` (${roles},update phases)` + "`" + `, m[2]];
+        }
+        return [item.locator, ` + "`" + ` (${roles},updates)` + "`" + `, "Update"];
+    }
+
+    function alertSeverity(item) {
+        // the other types can be pending, so check pending first
+        let pendingIndex = item.message.indexOf("pending")
+        if (pendingIndex != -1) {
+            return [item.locator, "", "AlertPending"]
+        }
+
+        let infoIndex = item.message.indexOf("info")
+        if (infoIndex != -1) {
+            return [item.locator, "", "AlertInfo"]
+        }
+        let warningIndex = item.message.indexOf("warning")
+        if (warningIndex != -1) {
+            return [item.locator, "", "AlertWarning"]
+        }
+        let criticalIndex = item.message.indexOf("critical")
+        if (criticalIndex != -1) {
+            return [item.locator, "", "AlertCritical"]
+        }
+
+        // color as critical if nothing matches so that we notice that something has gone wrong
+        return [item.locator, "", "AlertCritical"]
+    }
+
+    function disruptionValue(item) {
+        // We classify these disruption samples with this message if it thinks
+        // it looks like a problem in the CI cluster running the tests, not the cluster under test.
+        // (typically DNS lookup problems)
+        let ciClusterDisruption = item.message.indexOf("likely a problem in cluster running tests")
+        if (ciClusterDisruption != -1) {
+            return [item.locator, "", "CIClusterDisruption"]
+        }
+        return [item.locator, "", "Disruption"]
+    }
+
+    function getDurationString(durationSeconds) {
+        const seconds = durationSeconds % 60;
+        const minutes = Math.floor(durationSeconds/60);
+        var durationString = "[";
+        if (minutes !== 0) {
+            durationString += minutes + "m"
+        }
+        durationString += seconds + "s]";
+        return durationString;
+    }
+
+    function defaultToolTip(item) {
+        return item.message + " " + getDurationString(((new Date(item.to)).getTime() - (new Date(item.from).getTime()))/1000);
+    }
+
+    function createTimelineData(timelineVal, timelineData, filteredEventIntervals, category) {
+        const data = {}
+        var now = new Date();
+        var earliest = filteredEventIntervals.reduce(
+            (accumulator, currentValue) => !currentValue.from || accumulator < new Date(currentValue.from) ? accumulator : new Date(currentValue.from),
+            new Date(now.getTime() + 1),
+        );
+        var latest = filteredEventIntervals.reduce(
+            (accumulator, currentValue) => !currentValue.to || accumulator > new Date(currentValue.to) ? accumulator : new Date(currentValue.to),
+            new Date(now.getTime() - 1),
+        );
+        filteredEventIntervals.forEach((item) => {
+            if (!item.categories[category]) {
+                return
+            }
+            var startDate = new Date(item.from)
+            if (!item.from) {
+                startDate = earliest;
+            }
+            var endDate = new Date(item.to)
+            if (!item.to) {
+                endDate = latest
+            }
+            let label = item.locator
+            let sub = ""
+            let val = timelineVal
+            if (typeof val === "function") {
+                [label, sub, val] = timelineVal(item)
+            }
+            let section = data[label]
+            if (!section) {
+                section = {};
+                data[label] = section
+            }
+            let ranges = section[sub]
+            if (!ranges) {
+                ranges = [];
+                section[sub] = ranges
+            }
+            ranges.push({
+                timeRange: [startDate, endDate],
+                val: val,
+                labelVal: defaultToolTip(item)
+            });
+        });
+        for (const label in data) {
+            const section = data[label]
+            for (const sub in section) {
+                const data = section[sub];
+                const totalDurationSeconds = data.reduce(
+                    (prev, curr) => prev + (curr.timeRange[1].getTime() - curr.timeRange[0].getTime())/1000,
+                    0);
+
+                timelineData.push({label: label + sub + " " + getDurationString(totalDurationSeconds), data: data})
+            }
+        }
+    }
+
+    function renderChart() {
+        var loc = window.location.href;
+
+        var isSet = false
+        var positiveSelectionRows = new Map();
+        var negativeSelectionRows = new Map();
+        for (let i = 0; i < numPositiveSelectors; i++){
+            var not = $("#not_"+i).is(":checked")
+            var category = $("#category_"+i).val()
+            var lodash = $("#lodash_"+i).val()
+            var ns = $("#namespace_"+i).val()
+            var regexStr = $("#filterInput_"+i).val()
+            var currIsSet = (regexStr.length != 0 || lodash.length != 0 ||  ns.length != 0 || category.length != 0)
+            console.log("value of not " + not)
+            if (not){
+                negativeSelectionRows.set(i,
+                    {
+                        isSet: currIsSet,
+                        lodash: lodash,
+                        regexStr: regexStr,
+                        regex: new RegExp(regexStr),
+                        namespace: ns,
+                        category: category
+                    })
+            } else{
+                positiveSelectionRows.set(i,
+                    {
+                        isSet: currIsSet,
+                        lodash: lodash,
+                        regexStr: regexStr,
+                        regex: new RegExp(regexStr),
+                        namespace: ns,
+                        category: category
+                    })
+            }
+
+            if (currIsSet) {
+                isSet = true
+            }
+        }
+
+        var filteredEvents;
+        // if none of the inputs are set, nothing to filter so don't waste time looping through everything
+        if (!isSet) {
+            filteredEvents = eventIntervals.items;
+        }
+        else {
+            // At least one of the inputs had a value, test any inputs that had values
+            // This currently does an OR operation of the input fields
+            filteredEvents = _.filter(eventIntervals.items, function(eventInterval) {
+                // Go ahead and filter out uncategorized events
+                if (eventInterval.categories.uncategorized) {
+                    return false;
+                }
+                var eventMatches = false;
+
+                for (let [key, positiveSelectionRow] of positiveSelectionRows) {
+                    if (positiveSelectionRow.isSet){
+                        matchRegex = positiveSelectionRow.regexStr.length == 0 || positiveSelectionRow.regex.test(eventInterval.locator)
+                        matchNS = positiveSelectionRow.namespace.length == 0 || eventInterval.locatorObj.ns && eventInterval.locatorObj.ns.includes(positiveSelectionRow.namespace)
+                        matchCategory = positiveSelectionRow.category.length == 0 || eventInterval.categories[positiveSelectionRow.category]
+                        matchLodash = true
+                        if (positiveSelectionRow.lodash.length > 0){
+                            lodashMatches = _.filter([eventInterval], _.matches(JSON.parse(positiveSelectionRow.lodash)));
+                            matchLodash = (lodashMatches.length > 0)
+                        }
+                        matchesPositive = matchRegex && matchLodash && matchNS && matchCategory
+
+                        if (matchesPositive) {
+                            console.log("matched positive " + negativeSelectionRows.size)
+                            var exclude = false
+                            for (let [key, negativeSelectionRow] of negativeSelectionRows) {
+                                if (negativeSelectionRow.isSet){
+                                    console.log("checking negative")
+                                    matchRegex = negativeSelectionRow.regexStr.length == 0 || negativeSelectionRow.regex.test(eventInterval.locator)
+                                    matchNS = negativeSelectionRow.namespace.length == 0 || eventInterval.locatorObj.ns && eventInterval.locatorObj.ns.includes(negativeSelectionRow.namespace)
+                                    matchCategory = negativeSelectionRow.category.length == 0 || eventInterval.categories[negativeSelectionRow.category]
+                                    matchLodash = true
+                                    if (negativeSelectionRow.lodash.length > 0){
+                                        lodashMatches = _.filter([eventInterval], _.matches(JSON.parse(negativeSelectionRow.lodash)));
+                                        matchLodash = (lodashMatches.length > 0)
+                                    }
+                                    matchesNegative = matchRegex && matchLodash && matchNS && matchCategory
+
+                                    if (matchesNegative) {
+                                        exclude = true
+                                        break
+                                    }
+                                }
+                            }
+
+                            if (exclude) {
+                            } else{
+                                eventMatches = true;
+                                break
+                            }
+                        }
+                    }
+                }
+
+                return eventMatches;
+            });
+        }
+
+        var timelineGroups = [];
+        timelineGroups.push({group: "operator-unavailable", data: []});
+        createTimelineData("OperatorUnavailable", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "operator_unavailable");
+
+        timelineGroups.push({group: "operator-degraded", data: []});
+        createTimelineData("OperatorDegraded", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "operator_degraded");
+
+        timelineGroups.push({group: "operator-progressing", data: []});
+        createTimelineData("OperatorProgressing", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "operator_progressing");
+
+        timelineGroups.push({group: "pods", data: []});
+        createTimelineData(podStateValue, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "pods");
+        timelineGroups[timelineGroups.length - 1].data.sort(function (e1 ,e2){
+            // I think I really want ordering by time in each of a few categories
+            return e1.label < e2.label ? -1 : e1.label > e2.label;
+        });
+
+        timelineGroups.push({group: "pod-logs", data: []});
+        createTimelineData(podLogs, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "pod_logs");
+
+        timelineGroups.push({group: "alerts", data: []});
+        createTimelineData(alertSeverity, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "alerts");
+        // leaving this for posterity so future me (or someone else) can try it, but I think ordering by name makes the
+        // patterns shown by timing hide and timing appears more relevant to my eyes.
+        // sort alerts alphabetically for display purposes, but keep the json itself ordered by time.
+        // timelineGroups[timelineGroups.length - 1].data.sort(function (e1 ,e2){
+        //     if (e1.label.includes("alert") && e2.label.includes("alert")) {
+        //         return e1.label < e2.label ? -1 : e1.label > e2.label;
+        //     }
+        //     return 0
+        // })
+
+        timelineGroups.push({group: "node-state", data: []});
+        createTimelineData(nodeStateValue, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "node_state");
+        timelineGroups[timelineGroups.length - 1].data.sort(function (e1 ,e2){
+            if (e1.label.includes("master") && e2.label.includes("worker")) {
+                return -1
+            }
+            return 0
+        });
+
+        timelineGroups.push({group: "endpoint-availability", data: []});
+        createTimelineData(disruptionValue, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "endpoint_availability");
+
+        timelineGroups.push({group: "e2e-test-failed", data: []});
+        createTimelineData("Failed", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "e2e_test_failed");
+
+        timelineGroups.push({group: "e2e-test-flaked", data: []});
+        createTimelineData("Flaked", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "e2e_test_flaked");
+
+        timelineGroups.push({group: "e2e-test-passed", data: []});
+        createTimelineData("Passed", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "e2e_test_passed");
+
+        timelineGroups.push({group: "interesting-events", data: []});
+        createTimelineData(interestingEvents, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "interesting_events");
+
+        var segmentFunc = function (segment) {
+            // for (var i in data) {
+            //     if (data[i].group == segment.group) {
+            //         var groupdata = data[i].data
+            //         for (var j in groupdata) {
+            //             if (groupdata[j].label == segment.label) {
+            //                 labeldata = groupdata[j].data
+            //                 for (var k in labeldata) {
+            //                     var startDate = new Date(labeldata[k].timeRange[0])
+            //                     var endDate = new Date(labeldata[k].timeRange[1])
+            //                     if (startDate.getTime() == segment.timeRange[0].getTime() &&
+            //                         endDate.getTime() == segment.timeRange[1].getTime()) {
+            //                         $('#myModalContent').text(labeldata[k].extended)
+            //                         $('#myModal').modal()
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+        }
+
+        const el = document.querySelector('#chart');
+        const myChart = TimelinesChart();
+        var ordinalScale = d3.scaleOrdinal()
+            .domain([
+                'InterestingEvent', 'PathologicalKnown', "PathologicalNew", // interesting and pathological events
+                'AlertInfo', 'AlertPending', 'AlertWarning', 'AlertCritical', // alerts
+                'OperatorUnavailable', 'OperatorDegraded', 'OperatorProgressing', // operators
+                'Update', 'Drain', 'Reboot', 'OperatingSystemUpdate', 'NodeNotReady', // nodes
+                'Passed', 'Skipped', 'Flaked', 'Failed',  // tests
+                'PodCreated', 'PodScheduled', 'PodTerminating','ContainerWait', 'ContainerStart', 'ContainerNotReady', 'ContainerReady', 'ContainerReadinessFailed', 'ContainerReadinessErrored',  'StartupProbeFailed', // pods
+                'CIClusterDisruption', 'Disruption', // disruption
+                'Degraded', 'Upgradeable', 'False', 'Unknown',
+                'PodLogInfo', 'PodLogWarning', 'PodLogError'])
+            .range([
+                '#6E6E6E', '#0000ff', '#d0312d', // pathological and interesting events
+                '#fada5e','#fada5e','#ffa500', '#d0312d',  // alerts
+                '#d0312d', '#ffa500', '#fada5e', // operators
+                '#1e7bd9', '#4294e6', '#6aaef2', '#96cbff', '#fada5e', // nodes
+                '#3cb043', '#ceba76', '#ffa500', '#d0312d', // tests
+                '#96cbff', '#1e7bd9', '#ffa500', '#ca8dfd', '#9300ff', '#fada5e','#3cb043', '#d0312d', '#d0312d', '#c90076', // pods
+                '#96cbff', '#d0312d', // disruption
+                '#b65049', '#32b8b6', '#ffffff', '#bbbbbb',
+                '#96cbff', '#fada5e', '#d0312d']);
+        myChart.
+        data(timelineGroups).
+        useUtc(true).
+        zQualitative(true).
+        enableAnimations(false).
+        leftMargin(240).
+        rightMargin(1550).
+        maxLineHeight(20).
+        maxHeight(10000).
+        zColorScale(ordinalScale).
+        zoomX([new Date(eventIntervals.items[0].from), new Date(eventIntervals.items[eventIntervals.items.length - 1].to)]).
+        onSegmentClick(segmentFunc)
+        (el);
+
+
+        // force a minimum width for smaller devices (which otherwise get an unusable display)
+        setTimeout(() => { if (myChart.width() < 3100) { myChart.width(3100) }}, 1)
+    }
+
+    renderChart(null)
+</script>
+</body>
+</html>
+`)
+
+func e2echartNonSpyglassE2eChartTemplateHtmlBytes() ([]byte, error) {
+	return _e2echartNonSpyglassE2eChartTemplateHtml, nil
+}
+
+func e2echartNonSpyglassE2eChartTemplateHtml() (*asset, error) {
+	bytes, err := e2echartNonSpyglassE2eChartTemplateHtmlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "e2echart/non-spyglass-e2e-chart-template.html", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -49794,6 +54112,7 @@ var _bindata = map[string]func() (*asset, error){
 	"examples/quickstarts/rails-postgresql-persistent.json":                                                  examplesQuickstartsRailsPostgresqlPersistentJson,
 	"examples/quickstarts/rails-postgresql.json":                                                             examplesQuickstartsRailsPostgresqlJson,
 	"examples/hello-openshift/Dockerfile":                                                                    examplesHelloOpenshiftDockerfile,
+	"examples/hello-openshift/go.mod":                                                                        examplesHelloOpenshiftGoMod,
 	"examples/hello-openshift/hello-pod.json":                                                                examplesHelloOpenshiftHelloPodJson,
 	"examples/hello-openshift/hello-project.json":                                                            examplesHelloOpenshiftHelloProjectJson,
 	"examples/jenkins/application-template.json":                                                             examplesJenkinsApplicationTemplateJson,
@@ -49942,6 +54261,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/builds/webhook/github/testdata/pushevent.json":                                   testExtendedTestdataBuildsWebhookGithubTestdataPusheventJson,
 	"test/extended/testdata/builds/webhook/gitlab/testdata/pushevent-not-master-branch.json":                 testExtendedTestdataBuildsWebhookGitlabTestdataPusheventNotMasterBranchJson,
 	"test/extended/testdata/builds/webhook/gitlab/testdata/pushevent.json":                                   testExtendedTestdataBuildsWebhookGitlabTestdataPusheventJson,
+	"test/extended/testdata/cli/test-release-image-references.json":                                          testExtendedTestdataCliTestReleaseImageReferencesJson,
 	"test/extended/testdata/cluster/master-vert.yaml":                                                        testExtendedTestdataClusterMasterVertYaml,
 	"test/extended/testdata/cluster/quickstarts/cakephp-mysql.json":                                          testExtendedTestdataClusterQuickstartsCakephpMysqlJson,
 	"test/extended/testdata/cluster/quickstarts/dancer-mysql.json":                                           testExtendedTestdataClusterQuickstartsDancerMysqlJson,
@@ -49975,11 +54295,9 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/cmd/test/cmd/quota.sh":                                                           testExtendedTestdataCmdTestCmdQuotaSh,
 	"test/extended/testdata/cmd/test/cmd/secrets.sh":                                                         testExtendedTestdataCmdTestCmdSecretsSh,
 	"test/extended/testdata/cmd/test/cmd/set-data.sh":                                                        testExtendedTestdataCmdTestCmdSetDataSh,
-	"test/extended/testdata/cmd/test/cmd/set-image.sh":                                                       testExtendedTestdataCmdTestCmdSetImageSh,
 	"test/extended/testdata/cmd/test/cmd/set-liveness-probe.sh":                                              testExtendedTestdataCmdTestCmdSetLivenessProbeSh,
 	"test/extended/testdata/cmd/test/cmd/setbuildhook.sh":                                                    testExtendedTestdataCmdTestCmdSetbuildhookSh,
 	"test/extended/testdata/cmd/test/cmd/setbuildsecret.sh":                                                  testExtendedTestdataCmdTestCmdSetbuildsecretSh,
-	"test/extended/testdata/cmd/test/cmd/templates.sh":                                                       testExtendedTestdataCmdTestCmdTemplatesSh,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateDockerbuildJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-stibuild.json":                        testExtendedTestdataCmdTestCmdTestdataApplicationTemplateStibuildJson,
@@ -50103,6 +54421,8 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl":                                         testExtendedTestdataImage_ecosystemPerlHotdeployIndexPl,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm":                                   testExtendedTestdataImage_ecosystemPerlHotdeployLibMyTestPm,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json":                                        testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson,
+	"test/extended/testdata/kernel/rt-tests-environment.yaml":                                                testExtendedTestdataKernelRtTestsEnvironmentYaml,
+	"test/extended/testdata/kernel/rt-tests-pod.yaml":                                                        testExtendedTestdataKernelRtTestsPodYaml,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt":                                            testExtendedTestdataLdapGroupsyncAdBlacklist_ldapTxt,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_openshift.txt":                                       testExtendedTestdataLdapGroupsyncAdBlacklist_openshiftTxt,
 	"test/extended/testdata/ldap/groupsync/ad/ldapgroupuids.txt":                                             testExtendedTestdataLdapGroupsyncAdLdapgroupuidsTxt,
@@ -50177,7 +54497,9 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/mixed-api-versions.yaml":                                                         testExtendedTestdataMixedApiVersionsYaml,
 	"test/extended/testdata/multi-namespace-pipeline.yaml":                                                   testExtendedTestdataMultiNamespacePipelineYaml,
 	"test/extended/testdata/multi-namespace-template.yaml":                                                   testExtendedTestdataMultiNamespaceTemplateYaml,
+	"test/extended/testdata/multinetpolicy/deny-ingress-pod-a.yml":                                           testExtendedTestdataMultinetpolicyDenyIngressPodAYml,
 	"test/extended/testdata/net-attach-defs/bridge-nad.yml":                                                  testExtendedTestdataNetAttachDefsBridgeNadYml,
+	"test/extended/testdata/net-attach-defs/macvlan-nad.yml":                                                 testExtendedTestdataNetAttachDefsMacvlanNadYml,
 	"test/extended/testdata/net-attach-defs/whereabouts-nad.yml":                                             testExtendedTestdataNetAttachDefsWhereaboutsNadYml,
 	"test/extended/testdata/net-attach-defs/whereabouts-race-awake.yml":                                      testExtendedTestdataNetAttachDefsWhereaboutsRaceAwakeYml,
 	"test/extended/testdata/net-attach-defs/whereabouts-race-sleepy.yml":                                     testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml,
@@ -50187,6 +54509,9 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/oauthserver/oauth-sa.yaml":                                                       testExtendedTestdataOauthserverOauthSaYaml,
 	"test/extended/testdata/olm/operatorgroup.yaml":                                                          testExtendedTestdataOlmOperatorgroupYaml,
 	"test/extended/testdata/olm/subscription.yaml":                                                           testExtendedTestdataOlmSubscriptionYaml,
+	"test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml":                               testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml,
+	"test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml":                          testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml,
+	"test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml":                   testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml,
 	"test/extended/testdata/releases/payload-1/etcd-operator/image-references":                               testExtendedTestdataReleasesPayload1EtcdOperatorImageReferences,
 	"test/extended/testdata/releases/payload-1/etcd-operator/manifest.yaml":                                  testExtendedTestdataReleasesPayload1EtcdOperatorManifestYaml,
 	"test/extended/testdata/releases/payload-1/image-registry/10_image-registry_crd.yaml":                    testExtendedTestdataReleasesPayload1ImageRegistry10_imageRegistry_crdYaml,
@@ -50212,6 +54537,10 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/service-serving-cert/nginx-serving-cert.conf":                                    testExtendedTestdataServiceServingCertNginxServingCertConf,
 	"test/extended/testdata/signer-buildconfig.yaml":                                                         testExtendedTestdataSignerBuildconfigYaml,
 	"test/extended/testdata/stable-busybox.yaml":                                                             testExtendedTestdataStableBusyboxYaml,
+	"test/extended/testdata/storage/inline/csi-sharedresourcerole.yaml":                                      testExtendedTestdataStorageInlineCsiSharedresourceroleYaml,
+	"test/extended/testdata/storage/inline/csi-sharedresourcerolebinding.yaml":                               testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml,
+	"test/extended/testdata/storage/inline/csi-sharedsecret.yaml":                                            testExtendedTestdataStorageInlineCsiSharedsecretYaml,
+	"test/extended/testdata/storage/inline/secret.yaml":                                                      testExtendedTestdataStorageInlineSecretYaml,
 	"test/extended/testdata/templates/crunchydata-pod.json":                                                  testExtendedTestdataTemplatesCrunchydataPodJson,
 	"test/extended/testdata/templates/guestbook.json":                                                        testExtendedTestdataTemplatesGuestbookJson,
 	"test/extended/testdata/templates/guestbook_list.json":                                                   testExtendedTestdataTemplatesGuestbook_listJson,
@@ -50227,6 +54556,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/test-secret.json":                                                                testExtendedTestdataTestSecretJson,
 	"test/extended/testdata/verifyservice-pipeline-template.yaml":                                            testExtendedTestdataVerifyservicePipelineTemplateYaml,
 	"e2echart/e2e-chart-template.html":                                                                       e2echartE2eChartTemplateHtml,
+	"e2echart/non-spyglass-e2e-chart-template.html":                                                          e2echartNonSpyglassE2eChartTemplateHtml,
 	"e2echart/test-risk-analysis.html":                                                                       e2echartTestRiskAnalysisHtml,
 }
 
@@ -50274,8 +54604,9 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"e2echart": {nil, map[string]*bintree{
-		"e2e-chart-template.html": {e2echartE2eChartTemplateHtml, map[string]*bintree{}},
-		"test-risk-analysis.html": {e2echartTestRiskAnalysisHtml, map[string]*bintree{}},
+		"e2e-chart-template.html":              {e2echartE2eChartTemplateHtml, map[string]*bintree{}},
+		"non-spyglass-e2e-chart-template.html": {e2echartNonSpyglassE2eChartTemplateHtml, map[string]*bintree{}},
+		"test-risk-analysis.html":              {e2echartTestRiskAnalysisHtml, map[string]*bintree{}},
 	}},
 	"examples": {nil, map[string]*bintree{
 		"db-templates": {nil, map[string]*bintree{
@@ -50290,6 +54621,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		}},
 		"hello-openshift": {nil, map[string]*bintree{
 			"Dockerfile":         {examplesHelloOpenshiftDockerfile, map[string]*bintree{}},
+			"go.mod":             {examplesHelloOpenshiftGoMod, map[string]*bintree{}},
 			"hello-pod.json":     {examplesHelloOpenshiftHelloPodJson, map[string]*bintree{}},
 			"hello-project.json": {examplesHelloOpenshiftHelloProjectJson, map[string]*bintree{}},
 		}},
@@ -50548,6 +54880,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						}},
 					}},
 				}},
+				"cli": {nil, map[string]*bintree{
+					"test-release-image-references.json": {testExtendedTestdataCliTestReleaseImageReferencesJson, map[string]*bintree{}},
+				}},
 				"cluster": {nil, map[string]*bintree{
 					"master-vert.yaml": {testExtendedTestdataClusterMasterVertYaml, map[string]*bintree{}},
 					"quickstarts": {nil, map[string]*bintree{
@@ -50598,11 +54933,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"quota.sh":              {testExtendedTestdataCmdTestCmdQuotaSh, map[string]*bintree{}},
 							"secrets.sh":            {testExtendedTestdataCmdTestCmdSecretsSh, map[string]*bintree{}},
 							"set-data.sh":           {testExtendedTestdataCmdTestCmdSetDataSh, map[string]*bintree{}},
-							"set-image.sh":          {testExtendedTestdataCmdTestCmdSetImageSh, map[string]*bintree{}},
 							"set-liveness-probe.sh": {testExtendedTestdataCmdTestCmdSetLivenessProbeSh, map[string]*bintree{}},
 							"setbuildhook.sh":       {testExtendedTestdataCmdTestCmdSetbuildhookSh, map[string]*bintree{}},
 							"setbuildsecret.sh":     {testExtendedTestdataCmdTestCmdSetbuildsecretSh, map[string]*bintree{}},
-							"templates.sh":          {testExtendedTestdataCmdTestCmdTemplatesSh, map[string]*bintree{}},
 							"testdata": {nil, map[string]*bintree{
 								"application-template-custombuild.json": {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson, map[string]*bintree{}},
 								"application-template-dockerbuild.json": {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateDockerbuildJson, map[string]*bintree{}},
@@ -50795,6 +55128,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"perl.json": {testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson, map[string]*bintree{}},
 					}},
 				}},
+				"kernel": {nil, map[string]*bintree{
+					"rt-tests-environment.yaml": {testExtendedTestdataKernelRtTestsEnvironmentYaml, map[string]*bintree{}},
+					"rt-tests-pod.yaml":         {testExtendedTestdataKernelRtTestsPodYaml, map[string]*bintree{}},
+				}},
 				"ldap": {nil, map[string]*bintree{
 					"groupsync": {nil, map[string]*bintree{
 						"ad": {nil, map[string]*bintree{
@@ -50887,8 +55224,12 @@ var _bintree = &bintree{nil, map[string]*bintree{
 				"mixed-api-versions.yaml":       {testExtendedTestdataMixedApiVersionsYaml, map[string]*bintree{}},
 				"multi-namespace-pipeline.yaml": {testExtendedTestdataMultiNamespacePipelineYaml, map[string]*bintree{}},
 				"multi-namespace-template.yaml": {testExtendedTestdataMultiNamespaceTemplateYaml, map[string]*bintree{}},
+				"multinetpolicy": {nil, map[string]*bintree{
+					"deny-ingress-pod-a.yml": {testExtendedTestdataMultinetpolicyDenyIngressPodAYml, map[string]*bintree{}},
+				}},
 				"net-attach-defs": {nil, map[string]*bintree{
 					"bridge-nad.yml":              {testExtendedTestdataNetAttachDefsBridgeNadYml, map[string]*bintree{}},
+					"macvlan-nad.yml":             {testExtendedTestdataNetAttachDefsMacvlanNadYml, map[string]*bintree{}},
 					"whereabouts-nad.yml":         {testExtendedTestdataNetAttachDefsWhereaboutsNadYml, map[string]*bintree{}},
 					"whereabouts-race-awake.yml":  {testExtendedTestdataNetAttachDefsWhereaboutsRaceAwakeYml, map[string]*bintree{}},
 					"whereabouts-race-sleepy.yml": {testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml, map[string]*bintree{}},
@@ -50902,6 +55243,11 @@ var _bintree = &bintree{nil, map[string]*bintree{
 				"olm": {nil, map[string]*bintree{
 					"operatorgroup.yaml": {testExtendedTestdataOlmOperatorgroupYaml, map[string]*bintree{}},
 					"subscription.yaml":  {testExtendedTestdataOlmSubscriptionYaml, map[string]*bintree{}},
+				}},
+				"poddisruptionbudgets": {nil, map[string]*bintree{
+					"always-allow-policy-pdb.yaml":             {testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml, map[string]*bintree{}},
+					"if-healthy-budget-policy-pdb.yaml":        {testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml, map[string]*bintree{}},
+					"nginx-with-delayed-ready-deployment.yaml": {testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml, map[string]*bintree{}},
 				}},
 				"releases": {nil, map[string]*bintree{
 					"payload-1": {nil, map[string]*bintree{
@@ -50948,6 +55294,14 @@ var _bintree = &bintree{nil, map[string]*bintree{
 				}},
 				"signer-buildconfig.yaml": {testExtendedTestdataSignerBuildconfigYaml, map[string]*bintree{}},
 				"stable-busybox.yaml":     {testExtendedTestdataStableBusyboxYaml, map[string]*bintree{}},
+				"storage": {nil, map[string]*bintree{
+					"inline": {nil, map[string]*bintree{
+						"csi-sharedresourcerole.yaml":        {testExtendedTestdataStorageInlineCsiSharedresourceroleYaml, map[string]*bintree{}},
+						"csi-sharedresourcerolebinding.yaml": {testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml, map[string]*bintree{}},
+						"csi-sharedsecret.yaml":              {testExtendedTestdataStorageInlineCsiSharedsecretYaml, map[string]*bintree{}},
+						"secret.yaml":                        {testExtendedTestdataStorageInlineSecretYaml, map[string]*bintree{}},
+					}},
+				}},
 				"templates": {nil, map[string]*bintree{
 					"crunchydata-pod.json":              {testExtendedTestdataTemplatesCrunchydataPodJson, map[string]*bintree{}},
 					"guestbook.json":                    {testExtendedTestdataTemplatesGuestbookJson, map[string]*bintree{}},

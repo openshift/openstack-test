@@ -38,8 +38,6 @@ type PluginNameMapper interface {
 type PluginManager struct {
 	PluginNameMapper
 	featureGate featuregate.FeatureGate
-
-	useADCPluginManagerFeatureGates bool
 }
 
 // NewPluginManager returns a new PluginManager instance
@@ -83,19 +81,21 @@ func (pm PluginManager) IsMigrationCompleteForPlugin(pluginName string) bool {
 	}
 }
 
-func (pm PluginManager) isMigrationEnabledForPlugin(pluginName string) bool {
+// IsMigrationEnabledForPlugin indicates whether CSI migration has been enabled
+// for a particular storage plugin
+func (pm PluginManager) IsMigrationEnabledForPlugin(pluginName string) bool {
 	// CSIMigration feature should be enabled along with the plugin-specific one
 	// CSIMigration has been GA. It will be enabled by default.
 
 	switch pluginName {
 	case csilibplugins.AWSEBSInTreePluginName:
-		return pm.featureGate.Enabled(features.CSIMigrationAWS)
+		return true
 	case csilibplugins.GCEPDInTreePluginName:
 		return pm.featureGate.Enabled(features.CSIMigrationGCE)
 	case csilibplugins.AzureFileInTreePluginName:
 		return pm.featureGate.Enabled(features.CSIMigrationAzureFile)
 	case csilibplugins.AzureDiskInTreePluginName:
-		return pm.featureGate.Enabled(features.CSIMigrationAzureDisk)
+		return true
 	case csilibplugins.CinderInTreePluginName:
 		return true
 	case csilibplugins.VSphereInTreePluginName:

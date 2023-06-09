@@ -16,16 +16,23 @@ import (
 var reHasSig = regexp.MustCompile(`\[sig-[\w-]+\]`)
 
 // Run generates tests annotations for the targeted package.
-func Run() {
+// It accepts testMaps which defines labeling rules and filter
+// function to remove elements based on test name and their labels.
+func Run(testMaps map[string][]string, filter func(name string) bool) {
+	var errors []string
+
 	if len(os.Args) != 2 && len(os.Args) != 3 {
 		fmt.Fprintf(os.Stderr, "error: requires exactly one argument\n")
 		os.Exit(1)
 	}
 	filename := os.Args[len(os.Args)-1]
 
-	generator := newGenerator()
+	generator := newGenerator(testMaps)
 	ginkgo.GetSuite().BuildTree()
 	ginkgo.GetSuite().WalkTests(generator.generateRename)
+	if len(generator.errors) > 0 {
+		errors = append(errors, generator.errors...)
+	}
 
 	renamer := newRenamerFromGenerated(generator.output)
 	// generated file has a map[string]string in the following format:
@@ -49,7 +56,6 @@ func Run() {
 	// Upstream sigs map to teams (if you have representation on that sig, you
 	//   own those tests in origin)
 	// Downstream sigs: sig-imageregistry, sig-builds, sig-devex
-	var errors []string
 	for from, to := range generator.output {
 		if !reHasSig.MatchString(from) && !reHasSig.MatchString(to) {
 			errors = append(errors, fmt.Sprintf("all tests must define a [sig-XXXX] tag or have a rule %q", from))
@@ -64,8 +70,11 @@ func Run() {
 	}
 
 	var pairs []string
-	for from, to := range generator.output {
-		pairs = append(pairs, fmt.Sprintf("%q:\n%q,", from, to))
+	for testName, labels := range generator.output {
+		if filter(fmt.Sprintf("%s%s", testName, labels)) {
+			continue
+		}
+		pairs = append(pairs, fmt.Sprintf("%q:\n%q,", testName, labels))
 	}
 	sort.Strings(pairs)
 	contents := fmt.Sprintf(`
@@ -101,12 +110,12 @@ func init() {
 	}
 }
 
-func newGenerator() *ginkgoTestRenamer {
+func newGenerator(testMaps map[string][]string) *ginkgoTestRenamer {
 	var allLabels []string
 	matches := make(map[string]*regexp.Regexp)
 	stringMatches := make(map[string][]string)
 
-	for label, items := range TestMaps {
+	for label, items := range testMaps {
 		sort.Strings(items)
 		allLabels = append(allLabels, label)
 		var remain []string
@@ -131,8 +140,7 @@ func newGenerator() *ginkgoTestRenamer {
 		stringMatches:       stringMatches,
 		matches:             matches,
 		excludedTestsFilter: excludedTestsFilter,
-
-		output: make(map[string]string),
+		output:              make(map[string]string),
 	}
 }
 
@@ -158,6 +166,8 @@ type ginkgoTestRenamer struct {
 	output map[string]string
 	// map of unmatched test names
 	missing map[string]struct{}
+	// a list of errors to display
+	errors []string
 }
 
 func (r *ginkgoTestRenamer) updateNodeText(name string, node types.TestSpec) {
@@ -226,6 +236,9 @@ func (r *ginkgoTestRenamer) generateRename(name string, node types.TestSpec) {
 		newLabels += " [Suite:k8s]"
 	}
 
+	if err := checkBalancedBrackets(newName); err != nil {
+		r.errors = append(r.errors, err.Error())
+	}
 	r.output[name] = newLabels
 }
 
@@ -238,4 +251,40 @@ func (r *ginkgoTestRenamer) generateRename(name string, node types.TestSpec) {
 // go.mod:       "k8s.io/kubernetes@0.18.4/test/e2e"
 func isGoModulePath(packagePath, module, modulePath string) bool {
 	return regexp.MustCompile(fmt.Sprintf(`\b%s(@[^/]*|)/%s\b`, regexp.QuoteMeta(module), regexp.QuoteMeta(modulePath))).MatchString(packagePath)
+}
+
+// checkBalancedBrackets ensures that square brackets are balanced in generated test
+// names. If they are not, it returns an error with the name of the test and a guess
+// where the unmatched bracket(s) are.
+func checkBalancedBrackets(testName string) error {
+	stack := make([]int, 0, len(testName))
+	for idx, c := range testName {
+		if c == '[' {
+			stack = append(stack, idx)
+		} else if c == ']' {
+			// case when we start off with a ]
+			if len(stack) == 0 {
+				stack = append(stack, idx)
+			} else {
+				stack = stack[:len(stack)-1]
+			}
+		}
+	}
+
+	if len(stack) > 0 {
+		msg := testName + "\n"
+	outerLoop:
+		for i := 0; i < len(testName); i++ {
+			for _, loc := range stack {
+				if i == loc {
+					msg += "^"
+					continue outerLoop
+				}
+			}
+			msg += " "
+		}
+		return fmt.Errorf("unbalanced brackets in test name:\n%s\n", msg)
+	}
+
+	return nil
 }

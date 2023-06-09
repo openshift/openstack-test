@@ -13,16 +13,6 @@ import (
 	g "github.com/onsi/ginkgo/v2"
 	configv1 "github.com/openshift/api/config/v1"
 	configv1client "github.com/openshift/client-go/config/clientset/versioned"
-	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
-	"github.com/openshift/origin/test/e2e/upgrade/adminack"
-	"github.com/openshift/origin/test/e2e/upgrade/alert"
-	"github.com/openshift/origin/test/e2e/upgrade/dns"
-	"github.com/openshift/origin/test/e2e/upgrade/manifestdelete"
-	"github.com/openshift/origin/test/e2e/upgrade/service"
-	"github.com/openshift/origin/test/extended/prometheus"
-	"github.com/openshift/origin/test/extended/util/disruption"
-	"github.com/openshift/origin/test/extended/util/disruption/imageregistry"
-	"github.com/openshift/origin/test/extended/util/operator"
 	"github.com/pborman/uuid"
 	v1 "k8s.io/api/core/v1"
 	eventsv1 "k8s.io/api/events/v1"
@@ -36,10 +26,23 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
+	"k8s.io/klog/v2"
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/kubernetes/test/e2e/upgrades"
 	"k8s.io/kubernetes/test/e2e/upgrades/apps"
 	"k8s.io/kubernetes/test/e2e/upgrades/node"
+
+	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
+	"github.com/openshift/origin/test/e2e/upgrade/adminack"
+	"github.com/openshift/origin/test/e2e/upgrade/alert"
+	"github.com/openshift/origin/test/e2e/upgrade/dns"
+	"github.com/openshift/origin/test/e2e/upgrade/manifestdelete"
+	"github.com/openshift/origin/test/e2e/upgrade/service"
+	"github.com/openshift/origin/test/extended/prometheus"
+	"github.com/openshift/origin/test/extended/util/disruption"
+	"github.com/openshift/origin/test/extended/util/disruption/frontends"
+	"github.com/openshift/origin/test/extended/util/disruption/imageregistry"
+	"github.com/openshift/origin/test/extended/util/operator"
 )
 
 // NoTests is an empty list of tests
@@ -140,6 +143,14 @@ var _ = g.Describe("[sig-arch][Feature:ClusterUpgrade]", func() {
 	f := framework.NewDefaultFramework("cluster-upgrade")
 	f.SkipNamespaceCreation = true
 
+	g.It("Cluster should be upgradeable before beginning upgrade [Early][Suite:upgrade]", func() {
+		config, err := framework.LoadConfig()
+		framework.ExpectNoError(err)
+		client := configv1client.NewForConfigOrDie(config)
+		err = checkUpgradeability(client)
+		framework.ExpectNoError(err)
+	})
+
 	g.It("Cluster should remain functional during upgrade [Disruptive]", func() {
 		config, err := framework.LoadConfig()
 		framework.ExpectNoError(err)
@@ -157,10 +168,20 @@ var _ = g.Describe("[sig-arch][Feature:ClusterUpgrade]", func() {
 			upgradeTests,
 			func() {
 				for i := 1; i < len(upgCtx.Versions); i++ {
-					framework.ExpectNoError(clusterUpgrade(f, client, dynamicClient, config, upgCtx.Versions[i]), fmt.Sprintf("during upgrade to %s", upgCtx.Versions[i].NodeImage))
+					framework.ExpectNoError(
+						clusterUpgrade(f, client, dynamicClient, config, upgCtx.Versions[i]),
+						fmt.Sprintf("during upgrade to %s", upgCtx.Versions[i].NodeImage))
 				}
 			},
 		)
+	})
+
+	g.It("Cluster should be upgradeable after finishing upgrade [Late][Suite:upgrade]", func() {
+		config, err := framework.LoadConfig()
+		framework.ExpectNoError(err)
+		client := configv1client.NewForConfigOrDie(config)
+		err = checkUpgradeability(client)
+		framework.ExpectNoError(err)
 	})
 })
 
@@ -180,6 +201,41 @@ func latestCompleted(history []configv1.UpdateHistory) (*configv1.Update, bool) 
 	return nil, false
 }
 
+func checkUpgradeability(c configv1client.Interface) error {
+	cv, err := c.ConfigV1().ClusterVersions().Get(context.Background(), "version", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	if cv.Spec.DesiredUpdate != nil {
+		if cv.Status.ObservedGeneration != cv.Generation {
+			return fmt.Errorf("cluster may be in the process of upgrading")
+		}
+		if len(cv.Status.History) > 0 && cv.Status.History[0].State != configv1.CompletedUpdate {
+			return fmt.Errorf("cluster is still being upgraded: %s", versionString(*cv.Spec.DesiredUpdate))
+		}
+	}
+	if c := findCondition(cv.Status.Conditions, configv1.OperatorDegraded); c != nil && c.Status == configv1.ConditionTrue {
+		return fmt.Errorf("cluster is reporting a degraded condition: %v", c.Message)
+	}
+	if c := findCondition(cv.Status.Conditions, configv1.ClusterStatusConditionType("Failing")); c != nil && c.Status == configv1.ConditionTrue {
+		return fmt.Errorf("cluster is reporting a failing condition: %v", c.Message)
+	}
+	if c := findCondition(cv.Status.Conditions, configv1.OperatorProgressing); c == nil || c.Status != configv1.ConditionFalse {
+		return fmt.Errorf("cluster must be reporting a progressing=false condition: %#v", c)
+	}
+	if c := findCondition(cv.Status.Conditions, configv1.OperatorAvailable); c == nil || c.Status != configv1.ConditionTrue {
+		return fmt.Errorf("cluster must be reporting an available=true condition: %#v", c)
+	}
+
+	_, ok := latestCompleted(cv.Status.History)
+	if !ok {
+		return fmt.Errorf("cluster has not rolled out a version yet")
+	}
+
+	return nil
+}
+
 func getUpgradeContext(c configv1client.Interface, upgradeImage string) (*upgrades.UpgradeContext, error) {
 	if upgradeImage == "[pause]" {
 		return &upgrades.UpgradeContext{
@@ -190,37 +246,16 @@ func getUpgradeContext(c configv1client.Interface, upgradeImage string) (*upgrad
 		}, nil
 	}
 
+	if err := checkUpgradeability(c); err != nil {
+		return nil, err
+	}
+
 	cv, err := c.ConfigV1().ClusterVersions().Get(context.Background(), "version", metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	if cv.Spec.DesiredUpdate != nil {
-		if cv.Status.ObservedGeneration != cv.Generation {
-			return nil, fmt.Errorf("cluster may be in the process of upgrading, cannot start a test")
-		}
-		if len(cv.Status.History) > 0 && cv.Status.History[0].State != configv1.CompletedUpdate {
-			return nil, fmt.Errorf("cluster is already being upgraded, cannot start a test: %s", versionString(*cv.Spec.DesiredUpdate))
-		}
-	}
-	if c := findCondition(cv.Status.Conditions, configv1.OperatorDegraded); c != nil && c.Status == configv1.ConditionTrue {
-		return nil, fmt.Errorf("cluster is reporting a degraded condition, cannot continue: %v", c.Message)
-	}
-	if c := findCondition(cv.Status.Conditions, configv1.ClusterStatusConditionType("Failing")); c != nil && c.Status == configv1.ConditionTrue {
-		return nil, fmt.Errorf("cluster is reporting a failing condition, cannot continue: %v", c.Message)
-	}
-	if c := findCondition(cv.Status.Conditions, configv1.OperatorProgressing); c == nil || c.Status != configv1.ConditionFalse {
-		return nil, fmt.Errorf("cluster must be reporting a progressing=false condition, cannot continue: %#v", c)
-	}
-	if c := findCondition(cv.Status.Conditions, configv1.OperatorAvailable); c == nil || c.Status != configv1.ConditionTrue {
-		return nil, fmt.Errorf("cluster must be reporting an available=true condition, cannot continue: %#v", c)
-	}
-
-	current, ok := latestCompleted(cv.Status.History)
-	if !ok {
-		return nil, fmt.Errorf("cluster has not rolled out a version yet, must wait until that is complete")
-	}
-
+	current, _ := latestCompleted(cv.Status.History)
 	curVer, err := version.ParseSemantic(current.Version)
 	if err != nil {
 		return nil, err
@@ -293,6 +328,24 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 	fmt.Fprintf(os.Stderr, "\n\n\n")
 	defer func() { fmt.Fprintf(os.Stderr, "\n\n\n") }()
 
+	// ignore the failure here, we don't want this to fail the upgrade, we want it to fail this particular test.
+	_ = disruption.RecordJUnit(
+		f,
+		"[bz-Routing] console is not available via ingress",
+		func() (error, bool) {
+			pollErr := wait.PollImmediateWithContext(context.TODO(), 1*time.Second, 10*time.Minute, func(ctx context.Context) (bool, error) {
+				consoleSampler := frontends.CreateConsoleRouteAvailableWithNewConnections()
+				_, err := consoleSampler.CheckConnection(ctx)
+				if err == nil {
+					return true, nil
+				}
+				klog.Errorf("ingress is down: %v", err)
+				return false, nil
+			})
+			return pollErr, false
+		},
+	)
+
 	if version.NodeImage == "[pause]" {
 		framework.Logf("Running a dry-run upgrade test")
 		wait.PollImmediate(10*time.Second, 5*time.Minute, func() (bool, error) {
@@ -306,10 +359,40 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 
 	kubeClient := kubernetes.NewForConfigOrDie(config)
 
-	// this is very long.  We should update the clusteroperator junit to give us a duration.
-	maximumDuration := 150 * time.Minute
-	baseDurationToSoftFailure := 75 * time.Minute
-	durationToSoftFailure := baseDurationToSoftFailure
+	const (
+		OVN = "OVNKubernetes"
+		SDN = "OpenShiftSDN"
+	)
+
+	// Maximum duration is our maximum polling interval for upgrades
+	var maximumDuration = 150 * time.Minute
+
+	// defaultUpgradeLimit is the default for platforms not listed below.
+	var defaultUpgradeLimit = 100.0 * time.Minute
+
+	// The durations below were calculated from the P99 gathered from sippy's record of upgrade
+	// durations[1]. We are only considering the tuple of platform and network type, not upgrade
+	// type.  Micro upgrades are volatile because you may only get 1 or 2 components, or you may
+	// get them all. The worst case of a micro upgrade is where all components get updated including
+	// OS, which would be the same as a minor upgrade, so we use the minor threshold for all values.
+	//
+	// [1] https://raw.githubusercontent.com/openshift/sippy/f546164c18db9a4a930cc64f43bcdcd35509e767/scripts/sql/test-duration-stats.sql
+	type limitLocator struct {
+		Platform configv1.PlatformType
+		Network  string
+	}
+	var upgradeDurationLimits = map[limitLocator]float64{
+		{configv1.AWSPlatformType, OVN}:       85,
+		{configv1.AWSPlatformType, SDN}:       95,
+		{configv1.AzurePlatformType, OVN}:     100,
+		{configv1.AzurePlatformType, SDN}:     100,
+		{configv1.GCPPlatformType, OVN}:       90,
+		{configv1.GCPPlatformType, SDN}:       75,
+		{configv1.BareMetalPlatformType, OVN}: 80,
+		{configv1.BareMetalPlatformType, SDN}: 70,
+		{configv1.VSpherePlatformType, OVN}:   95,
+		{configv1.VSpherePlatformType, SDN}:   70,
+	}
 
 	infra, err := c.ConfigV1().Infrastructures().Get(context.Background(), "cluster", metav1.GetOptions{})
 	framework.ExpectNoError(err)
@@ -318,32 +401,29 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 	platformType, err := platformidentification.GetJobType(context.TODO(), config)
 	framework.ExpectNoError(err)
 
+	// Default upgrade duration limit is our limit for configurations other than those
+	// listed below.
+	upgradeDurationLimit := defaultUpgradeLimit
 	switch {
-	case infra.Status.PlatformStatus.Type == configv1.AWSPlatformType:
-		// due to https://bugzilla.redhat.com/show_bug.cgi?id=1943804 upgrades take ~12 extra minutes on AWS
-		// and see commit d69db34a816f3ce8a9ab567621d145c5cd2d257f which notes that some AWS upgrades can
-		// take close to 105 minutes total (75 is base duration, so adding 30 more if it's AWS)
-		durationToSoftFailure = baseDurationToSoftFailure + (30 * time.Minute)
-
-	case network.Status.NetworkType == "OVNKubernetes":
-		// if the cluster is on AWS we've already bumped the timeout enough, but if not we need to check if
-		// the CNI is OVN and increase our timeout for that
-		// For now, deploying with OVN is expected to take longer. on average, ~15m longer
-		// some extra context to this increase which links to a jira showing which operators take longer:
-		// compared to OpenShiftSDN:
-		//   https://bugzilla.redhat.com/show_bug.cgi?id=1942164
-		durationToSoftFailure = baseDurationToSoftFailure + (15 * time.Minute)
-
 	case platformType.Architecture == platformidentification.ArchitectureS390:
-		// s390 appears to take nearly 100 minutes to upgrade. Not sure why, but let's keep it from getting worse and provide meaningful
-		// test results.
-		durationToSoftFailure = 100 * time.Minute
-
+		// s390 historically takes slightly under 100 minutes to upgrade. In 4.14, this regressed
+		// to be 30 minutes longer. https://issues.redhat.com/browse/OCPBUGS-13059
+		upgradeDurationLimit = 130 * time.Minute
 	case platformType.Architecture == platformidentification.ArchitecturePPC64le:
-		// ppc appears to take just over 75 minutes. Not sure why, but let's keep it from getting worse and provide meaningful
-		// test results.
-		durationToSoftFailure = 80 * time.Minute
+		// ppc appears to take just over 75 minutes, let's lock it into that value, so we don't
+		// get worse.
+		upgradeDurationLimit = 80 * time.Minute
+	case infra.Status.InfrastructureTopology == configv1.SingleReplicaTopologyMode:
+		// single node takes a lot less since there's one node
+		upgradeDurationLimit = 65 * time.Minute
+	default:
+		locator := limitLocator{infra.Status.PlatformStatus.Type, network.Status.NetworkType}
+
+		if limit, ok := upgradeDurationLimits[locator]; ok {
+			upgradeDurationLimit = time.Duration(limit) * time.Minute
+		}
 	}
+	framework.Logf("Upgrade time limit set as %0.2f", upgradeDurationLimit.Minutes())
 
 	framework.Logf("Starting upgrade to version=%s image=%s attempt=%s", version.Version.String(), version.NodeImage, uid)
 	recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeStarted", fmt.Sprintf("version/%s image/%s", version.Version.String(), version.NodeImage), false)
@@ -356,11 +436,11 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 	case upgradeAbortAtRandom:
 		abortAt = int(rand.Int31n(100) + 1)
 		maximumDuration *= 2
-		durationToSoftFailure *= 2
+		upgradeDurationLimit *= 2
 		framework.Logf("Upgrade will be aborted and the cluster will roll back to the current version after %d%% of operators have upgraded (picked randomly)", abortAt)
 	default:
 		maximumDuration *= 2
-		durationToSoftFailure *= 2
+		upgradeDurationLimit *= 2
 		framework.Logf("Upgrade will be aborted and the cluster will roll back to the current version after %d%% of operators have upgraded", upgradeAbortAt)
 	}
 
@@ -516,10 +596,10 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 			// record whether the cluster was fast or slow upgrading.  Don't fail the test, we still want signal on the actual tests themselves.
 			upgradeEnded := time.Now()
 			upgradeDuration := upgradeEnded.Sub(upgradeStarted)
-			testCaseName := fmt.Sprintf("[sig-cluster-lifecycle] cluster upgrade should complete in %0.2f minutes", durationToSoftFailure.Minutes())
+			testCaseName := fmt.Sprintf("[sig-cluster-lifecycle] cluster upgrade should complete in a reasonable time")
 			failure := ""
-			if upgradeDuration > durationToSoftFailure {
-				failure = fmt.Sprintf("%s to %s took too long: %0.2f minutes", action, versionString(desired), upgradeDuration.Minutes())
+			if upgradeDuration > upgradeDurationLimit {
+				failure = fmt.Sprintf("%s to %s took too long: %0.2f minutes (for this platform/network, it should be less than %0.2f minutes)", action, versionString(desired), upgradeDuration.Minutes(), upgradeDurationLimit.Minutes())
 			}
 			disruption.RecordJUnitResult(f, testCaseName, upgradeDuration, failure)
 

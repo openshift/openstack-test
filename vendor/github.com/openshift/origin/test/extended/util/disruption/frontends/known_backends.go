@@ -7,6 +7,7 @@ import (
 	routeclient "github.com/openshift/client-go/route/clientset/versioned"
 	"github.com/openshift/origin/pkg/monitor"
 	"github.com/openshift/origin/pkg/monitor/backenddisruption"
+	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	exutil "github.com/openshift/origin/test/extended/util"
 	"github.com/openshift/origin/test/extended/util/cluster"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -56,7 +57,7 @@ func StartAllIngressMonitoring(ctx context.Context, m monitor.Recorder, clusterC
 		// it has it by default. This is to catch possible future scenarios where we upgrade 4.11 no cap to 4.12 no cap.
 		if !cluster.KnowsCapability(clusterVersion, "Console") ||
 			cluster.HasCapability(clusterVersion, "Console") {
-			if err := createConsoleRouteAvailableWithNewConnections().StartEndpointMonitoring(ctx, m, nil); err != nil {
+			if err := CreateConsoleRouteAvailableWithNewConnections().StartEndpointMonitoring(ctx, m, nil); err != nil {
 				return err
 			}
 			if err := createConsoleRouteAvailableWithConnectionReuse().StartEndpointMonitoring(ctx, m, nil); err != nil {
@@ -92,7 +93,7 @@ func createOAuthRouteAvailableWithNewConnections() *backenddisruption.BackendSam
 		oauthRouteName,
 		"ingress-to-oauth-server",
 		"/healthz",
-		backenddisruption.NewConnectionType).
+		monitorapi.NewConnectionType).
 		WithExpectedBody("ok")
 }
 
@@ -105,11 +106,11 @@ func createOAuthRouteAvailableWithConnectionReuse() *backenddisruption.BackendSa
 		oauthRouteName,
 		"ingress-to-oauth-server",
 		"/healthz",
-		backenddisruption.ReusedConnectionType).
+		monitorapi.ReusedConnectionType).
 		WithExpectedBody("ok")
 }
 
-func createConsoleRouteAvailableWithNewConnections() *backenddisruption.BackendSampler {
+func CreateConsoleRouteAvailableWithNewConnections() *backenddisruption.BackendSampler {
 	restConfig, err := monitor.GetMonitorRESTConfig()
 	utilruntime.Must(err)
 	return backenddisruption.NewRouteBackend(
@@ -118,7 +119,7 @@ func createConsoleRouteAvailableWithNewConnections() *backenddisruption.BackendS
 		"console",
 		"ingress-to-console",
 		"/healthz",
-		backenddisruption.NewConnectionType).
+		monitorapi.NewConnectionType).
 		WithExpectedBodyRegex(`(Red Hat OpenShift|OKD)`)
 }
 
@@ -131,6 +132,6 @@ func createConsoleRouteAvailableWithConnectionReuse() *backenddisruption.Backend
 		"console",
 		"ingress-to-console",
 		"/healthz",
-		backenddisruption.ReusedConnectionType).
+		monitorapi.ReusedConnectionType).
 		WithExpectedBodyRegex(`(Red Hat OpenShift|OKD)`)
 }

@@ -13,8 +13,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -54,6 +52,7 @@ import (
 	"k8s.io/client-go/util/flowcontrol"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/kubernetes/test/e2e/framework"
+	e2edebug "k8s.io/kubernetes/test/e2e/framework/debug"
 	admissionapi "k8s.io/pod-security-admission/api"
 
 	oauthv1 "github.com/openshift/api/oauth/v1"
@@ -78,23 +77,31 @@ import (
 // CLI provides function to call the OpenShift CLI and Kubernetes and OpenShift
 // clients.
 type CLI struct {
-	execPath           string
-	verb               string
-	configPath         string
-	adminConfigPath    string
-	token              string
-	username           string
-	globalArgs         []string
-	commandArgs        []string
-	finalArgs          []string
-	namespacesToDelete []string
-	stdin              *bytes.Buffer
-	stdout             io.Writer
-	stderr             io.Writer
-	verbose            bool
-	withoutNamespace   bool
-	kubeFramework      *framework.Framework
+	execPath        string
+	verb            string
+	configPath      string
+	adminConfigPath string
 
+	// directory with static manifests, each file is expected to be a single manifest
+	// manifest files can be stored under directory tree
+	staticConfigManifestDir string
+
+	token                string
+	username             string
+	globalArgs           []string
+	commandArgs          []string
+	finalArgs            []string
+	namespacesToDelete   []string
+	stdin                *bytes.Buffer
+	stdout               io.Writer
+	stderr               io.Writer
+	verbose              bool
+	withoutNamespace     bool
+	withManagedNamespace bool
+	kubeFramework        *framework.Framework
+
+	// read from a static manifest directory (set through STATIC_CONFIG_MANIFEST_DIR env)
+	configObjects     []runtime.Object
 	resourcesToDelete []resourceRef
 }
 
@@ -108,11 +115,15 @@ type resourceRef struct {
 // framework. It can be called inside of a Ginkgo .It() function.
 func NewCLIWithFramework(kubeFramework *framework.Framework) *CLI {
 	cli := &CLI{
-		kubeFramework:   kubeFramework,
-		username:        "admin",
-		execPath:        "oc",
-		adminConfigPath: KubeConfigPath(),
+		kubeFramework:           kubeFramework,
+		username:                "admin",
+		execPath:                "oc",
+		adminConfigPath:         KubeConfigPath(),
+		staticConfigManifestDir: StaticConfigManifestDir(),
 	}
+	// Called only once (assumed the objects will never get modified)
+	// TODO: run in every BeforeEach
+	cli.setupStaticConfigsFromManifests()
 	return cli
 }
 
@@ -141,44 +152,50 @@ func NewCLI(project string) *CLI {
 func NewCLIWithoutNamespace(project string) *CLI {
 	cli := &CLI{
 		kubeFramework: &framework.Framework{
-			SkipNamespaceCreation:    true,
-			BaseName:                 project,
-			AddonResourceConstraints: make(map[string]framework.ResourceConstraint),
+			SkipNamespaceCreation: true,
+			BaseName:              project,
 			Options: framework.Options{
 				ClientQPS:   20,
 				ClientBurst: 50,
 			},
-			Timeouts: framework.NewTimeoutContextWithDefaults(),
+			Timeouts: framework.NewTimeoutContext(),
 		},
-		username:         "admin",
-		execPath:         "oc",
-		adminConfigPath:  KubeConfigPath(),
-		withoutNamespace: true,
+		username:                "admin",
+		execPath:                "oc",
+		adminConfigPath:         KubeConfigPath(),
+		staticConfigManifestDir: StaticConfigManifestDir(),
+		withoutNamespace:        true,
 	}
-	g.AfterEach(cli.TeardownProject)
-	g.AfterEach(cli.kubeFramework.AfterEach)
 	g.BeforeEach(cli.kubeFramework.BeforeEach)
+
+	// Called only once (assumed the objects will never get modified)
+	cli.setupStaticConfigsFromManifests()
+
+	// we can't use k8s initialization method to inject these into framework.NewFrameworkExtensions
+	// because we need to have an instance of CLI, so we're rely on the less optimal ginkgo.AfterEach
+	// in case where this method fails, framework cleans up the entire namespace so we should be
+	// safe on that front, still.
+	g.AfterEach(cli.TeardownProject)
 	return cli
 }
 
 // NewHypershiftManagementCLI returns a CLI that interacts with the Hypershift management cluster.
-// Contrary to a normal CLI it does not perform any cleanup and it must not be used for any mutating
-// operations. Also contrary to a normal CLI it must be constructed inside an `It` block. This is
+// Contrary to a normal CLI it does not perform any cleanup, and it must not be used for any mutating
+// operations. Also, contrary to a normal CLI it must be constructed inside an `It` block. This is
 // because retrieval of hypershift management cluster config can fail, but assertions are only
-// allowed inside an It block. AfterEach and BeforeEach are not allowed there though.
+// allowed inside an `It` block. `AfterEach` and `BeforeEach` are not allowed there though.
 func NewHypershiftManagementCLI(project string) *CLI {
 	kubeconfig, _, err := GetHypershiftManagementClusterConfigAndNamespace()
 	o.Expect(err).NotTo(o.HaveOccurred())
 	return &CLI{
 		kubeFramework: &framework.Framework{
-			SkipNamespaceCreation:    true,
-			BaseName:                 project,
-			AddonResourceConstraints: make(map[string]framework.ResourceConstraint),
+			SkipNamespaceCreation: true,
+			BaseName:              project,
 			Options: framework.Options{
 				ClientQPS:   20,
 				ClientBurst: 50,
 			},
-			Timeouts: framework.NewTimeoutContextWithDefaults(),
+			Timeouts: framework.NewTimeoutContext(),
 		},
 		username:         "admin",
 		execPath:         "oc",
@@ -241,6 +258,12 @@ func (c *CLI) SetNamespace(ns string) *CLI {
 	return c
 }
 
+// SetManagedNamespace appends the managed workload partitioning annotations to namespace on creation
+func (c *CLI) SetManagedNamespace() *CLI {
+	c.withManagedNamespace = true
+	return c
+}
+
 // WithoutNamespace instructs the command should be invoked without adding --namespace parameter
 func (c CLI) WithoutNamespace() *CLI {
 	c.withoutNamespace = true
@@ -292,6 +315,9 @@ func (c *CLI) setupProject() string {
 	o.Expect(err).NotTo(o.HaveOccurred())
 
 	err = c.setupNamespacePodSecurity(newNamespace)
+	o.Expect(err).NotTo(o.HaveOccurred())
+
+	err = c.setupNamespaceManagedAnnotation(newNamespace)
 	o.Expect(err).NotTo(o.HaveOccurred())
 
 	// Wait for SAs and default dockercfg Secret to be injected
@@ -395,6 +421,9 @@ func (c *CLI) setupNamespace() string {
 	o.Expect(err).NotTo(o.HaveOccurred())
 
 	err = c.setupNamespacePodSecurity(newNamespace)
+	o.Expect(err).NotTo(o.HaveOccurred())
+
+	err = c.setupNamespaceManagedAnnotation(newNamespace)
 	o.Expect(err).NotTo(o.HaveOccurred())
 
 	WaitForNamespaceSCCAnnotations(c.KubeClient().CoreV1(), newNamespace)
@@ -505,6 +534,21 @@ func (c *CLI) setupUserConfig(username string) (*rest.Config, error) {
 	return userClientConfig, nil
 }
 
+func (c *CLI) setupNamespaceManagedAnnotation(ns string) error {
+	if !c.withManagedNamespace {
+		return nil
+	}
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		ns, err := c.AdminKubeClient().CoreV1().Namespaces().Get(context.Background(), ns, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		ns.Annotations["workload.openshift.io/allowed"] = "management"
+		_, err = c.AdminKubeClient().CoreV1().Namespaces().Update(context.Background(), ns, metav1.UpdateOptions{})
+		return err
+	})
+}
+
 func (c *CLI) setupNamespacePodSecurity(ns string) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		// once permissions are settled the underlying namespace must have been created.
@@ -534,7 +578,7 @@ func (c *CLI) setupNamespacePodSecurity(ns string) error {
 // TeardownProject removes projects created by this test.
 func (c *CLI) TeardownProject() {
 	if len(c.Namespace()) > 0 && g.CurrentSpecReport().Failed() && framework.TestContext.DumpLogsOnFailure {
-		framework.DumpAllNamespaceInfo(c.kubeFramework.ClientSet, c.Namespace())
+		e2edebug.DumpAllNamespaceInfo(context.TODO(), c.kubeFramework.ClientSet, c.Namespace())
 	}
 
 	if len(c.configPath) > 0 {
@@ -558,6 +602,16 @@ func (c *CLI) RESTMapper() meta.RESTMapper {
 	ret := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(c.KubeClient().Discovery()))
 	ret.Reset()
 	return ret
+}
+
+func (c *CLI) setupStaticConfigsFromManifests() {
+	if len(c.staticConfigManifestDir) > 0 {
+		err, objects := collectConfigManifestsFromDir(c.staticConfigManifestDir)
+		if err != nil {
+			panic(err)
+		}
+		c.configObjects = objects
+	}
 }
 
 func (c *CLI) AppsClient() appsv1client.Interface {
@@ -605,7 +659,10 @@ func (c *CLI) AdminBuildClient() buildv1client.Interface {
 }
 
 func (c *CLI) AdminConfigClient() configv1client.Interface {
-	return configv1client.NewForConfigOrDie(c.AdminConfig())
+	return NewConfigClientShim(
+		configv1client.NewForConfigOrDie(c.AdminConfig()),
+		c.configObjects,
+	)
 }
 
 func (c *CLI) AdminImageClient() imagev1client.Interface {
@@ -1021,29 +1078,8 @@ func GetClientConfig(kubeConfigFile string) (*rest.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	clientConfig.WrapTransport = defaultClientTransport
 
 	return clientConfig, nil
-}
-
-// defaultClientTransport sets defaults for a client Transport that are suitable
-// for use by infrastructure components.
-func defaultClientTransport(rt http.RoundTripper) http.RoundTripper {
-	transport, ok := rt.(*http.Transport)
-	if !ok {
-		return rt
-	}
-
-	// TODO: this should be configured by the caller, not in this method.
-	dialer := &net.Dialer{
-		Timeout:   30 * time.Second,
-		KeepAlive: 30 * time.Second,
-	}
-	transport.Dial = dialer.Dial
-	// Hold open more internal idle connections
-	// TODO: this should be configured by the caller, not in this method.
-	transport.MaxIdleConnsPerHost = 100
-	return transport
 }
 
 const (

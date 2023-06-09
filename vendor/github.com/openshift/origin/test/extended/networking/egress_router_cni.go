@@ -34,7 +34,7 @@ const (
 )
 
 var _ = g.Describe("[sig-network][Feature:EgressRouterCNI]", func() {
-	oc := exutil.NewCLIWithPodSecurityLevel(egressRouterCNIE2E, admissionapi.LevelPrivileged)
+	oc := exutil.NewCLIWithPodSecurityLevel(egressRouterCNIE2E, admissionapi.LevelPrivileged).SetManagedNamespace()
 
 	g.It("should ensure ipv4 egressrouter cni resources are created [apigroup:operator.openshift.io]", func() {
 		doEgressRouterCNI(egressRouterCNIV4Manifest, oc, ipv4MatchPattern)
@@ -75,7 +75,7 @@ func doEgressRouterCNI(manifest string, oc *exutil.CLI, matchString string) erro
 
 	g.By("getting a pod from deployment in running state")
 	o.Eventually(func() error {
-		podList, err = e2edeployment.GetPodsForDeployment(f.ClientSet, deployment)
+		podList, err = e2edeployment.GetPodsForDeployment(context.TODO(), f.ClientSet, deployment)
 		return err
 	}, timeOut, interval).Should(o.Succeed())
 

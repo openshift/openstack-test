@@ -8,7 +8,7 @@ import (
 	"time"
 
 	v1 "github.com/openshift/api/config/v1"
-	"github.com/openshift/origin/pkg/monitor/backenddisruption"
+	"github.com/openshift/origin/pkg/duplicateevents"
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -257,7 +257,7 @@ func getPodDeletionTime(events monitorapi.Intervals, podLocator string) *time.Ti
 // bug is tracked here: https://bugzilla.redhat.com/show_bug.cgi?id=2057181
 func testOvnNodeReadinessProbe(events monitorapi.Intervals, kubeClientConfig *rest.Config) []*junitapi.JUnitTestCase {
 	const testName = "[bz-networking] ovnkube-node readiness probe should not fail repeatedly"
-	regExp := regexp.MustCompile(ovnReadinessRegExpStr)
+	regExp := regexp.MustCompile(duplicateevents.OvnReadinessRegExpStr)
 	var tests []*junitapi.JUnitTestCase
 	var failureOutput string
 	msgMap := map[string]bool{}
@@ -267,10 +267,10 @@ func testOvnNodeReadinessProbe(events monitorapi.Intervals, kubeClientConfig *re
 			if _, ok := msgMap[msg]; !ok {
 				msgMap[msg] = true
 				eventDisplayMessage, times := getTimesAnEventHappened(msg)
-				if times > duplicateEventThreshold {
+				if times > duplicateevents.DuplicateEventThreshold {
 					// if the readiness probe failure for this pod happened AFTER the initial installation was complete,
 					// then this probe failure is unexpected and should fail.
-					isDuringInstall, err := isEventDuringInstallation(event, kubeClientConfig, regExp)
+					isDuringInstall, err := duplicateevents.IsEventDuringInstallation(event, kubeClientConfig, regExp)
 					if err != nil {
 						failureOutput += fmt.Sprintf("error [%v] happened when processing event [%s]\n", err, eventDisplayMessage)
 					} else if !isDuringInstall {
@@ -323,7 +323,7 @@ func testNoDNSLookupErrorsInDisruptionSamplers(events monitorapi.Intervals) []*j
 
 	failures := []string{}
 	for _, event := range events {
-		if reason := monitorapi.ReasonFrom(event.Message); reason != backenddisruption.DisruptionSamplerOutageBeganEventReason {
+		if reason := monitorapi.ReasonFrom(event.Message); reason != monitorapi.DisruptionSamplerOutageBeganEventReason {
 			continue
 		}
 		failures = append(failures, event.From.Format(time.RFC3339)+" "+event.Message)
@@ -351,4 +351,41 @@ func testNoDNSLookupErrorsInDisruptionSamplers(events monitorapi.Intervals) []*j
 			Name: testName,
 		},
 	}
+}
+
+func testNoOVSVswitchdUnreasonablyLongPollIntervals(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-network] ovs-vswitchd should not log any unreasonably long poll intervals to system journal"
+	success := &junitapi.JUnitTestCase{Name: testName}
+
+	var failures []string
+	var maxDur time.Duration
+	for _, event := range events {
+		if strings.Contains(event.Message, "Unreasonably long") && strings.Contains(event.Message, "ovs-vswitchd") {
+			msg := fmt.Sprintf("%v - %v", event.Locator, event.Message)
+			failures = append(failures, msg)
+
+			dur := event.To.Sub(event.From)
+			if dur > maxDur {
+				maxDur = dur
+			}
+		}
+	}
+
+	if len(failures) == 0 {
+		return []*junitapi.JUnitTestCase{success}
+	}
+
+	failure := &junitapi.JUnitTestCase{
+		Name:      testName,
+		SystemOut: strings.Join(failures, "\n"),
+		FailureOutput: &junitapi.FailureOutput{
+			Output: fmt.Sprintf("Found %d instances of ovs-vswitchd logging an unreasonably long poll interval:\n\n%v", len(failures), strings.Join(failures, "\n")),
+		},
+	}
+
+	// TODO: use maxDir to determine flake/fail here once we can see how common it is and at what thresholds.
+
+	// I've seen these as high as 9s in jobs that nothing else failed in, leaving as just a flake
+	// for now.
+	return []*junitapi.JUnitTestCase{failure, success}
 }

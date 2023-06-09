@@ -36,6 +36,7 @@ import (
 	e2enode "k8s.io/kubernetes/test/e2e/framework/node"
 	"k8s.io/kubernetes/test/e2e/framework/pod"
 	frameworkpod "k8s.io/kubernetes/test/e2e/framework/pod"
+	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	utilnet "k8s.io/utils/net"
 )
@@ -190,7 +191,7 @@ func createWebserverLBService(client k8sclient.Interface, namespace, serviceName
 
 func checkConnectivityToHost(f *e2e.Framework, nodeName string, podName string, host string, timeout time.Duration) error {
 	e2e.Logf("Creating an exec pod on node %v", nodeName)
-	execPod := pod.CreateExecPodOrFail(f.ClientSet, f.Namespace.Name, fmt.Sprintf("execpod-sourceip-%s", nodeName), func(pod *corev1.Pod) {
+	execPod := pod.CreateExecPodOrFail(context.TODO(), f.ClientSet, f.Namespace.Name, fmt.Sprintf("execpod-sourceip-%s", nodeName), func(pod *corev1.Pod) {
 		pod.Spec.NodeName = nodeName
 	})
 	defer func() {
@@ -204,7 +205,7 @@ func checkConnectivityToHost(f *e2e.Framework, nodeName string, podName string, 
 	cmd := fmt.Sprintf("wget -T 30 -qO- %s", host)
 	var err error
 	for start := time.Now(); time.Since(start) < timeout; time.Sleep(2) {
-		stdout, err = e2e.RunHostCmd(execPod.Namespace, execPod.Name, cmd)
+		stdout, err = e2eoutput.RunHostCmd(execPod.Namespace, execPod.Name, cmd)
 		if err != nil {
 			e2e.Logf("got err: %v, retry until timeout", err)
 			continue
@@ -362,7 +363,7 @@ func setNamespaceExternalGateway(f *e2e.Framework, gatewayIP string) {
 // findAppropriateNodes tries to find a source and destination for a type of node connectivity
 // test (same node, or different node).
 func findAppropriateNodes(f *e2e.Framework, nodeType NodeType) (*corev1.Node, *corev1.Node, error) {
-	nodes, err := e2enode.GetReadySchedulableNodes(f.ClientSet)
+	nodes, err := e2enode.GetReadySchedulableNodes(context.TODO(), f.ClientSet)
 	if err != nil {
 		e2e.Logf("Unable to get schedulable nodes due to %v", err)
 		return nil, nil, err

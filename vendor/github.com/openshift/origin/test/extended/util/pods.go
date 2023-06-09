@@ -2,7 +2,6 @@ package util
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -17,6 +16,7 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	podframework "k8s.io/kubernetes/test/e2e/framework/pod"
+	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 
 	"github.com/openshift/origin/test/extended/util/image"
 )
@@ -75,7 +75,7 @@ func RemovePodsWithPrefixes(oc *CLI, prefixes ...string) error {
 // The security context of this pod complies to the "restricted" profile.
 // If necessary this can be overriden in tweaks.
 func CreateExecPodOrFail(client kubernetes.Interface, ns, name string, tweak ...func(*v1.Pod)) *v1.Pod {
-	return podframework.CreateExecPodOrFail(client, ns, name, func(pod *v1.Pod) {
+	return podframework.CreateExecPodOrFail(context.TODO(), client, ns, name, func(pod *v1.Pod) {
 		pod.Name = name
 		pod.GenerateName = ""
 		pod.Spec.Containers[0].Image = image.ShellImage()
@@ -103,7 +103,7 @@ func GetMachineConfigDaemonByNode(c clientset.Interface, node *corev1.Node) (*co
 	}
 
 	if len(mcds.Items) < 1 {
-		return nil, fmt.Errorf("failed to get machine-config-daemon pod for the node %q", node.Name)
+		e2eskipper.Skipf("The cluster machines are not managed by machine api operator")
 	}
 	return &mcds.Items[0], nil
 }
