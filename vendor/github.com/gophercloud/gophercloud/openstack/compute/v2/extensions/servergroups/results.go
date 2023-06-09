@@ -29,6 +29,12 @@ type ServerGroup struct {
 	// Members are the members of the server group.
 	Members []string `json:"members"`
 
+	// UserID of the server group.
+	UserID string `json:"user_id"`
+
+	// ProjectID of the server group.
+	ProjectID string `json:"project_id"`
+
 	// Metadata includes a list of all user-specified key-value pairs attached
 	// to the Server Group.
 	Metadata map[string]interface{}
@@ -58,6 +64,10 @@ type ServerGroupPage struct {
 
 // IsEmpty determines whether or not a ServerGroupsPage is empty.
 func (page ServerGroupPage) IsEmpty() (bool, error) {
+	if page.StatusCode == 204 {
+		return true, nil
+	}
+
 	va, err := ExtractServerGroups(page)
 	return len(va) == 0, err
 }

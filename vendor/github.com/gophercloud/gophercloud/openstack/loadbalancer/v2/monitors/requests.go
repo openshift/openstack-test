@@ -71,10 +71,13 @@ func List(c *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pager {
 
 // Constants that represent approved monitoring types.
 const (
-	TypePING  = "PING"
-	TypeTCP   = "TCP"
-	TypeHTTP  = "HTTP"
-	TypeHTTPS = "HTTPS"
+	TypePING       = "PING"
+	TypeTCP        = "TCP"
+	TypeHTTP       = "HTTP"
+	TypeHTTPS      = "HTTPS"
+	TypeTLSHELLO   = "TLS-HELLO"
+	TypeUDPConnect = "UDP-CONNECT"
+	TypeSCTP       = "SCTP"
 )
 
 var (
@@ -91,7 +94,7 @@ type CreateOptsBuilder interface {
 // operation.
 type CreateOpts struct {
 	// The Pool to Monitor.
-	PoolID string `json:"pool_id" required:"true"`
+	PoolID string `json:"pool_id,omitempty"`
 
 	// The type of probe, which is PING, TCP, HTTP, or HTTPS, that is
 	// sent by the load balancer to verify the member state.
@@ -146,19 +149,19 @@ func (opts CreateOpts) ToMonitorCreateMap() (map[string]interface{}, error) {
 }
 
 /*
- Create is an operation which provisions a new Health Monitor. There are
- different types of Monitor you can provision: PING, TCP or HTTP(S). Below
- are examples of how to create each one.
+Create is an operation which provisions a new Health Monitor. There are
+different types of Monitor you can provision: PING, TCP or HTTP(S). Below
+are examples of how to create each one.
 
- Here is an example config struct to use when creating a PING or TCP Monitor:
+Here is an example config struct to use when creating a PING or TCP Monitor:
 
- CreateOpts{Type: TypePING, Delay: 20, Timeout: 10, MaxRetries: 3}
- CreateOpts{Type: TypeTCP, Delay: 20, Timeout: 10, MaxRetries: 3}
+CreateOpts{Type: TypePING, Delay: 20, Timeout: 10, MaxRetries: 3}
+CreateOpts{Type: TypeTCP, Delay: 20, Timeout: 10, MaxRetries: 3}
 
- Here is an example config struct to use when creating a HTTP(S) Monitor:
+Here is an example config struct to use when creating a HTTP(S) Monitor:
 
- CreateOpts{Type: TypeHTTP, Delay: 20, Timeout: 10, MaxRetries: 3,
- HttpMethod: "HEAD", ExpectedCodes: "200", PoolID: "2c946bfc-1804-43ab-a2ff-58f6a762b505"}
+CreateOpts{Type: TypeHTTP, Delay: 20, Timeout: 10, MaxRetries: 3,
+HttpMethod: "HEAD", ExpectedCodes: "200", PoolID: "2c946bfc-1804-43ab-a2ff-58f6a762b505"}
 */
 func Create(c *gophercloud.ServiceClient, opts CreateOptsBuilder) (r CreateResult) {
 	b, err := opts.ToMonitorCreateMap()
@@ -166,13 +169,15 @@ func Create(c *gophercloud.ServiceClient, opts CreateOptsBuilder) (r CreateResul
 		r.Err = err
 		return
 	}
-	_, r.Err = c.Post(rootURL(c), b, &r.Body, nil)
+	resp, err := c.Post(rootURL(c), b, &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // Get retrieves a particular Health Monitor based on its unique ID.
 func Get(c *gophercloud.ServiceClient, id string) (r GetResult) {
-	_, r.Err = c.Get(resourceURL(c, id), &r.Body, nil)
+	resp, err := c.Get(resourceURL(c, id), &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -235,14 +240,16 @@ func Update(c *gophercloud.ServiceClient, id string, opts UpdateOptsBuilder) (r 
 		return
 	}
 
-	_, r.Err = c.Put(resourceURL(c, id), b, &r.Body, &gophercloud.RequestOpts{
+	resp, err := c.Put(resourceURL(c, id), b, &r.Body, &gophercloud.RequestOpts{
 		OkCodes: []int{200, 202},
 	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // Delete will permanently delete a particular Monitor based on its unique ID.
 func Delete(c *gophercloud.ServiceClient, id string) (r DeleteResult) {
-	_, r.Err = c.Delete(resourceURL(c, id), nil)
+	resp, err := c.Delete(resourceURL(c, id), nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
