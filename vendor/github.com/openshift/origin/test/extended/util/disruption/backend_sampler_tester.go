@@ -94,6 +94,7 @@ func (t *backendDisruptionTest) historicalAllowedDisruption(f *framework.Framewo
 	if err != nil {
 		return nil, "", err
 	}
+	framework.Logf("checking allowed disruption for job type: %+v", *jobType)
 
 	return allowedbackenddisruption.GetAllowedDisruption(backendName, *jobType)
 }
@@ -173,17 +174,18 @@ func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{
 		framework.Logf(fmt.Sprintf("unable to finish: %s", t.backend.GetLocator()))
 	}
 
-	end := time.Now()
-
 	allowedDisruption, disruptionDetails, err := t.getAllowedDisruption(f)
 	framework.ExpectNoError(err)
+
+	end := time.Now()
 
 	fromTime, endTime := time.Time{}, time.Time{}
 	events := m.Intervals(fromTime, endTime)
 	ginkgo.By(fmt.Sprintf("writing results: %s", t.backend.GetLocator()))
 	ExpectNoDisruptionForDuration(
 		f,
-		*allowedDisruption,
+		t.testName,
+		allowedDisruption,
 		end.Sub(start),
 		events,
 		fmt.Sprintf("%s was unreachable during disruption: %v", t.backend.GetLocator(), disruptionDetails),
