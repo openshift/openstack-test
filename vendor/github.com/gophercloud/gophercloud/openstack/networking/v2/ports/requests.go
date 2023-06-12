@@ -97,7 +97,8 @@ func List(c *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pager {
 
 // Get retrieves a specific port based on its unique ID.
 func Get(c *gophercloud.ServiceClient, id string) (r GetResult) {
-	_, r.Err = c.Get(getURL(c, id), &r.Body, nil)
+	resp, err := c.Get(getURL(c, id), &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -109,18 +110,20 @@ type CreateOptsBuilder interface {
 
 // CreateOpts represents the attributes used when creating a new port.
 type CreateOpts struct {
-	NetworkID           string        `json:"network_id" required:"true"`
-	Name                string        `json:"name,omitempty"`
-	Description         string        `json:"description,omitempty"`
-	AdminStateUp        *bool         `json:"admin_state_up,omitempty"`
-	MACAddress          string        `json:"mac_address,omitempty"`
-	FixedIPs            interface{}   `json:"fixed_ips,omitempty"`
-	DeviceID            string        `json:"device_id,omitempty"`
-	DeviceOwner         string        `json:"device_owner,omitempty"`
-	TenantID            string        `json:"tenant_id,omitempty"`
-	ProjectID           string        `json:"project_id,omitempty"`
-	SecurityGroups      *[]string     `json:"security_groups,omitempty"`
-	AllowedAddressPairs []AddressPair `json:"allowed_address_pairs,omitempty"`
+	NetworkID             string             `json:"network_id" required:"true"`
+	Name                  string             `json:"name,omitempty"`
+	Description           string             `json:"description,omitempty"`
+	AdminStateUp          *bool              `json:"admin_state_up,omitempty"`
+	MACAddress            string             `json:"mac_address,omitempty"`
+	FixedIPs              interface{}        `json:"fixed_ips,omitempty"`
+	DeviceID              string             `json:"device_id,omitempty"`
+	DeviceOwner           string             `json:"device_owner,omitempty"`
+	TenantID              string             `json:"tenant_id,omitempty"`
+	ProjectID             string             `json:"project_id,omitempty"`
+	SecurityGroups        *[]string          `json:"security_groups,omitempty"`
+	AllowedAddressPairs   []AddressPair      `json:"allowed_address_pairs,omitempty"`
+	PropagateUplinkStatus *bool              `json:"propagate_uplink_status,omitempty"`
+	ValueSpecs            *map[string]string `json:"value_specs,omitempty"`
 }
 
 // ToPortCreateMap builds a request body from CreateOpts.
@@ -136,7 +139,8 @@ func Create(c *gophercloud.ServiceClient, opts CreateOptsBuilder) (r CreateResul
 		r.Err = err
 		return
 	}
-	_, r.Err = c.Post(createURL(c), b, &r.Body, nil)
+	resp, err := c.Post(createURL(c), b, &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -148,14 +152,21 @@ type UpdateOptsBuilder interface {
 
 // UpdateOpts represents the attributes used when updating an existing port.
 type UpdateOpts struct {
-	Name                *string        `json:"name,omitempty"`
-	Description         *string        `json:"description,omitempty"`
-	AdminStateUp        *bool          `json:"admin_state_up,omitempty"`
-	FixedIPs            interface{}    `json:"fixed_ips,omitempty"`
-	DeviceID            *string        `json:"device_id,omitempty"`
-	DeviceOwner         *string        `json:"device_owner,omitempty"`
-	SecurityGroups      *[]string      `json:"security_groups,omitempty"`
-	AllowedAddressPairs *[]AddressPair `json:"allowed_address_pairs,omitempty"`
+	Name                  *string            `json:"name,omitempty"`
+	Description           *string            `json:"description,omitempty"`
+	AdminStateUp          *bool              `json:"admin_state_up,omitempty"`
+	FixedIPs              interface{}        `json:"fixed_ips,omitempty"`
+	DeviceID              *string            `json:"device_id,omitempty"`
+	DeviceOwner           *string            `json:"device_owner,omitempty"`
+	SecurityGroups        *[]string          `json:"security_groups,omitempty"`
+	AllowedAddressPairs   *[]AddressPair     `json:"allowed_address_pairs,omitempty"`
+	PropagateUplinkStatus *bool              `json:"propagate_uplink_status,omitempty"`
+	ValueSpecs            *map[string]string `json:"value_specs,omitempty"`
+
+	// RevisionNumber implements extension:standard-attr-revisions. If != "" it
+	// will set revision_number=%s. If the revision number does not match, the
+	// update will fail.
+	RevisionNumber *int `json:"-" h:"If-Match"`
 }
 
 // ToPortUpdateMap builds a request body from UpdateOpts.
@@ -171,51 +182,27 @@ func Update(c *gophercloud.ServiceClient, id string, opts UpdateOptsBuilder) (r 
 		r.Err = err
 		return
 	}
-	_, r.Err = c.Put(updateURL(c, id), b, &r.Body, &gophercloud.RequestOpts{
-		OkCodes: []int{200, 201},
+	h, err := gophercloud.BuildHeaders(opts)
+	if err != nil {
+		r.Err = err
+		return
+	}
+	for k := range h {
+		if k == "If-Match" {
+			h[k] = fmt.Sprintf("revision_number=%s", h[k])
+		}
+	}
+	resp, err := c.Put(updateURL(c, id), b, &r.Body, &gophercloud.RequestOpts{
+		MoreHeaders: h,
+		OkCodes:     []int{200, 201},
 	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // Delete accepts a unique ID and deletes the port associated with it.
 func Delete(c *gophercloud.ServiceClient, id string) (r DeleteResult) {
-	_, r.Err = c.Delete(deleteURL(c, id), nil)
+	resp, err := c.Delete(deleteURL(c, id), nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
-}
-
-// IDFromName is a convenience function that returns a port's ID,
-// given its name.
-func IDFromName(client *gophercloud.ServiceClient, name string) (string, error) {
-	count := 0
-	id := ""
-
-	listOpts := ListOpts{
-		Name: name,
-	}
-
-	pages, err := List(client, listOpts).AllPages()
-	if err != nil {
-		return "", err
-	}
-
-	all, err := ExtractPorts(pages)
-	if err != nil {
-		return "", err
-	}
-
-	for _, s := range all {
-		if s.Name == name {
-			count++
-			id = s.ID
-		}
-	}
-
-	switch count {
-	case 0:
-		return "", gophercloud.ErrResourceNotFound{Name: name, ResourceType: "port"}
-	case 1:
-		return id, nil
-	default:
-		return "", gophercloud.ErrMultipleResourcesFound{Name: name, Count: count, ResourceType: "port"}
-	}
 }

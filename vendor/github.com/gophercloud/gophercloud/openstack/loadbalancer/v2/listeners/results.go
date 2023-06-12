@@ -27,7 +27,7 @@ type Listener struct {
 	// Human-readable description for the Listener.
 	Description string `json:"description"`
 
-	// The protocol to loadbalance. A valid value is TCP, HTTP, or HTTPS.
+	// The protocol to loadbalance. A valid value is TCP, SCTP, HTTP, HTTPS or TERMINATED_HTTPS.
 	Protocol string `json:"protocol"`
 
 	// The port on which to listen to client traffic that is associated with the
@@ -36,6 +36,9 @@ type Listener struct {
 
 	// The UUID of default pool. Must have compatible protocol with listener.
 	DefaultPoolID string `json:"default_pool_id"`
+
+	// The default pool with which the Listener is associated.
+	DefaultPool *pools.Pool `json:"default_pool"`
 
 	// A list of load balancer IDs.
 	Loadbalancers []LoadBalancerID `json:"loadbalancers"`
@@ -80,6 +83,39 @@ type Listener struct {
 
 	// A list of IPv4, IPv6 or mix of both CIDRs
 	AllowedCIDRs []string `json:"allowed_cidrs"`
+
+	// List of ciphers in OpenSSL format (colon-separated). See
+	// https://www.openssl.org/docs/man1.1.1/man1/ciphers.html
+	// New in version 2.15
+	TLSCiphers string `json:"tls_ciphers"`
+
+	// A list of TLS protocol versions. Available from microversion 2.17
+	TLSVersions []string `json:"tls_versions"`
+
+	// Tags is a list of resource tags. Tags are arbitrarily defined strings
+	// attached to the resource. New in version 2.5
+	Tags []string `json:"tags"`
+
+	// A list of ALPN protocols. Available protocols: http/1.0, http/1.1, h2
+	// New in version 2.20
+	ALPNProtocols []string `json:"alpn_protocols"`
+
+	// The TLS client authentication mode. One of the options NONE, OPTIONAL or MANDATORY.
+	// New in version 2.8
+	ClientAuthentication string `json:"client_authentication"`
+
+	// The ref of the key manager service secret containing a PEM format
+	// client CA certificate bundle for TERMINATED_HTTPS listeners.
+	// New in version 2.8
+	ClientCATLSContainerRef string `json:"client_ca_tls_container_ref"`
+
+	// The URI of the key manager service secret containing a PEM format CA
+	// revocation list file for TERMINATED_HTTPS listeners.
+	// New in version 2.8
+	ClientCRLContainerRef string `json:"client_crl_container_ref"`
+
+	// The operating status of the resource
+	OperatingStatus string `json:"operating_status"`
 }
 
 type Stats struct {
@@ -121,6 +157,10 @@ func (r ListenerPage) NextPageURL() (string, error) {
 
 // IsEmpty checks whether a ListenerPage struct is empty.
 func (r ListenerPage) IsEmpty() (bool, error) {
+	if r.StatusCode == 204 {
+		return true, nil
+	}
+
 	is, err := ExtractListeners(r)
 	return len(is) == 0, err
 }

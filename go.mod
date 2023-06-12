@@ -4,14 +4,12 @@ go 1.19
 
 require (
 	github.com/Masterminds/semver v1.5.0
-	github.com/gophercloud/gophercloud v1.0.0
-	github.com/gophercloud/utils v0.0.0-20220307143606-8e7800759d16
+	github.com/gophercloud/gophercloud v1.4.0
+	github.com/gophercloud/utils v0.0.0-20230523080330-de873b9cf00d
 	github.com/openshift/cluster-api-actuator-pkg v0.0.0-20221124163757-146eb7aaf381
 	github.com/openshift/origin v1.5.0-alpha.3.0.20230607175403-dfd4e799e835
 	sigs.k8s.io/controller-runtime v0.14.7-0.20230504171843-942d53bd982e
 )
-
-replace github.com/gophercloud/gophercloud => github.com/gophercloud/gophercloud v0.9.0
 
 require (
 	github.com/onsi/ginkgo/v2 v2.6.0
@@ -120,6 +118,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
+	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
