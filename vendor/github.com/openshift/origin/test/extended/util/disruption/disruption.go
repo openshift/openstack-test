@@ -17,19 +17,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openshift/origin/pkg/riskanalysis"
-	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
-	admissionapi "k8s.io/pod-security-admission/api"
-
-	g "github.com/onsi/ginkgo/v2"
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	monitorserialization "github.com/openshift/origin/pkg/monitor/serialization"
+	"github.com/openshift/origin/pkg/riskanalysis"
+	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
 
+	g "github.com/onsi/ginkgo/v2"
 	"k8s.io/kubernetes/test/e2e/chaosmonkey"
 	"k8s.io/kubernetes/test/e2e/framework"
-	"k8s.io/kubernetes/test/e2e/framework/ginkgowrapper"
-	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	"k8s.io/kubernetes/test/e2e/upgrades"
+	admissionapi "k8s.io/pod-security-admission/api"
 )
 
 const (
@@ -89,6 +86,12 @@ type TestData struct {
 // used to define the overall test that will be run.
 func Run(f *framework.Framework, description, testname string, adapter TestData, invariants []upgrades.Test, fn func()) {
 	testSuite := &junitapi.JUnitTestSuite{Name: description}
+
+	// Ensure colors aren't emitted by chaos monkey tests
+	_, reporterConfig := g.GinkgoConfiguration()
+	reporterConfig.NoColor = true
+	g.SetReporterConfig(reporterConfig)
+
 	cm := chaosmonkey.New(func() {
 		start := time.Now()
 		defer finalizeTest(start, testname, testname, testSuite, f)
@@ -261,17 +264,10 @@ func finalizeTest(start time.Time, testName, className string, ts *junitapi.JUni
 		Classname: className,
 		Duration:  testDuration,
 	}
-	switch r := r.(type) {
-	case ginkgowrapper.FailurePanic:
-		testResult.FailureOutput = &junitapi.FailureOutput{Message: fmt.Sprintf("%s\n\n%s", r.Message, r.FullStackTrace)}
-	case e2eskipper.SkipPanic:
-		testResult.SkipMessage = &junitapi.SkipMessage{Message: fmt.Sprintf("%s:%d %q", r.Filename, r.Line, r.Message)}
-	default:
-		testResult.FailureOutput = &junitapi.FailureOutput{Message: fmt.Sprintf("%v\n\n%s", r, debug.Stack())}
-	}
+	testResult.FailureOutput = &junitapi.FailureOutput{Message: fmt.Sprintf("%v\n\n%s", r, debug.Stack())}
 	ts.TestCases = append(ts.TestCases, testResult)
 
-	// if we have a panic but it hasn't been recorded by ginkgo, panic now
+	// if we have a panic, but it hasn't been recorded by ginkgo, panic now
 	if !g.CurrentSpecReport().Failed() {
 		framework.Logf("%q: panic: %v", testName, r)
 		func() {
@@ -318,8 +314,7 @@ func createTestFrameworks(tests []upgrades.Test) map[string]*framework.Framework
 		}
 
 		testFrameworks[t.Name()] = &framework.Framework{
-			BaseName:                 ns,
-			AddonResourceConstraints: make(map[string]framework.ResourceConstraint),
+			BaseName: ns,
 			Options: framework.Options{
 				ClientQPS:   20,
 				ClientBurst: 50,
@@ -335,16 +330,26 @@ func createTestFrameworks(tests []upgrades.Test) map[string]*framework.Framework
 
 // ExpectNoDisruptionForDuration fails if the sum of the duration of all events exceeds allowedDisruption, reports a
 // disruption flake if any disruption occurs, and uses reason to prefix the message.
-func ExpectNoDisruptionForDuration(f *framework.Framework, allowedDisruption time.Duration, total time.Duration, events monitorapi.Intervals, reason string) {
+func ExpectNoDisruptionForDuration(f *framework.Framework, testName string, allowedDisruption *time.Duration, total time.Duration, events monitorapi.Intervals, reason string) {
+	// This step records the test summaries data we need to result in AdditionalEvents json files in
+	// the openshift-e2e-test artifacts.
 	FrameworkEventIntervals(f, events)
 	describe := events.Strings()
+
+	// Indicates there is no entry in the query_results.json data file, nor a valid fallback,
+	// we do not wish to run the test. (this likely implies we do not have the required number of
+	// runs in 3 weeks to do a reliable P99)
+	if allowedDisruption == nil {
+		framework.Logf(fmt.Sprintf("Skipping: %s: No historical data to calculate allowedDisruption", testName))
+		return
+	}
 
 	errorEvents := events.Filter(monitorapi.IsErrorEvent)
 	disruptionDuration := errorEvents.Duration(1 * time.Second)
 	roundedAllowedDisruption := allowedDisruption.Round(time.Second)
 	if allowedDisruption.Milliseconds() == DefaultAllowedDisruption {
 		// don't round if we're using the default value so we can find this.
-		roundedAllowedDisruption = allowedDisruption
+		roundedAllowedDisruption = *allowedDisruption
 	}
 	roundedDisruptionDuration := disruptionDuration.Round(time.Second)
 	if roundedDisruptionDuration > roundedAllowedDisruption {
@@ -379,7 +384,7 @@ func hasFrameworkFlake(f *framework.Framework) (string, bool) {
 // RecordJUnit will capture the result of invoking fn as either a passing or failing JUnit test
 // that will be recorded alongside the current test with name. These methods only work in the
 // context of a disruption test suite today and will not be reported as JUnit failures when
-// used within normal ginkgo suties.
+// used within normal ginkgo suites.
 func RecordJUnit(f *framework.Framework, name string, fn func() (err error, flake bool)) error {
 	start := time.Now()
 	err, flake := fn()

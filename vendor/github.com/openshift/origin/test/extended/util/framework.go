@@ -18,10 +18,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ghodss/yaml"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 
-	configclient "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	authorizationapi "k8s.io/api/authorization/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -31,17 +31,20 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	quotav1 "k8s.io/apiserver/pkg/quota/v1"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
+	k8sclient "k8s.io/client-go/kubernetes"
 	batchv1client "k8s.io/client-go/kubernetes/typed/batch/v1"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
+	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 	"k8s.io/kubernetes/test/e2e/framework/skipper"
 	"k8s.io/kubernetes/test/e2e/framework/statefulset"
 	"k8s.io/kubernetes/test/utils/image"
@@ -52,13 +55,13 @@ import (
 	operatorv1 "github.com/openshift/api/operator/v1"
 	securityv1 "github.com/openshift/api/security/v1"
 	buildv1clienttyped "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
+	configclient "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	imagev1typedclient "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	"github.com/openshift/library-go/pkg/build/naming"
 	"github.com/openshift/library-go/pkg/git"
 	"github.com/openshift/library-go/pkg/image/imageutil"
 	"github.com/openshift/origin/test/extended/testdata"
 	utilimage "github.com/openshift/origin/test/extended/util/image"
-	k8sclient "k8s.io/client-go/kubernetes"
 )
 
 // WaitForInternalRegistryHostname waits for the internal registry hostname to be made available to the cluster.
@@ -560,7 +563,7 @@ func DumpPodsCommand(c kubernetes.Interface, ns string, selector labels.Selector
 
 	values := make(map[string]string)
 	for _, pod := range podList.Items {
-		stdout, err := e2e.RunHostCmdWithRetries(pod.Namespace, pod.Name, cmd, statefulset.StatefulSetPoll, statefulset.StatefulPodTimeout)
+		stdout, err := e2eoutput.RunHostCmdWithRetries(pod.Namespace, pod.Name, cmd, statefulset.StatefulSetPoll, statefulset.StatefulPodTimeout)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		values[pod.Name] = stdout
 	}
@@ -1389,6 +1392,13 @@ func KubeConfigPath() string {
 	return os.Getenv("KUBECONFIG")
 }
 
+// StaticConfigManifestDir returns the value of STATIC_CONFIG_MANIFEST_DIR environment variable
+// It points to a directory with static manifests, each file is expected to be a single manifest.
+// Manifest files can be stored under directory tree.
+func StaticConfigManifestDir() string {
+	return os.Getenv("STATIC_CONFIG_MANIFEST_DIR")
+}
+
 // ArtifactDirPath returns the value of ARTIFACT_DIR environment variable
 func ArtifactDirPath() string {
 	path := os.Getenv("ARTIFACT_DIR")
@@ -1561,7 +1571,7 @@ func FetchURL(oc *CLI, url string, retryTimeout time.Duration) (string, error) {
 		e2e.Logf("Waiting up to %v to wget %s", retryTimeout, url)
 		//cmd := fmt.Sprintf("wget -T 30 -O- %s", url)
 		cmd := fmt.Sprintf("curl -vvv %s", url)
-		response, err = e2e.RunHostCmd(execPod.Namespace, execPod.Name, cmd)
+		response, err = e2eoutput.RunHostCmd(execPod.Namespace, execPod.Name, cmd)
 		if err != nil {
 			e2e.Logf("got err: %v, retry until timeout", err)
 			return false, nil
@@ -1913,16 +1923,8 @@ func WaitForUserBeAuthorized(oc *CLI, user string, attributes *authorizationapi.
 // helping to mitigate the transition from the default namespace to an operator
 // namespace.
 func GetRouterPodTemplate(oc *CLI) (*corev1.PodTemplateSpec, string, error) {
-	appsclient := oc.AdminAppsClient().AppsV1()
 	k8sappsclient := oc.AdminKubeClient().AppsV1()
 	for _, ns := range []string{"default", "openshift-ingress", "tectonic-ingress"} {
-		dc, err := appsclient.DeploymentConfigs(ns).Get(context.Background(), "router", metav1.GetOptions{})
-		if err == nil {
-			return dc.Spec.Template, ns, nil
-		}
-		if !kapierrs.IsNotFound(err) {
-			return nil, "", err
-		}
 		deploy, err := k8sappsclient.Deployments(ns).Get(context.Background(), "router", metav1.GetOptions{})
 		if err == nil {
 			return &deploy.Spec.Template, ns, nil
@@ -1938,7 +1940,7 @@ func GetRouterPodTemplate(oc *CLI) (*corev1.PodTemplateSpec, string, error) {
 			return nil, "", err
 		}
 	}
-	return nil, "", kapierrs.NewNotFound(schema.GroupResource{Group: "apps.openshift.io", Resource: "deploymentconfigs"}, "router")
+	return nil, "", kapierrs.NewNotFound(schema.GroupResource{Group: "apps", Resource: "deployments"}, "router")
 }
 
 func FindRouterImage(oc *CLI) (string, error) {
@@ -2081,4 +2083,70 @@ func DoesApiResourceExist(config *rest.Config, apiResourceName, groupVersionName
 
 func groupName(groupVersionName string) string {
 	return strings.Split(groupVersionName, "/")[0]
+}
+
+type staticObject struct {
+	APIVersion, Kind, Namespace, Name string
+}
+
+func collectConfigManifestsFromDir(configManifestsDir string) (error, []runtime.Object) {
+	objects := []runtime.Object{}
+	knownObjects := make(map[staticObject]string)
+
+	err := filepath.Walk(configManifestsDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+
+		body, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		object := &metav1.TypeMeta{}
+		err = yaml.Unmarshal(body, &object)
+		if err != nil {
+			return err
+		}
+
+		if object.APIVersion == "config.openshift.io/v1" {
+			switch object.Kind {
+			case "Infrastructure":
+				config := &configv1.Infrastructure{}
+				err = yaml.Unmarshal(body, &config)
+				if err != nil {
+					return err
+				}
+				key := staticObject{APIVersion: object.APIVersion, Kind: object.Kind, Namespace: config.Namespace, Name: config.Name}
+				if objPath, exists := knownObjects[key]; exists {
+					return fmt.Errorf("object %v duplicated under %v", path, objPath)
+				}
+				objects = append(objects, config)
+				knownObjects[key] = path
+			case "Network":
+				config := &configv1.Network{}
+				err = yaml.Unmarshal(body, &config)
+				if err != nil {
+					return err
+				}
+				key := staticObject{APIVersion: object.APIVersion, Kind: object.Kind, Namespace: config.Namespace, Name: config.Name}
+				if objPath, exists := knownObjects[key]; exists {
+					return fmt.Errorf("object %v duplicated under %v", path, objPath)
+				}
+				objects = append(objects, config)
+				knownObjects[key] = path
+			default:
+				return fmt.Errorf("unknown 'config.openshift.io/v1' kind: %v", object.Kind)
+			}
+		} else {
+			return fmt.Errorf("unknown apiversion: %v", object.APIVersion)
+		}
+
+		return nil
+	})
+
+	return err, objects
 }

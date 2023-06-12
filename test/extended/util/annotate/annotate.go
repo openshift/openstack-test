@@ -6,6 +6,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/kubernetes/openshift-hack/e2e/annotate"
 
+	// this ensures that all origin tests are picked by ginkgo as defined
+	// in test/extended/include.go
 	_ "github.com/openshift/openstack-test/test/extended"
 )
 

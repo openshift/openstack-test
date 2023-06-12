@@ -10,16 +10,18 @@ import (
 	"strings"
 	"time"
 
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/rest"
 
 	"github.com/openshift/origin/pkg/monitor"
 	"github.com/openshift/origin/pkg/monitor/intervalcreation"
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
+	"github.com/openshift/origin/pkg/monitor/nodedetails"
 	monitorserialization "github.com/openshift/origin/pkg/monitor/serialization"
 	"github.com/openshift/origin/pkg/synthetictests/allowedalerts"
 	"github.com/openshift/origin/test/extended/util/disruption/controlplane"
+	"github.com/openshift/origin/test/extended/util/disruption/externalservice"
 	"github.com/openshift/origin/test/extended/util/disruption/frontends"
-	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 )
 
 type RunDataWriter interface {
@@ -40,6 +42,8 @@ type MonitorEventsOptions struct {
 	recordedEvents monitorapi.Intervals
 	// recordedResource is written during End
 	recordedResources monitorapi.ResourcesMap
+	// auditLogSummary is written during End
+	auditLogSummary *nodedetails.AuditLogSummary
 
 	Recorders      []monitor.StartEventIntervalRecorderFunc
 	RunDataWriters []RunDataWriter
@@ -67,6 +71,7 @@ func NewMonitorEventsOptions(out io.Writer, errOut io.Writer) *MonitorEventsOpti
 			RunDataWriterFunc(monitor.WriteTrackedResourcesForJobRun),
 			RunDataWriterFunc(monitor.WriteBackendDisruptionForJobRun),
 			RunDataWriterFunc(allowedalerts.WriteAlertDataForJobRun),
+			RunDataWriterFunc(monitor.WriteClusterData),
 		},
 		Out:    out,
 		ErrOut: errOut,
@@ -84,6 +89,7 @@ func (o *MonitorEventsOptions) Start(ctx context.Context, restConfig *rest.Confi
 		[]monitor.StartEventIntervalRecorderFunc{
 			controlplane.StartAllAPIMonitoring,
 			frontends.StartAllIngressMonitoring,
+			externalservice.StartExternalServiceMonitoring,
 		},
 	)
 	if err != nil {
@@ -94,6 +100,7 @@ func (o *MonitorEventsOptions) Start(ctx context.Context, restConfig *rest.Confi
 	return m, nil
 }
 
+// End mutates the method receiver so you shouldn't call it multiple times.
 func (o *MonitorEventsOptions) End(ctx context.Context, restConfig *rest.Config, artifactDir string) error {
 	if o.monitor == nil {
 		return fmt.Errorf("not started")
@@ -110,14 +117,14 @@ func (o *MonitorEventsOptions) End(ctx context.Context, restConfig *rest.Config,
 	fromTime, endTime := time.Time{}, time.Time{}
 	events := o.monitor.Intervals(fromTime, endTime)
 	// this happens before calculation because events collected here could be used to drive later calculations
-	events, err = intervalcreation.InsertIntervalsFromCluster(ctx, restConfig, events, o.recordedResources, fromTime, endTime)
+	o.auditLogSummary, events, err = intervalcreation.InsertIntervalsFromCluster(ctx, restConfig, events, o.recordedResources, fromTime, endTime)
 	if err != nil {
-		return fmt.Errorf("InsertIntervalsFromClusterError: %w", err)
+		fmt.Fprintf(o.ErrOut, "InsertIntervalsFromCluster error but continuing processing: %v", err)
 	}
 	// add events from alerts so we can create the intervals
 	alertEventIntervals, err := monitor.FetchEventIntervalsForAllAlerts(ctx, restConfig, *o.startTime)
 	if err != nil {
-		return fmt.Errorf("AlertErr: %w", err)
+		fmt.Fprintf(o.ErrOut, "FetchEventIntervalsForAllAlerts error but continuing processing: %v", err)
 	}
 	events = append(events, alertEventIntervals...)
 	events = intervalcreation.InsertCalculatedIntervals(events, o.recordedResources, fromTime, endTime)
@@ -133,7 +140,16 @@ func (o *MonitorEventsOptions) End(ctx context.Context, restConfig *rest.Config,
 			if d.IsDir() {
 				return nil
 			}
-			if !strings.HasPrefix(d.Name(), "AdditionalEvents_") {
+			// upstream framework starting in 1.26 fixed how the AfterEach is
+			// invoked, now it's always invoked and that results in more files
+			// than we anticipated before, see here:
+			// https://github.com/kubernetes/kubernetes/blob/v1.26.0/test/e2e/framework/framework.go#L382
+			// our files have double underscore whereas upstream has only single
+			// so for now we'll skip everything else for summaries
+			//
+			// TODO: TRT will need to double check this longterm what they want
+			// to do with these extra files
+			if !strings.HasPrefix(d.Name(), "AdditionalEvents__") {
 				return nil
 			}
 			saved, _ := monitorserialization.EventsFromFile(path)
@@ -187,5 +203,11 @@ func (o *MonitorEventsOptions) WriteRunDataToArtifactsDir(artifactDir string, ti
 			errs = append(errs, currErr)
 		}
 	}
+	if o.auditLogSummary != nil {
+		if currErr := nodedetails.WriteAuditLogSummary(artifactDir, timeSuffix, o.auditLogSummary); currErr != nil {
+			errs = append(errs, currErr)
+		}
+	}
+
 	return utilerrors.NewAggregate(errs)
 }

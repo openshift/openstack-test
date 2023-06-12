@@ -117,7 +117,7 @@ func IntervalsFromNodeLogs(ctx context.Context, kubeClient kubernetes.Interface,
 
 	allNodes, err := kubeClient.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return ret, err
 	}
 
 	collectionStart := time.Now()
@@ -132,6 +132,7 @@ func IntervalsFromNodeLogs(ctx context.Context, kubeClient kubernetes.Interface,
 			// TODO limit by begin/end here instead of post-processing
 			nodeLogs, err := nodedetails.GetNodeLog(ctx, kubeClient, nodeName, "kubelet")
 			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error getting node logs from %s: %s", nodeName, err.Error())
 				errCh <- err
 				return
 			}
@@ -144,7 +145,7 @@ func IntervalsFromNodeLogs(ctx context.Context, kubeClient kubernetes.Interface,
 	}
 	wg.Wait()
 	collectionEnd := time.Now()
-	fmt.Fprintf(os.Stderr, "Collection of node logs and analysis took: %v\n", collectionEnd.Sub(collectionStart))
+	fmt.Fprintf(os.Stdout, "Collection of node logs and analysis took: %v\n", collectionEnd.Sub(collectionStart))
 
 	errs := []error{}
 	for len(errCh) > 0 {
@@ -155,9 +156,23 @@ func IntervalsFromNodeLogs(ctx context.Context, kubeClient kubernetes.Interface,
 	return ret, utilerrors.NewAggregate(errs)
 }
 
+func IntervalsFromAuditLogs(ctx context.Context, kubeClient kubernetes.Interface, beginning, end time.Time) (*nodedetails.AuditLogSummary, monitorapi.Intervals, error) {
+	ret := monitorapi.Intervals{}
+
+	// TODO honor begin and end times.  maybe
+	auditLogSummary, err := nodedetails.GetKubeAuditLogSummary(ctx, kubeClient)
+	if err != nil {
+		// TODO report the error AND the best possible summary we have
+		return auditLogSummary, nil, err
+	}
+
+	return auditLogSummary, ret, nil
+}
+
 // eventsFromKubeletLogs returns the produced intervals.  Any errors during this creation are logged, but
 // not returned because this is a best effort step
 func eventsFromKubeletLogs(nodeName string, kubeletLog []byte) monitorapi.Intervals {
+	nodeLocator := monitorapi.NodeLocator(nodeName)
 	ret := monitorapi.Intervals{}
 
 	scanner := bufio.NewScanner(bytes.NewBuffer(kubeletLog))
@@ -168,7 +183,9 @@ func eventsFromKubeletLogs(nodeName string, kubeletLog []byte) monitorapi.Interv
 		ret = append(ret, statusHttpClientConnectionLostError(currLine)...)
 		ret = append(ret, reflectorHttpClientConnectionLostError(currLine)...)
 		ret = append(ret, kubeletNodeHttpClientConnectionLostError(currLine)...)
-
+		ret = append(ret, startupProbeError(currLine)...)
+		ret = append(ret, errParsingSignature(currLine)...)
+		ret = append(ret, failedToDeleteCGroupsPath(nodeLocator, currLine)...)
 	}
 
 	return ret
@@ -186,11 +203,11 @@ func readinessFailure(logLine string) monitorapi.Intervals {
 		return nil
 	}
 
-	failureOutputRegex.MatchString(logLine)
-	if !failureOutputRegex.MatchString(logLine) {
+	readinessFailureOutputRegex.MatchString(logLine)
+	if !readinessFailureOutputRegex.MatchString(logLine) {
 		return nil
 	}
-	outputSubmatches := failureOutputRegex.FindStringSubmatch(logLine)
+	outputSubmatches := readinessFailureOutputRegex.FindStringSubmatch(logLine)
 	message := outputSubmatches[1]
 	// message contains many \", this removes the escaping to result in message containing "
 	// if we have an error, just use the original message, we don't really care that much.
@@ -221,11 +238,11 @@ func readinessError(logLine string) monitorapi.Intervals {
 		return nil
 	}
 
-	errorOutputRegex.MatchString(logLine)
-	if !errorOutputRegex.MatchString(logLine) {
+	readinessErrorOutputRegex.MatchString(logLine)
+	if !readinessErrorOutputRegex.MatchString(logLine) {
 		return nil
 	}
-	outputSubmatches := errorOutputRegex.FindStringSubmatch(logLine)
+	outputSubmatches := readinessErrorOutputRegex.FindStringSubmatch(logLine)
 	message := outputSubmatches[1]
 	message, _ = strconv.Unquote(`"` + message + `"`)
 
@@ -244,9 +261,93 @@ func readinessError(logLine string) monitorapi.Intervals {
 	}
 }
 
+func errParsingSignature(logLine string) monitorapi.Intervals {
+	if !strings.Contains(logLine, "StartContainer") {
+		return nil
+	}
+	if !strings.Contains(logLine, "ErrImagePull") {
+		return nil
+	}
+	if !strings.Contains(logLine, "unrecognized signature format") {
+		return nil
+	}
+
+	containerRef := errImagePullToContainerReference(logLine)
+	failureTime := kubeletLogTime(logLine)
+	return monitorapi.Intervals{
+		{
+			Condition: monitorapi.Condition{
+				Level:   monitorapi.Info,
+				Locator: containerRef.ToLocator(),
+				Message: monitorapi.ReasonedMessage(monitorapi.ContainerErrImagePull, monitorapi.ContainerUnrecognizedSignatureFormat),
+			},
+			From: failureTime,
+			To:   failureTime,
+		},
+	}
+}
+
+// startupProbeError extracts locator information from kubelet logs of the form:
+// "Probe failed" probeType="Startup" pod="<some_ns>/<some_pod" podUID=<some_pod_uid> containerName="<some_container_name>" .* output="<some_output>"
+// and returns an Interval (which will show up in the junit/events...json file and the intervals chart).
+func startupProbeError(logLine string) monitorapi.Intervals {
+	if !strings.Contains(logLine, `Probe failed`) {
+		return nil
+	}
+	if !strings.Contains(logLine, `probeType="Startup"`) {
+		return nil
+	}
+
+	// Match one of the two types of logs for Startup Probe failures.
+	lineMatch := startupFailureOutputRegex.MatchString(logLine)
+	multiLineMatch := startupFailureMultiLineOutputRegex.MatchString(logLine)
+	if !lineMatch && !multiLineMatch {
+		return nil
+	}
+	var outputSubmatches []string
+	if lineMatch {
+		outputSubmatches = startupFailureOutputRegex.FindStringSubmatch(logLine)
+	} else {
+		outputSubmatches = startupFailureMultiLineOutputRegex.FindStringSubmatch(logLine)
+	}
+	message := outputSubmatches[1]
+	// message contains many \", this removes the escaping to result in message containing "
+	// if we have an error, just use the original message, we don't really care that much.
+	if unquotedMessage, err := strconv.Unquote(`"` + message + `"`); err == nil {
+		message = unquotedMessage
+	}
+
+	containerRef := probeProblemToContainerReference(logLine)
+	failureTime := kubeletLogTime(logLine)
+	return monitorapi.Intervals{
+		{
+			Condition: monitorapi.Condition{
+				Level:   monitorapi.Info,
+				Locator: containerRef.ToLocator(),
+				Message: monitorapi.ReasonedMessage(monitorapi.ContainerReasonStartupProbeFailed, message),
+			},
+			From: failureTime,
+			To:   failureTime,
+		},
+	}
+}
+
+var imagePullContainerRefRegex = regexp.MustCompile(`err=.*for \\"(?P<CONTAINER>[a-z0-9.-]+)\\".*pod="(?P<NS>[a-z0-9.-]+)\/(?P<POD>[a-z0-9.-]+)" podUID=(?P<PODUID>[a-z0-9.-]+)`)
+
 var containerRefRegex = regexp.MustCompile(`pod="(?P<NS>[a-z0-9.-]+)\/(?P<POD>[a-z0-9.-]+)" podUID=(?P<PODUID>[a-z0-9.-]+) containerName="(?P<CONTAINER>[a-z0-9.-]+)"`)
-var failureOutputRegex = regexp.MustCompile(`"Probe failed" probeType="Readiness".*output="(?P<OUTPUT>.+)"`)
-var errorOutputRegex = regexp.MustCompile(`"Probe errored" err="(?P<OUTPUT>.+)" probeType="Readiness"`)
+var readinessFailureOutputRegex = regexp.MustCompile(`"Probe failed" probeType="Readiness".*output="(?P<OUTPUT>.+)"`)
+var readinessErrorOutputRegex = regexp.MustCompile(`"Probe errored" err="(?P<OUTPUT>.+)" probeType="Readiness"`)
+var startupFailureOutputRegex = regexp.MustCompile(`"Probe failed" probeType="Startup".*output="(?P<OUTPUT>.+)"`)
+
+// Some logs end with "probeResult=failure output=<" and the output continues on the next log line.
+// Since we're parsing one line at a time, we won't get the output -- but we will match on the pattern
+// so we won't miss the event.
+var startupFailureMultiLineOutputRegex = regexp.MustCompile(`"Probe failed" probeType="Startup".*output=\<(?P<OUTPUT>.*)`)
+
+func errImagePullToContainerReference(logLine string) monitorapi.ContainerReference {
+	// err="failed to \"StartContainer\" for \"oauth-proxy\"
+	return regexToContainerReference(logLine, imagePullContainerRefRegex)
+}
 
 func probeProblemToContainerReference(logLine string) monitorapi.ContainerReference {
 	return regexToContainerReference(logLine, containerRefRegex)
@@ -311,6 +412,26 @@ func statusHttpClientConnectionLostError(logLine string) monitorapi.Intervals {
 		containerRef := regexToContainerReference(logLine, statusRefRegex)
 		return containerRef.ToLocator()
 	})
+}
+
+func failedToDeleteCGroupsPath(nodeLocator, logLine string) monitorapi.Intervals {
+	if !strings.Contains(logLine, "Failed to delete cgroup paths") {
+		return nil
+	}
+
+	failureTime := kubeletLogTime(logLine)
+
+	return monitorapi.Intervals{
+		{
+			Condition: monitorapi.Condition{
+				Level:   monitorapi.Error,
+				Locator: nodeLocator,
+				Message: monitorapi.ReasonedMessage("FailedToDeleteCGroupsPath", logLine),
+			},
+			From: failureTime,
+			To:   failureTime.Add(1 * time.Second),
+		},
+	}
 }
 
 var nodeRefRegex = regexp.MustCompile(`error getting node \\"(?P<NODEID>[a-z0-9.-]+)\\"`)
