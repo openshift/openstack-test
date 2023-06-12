@@ -5,6 +5,10 @@ import (
 	"sort"
 	"time"
 
+	"github.com/openshift/origin/pkg/monitor/apiserveravailability"
+
+	"github.com/openshift/origin/pkg/monitor/nodedetails"
+
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/client-go/kubernetes"
@@ -42,24 +46,42 @@ func InsertCalculatedIntervals(startingIntervals []monitorapi.EventInterval, rec
 }
 
 // InsertIntervalsFromCluster contacts the cluster, retrieves information deemed pertinent, and creates intervals for them.
-func InsertIntervalsFromCluster(ctx context.Context, kubeConfig *rest.Config, startingIntervals []monitorapi.EventInterval, recordedResources monitorapi.ResourcesMap, from, to time.Time) (monitorapi.Intervals, error) {
+func InsertIntervalsFromCluster(ctx context.Context, kubeConfig *rest.Config, startingIntervals []monitorapi.EventInterval, recordedResources monitorapi.ResourcesMap, from, to time.Time) (*nodedetails.AuditLogSummary, monitorapi.Intervals, error) {
 	ret := make([]monitorapi.EventInterval, len(startingIntervals))
 	copy(ret, startingIntervals)
 
 	kubeClient, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
-		return ret, err
+		return nil, ret, err
 	}
 
 	allErrors := []error{}
-	nodeEvents, err := IntervalsFromNodeLogs(ctx, kubeClient, from, to)
+	nodeIntervals, err := IntervalsFromNodeLogs(ctx, kubeClient, from, to)
 	if err != nil {
 		allErrors = append(allErrors, err)
 	}
-	ret = append(ret, nodeEvents...)
+	ret = append(ret, nodeIntervals...)
+
+	podLogIntervals, err := IntervalsFromPodLogs(kubeClient, from, to)
+	if err != nil {
+		allErrors = append(allErrors, err)
+	}
+	ret = append(ret, podLogIntervals...)
+
+	apiserverAvailabilityIntervals, err := apiserveravailability.APIServerAvailabilityIntervalsFromCluster(kubeClient, from, to)
+	if err != nil {
+		allErrors = append(allErrors, err)
+	}
+	ret = append(ret, apiserverAvailabilityIntervals...)
+
+	auditLogSummary, auditEvents, err := IntervalsFromAuditLogs(ctx, kubeClient, from, to)
+	if err != nil {
+		allErrors = append(allErrors, err)
+	}
+	ret = append(ret, auditEvents...)
 
 	// we must sort the result
 	sort.Sort(monitorapi.Intervals(ret))
 
-	return ret, utilerrors.NewAggregate(allErrors)
+	return auditLogSummary, ret, utilerrors.NewAggregate(allErrors)
 }

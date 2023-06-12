@@ -22,6 +22,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	e2e "k8s.io/kubernetes/test/e2e/framework"
+	"k8s.io/kubernetes/test/e2e/framework/node"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
@@ -40,7 +41,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 	var cloudNetworkClientset cloudnetwork.Interface
 	oc := exutil.NewCLI("openstack")
 
+	var ctx context.Context
+
 	g.BeforeEach(func() {
+		ctx = context.Background()
 
 		g.By("Loading the kubernetes clientset")
 		clientSet, err = e2e.LoadClientset()
@@ -50,18 +54,18 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack network client")
 
 		// TODO revert once https://issues.redhat.com/browse/OSASINFRA-3079 is resolved
-		proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(context.Background(), "cluster", metav1.GetOptions{})
+		proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(ctx, "cluster", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 		if proxy.Status.HTTPProxy != "" {
 			e2eskipper.Skipf("Test not applicable for proxy setup")
 		}
 
-		infrastructure, err := oc.AdminConfigClient().ConfigV1().Infrastructures().Get(context.Background(), "cluster", metav1.GetOptions{})
+		infrastructure, err := oc.AdminConfigClient().ConfigV1().Infrastructures().Get(ctx, "cluster", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 		infraID = infrastructure.Status.InfrastructureName
 
 		g.By("Getting the worker node list")
-		workerNodeList, err = clientSet.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{
+		workerNodeList, err = clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{
 			LabelSelector: "node-role.kubernetes.io/worker",
 		})
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -70,7 +74,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 	g.It("attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType", func() {
 
 		g.By("Getting the network type")
-		networkType, err := getNetworkType(oc)
+		networkType, err := getNetworkType(ctx, oc)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		if networkType != NetworkTypeOVNKubernetes {
 			e2eskipper.Skipf("Test not applicable for '%s' NetworkType (only valid for '%s')", networkType, NetworkTypeOVNKubernetes)
@@ -94,8 +98,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		// "dummy" is added as value for the label key just because RemoveLabelOffNode is not
 		// able to remove the key if it doesn't have any value
 		g.By(fmt.Sprintf("Labeling the primary node '%s' with '%s'", primaryWorker.Name, egressAssignableLabelKey))
-		e2e.AddOrUpdateLabelOnNode(clientSet, primaryWorker.Name, egressAssignableLabelKey, "dummy")
-		defer e2e.RemoveLabelOffNode(clientSet, primaryWorker.Name, egressAssignableLabelKey)
+		node.AddOrUpdateLabelOnNode(clientSet, primaryWorker.Name, egressAssignableLabelKey, "dummy")
+		defer node.RemoveLabelOffNode(clientSet, primaryWorker.Name, egressAssignableLabelKey)
 
 		g.By(fmt.Sprintf("Getting the EgressIP network from the '%s' annotation", egressIPConfigAnnotationKey))
 		egressIPNetCidrStr, err := getEgressIPNetwork(primaryWorker)
@@ -149,19 +153,19 @@ spec:
 		g.By("Waiting until CloudPrivateIPConfig is created and assigned to the primary worker node")
 		cloudNetworkClientset, err = cloudnetwork.NewForConfig(oc.AdminConfig())
 		o.Expect(err).NotTo(o.HaveOccurred())
-		waitOk, err := waitCloudPrivateIPConfigAssignedNode(cloudNetworkClientset, egressIPAddrStr, primaryWorker.Name)
+		waitOk, err := waitCloudPrivateIPConfigAssignedNode(ctx, cloudNetworkClientset, egressIPAddrStr, primaryWorker.Name)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(waitOk).To(o.BeTrue(), "Not found the expected assigned node '%s' in '%s' CloudPrivateIPConfig", primaryWorker.Name, egressIPAddrStr)
 		e2e.Logf("Found the expected assigned node '%s' in '%s' CloudPrivateIPConfig", primaryWorker.Name, egressIPAddrStr)
 
 		// Label the secondary worker node as EgressIP assignable node
 		g.By(fmt.Sprintf("Labeling the secondary node '%s' with '%s'", secondaryWorker.Name, egressAssignableLabelKey))
-		e2e.AddOrUpdateLabelOnNode(clientSet, secondaryWorker.Name, egressAssignableLabelKey, "dummy")
-		defer e2e.RemoveLabelOffNode(clientSet, secondaryWorker.Name, egressAssignableLabelKey)
+		node.AddOrUpdateLabelOnNode(clientSet, secondaryWorker.Name, egressAssignableLabelKey, "dummy")
+		defer node.RemoveLabelOffNode(clientSet, secondaryWorker.Name, egressAssignableLabelKey)
 
 		// Check the assigned node in CloudPrivateIPConfig is kept with the primary EgressIP worker node
 		g.By("Checking the CloudPrivateIPConfig object and the assigned node after adding a second EgressIP assignable node")
-		cpicAssignedNode, err := getCpipAssignedNode(cloudNetworkClientset, egressIPAddrStr)
+		cpicAssignedNode, err := getCpipAssignedNode(ctx, cloudNetworkClientset, egressIPAddrStr)
 		o.Expect(err).NotTo(o.HaveOccurred(), "Could not find the assigned node in '%s' CloudPrivateIPConfig", egressIPAddrStr)
 		e2e.Logf("'%s' CloudPrivateIPConfig assigned node ('%s') is kept after adding a second assignable node", egressIPAddrStr, cpicAssignedNode)
 		o.Expect(cpicAssignedNode).To(o.Equal(primaryWorker.Name), "'%s' egressIP has been deassigned to the '%s' node", egressIPAddrStr, primaryWorker.Name)
@@ -192,10 +196,10 @@ spec:
 		e2e.Logf("Fixed IP (%s) attached to FIP '%s'", egressIPAddrStr, fip.FloatingIP)
 
 		g.By("Removing the egress-assignable label from the primary worker node (simulates a node failover)")
-		e2e.RemoveLabelOffNode(clientSet, primaryWorker.Name, egressAssignableLabelKey)
+		node.RemoveLabelOffNode(clientSet, primaryWorker.Name, egressAssignableLabelKey)
 
 		g.By("Waiting until CloudPrivateIPConfig is updated with the secondary worker as assigned node")
-		waitOk, err = waitCloudPrivateIPConfigAssignedNode(cloudNetworkClientset, egressIPAddrStr, secondaryWorker.Name)
+		waitOk, err = waitCloudPrivateIPConfigAssignedNode(ctx, cloudNetworkClientset, egressIPAddrStr, secondaryWorker.Name)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(waitOk).To(o.BeTrue(), "Not found the expected assigned node '%s' in '%s' CloudPrivateIPConfig", secondaryWorker.Name, egressIPAddrStr)
 		e2e.Logf("Found the expected assigned node '%s' in '%s' CloudPrivateIPConfig", secondaryWorker.Name, egressIPAddrStr)
@@ -374,8 +378,8 @@ func incIP(ip net.IP) net.IP {
 }
 
 // getCpipAssignedNode returns the assigned node from a given CloudPrivateIPConfig
-func getCpipAssignedNode(cloudNetClientset cloudnetwork.Interface, egressIPAddr string) (string, error) {
-	privIPconfig, err := cloudNetClientset.CloudV1().CloudPrivateIPConfigs().Get(context.Background(), egressIPAddr, metav1.GetOptions{})
+func getCpipAssignedNode(ctx context.Context, cloudNetClientset cloudnetwork.Interface, egressIPAddr string) (string, error) {
+	privIPconfig, err := cloudNetClientset.CloudV1().CloudPrivateIPConfigs().Get(ctx, egressIPAddr, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -401,9 +405,9 @@ func getPortsByIP(client *gophercloud.ServiceClient, ipAddr string, networkID st
 }
 
 // Active Wait for CloudPrivateIPConfig resource in OCP to be assigned to the expected node
-func waitCloudPrivateIPConfigAssignedNode(cloudNetClientset cloudnetwork.Interface, egressIP string, node string) (bool, error) {
+func waitCloudPrivateIPConfigAssignedNode(ctx context.Context, cloudNetClientset cloudnetwork.Interface, egressIP string, node string) (bool, error) {
 	o.Eventually(func() bool {
-		privIPconfig, err := cloudNetClientset.CloudV1().CloudPrivateIPConfigs().Get(context.Background(), egressIP, metav1.GetOptions{})
+		privIPconfig, err := cloudNetClientset.CloudV1().CloudPrivateIPConfigs().Get(ctx, egressIP, metav1.GetOptions{})
 		if err != nil {
 			if errors.IsNotFound(err) {
 				e2e.Logf("'%s' CloudPrivateIPConfig not found", egressIP)

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
-
 	"github.com/onsi/ginkgo/v2"
 	"github.com/openshift/origin/pkg/monitor"
 	"github.com/openshift/origin/pkg/monitor/backenddisruption"
+	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	"github.com/openshift/origin/pkg/synthetictests/allowedbackenddisruption"
+	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/events"
 	"k8s.io/kubernetes/test/e2e/framework"
@@ -18,7 +18,7 @@ import (
 )
 
 type BackendSampler interface {
-	GetConnectionType() backenddisruption.BackendConnectionType
+	GetConnectionType() monitorapi.BackendConnectionType
 	GetDisruptionBackendName() string
 	GetLocator() string
 	GetURL() (string, error)
@@ -94,6 +94,7 @@ func (t *backendDisruptionTest) historicalAllowedDisruption(f *framework.Framewo
 	if err != nil {
 		return nil, "", err
 	}
+	framework.Logf("checking allowed disruption for job type: %+v", *jobType)
 
 	return allowedbackenddisruption.GetAllowedDisruption(backendName, *jobType)
 }
@@ -123,23 +124,16 @@ func (t *backendDisruptionTest) DisplayName() string {
 
 // Setup looks up the host of the route specified by the backendSampler and updates
 // the backendSampler with the route's host.
-func (t *backendDisruptionTest) Setup(f *framework.Framework) {
+func (t *backendDisruptionTest) Setup(ctx context.Context, f *framework.Framework) {
 	if t.preSetup != nil {
 		framework.ExpectNoError(t.preSetup(f, t.backend))
 	}
 }
 
 // Test runs a connectivity check to a route.
-func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{}, upgrade upgrades.UpgradeType) {
+func (t *backendDisruptionTest) Test(ctx context.Context, f *framework.Framework, done <-chan struct{}, upgrade upgrades.UpgradeType) {
 	stopCh := make(chan struct{})
 	defer close(stopCh)
-
-	allowedDisruption, disruptionDetails, err := t.getAllowedDisruption(f)
-	framework.ExpectNoError(err)
-	if allowedDisruption == nil {
-		framework.Logf(fmt.Sprintf("Skipping: %s: No historical data", t.testName))
-		return
-	}
 
 	newBroadcaster := events.NewBroadcaster(&events.EventSinkImpl{Interface: f.ClientSet.EventsV1()})
 	eventRecorder := newBroadcaster.NewRecorder(scheme.Scheme, "openshift.io/"+t.backend.GetDisruptionBackendName())
@@ -148,7 +142,7 @@ func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{
 	start := time.Now()
 	ginkgo.By(fmt.Sprintf("continuously hitting backend: %s", t.backend.GetLocator()))
 
-	endpointMonitoringContext, endpointMonitoringCancel := context.WithCancel(context.Background())
+	endpointMonitoringContext, endpointMonitoringCancel := context.WithCancel(ctx)
 	defer endpointMonitoringCancel() // final backstop on closure
 	m := monitor.NewMonitorWithInterval(1 * time.Second)
 	disruptionErrCh := make(chan error, 1)
@@ -180,6 +174,9 @@ func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{
 		framework.Logf(fmt.Sprintf("unable to finish: %s", t.backend.GetLocator()))
 	}
 
+	allowedDisruption, disruptionDetails, err := t.getAllowedDisruption(f)
+	framework.ExpectNoError(err)
+
 	end := time.Now()
 
 	fromTime, endTime := time.Time{}, time.Time{}
@@ -187,7 +184,8 @@ func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{
 	ginkgo.By(fmt.Sprintf("writing results: %s", t.backend.GetLocator()))
 	ExpectNoDisruptionForDuration(
 		f,
-		*allowedDisruption,
+		t.testName,
+		allowedDisruption,
 		end.Sub(start),
 		events,
 		fmt.Sprintf("%s was unreachable during disruption: %v", t.backend.GetLocator(), disruptionDetails),
@@ -201,7 +199,7 @@ func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{
 }
 
 // Teardown cleans up any remaining resources.
-func (t *backendDisruptionTest) Teardown(f *framework.Framework) {
+func (t *backendDisruptionTest) Teardown(ctx context.Context, f *framework.Framework) {
 	if t.postTearDown != nil {
 		framework.ExpectNoError(t.postTearDown(f))
 	}

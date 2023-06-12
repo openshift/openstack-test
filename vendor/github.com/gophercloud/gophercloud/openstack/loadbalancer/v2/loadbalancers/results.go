@@ -47,6 +47,9 @@ type LoadBalancer struct {
 	// Loadbalancer address.
 	VipNetworkID string `json:"vip_network_id"`
 
+	// The ID of the QoS Policy which will apply to the Virtual IP
+	VipQosPolicyID string `json:"vip_qos_policy_id"`
+
 	// The unique ID for the LoadBalancer.
 	ID string `json:"id"`
 
@@ -58,6 +61,9 @@ type LoadBalancer struct {
 
 	// The UUID of a flavor if set.
 	FlavorID string `json:"flavor_id"`
+
+	// The name of an Octavia availability zone if set.
+	AvailabilityZone string `json:"availability_zone"`
 
 	// The name of the provider.
 	Provider string `json:"provider"`
@@ -155,6 +161,10 @@ func (r LoadBalancerPage) NextPageURL() (string, error) {
 
 // IsEmpty checks whether a LoadBalancerPage struct is empty.
 func (r LoadBalancerPage) IsEmpty() (bool, error) {
+	if r.StatusCode == 204 {
+		return true, nil
+	}
+
 	is, err := ExtractLoadBalancers(r)
 	return len(is) == 0, err
 }

@@ -1,6 +1,7 @@
 package openstack
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -34,6 +35,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 
+	var ctx context.Context
+	g.BeforeEach(func() {
+		ctx = context.Background()
+	})
+
 	g.Context("after deletion of a machineset", func() {
 		g.BeforeEach(func() {
 			g.By("preparing openshift dynamic client")
@@ -48,7 +54,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		g.It("should not have leftovers ports", func() {
 			// Check the scenario at https://bugzilla.redhat.com/show_bug.cgi?id=2073398
 
-			skipUnlessMachineAPIOperator(dc, clientSet.CoreV1().Namespaces())
+			skipUnlessMachineAPIOperator(ctx, dc, clientSet.CoreV1().Namespaces())
 			g.By("Fetching worker machineSets")
 			var networkClient *gophercloud.ServiceClient
 			var rawBytes []byte
@@ -57,7 +63,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 			networkClient, err := client(serviceNetwork)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack network client")
-			machineSets, err := listWorkerMachineSets(dc)
+			machineSets, err := listWorkerMachineSets(ctx, dc)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error getting the workers machinesets")
 
 			if len(machineSets) == 0 {
@@ -75,7 +81,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			err = configv1.AddToScheme(scheme.Scheme)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to add Config to scheme")
 
-			newMachinesetParams := framework.BuildMachineSetParams(rclient, 1)
+			newMachinesetParams := framework.BuildMachineSetParams(ctx, rclient, 1)
 			rawBytes, err = json.Marshal(newMachinesetParams.ProviderSpec.Value)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error marshaling new MachineSet Provider Spec")
 
@@ -94,13 +100,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to create a Machineset")
 			defer DeleteMachinesetsDefer(rclient, ms)
 
-			err = GetMachinesetRetry(rclient, ms, true)
+			err = GetMachinesetRetry(ctx, rclient, ms, true)
 
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get the new Machineset")
 
 			g.By("Deleting the new machineset")
 			framework.DeleteMachineSets(rclient, ms)
-			err = GetMachinesetRetry(rclient, ms, false)
+			err = GetMachinesetRetry(ctx, rclient, ms, false)
 			o.Expect(errors.IsNotFound(err)).To(o.BeTrue(), "Machineset %v was not deleted", ms.Name)
 
 			var config machinev1alpha1.OpenstackProviderSpec

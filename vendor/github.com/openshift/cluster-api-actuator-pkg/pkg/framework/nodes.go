@@ -14,44 +14,47 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // AddNodeCondition adds a condition in the given Node's status.
-func AddNodeCondition(c client.Client, node *corev1.Node, cond corev1.NodeCondition) error {
+func AddNodeCondition(c runtimeclient.Client, node *corev1.Node, cond corev1.NodeCondition) error {
 	nodeCopy := node.DeepCopy()
 	nodeCopy.Status.Conditions = append(nodeCopy.Status.Conditions, cond)
 
-	return c.Status().Patch(context.Background(), nodeCopy, client.MergeFrom(node))
+	return c.Status().Patch(context.Background(), nodeCopy, runtimeclient.MergeFrom(node))
 }
 
-// FilterReadyNodes filters the list of nodes and returns a list with ready nodes
+// FilterReadyNodes filters the list of nodes and returns a list with ready nodes.
 func FilterReadyNodes(nodes []corev1.Node) []corev1.Node {
 	var readyNodes []corev1.Node
+
 	for _, n := range nodes {
 		if IsNodeReady(&n) {
 			readyNodes = append(readyNodes, n)
 		}
 	}
+
 	return readyNodes
 }
 
-// FilterSchedulableNodes filters the list of nodes and returns a list with schedulable nodes
+// FilterSchedulableNodes filters the list of nodes and returns a list with schedulable nodes.
 func FilterSchedulableNodes(nodes []corev1.Node) []corev1.Node {
 	var schedulableNodes []corev1.Node
+
 	for _, n := range nodes {
 		if IsNodeSchedulable(&n) {
 			schedulableNodes = append(schedulableNodes, n)
 		}
 	}
+
 	return schedulableNodes
 }
 
 // GetNodes gets a list of nodes from a running cluster
 // Optionaly, labels may be used to constrain listed nodes.
-func GetNodes(c client.Client, selectors ...*metav1.LabelSelector) ([]corev1.Node, error) {
-	var listOpts []client.ListOption
+func GetNodes(c runtimeclient.Client, selectors ...*metav1.LabelSelector) ([]corev1.Node, error) {
+	var listOpts []runtimeclient.ListOption
 
 	nodeList := corev1.NodeList{}
 
@@ -62,7 +65,7 @@ func GetNodes(c client.Client, selectors ...*metav1.LabelSelector) ([]corev1.Nod
 		}
 
 		listOpts = append(listOpts,
-			client.MatchingLabelsSelector{Selector: s},
+			runtimeclient.MatchingLabelsSelector{Selector: s},
 		)
 	}
 
@@ -73,16 +76,17 @@ func GetNodes(c client.Client, selectors ...*metav1.LabelSelector) ([]corev1.Nod
 	return nodeList.Items, nil
 }
 
-// GetNodesFromMachineSet returns an array of nodes backed by machines owned by a given machineSet
-func GetNodesFromMachineSet(client runtimeclient.Client, machineSet *machinev1.MachineSet) ([]*corev1.Node, error) {
-	machines, err := GetMachinesFromMachineSet(client, machineSet)
+// GetNodesFromMachineSet returns an array of nodes backed by machines owned by a given machineSet.
+func GetNodesFromMachineSet(ctx context.Context, client runtimeclient.Client, machineSet *machinev1.MachineSet) ([]*corev1.Node, error) {
+	machines, err := GetMachinesFromMachineSet(ctx, client, machineSet)
 	if err != nil {
 		return nil, fmt.Errorf("error calling getMachinesFromMachineSet %w", err)
 	}
 
 	var nodes []*corev1.Node
+
 	for key := range machines {
-		node, err := GetNodeForMachine(client, machines[key])
+		node, err := GetNodeForMachine(ctx, client, machines[key])
 		if apierrors.IsNotFound(err) {
 			// We don't care about not found errors.
 			// Callers should account for the number of nodes being correct or not.
@@ -91,30 +95,33 @@ func GetNodesFromMachineSet(client runtimeclient.Client, machineSet *machinev1.M
 		} else if err != nil {
 			return nil, fmt.Errorf("error getting node from machine %q: %w", machines[key].Name, err)
 		}
+
 		nodes = append(nodes, node)
 	}
+
 	klog.Infof("MachineSet %q have %d nodes", machineSet.Name, len(nodes))
+
 	return nodes, nil
 }
 
 // GetNodeForMachine retrieves the node backing the given Machine.
-func GetNodeForMachine(c client.Client, m *machinev1.Machine) (*corev1.Node, error) {
+func GetNodeForMachine(ctx context.Context, c runtimeclient.Client, m *machinev1.Machine) (*corev1.Node, error) {
 	if m.Status.NodeRef == nil {
 		return nil, fmt.Errorf("%s: machine has no NodeRef", m.Name)
 	}
 
 	node := &corev1.Node{}
-	nodeName := client.ObjectKey{Name: m.Status.NodeRef.Name}
+	nodeName := runtimeclient.ObjectKey{Name: m.Status.NodeRef.Name}
 
-	if err := c.Get(context.Background(), nodeName, node); err != nil {
+	if err := c.Get(ctx, nodeName, node); err != nil {
 		return nil, err
 	}
 
 	return node, nil
 }
 
-// GetReadyAndSchedulableNodes returns all the nodes that have the Ready condition and can schedule workloads
-func GetReadyAndSchedulableNodes(c client.Client) ([]corev1.Node, error) {
+// GetReadyAndSchedulableNodes returns all the nodes that have the Ready condition and can schedule workloads.
+func GetReadyAndSchedulableNodes(c runtimeclient.Client) ([]corev1.Node, error) {
 	nodes, err := GetNodes(c)
 	if err != nil {
 		return nodes, err
@@ -126,15 +133,13 @@ func GetReadyAndSchedulableNodes(c client.Client) ([]corev1.Node, error) {
 	return nodes, nil
 }
 
-// GetWorkerNodes returns all nodes with the nodeWorkerRoleLabel label
-func GetWorkerNodes(c client.Client) ([]corev1.Node, error) {
+// GetWorkerNodes returns all nodes with the nodeWorkerRoleLabel label.
+func GetWorkerNodes(c runtimeclient.Client) ([]corev1.Node, error) {
 	workerNodes := &corev1.NodeList{}
-	err := c.List(context.TODO(), workerNodes,
-		client.InNamespace(MachineAPINamespace),
-		client.MatchingLabels(map[string]string{WorkerNodeRoleLabel: ""}),
-	)
-
-	if err != nil {
+	if err := c.List(context.TODO(), workerNodes,
+		runtimeclient.InNamespace(MachineAPINamespace),
+		runtimeclient.MatchingLabels(map[string]string{WorkerNodeRoleLabel: ""}),
+	); err != nil {
 		return nil, err
 	}
 
@@ -148,18 +153,16 @@ func IsNodeReady(node *corev1.Node) bool {
 			return c.Status == corev1.ConditionTrue
 		}
 	}
+
 	return false
 }
 
 // IsNodeSchedulable returns true is the given node can schedule workloads.
 func IsNodeSchedulable(node *corev1.Node) bool {
-	if node.Spec.Unschedulable {
-		return false
-	}
-	return true
+	return !node.Spec.Unschedulable
 }
 
-// NodesAreReady returns true if an array of nodes are all ready
+// NodesAreReady returns true if an array of nodes are all ready.
 func NodesAreReady(nodes []*corev1.Node) bool {
 	// All nodes needs to be ready
 	for key := range nodes {
@@ -167,22 +170,26 @@ func NodesAreReady(nodes []*corev1.Node) bool {
 			klog.Errorf("Node %q is not ready. Conditions are: %v", nodes[key].Name, nodes[key].Status.Conditions)
 			return false
 		}
+
 		klog.Infof("Node %q is ready. Conditions are: %v", nodes[key].Name, nodes[key].Status.Conditions)
 	}
+
 	return true
 }
 
-func VerifyNodeDraining(client runtimeclient.Client, targetMachine *machinev1.Machine, rc *corev1.ReplicationController) (string, error) {
-	endTime := time.Now().Add(time.Duration(WaitLong))
+func VerifyNodeDraining(ctx context.Context, client runtimeclient.Client, targetMachine *machinev1.Machine, rc *corev1.ReplicationController) (string, error) {
+	endTime := time.Now().Add(WaitLong)
+
 	var drainedNodeName string
-	err := wait.PollImmediate(RetryMedium, WaitLong, func() (bool, error) {
+
+	err := wait.PollUntilContextTimeout(ctx, RetryMedium, WaitLong, true, func(ctx context.Context) (bool, error) {
 		machine := machinev1.Machine{}
 
 		key := types.NamespacedName{
 			Namespace: targetMachine.Namespace,
 			Name:      targetMachine.Name,
 		}
-		if err := client.Get(context.TODO(), key, &machine); err != nil {
+		if err := client.Get(ctx, key, &machine); err != nil {
 			klog.Errorf("Error querying api machine %q object: %v, retrying...", targetMachine.Name, err)
 			return false, nil
 		}
@@ -194,7 +201,7 @@ func VerifyNodeDraining(client runtimeclient.Client, targetMachine *machinev1.Ma
 		drainedNodeName = machine.Status.NodeRef.Name
 		node := corev1.Node{}
 
-		if err := client.Get(context.TODO(), types.NamespacedName{Name: drainedNodeName}, &node); err != nil {
+		if err := client.Get(ctx, types.NamespacedName{Name: drainedNodeName}, &node); err != nil {
 			klog.Errorf("Error querying api node %q object: %v, retrying...", drainedNodeName, err)
 			return false, nil
 		}
@@ -207,7 +214,7 @@ func VerifyNodeDraining(client runtimeclient.Client, targetMachine *machinev1.Ma
 		klog.Infof("[remaining %s] Node %q is mark unschedulable as expected", remainingTime(endTime), node.Name)
 
 		pods := corev1.PodList{}
-		if err := client.List(context.TODO(), &pods, runtimeclient.MatchingLabels(rc.Spec.Selector)); err != nil {
+		if err := client.List(ctx, &pods, runtimeclient.MatchingLabels(rc.Spec.Selector)); err != nil {
 			klog.Errorf("Error querying api for Pods object: %v, retrying...", err)
 			return false, nil
 		}
@@ -231,7 +238,7 @@ func VerifyNodeDraining(client runtimeclient.Client, targetMachine *machinev1.Ma
 			Namespace: rc.Namespace,
 			Name:      rc.Name,
 		}
-		if err := client.Get(context.TODO(), key, &rcObj); err != nil {
+		if err := client.Get(ctx, key, &rcObj); err != nil {
 			klog.Errorf("Error querying api RC %q object: %v, retrying...", rc.Name, err)
 			return false, nil
 		}
@@ -254,21 +261,22 @@ func VerifyNodeDraining(client runtimeclient.Client, targetMachine *machinev1.Ma
 		}
 
 		klog.Infof("[remaining %s] Expected result: all pods from the RC up to last one or two got scheduled to a different node while respecting PDB", remainingTime(endTime))
+
 		return true, nil
 	})
 
 	return drainedNodeName, err
 }
 
-func WaitUntilAllRCPodsAreReady(client runtimeclient.Client, rc *corev1.ReplicationController) error {
-	endTime := time.Now().Add(time.Duration(WaitLong))
-	err := wait.PollImmediate(RetryMedium, WaitLong, func() (bool, error) {
+func WaitUntilAllRCPodsAreReady(ctx context.Context, client runtimeclient.Client, rc *corev1.ReplicationController) error {
+	endTime := time.Now().Add(WaitLong)
+	err := wait.PollUntilContextTimeout(ctx, RetryMedium, WaitLong, true, func(ctx context.Context) (bool, error) {
 		rcObj := corev1.ReplicationController{}
 		key := types.NamespacedName{
 			Namespace: rc.Namespace,
 			Name:      rc.Name,
 		}
-		if err := client.Get(context.TODO(), key, &rcObj); err != nil {
+		if err := client.Get(ctx, key, &rcObj); err != nil {
 			klog.Errorf("Error querying api RC %q object: %v, retrying...", rc.Name, err)
 			return false, nil
 		}
@@ -277,6 +285,7 @@ func WaitUntilAllRCPodsAreReady(client runtimeclient.Client, rc *corev1.Replicat
 			return false, nil
 		}
 		klog.Infof("[%s remaining] Waiting for RC ready replicas, ReadyReplicas: %v, Replicas: %v", remainingTime(endTime), rcObj.Status.ReadyReplicas, rcObj.Status.Replicas)
+
 		return rcObj.Status.Replicas == rcObj.Status.ReadyReplicas, nil
 	})
 
@@ -285,7 +294,7 @@ func WaitUntilAllRCPodsAreReady(client runtimeclient.Client, rc *corev1.Replicat
 	// debugging purposes so we can distinguish between the cases
 	// when it works and those rare cases when it doesn't.
 	pods := corev1.PodList{}
-	if err := client.List(context.TODO(), &pods, runtimeclient.MatchingLabels(rc.Spec.Selector)); err != nil {
+	if err := client.List(ctx, &pods, runtimeclient.MatchingLabels(rc.Spec.Selector)); err != nil {
 		klog.Errorf("Error listing pods: %v", err)
 	} else {
 		prettyPrint := func(i interface{}) string {
@@ -300,15 +309,16 @@ func WaitUntilAllRCPodsAreReady(client runtimeclient.Client, rc *corev1.Replicat
 	return err
 }
 
-func WaitUntilNodeDoesNotExists(client runtimeclient.Client, nodeName string) error {
-	endTime := time.Now().Add(time.Duration(WaitLong))
-	return wait.PollImmediate(RetryMedium, WaitLong, func() (bool, error) {
+func WaitUntilNodeDoesNotExists(ctx context.Context, client runtimeclient.Client, nodeName string) error {
+	endTime := time.Now().Add(WaitLong)
+
+	return wait.PollUntilContextTimeout(ctx, RetryMedium, WaitLong, true, func(ctx context.Context) (bool, error) {
 		node := corev1.Node{}
 
 		key := types.NamespacedName{
 			Name: nodeName,
 		}
-		err := client.Get(context.TODO(), key, &node)
+		err := client.Get(ctx, key, &node)
 		if err == nil {
 			klog.Errorf("Node %q not yet deleted", nodeName)
 			return false, nil
@@ -320,15 +330,16 @@ func WaitUntilNodeDoesNotExists(client runtimeclient.Client, nodeName string) er
 		}
 
 		klog.Infof("[%s remaining] Node %q successfully deleted", remainingTime(endTime), nodeName)
+
 		return true, nil
 	})
 }
 
 // WaitUntilAllNodesAreReady lists all nodes and waits until they are ready.
-func WaitUntilAllNodesAreReady(client runtimeclient.Client) error {
-	return wait.PollImmediate(RetryShort, PollNodesReadyTimeout, func() (bool, error) {
+func WaitUntilAllNodesAreReady(ctx context.Context, client runtimeclient.Client) error {
+	return wait.PollUntilContextTimeout(ctx, RetryShort, PollNodesReadyTimeout, true, func(ctx context.Context) (bool, error) {
 		nodeList := corev1.NodeList{}
-		if err := client.List(context.TODO(), &nodeList); err != nil {
+		if err := client.List(ctx, &nodeList); err != nil {
 			klog.Errorf("error querying api for nodeList object: %v, retrying...", err)
 			return false, nil
 		}
@@ -339,10 +350,11 @@ func WaitUntilAllNodesAreReady(client runtimeclient.Client) error {
 				return false, nil
 			}
 		}
+
 		return true, nil
 	})
 }
 
 func remainingTime(t time.Time) time.Duration {
-	return t.Sub(time.Now()).Round(time.Second)
+	return time.Until(t).Round(time.Second)
 }

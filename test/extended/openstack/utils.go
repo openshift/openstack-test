@@ -55,27 +55,27 @@ func RandomSuffix() string {
 	return strconv.Itoa(rand.Intn(10000))
 }
 
-func GetKuryrNetwork(clientSet *kubernetes.Clientset, namespace string) (KuryrNetwork, error) {
+func GetKuryrNetwork(ctx context.Context, clientSet *kubernetes.Clientset, namespace string) (KuryrNetwork, error) {
 	//TODO(itzikb): Replace a direct call to the API by extending the ClientSet
 	knetworkPath := fmt.Sprintf("/apis/openstack.org/v1/namespaces/%s/kuryrnetworks/%s", namespace, namespace)
 	data, err := clientSet.RESTClient().
 		Get().
 		AbsPath(knetworkPath).
-		DoRaw(context.TODO())
+		DoRaw(ctx)
 	var kn KuryrNetwork
 	json.Unmarshal(data, &kn)
 	return kn, err
 }
 
-func GetSubnetIDfromKuryrNetwork(clientSet *kubernetes.Clientset, namespace string) (string, error) {
-	kn, err := GetKuryrNetwork(clientSet, namespace)
+func GetSubnetIDfromKuryrNetwork(ctx context.Context, clientSet *kubernetes.Clientset, namespace string) (string, error) {
+	kn, err := GetKuryrNetwork(ctx, clientSet, namespace)
 	if err != nil {
 		return "", err
 	}
 	return kn.Status.SubnetID, nil
 }
 
-func CreateNamespace(clientSet *kubernetes.Clientset, baseName string, privileged bool) *v1.Namespace {
+func CreateNamespace(ctx context.Context, clientSet *kubernetes.Clientset, baseName string, privileged bool) *v1.Namespace {
 	nsName := fmt.Sprintf("%v-%v", baseName, RandomSuffix())
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -88,7 +88,7 @@ func CreateNamespace(clientSet *kubernetes.Clientset, baseName string, privilege
 			"security.openshift.io/scc.podSecurityLabelSync": "false",
 		}
 	}
-	_, err := clientSet.CoreV1().Namespaces().Create(context.TODO(), ns, metav1.CreateOptions{})
+	_, err := clientSet.CoreV1().Namespaces().Create(ctx, ns, metav1.CreateOptions{})
 	if err != nil {
 		e2e.Failf("unable to create namespace %v: %v", ns.Name, err)
 		return nil
@@ -97,14 +97,14 @@ func CreateNamespace(clientSet *kubernetes.Clientset, baseName string, privilege
 
 	return ns
 }
-func DeleteNamespace(clientSet *kubernetes.Clientset, ns *v1.Namespace) {
-	err := clientSet.CoreV1().Namespaces().Delete(context.TODO(), ns.Name, metav1.DeleteOptions{})
+func DeleteNamespace(ctx context.Context, clientSet *kubernetes.Clientset, ns *v1.Namespace) {
+	err := clientSet.CoreV1().Namespaces().Delete(ctx, ns.Name, metav1.DeleteOptions{})
 	if err != nil {
 		e2e.Failf("unable to delete namespace %v: %v", ns.Name, err)
 	}
 }
 
-func CreatePod(clientSet *kubernetes.Clientset, nsName string, baseName string, hostNetwork bool, command []string) (*v1.Pod, error) {
+func CreatePod(ctx context.Context, clientSet *kubernetes.Clientset, nsName string, baseName string, hostNetwork bool, command []string) (*v1.Pod, error) {
 	podName := fmt.Sprintf("%v-%v", baseName, RandomSuffix())
 	pod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -121,9 +121,9 @@ func CreatePod(clientSet *kubernetes.Clientset, nsName string, baseName string, 
 			HostNetwork: hostNetwork,
 		},
 	}
-	p, err := clientSet.CoreV1().Pods(nsName).Create(context.TODO(), pod, metav1.CreateOptions{})
+	p, err := clientSet.CoreV1().Pods(nsName).Create(ctx, pod, metav1.CreateOptions{})
 	if err == nil {
-		err = e2epod.WaitTimeoutForPodReadyInNamespace(clientSet, p.Name, nsName, e2e.PodStartShortTimeout)
+		err = e2epod.WaitTimeoutForPodReadyInNamespace(ctx, clientSet, p.Name, nsName, e2e.PodStartShortTimeout)
 	}
 	return p, err
 }
@@ -150,13 +150,13 @@ func difference(a []string, b []string) []string {
 	return diff
 }
 
-func GetMachinesetRetry(client runtimeclient.Client, ms *machinev1.MachineSet, shouldExist bool) error {
+func GetMachinesetRetry(ctx context.Context, client runtimeclient.Client, ms *machinev1.MachineSet, shouldExist bool) error {
 	var err error
 	const maxRetries = 5
 	const delay = 10
 	retries := 1
 	for retries < maxRetries {
-		_, err = framework.GetMachineSet(client, ms.Name)
+		_, err = framework.GetMachineSet(ctx, client, ms.Name)
 
 		if err != nil == shouldExist {
 			retries += 1
@@ -170,12 +170,12 @@ func GetMachinesetRetry(client runtimeclient.Client, ms *machinev1.MachineSet, s
 
 // return *ini.File from the 'key' section in the 'cmName' configMap of the specified 'namespace'.
 // oc get cm -n {{namespace}} {{cmName}} -o json | jq .data.{{key}}
-func getConfig(kubeClient kubernetes.Interface, namespace string, cmName string,
+func getConfig(ctx context.Context, kubeClient kubernetes.Interface, namespace string, cmName string,
 	key string) (*ini.File, error) {
 
 	var cfg *ini.File
 	cmClient := kubeClient.CoreV1().ConfigMaps(namespace)
-	config, err := cmClient.Get(context.TODO(), cmName, metav1.GetOptions{})
+	config, err := cmClient.Get(ctx, cmName, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		return nil, err
 	}
@@ -204,8 +204,8 @@ func getPropertyValue(sectionName string, propertyName string, cfg *ini.File) (s
 	}
 }
 
-func getNetworkType(oc *exutil.CLI) (string, error) {
-	networks, err := oc.AdminConfigClient().ConfigV1().Networks().Get(context.Background(), "cluster", metav1.GetOptions{})
+func getNetworkType(ctx context.Context, oc *exutil.CLI) (string, error) {
+	networks, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}

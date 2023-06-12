@@ -1,7 +1,6 @@
 package synthetictests
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -12,9 +11,8 @@ import (
 	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
 	"github.com/openshift/origin/test/extended/util/disruption"
 	"github.com/openshift/origin/test/extended/util/disruption/externalservice"
-
+	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/client-go/rest"
 	"k8s.io/kubernetes/test/e2e/framework"
 )
 
@@ -22,8 +20,8 @@ func testServerAvailability(
 	owner, locator string,
 	events monitorapi.Intervals,
 	jobRunDuration time.Duration,
-	restConfig *rest.Config) []*junitapi.JUnitTestCase {
-
+	jobType *platformidentification.JobType) []*junitapi.JUnitTestCase {
+	logger := logrus.WithField("owner", owner).WithField("locator", locator)
 	testName := fmt.Sprintf("[%s] %s should be available throughout the test", owner, locator)
 
 	// Lookup allowed disruption based on historical data:
@@ -31,18 +29,18 @@ func testServerAvailability(
 	disruptionName := monitorapi.DisruptionFrom(locatorParts)
 	connType := monitorapi.DisruptionConnectionTypeFrom(locatorParts)
 	backendName := fmt.Sprintf("%s-%s-connections", disruptionName, connType)
-	jobType, err := platformidentification.GetJobType(context.TODO(), restConfig)
-	if err != nil {
+	if jobType == nil {
 		return []*junitapi.JUnitTestCase{
 			{
 				Name:     testName,
 				Duration: jobRunDuration.Seconds(),
 				FailureOutput: &junitapi.FailureOutput{
-					Output: fmt.Sprintf("error in platform identification: %s", err),
+					Output: fmt.Sprintf("error in platform identification"),
 				},
 			},
 		}
 	}
+	logger.Infof("testing server availability for: %+v", *jobType)
 
 	allowedDisruption, disruptionDetails, err :=
 		allowedbackenddisruption.GetAllowedDisruption(backendName, *jobType)
@@ -110,7 +108,49 @@ func testServerAvailability(
 	}
 }
 
-func testAllAPIBackendsForDisruption(events monitorapi.Intervals, jobRunDuration time.Duration, restConfig *rest.Config) []*junitapi.JUnitTestCase {
+func TestAPIServerIPTablesAccessDisruption(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[bz-kube-apiserver] kube-apiserver should be accessible by clients using internal load balancer without iptables issues"
+	namespacesToCount := map[string]int{}
+	messages := []string{}
+	for _, event := range events {
+		reason := monitorapi.ReasonFrom(event.Message)
+		if reason != "iptables-operation-not-permitted" {
+			continue
+		}
+		ns := monitorapi.NamespaceFromLocator(event.Locator)
+		namespacesToCount[ns] = namespacesToCount[ns] + 1
+		messages = append(messages, event.String())
+	}
+
+	var tests []*junitapi.JUnitTestCase
+	successTest := &junitapi.JUnitTestCase{
+		Name: testName,
+	}
+	if len(messages) > 0 {
+		failureOutput := ""
+		for _, ns := range sets.StringKeySet(namespacesToCount).List() {
+			failureOutput += fmt.Sprintf("namespace/%v has %d instances of 'write: operation not permitted'\n", ns, namespacesToCount[ns])
+		}
+		failureOutput += "\n\n"
+		failureOutput += strings.Join(messages, "\n")
+
+		failureTest := &junitapi.JUnitTestCase{
+			Name: testName,
+			FailureOutput: &junitapi.FailureOutput{
+				Output: failureOutput,
+			},
+		}
+		tests = append(tests, failureTest)
+		tests = append(tests, successTest) // ensures we only flake, no fail.  so far.
+
+	} else {
+		tests = append(tests, successTest) // ensures we have success when appropriate
+	}
+	return tests
+
+}
+
+func TestAllAPIBackendsForDisruption(events monitorapi.Intervals, jobRunDuration time.Duration, jobType *platformidentification.JobType) []*junitapi.JUnitTestCase {
 	disruptLocators := sets.String{}
 	allDisruptionEventsIntervals := events.Filter(monitorapi.IsDisruptionEvent)
 	for _, eventInterval := range allDisruptionEventsIntervals {
@@ -119,16 +159,17 @@ func testAllAPIBackendsForDisruption(events monitorapi.Intervals, jobRunDuration
 			disruptLocators.Insert(eventInterval.Locator)
 		}
 	}
+	logrus.Infof("filtered %d intervals down to %d relevant to disruption", len(events), len(allDisruptionEventsIntervals))
 
 	ret := []*junitapi.JUnitTestCase{}
 	for _, locator := range disruptLocators.List() {
-		ret = append(ret, testServerAvailability("sig-api-machinery", locator, allDisruptionEventsIntervals, jobRunDuration, restConfig)...)
+		ret = append(ret, testServerAvailability("sig-api-machinery", locator, allDisruptionEventsIntervals, jobRunDuration, jobType)...)
 	}
 
 	return ret
 }
 
-func testAllIngressBackendsForDisruption(events monitorapi.Intervals, jobRunDuration time.Duration, restConfig *rest.Config) []*junitapi.JUnitTestCase {
+func TestAllIngressBackendsForDisruption(events monitorapi.Intervals, jobRunDuration time.Duration, jobType *platformidentification.JobType) []*junitapi.JUnitTestCase {
 	disruptLocators := sets.String{}
 	allDisruptionEventsIntervals := events.Filter(monitorapi.IsDisruptionEvent)
 	for _, eventInterval := range allDisruptionEventsIntervals {
@@ -140,14 +181,14 @@ func testAllIngressBackendsForDisruption(events monitorapi.Intervals, jobRunDura
 
 	ret := []*junitapi.JUnitTestCase{}
 	for _, locator := range disruptLocators.List() {
-		ret = append(ret, testServerAvailability("sig-network-edge", locator, allDisruptionEventsIntervals, jobRunDuration, restConfig)...)
+		ret = append(ret, testServerAvailability("sig-network-edge", locator, allDisruptionEventsIntervals, jobRunDuration, jobType)...)
 	}
 
 	return ret
 }
 
-// testExternalBackendsForDisruption runs synthetic tests for disruption backends that don't fit into the above two categories.
-func testExternalBackendsForDisruption(events monitorapi.Intervals, jobRunDuration time.Duration, restConfig *rest.Config) []*junitapi.JUnitTestCase {
+// TestExternalBackendsForDisruption runs synthetic tests for disruption backends that don't fit into the above two categories.
+func TestExternalBackendsForDisruption(events monitorapi.Intervals, jobRunDuration time.Duration, jobType *platformidentification.JobType) []*junitapi.JUnitTestCase {
 	disruptLocators := sets.String{}
 	allDisruptionEventsIntervals := events.Filter(monitorapi.IsDisruptionEvent)
 	for _, eventInterval := range allDisruptionEventsIntervals {
@@ -159,7 +200,7 @@ func testExternalBackendsForDisruption(events monitorapi.Intervals, jobRunDurati
 
 	ret := []*junitapi.JUnitTestCase{}
 	for _, locator := range disruptLocators.List() {
-		ret = append(ret, testServerAvailability("sig-trt", locator, allDisruptionEventsIntervals, jobRunDuration, restConfig)...)
+		ret = append(ret, testServerAvailability("sig-trt", locator, allDisruptionEventsIntervals, jobRunDuration, jobType)...)
 	}
 
 	return ret
@@ -266,5 +307,53 @@ func isOneSecondEvent(eventInterval monitorapi.EventInterval) bool {
 		return false
 	default:
 		return true
+	}
+}
+
+func testDNSOverlapDisruption(events monitorapi.Intervals) []*junitapi.JUnitTestCase {
+	const testName = "[sig-network] Disruption should not overlap with DNS problems in cluster running tests"
+	failures := []string{}
+	dnsIntervals := []monitorapi.EventInterval{}
+	disruptionIntervals := []monitorapi.EventInterval{}
+	for _, event := range events {
+		// DNS outage
+		if reason := monitorapi.ReasonFrom(event.Message); reason == "DisruptionSamplerOutageBegan" {
+			dnsIntervals = append(dnsIntervals, event)
+		}
+		// real disruption
+		if reason := monitorapi.ReasonFrom(event.Message); reason == "DisruptionBegan" {
+			disruptionIntervals = append(disruptionIntervals, event)
+		}
+	}
+	errorCount := 0
+	for _, r := range disruptionIntervals {
+		for _, d := range dnsIntervals {
+			if (r.From.Before(d.To) && d.From.Before(r.To)) || (r.To.Add(10*time.Second).After(d.From) && d.To.Add(10*time.Second).After(r.From)) {
+				errorCount = errorCount + 1
+			}
+		}
+	}
+	if errorCount > 0 {
+		failures = append(failures, fmt.Sprintf("Overlap or interval within 10 seconds occured %d times.", errorCount))
+	}
+	if len(failures) == 0 {
+		return []*junitapi.JUnitTestCase{
+			{Name: testName},
+		}
+	}
+
+	output := "These failures imply disruption overlapped, or occurred in very close proximity to DNS problems in the cluster running tests.\n" + strings.Join(failures, "\n")
+
+	return []*junitapi.JUnitTestCase{
+		{
+			Name: testName,
+			FailureOutput: &junitapi.FailureOutput{
+				Output: output,
+			},
+			SystemOut: strings.Join(failures, "\n"),
+		},
+		{
+			Name: testName,
+		},
 	}
 }

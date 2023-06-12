@@ -48,20 +48,23 @@ func NewWorkLoad(njobs int32, memoryRequest resource.Quantity, workloadJobName s
 					},
 				},
 			},
-			BackoffLimit: pointer.Int32Ptr(4),
-			Completions:  pointer.Int32Ptr(njobs),
-			Parallelism:  pointer.Int32Ptr(njobs),
+			BackoffLimit: pointer.Int32(4),
+			Completions:  pointer.Int32(njobs),
+			Parallelism:  pointer.Int32(njobs),
 		},
 	}
+
 	if nodeSelector != "" {
 		job.Spec.Template.Spec.NodeSelector = map[string]string{
 			nodeSelector: "",
 		}
 	}
+
 	if podLabel != "" {
 		job.Spec.Template.ObjectMeta.Labels = map[string]string{
 			podLabel: "",
 		}
 	}
+
 	return job
 }

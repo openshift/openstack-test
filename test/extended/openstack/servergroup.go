@@ -39,7 +39,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	oc = exutil.NewCLI("openstack")
 
 	g.BeforeEach(func() {
-		ctx = context.TODO()
+		ctx = context.Background()
 
 		g.By("preparing a dynamic client")
 		cfg, err := e2e.LoadConfig()
@@ -119,7 +119,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 	// OCP 4.10: https://issues.redhat.com/browse/OSASINFRA-2507
 	g.It("creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity", func() {
-		installConfig, err := installConfigFromCluster(oc.AdminKubeClient().CoreV1())
+		installConfig, err := installConfigFromCluster(ctx, oc.AdminKubeClient().CoreV1())
 		o.Expect(err).NotTo(o.HaveOccurred())
 		serverGroupPolicy := installConfig.ControlPlane.Platform.OpenStack.ServerGroupPolicy
 		if serverGroupPolicy != "anti-affinity" {
@@ -171,7 +171,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 	// OCP 4.10: https://issues.redhat.com/browse/OSASINFRA-2570
 	g.It("creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity", func() {
-		installConfig, err := installConfigFromCluster(oc.AdminKubeClient().CoreV1())
+		installConfig, err := installConfigFromCluster(ctx, oc.AdminKubeClient().CoreV1())
 		o.Expect(err).NotTo(o.HaveOccurred())
 		serverGroupPolicy := installConfig.Compute[0].Platform.OpenStack.ServerGroupPolicy
 		if serverGroupPolicy != "anti-affinity" {
@@ -201,7 +201,7 @@ func getFromUnstructured(unstr *unstructured.Unstructured, keys ...string) inter
 // IDsFromName returns zero or more IDs corresponding to a name. The returned
 // error is only non-nil in case of failure.
 func serverGroupIDsFromName(client *gophercloud.ServiceClient, name string) ([]string, error) {
-	pages, err := servergroups.List(client).AllPages()
+	pages, err := servergroups.List(client, nil).AllPages()
 	if err != nil {
 		return nil, err
 	}
@@ -238,10 +238,10 @@ type installConfig struct {
 	} `yaml:"compute"`
 }
 
-func installConfigFromCluster(client clientcorev1.ConfigMapsGetter) (installConfig, error) {
+func installConfigFromCluster(ctx context.Context, client clientcorev1.ConfigMapsGetter) (installConfig, error) {
 	const installConfigName = "cluster-config-v1"
 
-	cm, err := client.ConfigMaps("kube-system").Get(context.Background(), installConfigName, metav1.GetOptions{})
+	cm, err := client.ConfigMaps("kube-system").Get(ctx, installConfigName, metav1.GetOptions{})
 	if err != nil {
 		return installConfig{}, err
 	}

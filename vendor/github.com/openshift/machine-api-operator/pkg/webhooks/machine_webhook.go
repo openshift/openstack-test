@@ -4,33 +4,34 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"regexp"
-	"runtime"
+	goruntime "runtime"
 	"strconv"
 	"strings"
+
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	kruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/klog/v2"
+	"k8s.io/utils/strings/slices"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"sigs.k8s.io/kube-storage-version-migrator/pkg/clients/clientset/scheme"
+	"sigs.k8s.io/yaml"
 
 	osconfigv1 "github.com/openshift/api/config/v1"
 	machinev1 "github.com/openshift/api/machine/v1"
 	machinev1beta1 "github.com/openshift/api/machine/v1beta1"
 	osclientset "github.com/openshift/client-go/config/clientset/versioned"
 	"github.com/openshift/machine-api-operator/pkg/util/lifecyclehooks"
-	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kruntime "k8s.io/apimachinery/pkg/runtime"
-	utilerrors "k8s.io/apimachinery/pkg/util/errors"
-	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/apimachinery/pkg/util/validation/field"
-	"k8s.io/klog/v2"
-	"k8s.io/utils/pointer"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-	yaml "sigs.k8s.io/yaml"
 )
 
 type systemSpecifications struct {
@@ -53,7 +54,10 @@ var (
 		return fmt.Sprintf("%s-rg", clusterID)
 	}
 	defaultAzureImageResourceID = func(clusterID string) string {
-		return fmt.Sprintf("/resourceGroups/%s/providers/Microsoft.Compute/images/%s", clusterID+"-rg", clusterID)
+		// image gallery names cannot have dashes
+		galleryName := strings.Replace(clusterID, "-", "_", -1)
+
+		return fmt.Sprintf("/resourceGroups/%s/providers/Microsoft.Compute/galleries/gallery_%s/images/%s/versions/%s", clusterID+"-rg", galleryName, clusterID, azureRHCOSVersion)
 	}
 	defaultAzureManagedIdentiy = func(clusterID string) string {
 		return fmt.Sprintf("%s-identity", clusterID)
@@ -102,16 +106,6 @@ var (
 )
 
 const (
-	DefaultMachineMutatingHookPath      = "/mutate-machine-openshift-io-v1beta1-machine"
-	DefaultMachineValidatingHookPath    = "/validate-machine-openshift-io-v1beta1-machine"
-	DefaultMachineSetMutatingHookPath   = "/mutate-machine-openshift-io-v1beta1-machineset"
-	DefaultMachineSetValidatingHookPath = "/validate-machine-openshift-io-v1beta1-machineset"
-
-	defaultWebhookConfigurationName = "machine-api"
-	defaultWebhookServiceName       = "machine-api-operator-webhook"
-	defaultWebhookServiceNamespace  = "openshift-machine-api"
-	defaultWebhookServicePort       = 443
-
 	defaultUserDataSecret  = "worker-user-data"
 	defaultSecretNamespace = "openshift-machine-api"
 
@@ -132,6 +126,7 @@ const (
 	azureCachingTypeNone               = "None"
 	azureCachingTypeReadOnly           = "ReadOnly"
 	azureCachingTypeReadWrite          = "ReadWrite"
+	azureRHCOSVersion                  = "latest" // The installer only sets up one version but its name may vary, using latest will pull it no matter the name.
 
 	// GCP Defaults
 	defaultGCPMachineType       = "n1-standard-4"
@@ -172,12 +167,9 @@ const (
 	powerVSSystemTypeE980           = "e980"
 )
 
-var (
-	// webhookFailurePolicy is ignore so we don't want to block machine lifecycle on the webhook operational aspects.
-	// This would be particularly problematic for chicken egg issues when bootstrapping a cluster.
-	webhookFailurePolicy = admissionregistrationv1.Ignore
-	webhookSideEffects   = admissionregistrationv1.SideEffectClassNone
-)
+// GCP Confidential VM supports Compute Engine machine types in the following series:
+// reference: https://cloud.google.com/compute/confidential-vm/docs/os-and-machine-type#machine-type
+var gcpConfidentialComputeSupportedMachineSeries = []string{"n2d", "c2d"}
 
 func secretExists(c client.Client, name, namespace string) (bool, error) {
 	key := client.ObjectKey{
@@ -253,7 +245,7 @@ func getDNS() (*osconfigv1.DNS, error) {
 	return dns, nil
 }
 
-type machineAdmissionFn func(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate)
+type machineAdmissionFn func(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList)
 
 type admissionConfig struct {
 	clusterID       string
@@ -289,7 +281,7 @@ type machineDefaulterHandler struct {
 }
 
 // NewValidator returns a new machineValidatorHandler.
-func NewMachineValidator(client client.Client) (*machineValidatorHandler, error) {
+func NewMachineValidator(client client.Client) (*admission.Webhook, error) {
 	infra, err := getInfra()
 	if err != nil {
 		return nil, err
@@ -300,7 +292,7 @@ func NewMachineValidator(client client.Client) (*machineValidatorHandler, error)
 		return nil, err
 	}
 
-	return createMachineValidator(infra, client, dns), nil
+	return admission.WithCustomValidator(scheme.Scheme, &machinev1beta1.Machine{}, createMachineValidator(infra, client, dns)), nil
 }
 
 func createMachineValidator(infra *osconfigv1.Infrastructure, client client.Client, dns *osconfigv1.DNS) *machineValidatorHandler {
@@ -334,20 +326,20 @@ func getMachineValidatorOperation(platform osconfigv1.PlatformType) machineAdmis
 		return validateNutanix
 	default:
 		// just no-op
-		return func(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+		return func(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 			return true, []string{}, nil
 		}
 	}
 }
 
 // NewDefaulter returns a new machineDefaulterHandler.
-func NewMachineDefaulter() (*machineDefaulterHandler, error) {
+func NewMachineDefaulter() (*admission.Webhook, error) {
 	infra, err := getInfra()
 	if err != nil {
 		return nil, err
 	}
 
-	return createMachineDefaulter(infra.Status.PlatformStatus, infra.Status.InfrastructureName), nil
+	return admission.WithCustomDefaulter(scheme.Scheme, &machinev1beta1.Machine{}, createMachineDefaulter(infra.Status.PlatformStatus, infra.Status.InfrastructureName)), nil
 }
 
 func createMachineDefaulter(platformStatus *osconfigv1.PlatformStatus, clusterID string) *machineDefaulterHandler {
@@ -366,7 +358,7 @@ func getMachineDefaulterOperation(platformStatus *osconfigv1.PlatformStatus) mac
 		if platformStatus.AWS != nil {
 			region = platformStatus.AWS.Region
 		}
-		arch := runtime.GOARCH
+		arch := goruntime.GOARCH
 		return awsDefaulter{region: region, arch: arch}.defaultAWS
 	case osconfigv1.AzurePlatformType:
 		return defaultAzure
@@ -380,187 +372,19 @@ func getMachineDefaulterOperation(platformStatus *osconfigv1.PlatformStatus) mac
 		return defaultNutanix
 	default:
 		// just no-op
-		return func(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+		return func(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 			return true, []string{}, nil
 		}
 	}
 }
 
-// NewValidatingWebhookConfiguration creates a validation webhook configuration with configured Machine and MachineSet webhooks
-func NewValidatingWebhookConfiguration() *admissionregistrationv1.ValidatingWebhookConfiguration {
-	validatingWebhookConfiguration := &admissionregistrationv1.ValidatingWebhookConfiguration{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: defaultWebhookConfigurationName,
-			Annotations: map[string]string{
-				"service.beta.openshift.io/inject-cabundle": "true",
-			},
-		},
-		Webhooks: []admissionregistrationv1.ValidatingWebhook{
-			MachineValidatingWebhook(),
-			MachineSetValidatingWebhook(),
-		},
-	}
-
-	// Setting group version is required for testEnv to create unstructured objects, as the new structure sets it on empty strings
-	// Usual way to populate those values, is to create the resource in the cluster first, which we can't yet do.
-	validatingWebhookConfiguration.SetGroupVersionKind(admissionregistrationv1.SchemeGroupVersion.WithKind("ValidatingWebhookConfiguration"))
-	return validatingWebhookConfiguration
-}
-
-// MachineValidatingWebhook returns validating webhooks for machine to populate the configuration
-func MachineValidatingWebhook() admissionregistrationv1.ValidatingWebhook {
-	serviceReference := admissionregistrationv1.ServiceReference{
-		Namespace: defaultWebhookServiceNamespace,
-		Name:      defaultWebhookServiceName,
-		Path:      pointer.StringPtr(DefaultMachineValidatingHookPath),
-		Port:      pointer.Int32Ptr(defaultWebhookServicePort),
-	}
-	return admissionregistrationv1.ValidatingWebhook{
-		AdmissionReviewVersions: []string{"v1"},
-		Name:                    "validation.machine.machine.openshift.io",
-		FailurePolicy:           &webhookFailurePolicy,
-		SideEffects:             &webhookSideEffects,
-		ClientConfig: admissionregistrationv1.WebhookClientConfig{
-			Service: &serviceReference,
-		},
-		Rules: []admissionregistrationv1.RuleWithOperations{
-			{
-				Rule: admissionregistrationv1.Rule{
-					APIGroups:   []string{machinev1beta1.GroupName},
-					APIVersions: []string{machinev1beta1.SchemeGroupVersion.Version},
-					Resources:   []string{"machines"},
-				},
-				Operations: []admissionregistrationv1.OperationType{
-					admissionregistrationv1.Create,
-					admissionregistrationv1.Update,
-				},
-			},
-		},
-	}
-}
-
-// MachineSetValidatingWebhook returns validating webhooks for machineSet to populate the configuration
-func MachineSetValidatingWebhook() admissionregistrationv1.ValidatingWebhook {
-	machinesetServiceReference := admissionregistrationv1.ServiceReference{
-		Namespace: defaultWebhookServiceNamespace,
-		Name:      defaultWebhookServiceName,
-		Path:      pointer.StringPtr(DefaultMachineSetValidatingHookPath),
-		Port:      pointer.Int32Ptr(defaultWebhookServicePort),
-	}
-	return admissionregistrationv1.ValidatingWebhook{
-		AdmissionReviewVersions: []string{"v1"},
-		Name:                    "validation.machineset.machine.openshift.io",
-		FailurePolicy:           &webhookFailurePolicy,
-		SideEffects:             &webhookSideEffects,
-		ClientConfig: admissionregistrationv1.WebhookClientConfig{
-			Service: &machinesetServiceReference,
-		},
-		Rules: []admissionregistrationv1.RuleWithOperations{
-			{
-				Rule: admissionregistrationv1.Rule{
-					APIGroups:   []string{machinev1beta1.GroupName},
-					APIVersions: []string{machinev1beta1.SchemeGroupVersion.Version},
-					Resources:   []string{"machinesets"},
-				},
-				Operations: []admissionregistrationv1.OperationType{
-					admissionregistrationv1.Create,
-					admissionregistrationv1.Update,
-				},
-			},
-		},
-	}
-}
-
-// NewMutatingWebhookConfiguration creates a mutating webhook configuration with configured Machine and MachineSet webhooks
-func NewMutatingWebhookConfiguration() *admissionregistrationv1.MutatingWebhookConfiguration {
-	mutatingWebhookConfiguration := &admissionregistrationv1.MutatingWebhookConfiguration{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: defaultWebhookConfigurationName,
-			Annotations: map[string]string{
-				"service.beta.openshift.io/inject-cabundle": "true",
-			},
-		},
-		Webhooks: []admissionregistrationv1.MutatingWebhook{
-			MachineMutatingWebhook(),
-			MachineSetMutatingWebhook(),
-		},
-	}
-
-	// Setting group version is required for testEnv to create unstructured objects, as the new structure sets it on empty strings
-	// Usual way to populate those values, is to create the resource in the cluster first, which we can't yet do.
-	mutatingWebhookConfiguration.SetGroupVersionKind(admissionregistrationv1.SchemeGroupVersion.WithKind("MutatingWebhookConfiguration"))
-	return mutatingWebhookConfiguration
-}
-
-// MachineMutatingWebhook returns mutating webhooks for machine to apply in configuration
-func MachineMutatingWebhook() admissionregistrationv1.MutatingWebhook {
-	machineServiceReference := admissionregistrationv1.ServiceReference{
-		Namespace: defaultWebhookServiceNamespace,
-		Name:      defaultWebhookServiceName,
-		Path:      pointer.StringPtr(DefaultMachineMutatingHookPath),
-		Port:      pointer.Int32Ptr(defaultWebhookServicePort),
-	}
-	return admissionregistrationv1.MutatingWebhook{
-		AdmissionReviewVersions: []string{"v1"},
-		Name:                    "default.machine.machine.openshift.io",
-		FailurePolicy:           &webhookFailurePolicy,
-		SideEffects:             &webhookSideEffects,
-		ClientConfig: admissionregistrationv1.WebhookClientConfig{
-			Service: &machineServiceReference,
-		},
-		Rules: []admissionregistrationv1.RuleWithOperations{
-			{
-				Rule: admissionregistrationv1.Rule{
-					APIGroups:   []string{machinev1beta1.GroupName},
-					APIVersions: []string{machinev1beta1.SchemeGroupVersion.Version},
-					Resources:   []string{"machines"},
-				},
-				Operations: []admissionregistrationv1.OperationType{
-					admissionregistrationv1.Create,
-				},
-			},
-		},
-	}
-}
-
-// MachineSetMutatingWebhook returns mutating webhook for machineSet to apply in configuration
-func MachineSetMutatingWebhook() admissionregistrationv1.MutatingWebhook {
-	machineSetServiceReference := admissionregistrationv1.ServiceReference{
-		Namespace: defaultWebhookServiceNamespace,
-		Name:      defaultWebhookServiceName,
-		Path:      pointer.StringPtr(DefaultMachineSetMutatingHookPath),
-		Port:      pointer.Int32Ptr(defaultWebhookServicePort),
-	}
-	return admissionregistrationv1.MutatingWebhook{
-		AdmissionReviewVersions: []string{"v1"},
-		Name:                    "default.machineset.machine.openshift.io",
-		FailurePolicy:           &webhookFailurePolicy,
-		SideEffects:             &webhookSideEffects,
-		ClientConfig: admissionregistrationv1.WebhookClientConfig{
-			Service: &machineSetServiceReference,
-		},
-		Rules: []admissionregistrationv1.RuleWithOperations{
-			{
-				Rule: admissionregistrationv1.Rule{
-					APIGroups:   []string{machinev1beta1.GroupName},
-					APIVersions: []string{machinev1beta1.SchemeGroupVersion.Version},
-					Resources:   []string{"machinesets"},
-				},
-				Operations: []admissionregistrationv1.OperationType{
-					admissionregistrationv1.Create,
-				},
-			},
-		},
-	}
-}
-
-func (h *machineValidatorHandler) validateMachine(m, oldM *machinev1beta1.Machine) (bool, []string, utilerrors.Aggregate) {
+func (h *machineValidatorHandler) validateMachine(m, oldM *machinev1beta1.Machine) (bool, []string, field.ErrorList) {
 	// Skip validation if we just remove the finalizer.
 	// For more information: https://issues.redhat.com/browse/OCPCLOUD-1426
 	if !m.DeletionTimestamp.IsZero() {
 		isFinalizerOnly, err := isFinalizerOnlyRemoval(m, oldM)
 		if err != nil {
-			return false, nil, utilerrors.NewAggregate([]error{err})
+			return false, nil, field.ErrorList{field.InternalError(field.NewPath(""), err)}
 		}
 		if isFinalizerOnly {
 			return true, nil, nil
@@ -569,52 +393,78 @@ func (h *machineValidatorHandler) validateMachine(m, oldM *machinev1beta1.Machin
 
 	errs := validateMachineLifecycleHooks(m, oldM)
 
-	ok, warnings, err := h.webhookOperations(m, h.admissionConfig)
+	ok, warnings, opErrs := h.webhookOperations(m, h.admissionConfig)
 	if !ok {
-		errs = append(errs, err.Errors()...)
+		errs = append(errs, opErrs...)
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 	return true, warnings, nil
 }
 
 // Handle handles HTTP requests for admission webhook servers.
-func (h *machineValidatorHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
-	m := &machinev1beta1.Machine{}
-
-	if err := h.decoder.Decode(req, m); err != nil {
-		return admission.Errored(http.StatusBadRequest, err)
-	}
-
-	var oldM *machinev1beta1.Machine
-	if len(req.OldObject.Raw) > 0 {
-		// oldM must only be initialised if there is an old object (ie on UPDATE or DELETE).
-		// It should be nil otherwise to allow skipping certain validations that rely on
-		// the presence of the old object.
-		oldM = &machinev1beta1.Machine{}
-		if err := h.decoder.DecodeRaw(req.OldObject, oldM); err != nil {
-			return admission.Errored(http.StatusBadRequest, err)
-		}
+func (h *machineValidatorHandler) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
+	m, ok := obj.(*machinev1beta1.Machine)
+	if !ok {
+		return nil, apierrors.NewBadRequest(fmt.Sprintf("expected a Machine but got a %T", obj))
 	}
 
 	klog.V(3).Infof("Validate webhook called for Machine: %s", m.GetName())
 
-	ok, warnings, errs := h.validateMachine(m, oldM)
+	ok, warnings, errs := h.validateMachine(m, nil)
 	if !ok {
-		return admission.Denied(errs.Error()).WithWarnings(warnings...)
+		return warnings, errs.ToAggregate()
 	}
 
-	return admission.Allowed("Machine valid").WithWarnings(warnings...)
+	return warnings, nil
 }
 
 // Handle handles HTTP requests for admission webhook servers.
-func (h *machineDefaulterHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
-	m := &machinev1beta1.Machine{}
+func (h *machineValidatorHandler) ValidateUpdate(ctx context.Context, oldObj, obj runtime.Object) (admission.Warnings, error) {
+	m, ok := obj.(*machinev1beta1.Machine)
+	if !ok {
+		return nil, apierrors.NewBadRequest(fmt.Sprintf("expected a Machine but got a %T", obj))
+	}
 
-	if err := h.decoder.Decode(req, m); err != nil {
-		return admission.Errored(http.StatusBadRequest, err)
+	mOld, ok := oldObj.(*machinev1beta1.Machine)
+	if !ok {
+		return nil, apierrors.NewBadRequest(fmt.Sprintf("expected a Machine but got a %T", oldObj))
+	}
+
+	klog.V(3).Infof("Validate webhook called for Machine: %s", m.GetName())
+
+	ok, warnings, errs := h.validateMachine(m, mOld)
+	if !ok {
+		return warnings, errs.ToAggregate()
+	}
+
+	return warnings, nil
+}
+
+// Handle handles HTTP requests for admission webhook servers.
+func (h *machineValidatorHandler) ValidateDelete(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
+	m, ok := obj.(*machinev1beta1.Machine)
+	if !ok {
+		return nil, apierrors.NewBadRequest(fmt.Sprintf("expected a Machine but got a %T", obj))
+	}
+
+	klog.V(3).Infof("Validate webhook called for Machine: %s", m.GetName())
+
+	ok, warnings, errs := h.validateMachine(m, nil)
+	if !ok {
+		return warnings, errs.ToAggregate()
+	}
+
+	return warnings, nil
+}
+
+// Handle handles HTTP requests for admission webhook servers.
+func (h *machineDefaulterHandler) Default(ctx context.Context, obj runtime.Object) error {
+	m, ok := obj.(*machinev1beta1.Machine)
+	if !ok {
+		return apierrors.NewBadRequest(fmt.Sprintf("expected a MachineSet but got a %T", obj))
 	}
 
 	klog.V(3).Infof("Mutate webhook called for Machine: %s", m.GetName())
@@ -630,16 +480,12 @@ func (h *machineDefaulterHandler) Handle(ctx context.Context, req admission.Requ
 		m.Labels[machinev1beta1.MachineClusterIDLabel] = h.clusterID
 	}
 
-	ok, warnings, errs := h.webhookOperations(m, h.admissionConfig)
+	ok, _, errs := h.webhookOperations(m, h.admissionConfig)
 	if !ok {
-		return admission.Denied(errs.Error()).WithWarnings(warnings...)
+		return errs.ToAggregate()
 	}
 
-	marshaledMachine, err := json.Marshal(m)
-	if err != nil {
-		return admission.Errored(http.StatusInternalServerError, err).WithWarnings(warnings...)
-	}
-	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledMachine).WithWarnings(warnings...)
+	return nil
 }
 
 type awsDefaulter struct {
@@ -647,15 +493,15 @@ type awsDefaulter struct {
 	arch   string
 }
 
-func (a awsDefaulter) defaultAWS(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func (a awsDefaulter) defaultAWS(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Defaulting AWS providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1beta1.AWSMachineProviderConfig)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	if providerSpec.InstanceType == "" {
@@ -680,18 +526,18 @@ func (a awsDefaulter) defaultAWS(m *machinev1beta1.Machine, config *admissionCon
 
 	rawBytes, err := json.Marshal(providerSpec)
 	if err != nil {
-		errs = append(errs, err)
+		errs = append(errs, field.InternalError(field.NewPath("providerSpec", "value"), err))
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	m.Spec.ProviderSpec.Value = &kruntime.RawExtension{Raw: rawBytes}
 	return true, warnings, nil
 }
 
-func unmarshalInto(m *machinev1beta1.Machine, providerSpec interface{}) error {
+func unmarshalInto(m *machinev1beta1.Machine, providerSpec interface{}) *field.Error {
 	if m.Spec.ProviderSpec.Value == nil {
 		return field.Required(field.NewPath("providerSpec", "value"), "a value must be provided")
 	}
@@ -702,15 +548,38 @@ func unmarshalInto(m *machinev1beta1.Machine, providerSpec interface{}) error {
 	return nil
 }
 
-func validateAWS(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func validateUnknownFields(m *machinev1beta1.Machine, providerSpec interface{}) error {
+	if err := yaml.Unmarshal(m.Spec.ProviderSpec.Value.Raw, &providerSpec, yaml.DisallowUnknownFields); err != nil {
+		if strings.Contains(err.Error(), "unknown field") {
+			unknownField := strings.Replace(strings.Split(err.Error(), "unknown field ")[1], "\"", "", -1)
+			return &field.Error{
+				Type:     field.ErrorTypeNotSupported,
+				Field:    field.NewPath("providerSpec", "value").String(),
+				BadValue: unknownField,
+				Detail:   fmt.Sprintf("Unknown field (%s) will be ignored", unknownField),
+			}
+		}
+	}
+	return nil
+}
+
+func validateAWS(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Validating AWS providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1beta1.AWSMachineProviderConfig)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
+	}
+
+	if err := validateUnknownFields(m, providerSpec); err != nil {
+		warnings = append(warnings, err.Error())
+	}
+
+	if !validateGVK(providerSpec.GroupVersionKind(), osconfigv1.AWSPlatformType) {
+		warnings = append(warnings, fmt.Sprintf("incorrect GroupVersionKind for AWSMachineProviderConfig object: %s", providerSpec.GroupVersionKind()))
 	}
 
 	if providerSpec.AMI.ID == nil {
@@ -841,7 +710,7 @@ func validateAWS(m *machinev1beta1.Machine, config *admissionConfig) (bool, []st
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	return true, warnings, nil
@@ -864,15 +733,15 @@ func getDuplicatedTags(tagSpecs []machinev1beta1.TagSpecification) []string {
 	return duplicatedTags
 }
 
-func defaultAzure(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func defaultAzure(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Defaulting Azure providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1beta1.AzureMachineProviderSpec)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	if providerSpec.VMSize == "" {
@@ -908,26 +777,34 @@ func defaultAzure(m *machinev1beta1.Machine, config *admissionConfig) (bool, []s
 
 	rawBytes, err := json.Marshal(providerSpec)
 	if err != nil {
-		errs = append(errs, err)
+		errs = append(errs, field.InternalError(field.NewPath("providerSpec", "value"), err))
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	m.Spec.ProviderSpec.Value = &kruntime.RawExtension{Raw: rawBytes}
 	return true, warnings, nil
 }
 
-func validateAzure(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func validateAzure(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Validating Azure providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1beta1.AzureMachineProviderSpec)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
+	}
+
+	if err := validateUnknownFields(m, providerSpec); err != nil {
+		warnings = append(warnings, err.Error())
+	}
+
+	if !validateGVK(providerSpec.GroupVersionKind(), osconfigv1.AzurePlatformType) {
+		warnings = append(warnings, fmt.Sprintf("incorrect GroupVersionKind for AzureMachineProviderSpec object: %s", providerSpec.GroupVersionKind()))
 	}
 
 	if providerSpec.VMSize == "" {
@@ -935,7 +812,7 @@ func validateAzure(m *machinev1beta1.Machine, config *admissionConfig) (bool, []
 	}
 
 	if providerSpec.PublicIP && config.dnsDisconnected {
-		errs = append(errs, field.Forbidden(field.NewPath("providerSpec", "publicIP"), "publicIP is not allowed in Azure disconnected installation"))
+		errs = append(errs, field.Forbidden(field.NewPath("providerSpec", "publicIP"), "publicIP is not allowed in Azure disconnected installation with publish strategy as internal"))
 	}
 	// Vnet requires Subnet
 	if providerSpec.Vnet != "" && providerSpec.Subnet == "" {
@@ -1007,43 +884,43 @@ func validateAzure(m *machinev1beta1.Machine, config *admissionConfig) (bool, []
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 	return true, warnings, nil
 }
 
-func validateAzureImage(image machinev1beta1.Image) []error {
-	errors := []error{}
+func validateAzureImage(image machinev1beta1.Image) field.ErrorList {
+	var errs field.ErrorList
 	if image == (machinev1beta1.Image{}) {
-		return append(errors, field.Required(field.NewPath("providerSpec", "image"), "an image reference must be provided"))
+		return append(errs, field.Required(field.NewPath("providerSpec", "image"), "an image reference must be provided"))
 	}
 
 	if image.ResourceID != "" {
 		if image != (machinev1beta1.Image{ResourceID: image.ResourceID}) {
-			return append(errors, field.Required(field.NewPath("providerSpec", "image", "resourceID"), "resourceID is already specified, other fields such as [Offer, Publisher, SKU, Version] should not be set"))
+			return append(errs, field.Required(field.NewPath("providerSpec", "image", "resourceID"), "resourceID is already specified, other fields such as [Offer, Publisher, SKU, Version] should not be set"))
 		}
-		return errors
+		return errs
 	}
 
 	// Resource ID not provided, so Offer, Publisher, SKU and Version are required
 	if image.Offer == "" {
-		errors = append(errors, field.Required(field.NewPath("providerSpec", "image", "Offer"), "Offer must be provided"))
+		errs = append(errs, field.Required(field.NewPath("providerSpec", "image", "Offer"), "Offer must be provided"))
 	}
 	if image.Publisher == "" {
-		errors = append(errors, field.Required(field.NewPath("providerSpec", "image", "Publisher"), "Publisher must be provided"))
+		errs = append(errs, field.Required(field.NewPath("providerSpec", "image", "Publisher"), "Publisher must be provided"))
 	}
 	if image.SKU == "" {
-		errors = append(errors, field.Required(field.NewPath("providerSpec", "image", "SKU"), "SKU must be provided"))
+		errs = append(errs, field.Required(field.NewPath("providerSpec", "image", "SKU"), "SKU must be provided"))
 	}
 	if image.Version == "" {
-		errors = append(errors, field.Required(field.NewPath("providerSpec", "image", "Version"), "Version must be provided"))
+		errs = append(errs, field.Required(field.NewPath("providerSpec", "image", "Version"), "Version must be provided"))
 	}
 
-	return errors
+	return errs
 }
 
-func validateAzureDiagnostics(diagnosticsSpec machinev1beta1.AzureDiagnostics, parentPath *field.Path) []error {
-	errs := []error{}
+func validateAzureDiagnostics(diagnosticsSpec machinev1beta1.AzureDiagnostics, parentPath *field.Path) field.ErrorList {
+	var errs field.ErrorList
 
 	if diagnosticsSpec.Boot != nil {
 		cmPath := parentPath.Child("boot", "customerManaged")
@@ -1069,15 +946,15 @@ func validateAzureDiagnostics(diagnosticsSpec machinev1beta1.AzureDiagnostics, p
 	return errs
 }
 
-func defaultGCP(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func defaultGCP(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Defaulting GCP providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1beta1.GCPMachineProviderSpec)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	if providerSpec.MachineType == "" {
@@ -1114,11 +991,11 @@ func defaultGCP(m *machinev1beta1.Machine, config *admissionConfig) (bool, []str
 
 	rawBytes, err := json.Marshal(providerSpec)
 	if err != nil {
-		errs = append(errs, err)
+		errs = append(errs, field.InternalError(field.NewPath("providerSpec", "value"), err))
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	m.Spec.ProviderSpec.Value = &kruntime.RawExtension{Raw: rawBytes}
@@ -1151,15 +1028,23 @@ func defaultGCPDisks(disks []*machinev1beta1.GCPDisk, clusterID string) []*machi
 	return disks
 }
 
-func validateGCP(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func validateGCP(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Validating GCP providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1beta1.GCPMachineProviderSpec)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
+	}
+
+	if err := validateUnknownFields(m, providerSpec); err != nil {
+		warnings = append(warnings, err.Error())
+	}
+
+	if !validateGVK(providerSpec.GroupVersionKind(), osconfigv1.GCPPlatformType) {
+		warnings = append(warnings, fmt.Sprintf("incorrect GroupVersionKind for GCPMachineProviderSpec object: %s", providerSpec.GroupVersionKind()))
 	}
 
 	if providerSpec.Region == "" {
@@ -1177,6 +1062,10 @@ func validateGCP(m *machinev1beta1.Machine, config *admissionConfig) (bool, []st
 	if providerSpec.OnHostMaintenance != "" && providerSpec.OnHostMaintenance != machinev1beta1.MigrateHostMaintenanceType && providerSpec.OnHostMaintenance != machinev1beta1.TerminateHostMaintenanceType {
 		errs = append(errs, field.Invalid(field.NewPath("providerSpec", "onHostMaintenance"), providerSpec.OnHostMaintenance, fmt.Sprintf("onHostMaintenance must be either %s or %s.", machinev1beta1.MigrateHostMaintenanceType, machinev1beta1.TerminateHostMaintenanceType)))
 	}
+
+	errs = append(errs, validateShieldedInstanceConfig(providerSpec)...)
+
+	errs = append(errs, validateGCPConfidentialComputing(providerSpec)...)
 
 	if providerSpec.RestartPolicy != "" && providerSpec.RestartPolicy != machinev1beta1.RestartPolicyAlways && providerSpec.RestartPolicy != machinev1beta1.RestartPolicyNever {
 		errs = append(errs, field.Invalid(field.NewPath("providerSpec", "restartPolicy"), providerSpec.RestartPolicy, fmt.Sprintf("restartPolicy must be either %s or %s.", machinev1beta1.RestartPolicyNever, machinev1beta1.RestartPolicyAlways)))
@@ -1217,17 +1106,77 @@ func validateGCP(m *machinev1beta1.Machine, config *admissionConfig) (bool, []st
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 	return true, warnings, nil
 }
 
-func validateGCPNetworkInterfaces(networkInterfaces []*machinev1beta1.GCPNetworkInterface, parentPath *field.Path) []error {
-	if len(networkInterfaces) == 0 {
-		return []error{field.Required(parentPath, "at least 1 network interface is required")}
+func validateShieldedInstanceConfig(providerSpec *machinev1beta1.GCPMachineProviderSpec) field.ErrorList {
+	var errs field.ErrorList
+
+	if providerSpec.ShieldedInstanceConfig != (machinev1beta1.GCPShieldedInstanceConfig{}) {
+
+		if providerSpec.ShieldedInstanceConfig.SecureBoot != "" && providerSpec.ShieldedInstanceConfig.SecureBoot != machinev1beta1.SecureBootPolicyEnabled && providerSpec.ShieldedInstanceConfig.SecureBoot != machinev1beta1.SecureBootPolicyDisabled {
+			errs = append(errs, field.Invalid(field.NewPath("providerSpec", "shieldedInstanceConfig", "secureBoot"),
+				providerSpec.ShieldedInstanceConfig.SecureBoot,
+				fmt.Sprintf("secureBoot must be either %s or %s.", machinev1beta1.SecureBootPolicyEnabled, machinev1beta1.SecureBootPolicyDisabled)))
+		}
+
+		if providerSpec.ShieldedInstanceConfig.IntegrityMonitoring != "" && providerSpec.ShieldedInstanceConfig.IntegrityMonitoring != machinev1beta1.IntegrityMonitoringPolicyEnabled && providerSpec.ShieldedInstanceConfig.IntegrityMonitoring != machinev1beta1.IntegrityMonitoringPolicyDisabled {
+			errs = append(errs, field.Invalid(field.NewPath("providerSpec", "shieldedInstanceConfig", "integrityMonitoring"),
+				providerSpec.ShieldedInstanceConfig.IntegrityMonitoring,
+				fmt.Sprintf("integrityMonitoring must be either %s or %s.", machinev1beta1.IntegrityMonitoringPolicyEnabled, machinev1beta1.IntegrityMonitoringPolicyDisabled)))
+		}
+
+		if providerSpec.ShieldedInstanceConfig.VirtualizedTrustedPlatformModule != "" && providerSpec.ShieldedInstanceConfig.VirtualizedTrustedPlatformModule != machinev1beta1.VirtualizedTrustedPlatformModulePolicyEnabled && providerSpec.ShieldedInstanceConfig.VirtualizedTrustedPlatformModule != machinev1beta1.VirtualizedTrustedPlatformModulePolicyDisabled {
+			errs = append(errs, field.Invalid(field.NewPath("providerSpec", "shieldedInstanceConfig", "virtualizedTrustedPlatformModule"),
+				providerSpec.ShieldedInstanceConfig.VirtualizedTrustedPlatformModule,
+				fmt.Sprintf("virtualizedTrustedPlatformModule must be either %s or %s.", machinev1beta1.VirtualizedTrustedPlatformModulePolicyEnabled, machinev1beta1.VirtualizedTrustedPlatformModulePolicyDisabled)))
+		}
+		if providerSpec.ShieldedInstanceConfig.VirtualizedTrustedPlatformModule == machinev1beta1.VirtualizedTrustedPlatformModulePolicyDisabled && providerSpec.ShieldedInstanceConfig.IntegrityMonitoring != machinev1beta1.IntegrityMonitoringPolicyDisabled {
+			errs = append(errs, field.Invalid(field.NewPath("providerSpec", "shieldedInstanceConfig", "virtualizedTrustedPlatformModule"),
+				providerSpec.ShieldedInstanceConfig.VirtualizedTrustedPlatformModule,
+				fmt.Sprintf("integrityMonitoring requires virtualizedTrustedPlatformModule %s.", machinev1beta1.VirtualizedTrustedPlatformModulePolicyEnabled)))
+		}
+	}
+	return errs
+}
+
+func validateGCPConfidentialComputing(providerSpec *machinev1beta1.GCPMachineProviderSpec) field.ErrorList {
+	var errs field.ErrorList
+
+	switch providerSpec.ConfidentialCompute {
+	case machinev1beta1.ConfidentialComputePolicyEnabled:
+		// Check on host maintenance
+		if providerSpec.OnHostMaintenance != machinev1beta1.TerminateHostMaintenanceType {
+			errs = append(errs, field.Invalid(field.NewPath("providerSpec", "onHostMaintenance"),
+				providerSpec.OnHostMaintenance,
+				fmt.Sprintf("ConfidentialCompute require OnHostMaintenance to be set to %s, the current value is: %s", machinev1beta1.TerminateHostMaintenanceType, providerSpec.OnHostMaintenance)))
+		}
+		// Check machine series supports confidential computing
+		machineSeries := strings.Split(providerSpec.MachineType, "-")[0]
+		if !slices.Contains(gcpConfidentialComputeSupportedMachineSeries, machineSeries) {
+			errs = append(errs, field.Invalid(field.NewPath("providerSpec", "machineType"),
+				providerSpec.MachineType,
+				fmt.Sprintf("ConfidentialCompute require machine type in the following series: %s", strings.Join(gcpConfidentialComputeSupportedMachineSeries, `,`))),
+			)
+		}
+	case machinev1beta1.ConfidentialComputePolicyDisabled, "":
+	default:
+		errs = append(errs, field.Invalid(field.NewPath("providerSpec", "confidentialCompute"),
+			providerSpec.ConfidentialCompute,
+			fmt.Sprintf("ConfidentialCompute must be either %s or %s.", machinev1beta1.ConfidentialComputePolicyEnabled, machinev1beta1.ConfidentialComputePolicyDisabled)))
 	}
 
-	var errs []error
+	return errs
+}
+
+func validateGCPNetworkInterfaces(networkInterfaces []*machinev1beta1.GCPNetworkInterface, parentPath *field.Path) field.ErrorList {
+	if len(networkInterfaces) == 0 {
+		return field.ErrorList{field.Required(parentPath, "at least 1 network interface is required")}
+	}
+
+	var errs field.ErrorList
 	for i, ni := range networkInterfaces {
 		fldPath := parentPath.Index(i)
 
@@ -1243,12 +1192,12 @@ func validateGCPNetworkInterfaces(networkInterfaces []*machinev1beta1.GCPNetwork
 	return errs
 }
 
-func validateGCPDisks(disks []*machinev1beta1.GCPDisk, parentPath *field.Path) []error {
+func validateGCPDisks(disks []*machinev1beta1.GCPDisk, parentPath *field.Path) field.ErrorList {
 	if len(disks) == 0 {
-		return []error{field.Required(parentPath, "at least 1 disk is required")}
+		return field.ErrorList{field.Required(parentPath, "at least 1 disk is required")}
 	}
 
-	var errs []error
+	var errs field.ErrorList
 	for i, disk := range disks {
 		fldPath := parentPath.Index(i)
 
@@ -1271,8 +1220,9 @@ func validateGCPDisks(disks []*machinev1beta1.GCPDisk, parentPath *field.Path) [
 	return errs
 }
 
-func validateGCPGPUs(guestAccelerators []machinev1beta1.GCPGPUConfig, parentPath *field.Path, machineType string) []error {
-	var errs []error
+func validateGCPGPUs(guestAccelerators []machinev1beta1.GCPGPUConfig, parentPath *field.Path, machineType string) field.ErrorList {
+	var errs field.ErrorList
+
 	if len(guestAccelerators) > 1 {
 		errs = append(errs, field.TooMany(parentPath, len(guestAccelerators), 1))
 	} else if len(guestAccelerators) == 1 {
@@ -1289,15 +1239,16 @@ func validateGCPGPUs(guestAccelerators []machinev1beta1.GCPGPUConfig, parentPath
 			errs = append(errs, field.Invalid(parentPath, accelerator.Type, "A2 machine types have already attached gpus, additional gpus cannot be specified"))
 		}
 	}
+
 	return errs
 }
 
-func validateGCPServiceAccounts(serviceAccounts []machinev1beta1.GCPServiceAccount, parentPath *field.Path) []error {
+func validateGCPServiceAccounts(serviceAccounts []machinev1beta1.GCPServiceAccount, parentPath *field.Path) field.ErrorList {
 	if len(serviceAccounts) != 1 {
-		return []error{field.Invalid(parentPath, fmt.Sprintf("%d service accounts supplied", len(serviceAccounts)), "exactly 1 service account must be supplied")}
+		return field.ErrorList{field.Invalid(parentPath, fmt.Sprintf("%d service accounts supplied", len(serviceAccounts)), "exactly 1 service account must be supplied")}
 	}
 
-	var errs []error
+	var errs field.ErrorList
 	for i, serviceAccount := range serviceAccounts {
 		fldPath := parentPath.Index(i)
 
@@ -1312,15 +1263,15 @@ func validateGCPServiceAccounts(serviceAccounts []machinev1beta1.GCPServiceAccou
 	return errs
 }
 
-func defaultVSphere(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func defaultVSphere(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Defaulting vSphere providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1beta1.VSphereMachineProviderSpec)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	if providerSpec.UserDataSecret == nil {
@@ -1333,26 +1284,34 @@ func defaultVSphere(m *machinev1beta1.Machine, config *admissionConfig) (bool, [
 
 	rawBytes, err := json.Marshal(providerSpec)
 	if err != nil {
-		errs = append(errs, err)
+		errs = append(errs, field.InternalError(field.NewPath("providerSpec", "value"), err))
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	m.Spec.ProviderSpec.Value = &kruntime.RawExtension{Raw: rawBytes}
 	return true, warnings, nil
 }
 
-func validateVSphere(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func validateVSphere(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Validating vSphere providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1beta1.VSphereMachineProviderSpec)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
+	}
+
+	if err := validateUnknownFields(m, providerSpec); err != nil {
+		warnings = append(warnings, err.Error())
+	}
+
+	if !validateGVK(providerSpec.GroupVersionKind(), osconfigv1.VSpherePlatformType) {
+		warnings = append(warnings, fmt.Sprintf("incorrect GroupVersionKind for VSphereMachineProviderSpec object: %s", providerSpec.GroupVersionKind()))
 	}
 
 	if providerSpec.Template == "" {
@@ -1397,17 +1356,17 @@ func validateVSphere(m *machinev1beta1.Machine, config *admissionConfig) (bool, 
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 	return true, warnings, nil
 }
 
-func validateVSphereWorkspace(workspace *machinev1beta1.Workspace, parentPath *field.Path) ([]string, []error) {
+func validateVSphereWorkspace(workspace *machinev1beta1.Workspace, parentPath *field.Path) ([]string, field.ErrorList) {
 	if workspace == nil {
-		return []string{}, []error{field.Required(parentPath, "workspace must be provided")}
+		return []string{}, field.ErrorList{field.Required(parentPath, "workspace must be provided")}
 	}
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	if workspace.Server == "" {
 		errs = append(errs, field.Required(parentPath.Child("server"), "server must be provided"))
@@ -1426,12 +1385,12 @@ func validateVSphereWorkspace(workspace *machinev1beta1.Workspace, parentPath *f
 	return warnings, errs
 }
 
-func validateVSphereNetwork(network machinev1beta1.NetworkSpec, parentPath *field.Path) []error {
+func validateVSphereNetwork(network machinev1beta1.NetworkSpec, parentPath *field.Path) field.ErrorList {
 	if len(network.Devices) == 0 {
-		return []error{field.Required(parentPath.Child("devices"), "at least 1 network device must be provided")}
+		return field.ErrorList{field.Required(parentPath.Child("devices"), "at least 1 network device must be provided")}
 	}
 
-	var errs []error
+	var errs field.ErrorList
 	for i, spec := range network.Devices {
 		fldPath := parentPath.Child("devices").Index(i)
 		if spec.NetworkName == "" {
@@ -1442,15 +1401,15 @@ func validateVSphereNetwork(network machinev1beta1.NetworkSpec, parentPath *fiel
 	return errs
 }
 
-func defaultNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func defaultNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Defaulting nutanix providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1.NutanixMachineProviderConfig)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	if providerSpec.UserDataSecret == nil {
@@ -1463,26 +1422,30 @@ func defaultNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, [
 
 	rawBytes, err := json.Marshal(providerSpec)
 	if err != nil {
-		errs = append(errs, err)
+		errs = append(errs, field.InternalError(field.NewPath("providerSpec", "value"), err))
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	m.Spec.ProviderSpec.Value = &kruntime.RawExtension{Raw: rawBytes}
 	return true, warnings, nil
 }
 
-func validateNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func validateNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Validating nutanix providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1.NutanixMachineProviderConfig)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
+	}
+
+	if err := validateUnknownFields(m, providerSpec); err != nil {
+		warnings = append(warnings, err.Error())
 	}
 
 	if err := validateNutanixResourceIdentifier("cluster", providerSpec.Cluster); err != nil {
@@ -1494,9 +1457,11 @@ func validateNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, 
 	// Currently, we only support one subnet per VM in Openshift
 	// We may extend this to support more than one subnet per VM in future releases
 	if len(providerSpec.Subnets) == 0 {
-		errs = append(errs, fmt.Errorf("providerSpec.subnets: missing subnets: nodes may fail to start if no subnets are configured"))
+		subnets, _ := json.Marshal(providerSpec.Subnets)
+		errs = append(errs, field.Invalid(field.NewPath("providerSpec", "subnets"), string(subnets), "missing subnets: nodes may fail to start if no subnets are configured"))
 	} else if len(providerSpec.Subnets) > 1 {
-		errs = append(errs, fmt.Errorf("providerSpec.subnets: too many subnets: currently nutanix platform supports one subnet per VM but more than one subnets are configured"))
+		subnets, _ := json.Marshal(providerSpec.Subnets)
+		errs = append(errs, field.Invalid(field.NewPath("providerSpec", "subnets"), string(subnets), "too many subnets: currently nutanix platform supports one subnet per VM but more than one subnets are configured"))
 	}
 
 	for _, subnet := range providerSpec.Subnets {
@@ -1515,8 +1480,8 @@ func validateNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, 
 
 	minNutanixMemory, err := resource.ParseQuantity(fmt.Sprintf("%dMi", minNutanixMemoryMiB))
 	if err != nil {
-		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		errs = append(errs, field.InternalError(field.NewPath("providerSpec", "memorySize"), fmt.Errorf("failed to parse minNutanixMemory: %v", err)))
+		return false, warnings, errs
 	}
 	if providerSpec.MemorySize.Cmp(minNutanixMemory) < 0 {
 		warnings = append(warnings, fmt.Sprintf("providerSpec.memorySize: %d is missing or less than the recommended minimum value (%d): nodes may not boot correctly", providerSpec.MemorySize.Value()/(1024*1024), minNutanixMemoryMiB))
@@ -1524,8 +1489,8 @@ func validateNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, 
 
 	minNutanixDiskSize, err := resource.ParseQuantity(fmt.Sprintf("%dGi", minNutanixDiskGiB))
 	if err != nil {
-		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		errs = append(errs, field.InternalError(field.NewPath("providerSpec", "systemDiskSize"), fmt.Errorf("failed to parse minNutanixDiskSize: %v", err)))
+		return false, warnings, errs
 	}
 	if providerSpec.SystemDiskSize.Cmp(minNutanixDiskSize) < 0 {
 		warnings = append(warnings, fmt.Sprintf("providerSpec.systemDiskSize: %d is missing or less than the recommended minimum (%d): nodes may fail to start if disk size is too low", providerSpec.SystemDiskSize.Value()/(1024*1024*1024), minNutanixDiskGiB))
@@ -1549,13 +1514,37 @@ func validateNutanix(m *machinev1beta1.Machine, config *admissionConfig) (bool, 
 		}
 	}
 
+	// validate bootType
+	if err := validateNutanixBootType(providerSpec.BootType); err != nil {
+		errs = append(errs, err)
+	}
+
+	// validate project if configured
+	if len(providerSpec.Project.Type) != 0 {
+		if err := validateNutanixResourceIdentifier("project", providerSpec.Project); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	// validate categories if configured
+	if len(providerSpec.Categories) > 0 {
+		for _, category := range providerSpec.Categories {
+			if len(category.Key) < 1 || len(category.Key) > 64 {
+				errs = append(errs, field.Invalid(field.NewPath("providerSpec", "categories", "key"), category.Key, "key must be a string with length between 1 and 64."))
+			}
+			if len(category.Value) < 1 || len(category.Value) > 64 {
+				errs = append(errs, field.Invalid(field.NewPath("providerSpec", "categories", "value"), category.Value, "value must be a string with length between 1 and 64."))
+			}
+		}
+	}
+
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 	return true, warnings, nil
 }
 
-func validateNutanixResourceIdentifier(resource string, identifier machinev1.NutanixResourceIdentifier) error {
+func validateNutanixResourceIdentifier(resource string, identifier machinev1.NutanixResourceIdentifier) *field.Error {
 	parentPath := field.NewPath("providerSpec")
 	if identifier.Type == machinev1.NutanixIdentifierName {
 		if identifier.Name == nil || *identifier.Name == "" {
@@ -1572,13 +1561,29 @@ func validateNutanixResourceIdentifier(resource string, identifier machinev1.Nut
 	return nil
 }
 
+func validateNutanixBootType(bootType machinev1.NutanixBootType) *field.Error {
+	parentPath := field.NewPath("providerSpec")
+	// verify the bootType configurations
+	// Type bootType field is optional, and valid values include: "", Legacy, UEFI, SecureBoot
+	switch bootType {
+	case "", machinev1.NutanixLegacyBoot, machinev1.NutanixUEFIBoot, machinev1.NutanixSecureBoot:
+		// valid bootType
+	default:
+		errMsg := fmt.Sprintf("valid bootType values are: \"\", %q, %q, %q.",
+			machinev1.NutanixLegacyBoot, machinev1.NutanixUEFIBoot, machinev1.NutanixSecureBoot)
+		return field.Invalid(parentPath.Child("bootType"), bootType, errMsg)
+	}
+
+	return nil
+}
+
 func isAzureGovCloud(platformStatus *osconfigv1.PlatformStatus) bool {
 	return platformStatus != nil && platformStatus.Azure != nil &&
 		platformStatus.Azure.CloudName != osconfigv1.AzurePublicCloud
 }
 
-func validateMachineLifecycleHooks(m, oldM *machinev1beta1.Machine) []error {
-	var errs []error
+func validateMachineLifecycleHooks(m, oldM *machinev1beta1.Machine) field.ErrorList {
+	var errs field.ErrorList
 
 	if isDeleting(m) && oldM != nil {
 		changedPreDrain := lifecyclehooks.GetChangedLifecycleHooks(oldM.Spec.LifecycleHooks.PreDrain, m.Spec.LifecycleHooks.PreDrain)
@@ -1595,9 +1600,9 @@ func validateMachineLifecycleHooks(m, oldM *machinev1beta1.Machine) []error {
 	return errs
 }
 
-func validateAzureDataDisks(machineName string, spec *machinev1beta1.AzureMachineProviderSpec, parentPath *field.Path) []error {
+func validateAzureDataDisks(machineName string, spec *machinev1beta1.AzureMachineProviderSpec, parentPath *field.Path) field.ErrorList {
 
-	var errs []error
+	var errs field.ErrorList
 	dataDiskLuns := make(map[int32]struct{})
 	dataDiskNames := make(map[string]struct{})
 	// defines rules for matching. strings must start and finish with an alphanumeric character
@@ -1661,15 +1666,15 @@ func validateAzureDataDisks(machineName string, spec *machinev1beta1.AzureMachin
 	return errs
 }
 
-func defaultPowerVS(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func defaultPowerVS(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Defaulting PowerVS providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1.PowerVSMachineProviderConfig)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 	if providerSpec.UserDataSecret == nil {
 		providerSpec.UserDataSecret = &machinev1.PowerVSSecretReference{Name: defaultUserDataSecret}
@@ -1697,26 +1702,30 @@ func defaultPowerVS(m *machinev1beta1.Machine, config *admissionConfig) (bool, [
 
 	rawBytes, err := json.Marshal(providerSpec)
 	if err != nil {
-		errs = append(errs, err)
+		errs = append(errs, field.InternalError(field.NewPath("providerSpec", "value"), err))
 	}
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 
 	m.Spec.ProviderSpec.Value = &kruntime.RawExtension{Raw: rawBytes}
 	return true, warnings, nil
 }
 
-func validatePowerVS(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, utilerrors.Aggregate) {
+func validatePowerVS(m *machinev1beta1.Machine, config *admissionConfig) (bool, []string, field.ErrorList) {
 	klog.V(3).Infof("Validating PowerVS providerSpec")
 
-	var errs []error
+	var errs field.ErrorList
 	var warnings []string
 	providerSpec := new(machinev1.PowerVSMachineProviderConfig)
 	if err := unmarshalInto(m, providerSpec); err != nil {
 		errs = append(errs, err)
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
+	}
+
+	if err := validateUnknownFields(m, providerSpec); err != nil {
+		warnings = append(warnings, err.Error())
 	}
 
 	if providerSpec.KeyPairName == "" {
@@ -1755,12 +1764,14 @@ func validatePowerVS(m *machinev1beta1.Machine, config *admissionConfig) (bool, 
 	errs = append(errs, machineConfigErrors...)
 
 	if len(errs) > 0 {
-		return false, warnings, utilerrors.NewAggregate(errs)
+		return false, warnings, errs
 	}
 	return true, warnings, nil
 }
 
-func validatePowerVSResourceIdentifiers(serviceInstance machinev1.PowerVSResource, resourceType string, parentPath *field.Path) (errs []error) {
+func validatePowerVSResourceIdentifiers(serviceInstance machinev1.PowerVSResource, resourceType string, parentPath *field.Path) field.ErrorList {
+	var errs field.ErrorList
+
 	switch serviceInstance.Type {
 	case machinev1.PowerVSResourceTypeID:
 		if serviceInstance.ID == nil {
@@ -1793,10 +1804,13 @@ func validatePowerVSResourceIdentifiers(serviceInstance machinev1.PowerVSResourc
 	return errs
 }
 
-func validateMachineConfigurations(providerSpec *machinev1.PowerVSMachineProviderConfig, parentPath *field.Path) (warnings []string, errs []error) {
+func validateMachineConfigurations(providerSpec *machinev1.PowerVSMachineProviderConfig, parentPath *field.Path) ([]string, field.ErrorList) {
+	var errs field.ErrorList
+	var warnings []string
+
 	if providerSpec == nil {
-		errs = append(errs, []error{field.Required(parentPath, "providerSpec must be provided")}...)
-		return
+		errs = append(errs, field.Required(parentPath, "providerSpec must be provided"))
+		return warnings, errs
 	}
 	if val, found := powerVSMachineConfigurations[providerSpec.SystemType]; !found {
 		warnings = append(warnings, fmt.Sprintf("providerSpec.SystemType: %s is not known, Currently known system types are %s, %s and %s", providerSpec.SystemType, defaultPowerVSSysType, powerVSSystemTypeE980, powerVSSystemTypeE880))
@@ -1805,31 +1819,30 @@ func validateMachineConfigurations(providerSpec *machinev1.PowerVSMachineProvide
 			errs = append(errs, field.Invalid(parentPath.Child("memoryGiB"), providerSpec.MemoryGiB, fmt.Sprintf("for %s systemtype the maximum supported memory value is %d", providerSpec.SystemType, val.maxMemoryGiB)))
 		}
 
-		if providerSpec.MemoryGiB < val.minMemoryGiB {
+		if providerSpec.MemoryGiB < 0 {
+			errs = append(errs, field.Invalid(parentPath.Child("memoryGiB"), providerSpec.MemoryGiB, "memory value cannot be negative"))
+		} else if providerSpec.MemoryGiB < val.minMemoryGiB {
 			warnings = append(warnings, fmt.Sprintf("providerspec.MemoryGiB %d is less than the minimum value %d", providerSpec.MemoryGiB, val.minMemoryGiB))
 		}
 
 		processor, err := getPowerVSProcessorValue(providerSpec.Processors)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("error while getting processor vlaue %w", err))
-			return
+			errs = append(errs, field.InternalError(parentPath.Child("processor"), fmt.Errorf("error while getting processor vlaue %w", err)))
+			return warnings, errs
 		} else {
 			if processor > val.maxProcessor {
 				errs = append(errs, field.Invalid(parentPath.Child("processor"), processor, fmt.Sprintf("for %s systemtype the maximum supported processor value is %f", providerSpec.SystemType, val.maxProcessor)))
 			}
 		}
-		// validate minimum processor values depending on ProcessorType
-		if providerSpec.ProcessorType == machinev1.PowerVSProcessorTypeDedicated {
-			if processor < val.minProcessorDedicated {
-				warnings = append(warnings, fmt.Sprintf("providerspec.Processor %f is less than the minimum value %f for providerSpec.ProcessorType: %s", processor, val.minProcessorDedicated, providerSpec.ProcessorType))
-			}
-		} else {
-			if processor < val.minProcessorSharedCapped {
-				warnings = append(warnings, fmt.Sprintf("providerspec.Processor %f is less than the minimum value %f for providerSpec.ProcessorType: %s", processor, val.minProcessorSharedCapped, providerSpec.ProcessorType))
-			}
+		if processor < 0 {
+			errs = append(errs, field.Invalid(parentPath.Child("processor"), processor, "processor value cannot be negative"))
+		} else if providerSpec.ProcessorType == machinev1.PowerVSProcessorTypeDedicated && processor < val.minProcessorDedicated {
+			warnings = append(warnings, fmt.Sprintf("providerspec.Processor %f is less than the minimum value %f for providerSpec.ProcessorType: %s", processor, val.minProcessorDedicated, providerSpec.ProcessorType))
+		} else if processor < val.minProcessorSharedCapped {
+			warnings = append(warnings, fmt.Sprintf("providerspec.Processor %f is less than the minimum value %f for providerSpec.ProcessorType: %s", processor, val.minProcessorSharedCapped, providerSpec.ProcessorType))
 		}
 	}
-	return
+	return warnings, errs
 }
 
 func getPowerVSProcessorValue(processor intstr.IntOrString) (processors float64, err error) {
@@ -1862,4 +1875,19 @@ func isFinalizerOnlyRemoval(m, oldM *machinev1beta1.Machine) (bool, error) {
 	}
 
 	return string(data) == `{"metadata":{"finalizers":null}}`, nil
+}
+
+func validateGVK(gvk schema.GroupVersionKind, platform osconfigv1.PlatformType) bool {
+	switch platform {
+	case osconfigv1.AWSPlatformType:
+		return gvk.Kind == "AWSMachineProviderConfig" && (gvk.Group == "awsproviderconfig.openshift.io" || gvk.Group == "machine.openshift.io") && (gvk.Version == "v1beta1" || gvk.Version == "v1")
+	case osconfigv1.AzurePlatformType:
+		return gvk.Kind == "AzureMachineProviderSpec" && (gvk.Group == "azureproviderconfig.openshift.io" || gvk.Group == "machine.openshift.io") && (gvk.Version == "v1beta1" || gvk.Version == "v1")
+	case osconfigv1.GCPPlatformType:
+		return gvk.Kind == "GCPMachineProviderSpec" && (gvk.Group == "gcpprovider.openshift.io" || gvk.Group == "machine.openshift.io") && (gvk.Version == "v1beta1" || gvk.Version == "v1")
+	case osconfigv1.VSpherePlatformType:
+		return gvk.Kind == "VSphereMachineProviderSpec" && (gvk.Group == "vsphereprovider.openshift.io" || gvk.Group == "machine.openshift.io") && (gvk.Version == "v1beta1" || gvk.Version == "v1")
+	default:
+		return true
+	}
 }

@@ -6,8 +6,6 @@ import (
 	"fmt"
 
 	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/flavors"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/images"
 	"github.com/gophercloud/gophercloud/pagination"
 )
 
@@ -30,6 +28,14 @@ type ListOpts struct {
 
 	// Flavor is the name of the flavor in URL format.
 	Flavor string `q:"flavor"`
+
+	// IP is a regular expression to match the IPv4 address of the server.
+	IP string `q:"ip"`
+
+	// This requires the client to be set to microversion 2.5 or later, unless
+	// the user is an admin.
+	// IP is a regular expression to match the IPv6 address of the server.
+	IP6 string `q:"ip6"`
 
 	// Name of the server as a string; can be queried with regular expressions.
 	// Realize that ?name=bob returns both bob and bobb. If you need to match bob
@@ -57,6 +63,11 @@ type ListOpts struct {
 	// Setting "AllTenants = true" is required.
 	TenantID string `q:"tenant_id"`
 
+	// This requires the client to be set to microversion 2.83 or later, unless
+	// the user is an admin.
+	// UserID lists servers for a particular user.
+	UserID string `q:"user_id"`
+
 	// This requires the client to be set to microversion 2.26 or later.
 	// Tags filters on specific server tags. All tags must be present for the server.
 	Tags string `q:"tags"`
@@ -72,6 +83,9 @@ type ListOpts struct {
 	// This requires the client to be set to microversion 2.26 or later.
 	// NotTagsAny filters on specific server tags. At least one of the tags must be absent for the server.
 	NotTagsAny string `q:"not-tags-any"`
+
+	// Display servers based on their availability zone (Admin only until microversion 2.82).
+	AvailabilityZone string `q:"availability_zone"`
 }
 
 // ToServerListQuery formats a ListOpts into a query string.
@@ -80,7 +94,22 @@ func (opts ListOpts) ToServerListQuery() (string, error) {
 	return q.String(), err
 }
 
-// List makes a request against the API to list servers accessible to you.
+// ListSimple makes a request against the API to list servers accessible to you.
+func ListSimple(client *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pager {
+	url := listURL(client)
+	if opts != nil {
+		query, err := opts.ToServerListQuery()
+		if err != nil {
+			return pagination.Pager{Err: err}
+		}
+		url += query
+	}
+	return pagination.NewPager(client, url, func(r pagination.PageResult) pagination.Page {
+		return ServerPage{pagination.LinkedPageBase{PageResult: r}}
+	})
+}
+
+// List makes a request against the API to list servers details accessible to you.
 func List(client *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pager {
 	url := listDetailURL(client)
 	if opts != nil {
@@ -114,6 +143,13 @@ type Network struct {
 
 	// FixedIP specifies a fixed IPv4 address to be used on this network.
 	FixedIP string
+
+	// Tag may contain an optional device role tag for the server's virtual
+	// network interface. This can be used to identify network interfaces when
+	// multiple networks are connected to one server.
+	//
+	// Requires microversion 2.32 through 2.36 or 2.42 or later.
+	Tag string
 }
 
 // Personality is an array of files that are injected into the server at launch.
@@ -148,23 +184,13 @@ type CreateOpts struct {
 	// Name is the name to assign to the newly launched server.
 	Name string `json:"name" required:"true"`
 
-	// ImageRef [optional; required if ImageName is not provided] is the ID or
-	// full URL to the image that contains the server's OS and initial state.
+	// ImageRef is the ID or full URL to the image that contains the
+	// server's OS and initial state.
 	// Also optional if using the boot-from-volume extension.
 	ImageRef string `json:"imageRef"`
 
-	// ImageName [optional; required if ImageRef is not provided] is the name of
-	// the image that contains the server's OS and initial state.
-	// Also optional if using the boot-from-volume extension.
-	ImageName string `json:"-"`
-
-	// FlavorRef [optional; required if FlavorName is not provided] is the ID or
-	// full URL to the flavor that describes the server's specs.
+	// FlavorRef is the ID or full URL to the flavor that describes the server's specs.
 	FlavorRef string `json:"flavorRef"`
-
-	// FlavorName [optional; required if FlavorRef is not provided] is the name of
-	// the flavor that describes the server's specs.
-	FlavorName string `json:"-"`
 
 	// SecurityGroups lists the names of the security groups to which this server
 	// should belong.
@@ -211,10 +237,6 @@ type CreateOpts struct {
 	// Max specifies Maximum number of servers to launch.
 	Max int `json:"max_count,omitempty"`
 
-	// ServiceClient will allow calls to be made to retrieve an image or
-	// flavor ID by name.
-	ServiceClient *gophercloud.ServiceClient `json:"-"`
-
 	// Tags allows a server to be tagged with single-word metadata.
 	// Requires microversion 2.52 or later.
 	Tags []string `json:"tags,omitempty"`
@@ -223,8 +245,6 @@ type CreateOpts struct {
 // ToServerCreateMap assembles a request body based on the contents of a
 // CreateOpts.
 func (opts CreateOpts) ToServerCreateMap() (map[string]interface{}, error) {
-	sc := opts.ServiceClient
-	opts.ServiceClient = nil
 	b, err := gophercloud.BuildRequestBody(opts, "")
 	if err != nil {
 		return nil, err
@@ -263,6 +283,9 @@ func (opts CreateOpts) ToServerCreateMap() (map[string]interface{}, error) {
 				if net.FixedIP != "" {
 					networks[i]["fixed_ip"] = net.FixedIP
 				}
+				if net.Tag != "" {
+					networks[i]["tag"] = net.Tag
+				}
 			}
 			b["networks"] = networks
 		}
@@ -272,42 +295,6 @@ func (opts CreateOpts) ToServerCreateMap() (map[string]interface{}, error) {
 		} else {
 			return nil, fmt.Errorf(`networks must be a slice of Network struct or a string with "auto" or "none" values, current value is %q`, v)
 		}
-	}
-
-	// If ImageRef isn't provided, check if ImageName was provided to ascertain
-	// the image ID.
-	if opts.ImageRef == "" {
-		if opts.ImageName != "" {
-			if sc == nil {
-				err := ErrNoClientProvidedForIDByName{}
-				err.Argument = "ServiceClient"
-				return nil, err
-			}
-			imageID, err := images.IDFromName(sc, opts.ImageName)
-			if err != nil {
-				return nil, err
-			}
-			b["imageRef"] = imageID
-		}
-	}
-
-	// If FlavorRef isn't provided, use FlavorName to ascertain the flavor ID.
-	if opts.FlavorRef == "" {
-		if opts.FlavorName == "" {
-			err := ErrNeitherFlavorIDNorFlavorNameProvided{}
-			err.Argument = "FlavorRef/FlavorName"
-			return nil, err
-		}
-		if sc == nil {
-			err := ErrNoClientProvidedForIDByName{}
-			err.Argument = "ServiceClient"
-			return nil, err
-		}
-		flavorID, err := flavors.IDFromName(sc, opts.FlavorName)
-		if err != nil {
-			return nil, err
-		}
-		b["flavorRef"] = flavorID
 	}
 
 	if opts.Min != 0 {
@@ -328,28 +315,32 @@ func Create(client *gophercloud.ServiceClient, opts CreateOptsBuilder) (r Create
 		r.Err = err
 		return
 	}
-	_, r.Err = client.Post(listURL(client), reqBody, &r.Body, nil)
+	resp, err := client.Post(listURL(client), reqBody, &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // Delete requests that a server previously provisioned be removed from your
 // account.
 func Delete(client *gophercloud.ServiceClient, id string) (r DeleteResult) {
-	_, r.Err = client.Delete(deleteURL(client, id), nil)
+	resp, err := client.Delete(deleteURL(client, id), nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // ForceDelete forces the deletion of a server.
 func ForceDelete(client *gophercloud.ServiceClient, id string) (r ActionResult) {
-	_, r.Err = client.Post(actionURL(client, id), map[string]interface{}{"forceDelete": ""}, nil, nil)
+	resp, err := client.Post(actionURL(client, id), map[string]interface{}{"forceDelete": ""}, nil, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // Get requests details on a single server, by ID.
 func Get(client *gophercloud.ServiceClient, id string) (r GetResult) {
-	_, r.Err = client.Get(getURL(client, id), &r.Body, &gophercloud.RequestOpts{
+	resp, err := client.Get(getURL(client, id), &r.Body, &gophercloud.RequestOpts{
 		OkCodes: []int{200, 203},
 	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -386,9 +377,10 @@ func Update(client *gophercloud.ServiceClient, id string, opts UpdateOptsBuilder
 		r.Err = err
 		return
 	}
-	_, r.Err = client.Put(updateURL(client, id), b, &r.Body, &gophercloud.RequestOpts{
+	resp, err := client.Put(updateURL(client, id), b, &r.Body, &gophercloud.RequestOpts{
 		OkCodes: []int{200},
 	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -400,7 +392,8 @@ func ChangeAdminPassword(client *gophercloud.ServiceClient, id, newPassword stri
 			"adminPass": newPassword,
 		},
 	}
-	_, r.Err = client.Post(actionURL(client, id), b, nil, nil)
+	resp, err := client.Post(actionURL(client, id), b, nil, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -434,19 +427,19 @@ func (opts RebootOpts) ToServerRebootMap() (map[string]interface{}, error) {
 }
 
 /*
-	Reboot requests that a given server reboot.
+Reboot requests that a given server reboot.
 
-	Two methods exist for rebooting a server:
+Two methods exist for rebooting a server:
 
-	HardReboot (aka PowerCycle) starts the server instance by physically cutting
-	power to the machine, or if a VM, terminating it at the hypervisor level.
-	It's done. Caput. Full stop.
-	Then, after a brief while, power is rtored or the VM instance restarted.
+HardReboot (aka PowerCycle) starts the server instance by physically cutting
+power to the machine, or if a VM, terminating it at the hypervisor level.
+It's done. Caput. Full stop.
+Then, after a brief while, power is restored or the VM instance restarted.
 
-	SoftReboot (aka OSReboot) simply tells the OS to restart under its own
-	procedure.
-	E.g., in Linux, asking it to enter runlevel 6, or executing
-	"sudo shutdown -r now", or by asking Windows to rtart the machine.
+SoftReboot (aka OSReboot) simply tells the OS to restart under its own
+procedure.
+E.g., in Linux, asking it to enter runlevel 6, or executing
+"sudo shutdown -r now", or by asking Windows to rtart the machine.
 */
 func Reboot(client *gophercloud.ServiceClient, id string, opts RebootOptsBuilder) (r ActionResult) {
 	b, err := opts.ToServerRebootMap()
@@ -454,7 +447,8 @@ func Reboot(client *gophercloud.ServiceClient, id string, opts RebootOptsBuilder
 		r.Err = err
 		return
 	}
-	_, r.Err = client.Post(actionURL(client, id), b, nil, nil)
+	resp, err := client.Post(actionURL(client, id), b, nil, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -470,11 +464,8 @@ type RebuildOpts struct {
 	// AdminPass is the server's admin password
 	AdminPass string `json:"adminPass,omitempty"`
 
-	// ImageID is the ID of the image you want your server to be provisioned on.
-	ImageID string `json:"imageRef"`
-
-	// ImageName is readable name of an image.
-	ImageName string `json:"-"`
+	// ImageRef is the ID of the image you want your server to be provisioned on.
+	ImageRef string `json:"imageRef"`
 
 	// Name to set the server to
 	Name string `json:"name,omitempty"`
@@ -492,10 +483,6 @@ type RebuildOpts struct {
 	// Personality [optional] includes files to inject into the server at launch.
 	// Rebuild will base64-encode file contents for you.
 	Personality Personality `json:"personality,omitempty"`
-
-	// ServiceClient will allow calls to be made to retrieve an image or
-	// flavor ID by name.
-	ServiceClient *gophercloud.ServiceClient `json:"-"`
 }
 
 // ToServerRebuildMap formats a RebuildOpts struct into a map for use in JSON
@@ -503,23 +490,6 @@ func (opts RebuildOpts) ToServerRebuildMap() (map[string]interface{}, error) {
 	b, err := gophercloud.BuildRequestBody(opts, "")
 	if err != nil {
 		return nil, err
-	}
-
-	// If ImageRef isn't provided, check if ImageName was provided to ascertain
-	// the image ID.
-	if opts.ImageID == "" {
-		if opts.ImageName != "" {
-			if opts.ServiceClient == nil {
-				err := ErrNoClientProvidedForIDByName{}
-				err.Argument = "ServiceClient"
-				return nil, err
-			}
-			imageID, err := images.IDFromName(opts.ServiceClient, opts.ImageName)
-			if err != nil {
-				return nil, err
-			}
-			b["imageRef"] = imageID
-		}
 	}
 
 	return map[string]interface{}{"rebuild": b}, nil
@@ -533,7 +503,8 @@ func Rebuild(client *gophercloud.ServiceClient, id string, opts RebuildOptsBuild
 		r.Err = err
 		return
 	}
-	_, r.Err = client.Post(actionURL(client, id), b, &r.Body, nil)
+	resp, err := client.Post(actionURL(client, id), b, &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -571,23 +542,26 @@ func Resize(client *gophercloud.ServiceClient, id string, opts ResizeOptsBuilder
 		r.Err = err
 		return
 	}
-	_, r.Err = client.Post(actionURL(client, id), b, nil, nil)
+	resp, err := client.Post(actionURL(client, id), b, nil, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // ConfirmResize confirms a previous resize operation on a server.
 // See Resize() for more details.
 func ConfirmResize(client *gophercloud.ServiceClient, id string) (r ActionResult) {
-	_, r.Err = client.Post(actionURL(client, id), map[string]interface{}{"confirmResize": nil}, nil, &gophercloud.RequestOpts{
+	resp, err := client.Post(actionURL(client, id), map[string]interface{}{"confirmResize": nil}, nil, &gophercloud.RequestOpts{
 		OkCodes: []int{201, 202, 204},
 	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // RevertResize cancels a previous resize operation on a server.
 // See Resize() for more details.
 func RevertResize(client *gophercloud.ServiceClient, id string) (r ActionResult) {
-	_, r.Err = client.Post(actionURL(client, id), map[string]interface{}{"revertResize": nil}, nil, nil)
+	resp, err := client.Post(actionURL(client, id), map[string]interface{}{"revertResize": nil}, nil, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -623,15 +597,17 @@ func ResetMetadata(client *gophercloud.ServiceClient, id string, opts ResetMetad
 		r.Err = err
 		return
 	}
-	_, r.Err = client.Put(metadataURL(client, id), b, &r.Body, &gophercloud.RequestOpts{
+	resp, err := client.Put(metadataURL(client, id), b, &r.Body, &gophercloud.RequestOpts{
 		OkCodes: []int{200},
 	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // Metadata requests all the metadata for the given server ID.
 func Metadata(client *gophercloud.ServiceClient, id string) (r GetMetadataResult) {
-	_, r.Err = client.Get(metadataURL(client, id), &r.Body, nil)
+	resp, err := client.Get(metadataURL(client, id), &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -650,9 +626,10 @@ func UpdateMetadata(client *gophercloud.ServiceClient, id string, opts UpdateMet
 		r.Err = err
 		return
 	}
-	_, r.Err = client.Post(metadataURL(client, id), b, &r.Body, &gophercloud.RequestOpts{
+	resp, err := client.Post(metadataURL(client, id), b, &r.Body, &gophercloud.RequestOpts{
 		OkCodes: []int{200},
 	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -690,23 +667,26 @@ func CreateMetadatum(client *gophercloud.ServiceClient, id string, opts Metadatu
 		r.Err = err
 		return
 	}
-	_, r.Err = client.Put(metadatumURL(client, id, key), b, &r.Body, &gophercloud.RequestOpts{
+	resp, err := client.Put(metadatumURL(client, id, key), b, &r.Body, &gophercloud.RequestOpts{
 		OkCodes: []int{200},
 	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // Metadatum requests the key-value pair with the given key for the given
 // server ID.
 func Metadatum(client *gophercloud.ServiceClient, id, key string) (r GetMetadatumResult) {
-	_, r.Err = client.Get(metadatumURL(client, id, key), &r.Body, nil)
+	resp, err := client.Get(metadatumURL(client, id, key), &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
 // DeleteMetadatum will delete the key-value pair with the given key for the
 // given server ID.
 func DeleteMetadatum(client *gophercloud.ServiceClient, id, key string) (r DeleteMetadatumResult) {
-	_, r.Err = client.Delete(metadatumURL(client, id, key), nil)
+	resp, err := client.Delete(metadatumURL(client, id, key), nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -759,52 +739,15 @@ func CreateImage(client *gophercloud.ServiceClient, id string, opts CreateImageO
 	resp, err := client.Post(actionURL(client, id), b, nil, &gophercloud.RequestOpts{
 		OkCodes: []int{202},
 	})
-	r.Err = err
-	r.Header = resp.Header
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
-}
-
-// IDFromName is a convienience function that returns a server's ID given its
-// name.
-func IDFromName(client *gophercloud.ServiceClient, name string) (string, error) {
-	count := 0
-	id := ""
-
-	listOpts := ListOpts{
-		Name: name,
-	}
-
-	allPages, err := List(client, listOpts).AllPages()
-	if err != nil {
-		return "", err
-	}
-
-	all, err := ExtractServers(allPages)
-	if err != nil {
-		return "", err
-	}
-
-	for _, f := range all {
-		if f.Name == name {
-			count++
-			id = f.ID
-		}
-	}
-
-	switch count {
-	case 0:
-		return "", gophercloud.ErrResourceNotFound{Name: name, ResourceType: "server"}
-	case 1:
-		return id, nil
-	default:
-		return "", gophercloud.ErrMultipleResourcesFound{Name: name, Count: count, ResourceType: "server"}
-	}
 }
 
 // GetPassword makes a request against the nova API to get the encrypted
 // administrative password.
 func GetPassword(client *gophercloud.ServiceClient, serverId string) (r GetPasswordResult) {
-	_, r.Err = client.Get(passwordURL(client, serverId), &r.Body, nil)
+	resp, err := client.Get(passwordURL(client, serverId), &r.Body, nil)
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }
 
@@ -833,8 +776,9 @@ func ShowConsoleOutput(client *gophercloud.ServiceClient, id string, opts ShowCo
 		r.Err = err
 		return
 	}
-	_, r.Err = client.Post(actionURL(client, id), b, &r.Body, &gophercloud.RequestOpts{
+	resp, err := client.Post(actionURL(client, id), b, &r.Body, &gophercloud.RequestOpts{
 		OkCodes: []int{200},
 	})
+	_, r.Header, r.Err = gophercloud.ParseResponse(resp, err)
 	return
 }

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/openshift/origin/pkg/monitor"
 	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
 )
 
@@ -15,7 +16,7 @@ import (
 // job run, and what tests flaked and failed. (successful tests are omitted)
 // This is intended to be later submitted to sippy for a risk analysis of how unusual the
 // test failures were, but that final step is handled elsewhere.
-func WriteJobRunTestFailureSummary(artifactDir, timeSuffix string, finalSuiteResults *junitapi.JUnitTestSuite) error {
+func WriteJobRunTestFailureSummary(artifactDir, timeSuffix string, finalSuiteResults *junitapi.JUnitTestSuite, wasMasterNodeUpdated string) error {
 
 	tests := map[string]*passFail{}
 
@@ -38,10 +39,11 @@ func WriteJobRunTestFailureSummary(artifactDir, timeSuffix string, finalSuiteRes
 	jobRunID, _ := strconv.Atoi(os.Getenv("BUILD_ID"))
 
 	jr := ProwJobRun{
-		ID:        jobRunID,
-		ProwJob:   ProwJob{Name: os.Getenv("JOB_NAME")},
-		Tests:     []ProwJobRunTest{},
-		TestCount: len(tests),
+		ID:          jobRunID,
+		ProwJob:     ProwJob{Name: os.Getenv("JOB_NAME")},
+		ClusterData: monitor.CollectClusterData(wasMasterNodeUpdated),
+		Tests:       []ProwJobRunTest{},
+		TestCount:   len(tests),
 	}
 
 	for k, v := range tests {

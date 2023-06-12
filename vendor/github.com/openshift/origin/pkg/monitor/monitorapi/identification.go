@@ -6,6 +6,21 @@ import (
 	"strings"
 )
 
+type BackendConnectionType string
+
+const (
+	NewConnectionType    BackendConnectionType = "new"
+	ReusedConnectionType BackendConnectionType = "reused"
+)
+
+func LocateRouteForDisruptionCheck(ns, name, disruptionBackendName string, connectionType BackendConnectionType) string {
+	return fmt.Sprintf("ns/%s route/%s disruption/%s connection/%s", ns, name, disruptionBackendName, connectionType)
+}
+
+func LocateDisruptionCheck(disruptionBackendName string, connectionType BackendConnectionType) string {
+	return fmt.Sprintf("disruption/%s connection/%s", disruptionBackendName, connectionType)
+}
+
 func E2ETestLocator(testName string) string {
 	return fmt.Sprintf("e2e-test/%q", testName)
 }
@@ -45,13 +60,8 @@ func NodeFromLocator(locator string) (string, bool) {
 	return parts[0], true
 }
 
-func OperatorLocator(testName string) string {
-	return fmt.Sprintf("clusteroperator/%v", testName)
-}
-
-func IsOperator(locator string) bool {
-	_, ret := OperatorFromLocator(locator)
-	return ret
+func OperatorLocator(operatorName string) string {
+	return fmt.Sprintf("clusteroperator/%v", operatorName)
 }
 
 func OperatorFromLocator(locator string) (string, bool) {
@@ -113,6 +123,18 @@ func DisruptionFrom(locatorParts map[string]string) string {
 
 func DisruptionConnectionTypeFrom(locatorParts map[string]string) string {
 	return locatorParts["connection"]
+}
+
+func DisruptionLoadBalancerTypeFrom(locatorParts map[string]string) string {
+	return locatorParts["load-balancer"]
+}
+
+func DisruptionProtocolFrom(locatorParts map[string]string) string {
+	return locatorParts["protocol"]
+}
+
+func DisruptionTargetAPIFrom(locatorParts map[string]string) string {
+	return locatorParts["target"]
 }
 
 func IsEventForLocator(locator string) EventIntervalMatchesFunc {

@@ -13,9 +13,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
+
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	v1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apiserver/pkg/apis/audit"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/events"
 	"k8s.io/client-go/transport"
@@ -27,13 +31,6 @@ import (
 // we also got stuck on writing the disruption backends.  We need a way to track which disruption checks we have started,
 // so we can properly write out "zero"
 
-type BackendConnectionType string
-
-const (
-	NewConnectionType    BackendConnectionType = "new"
-	ReusedConnectionType BackendConnectionType = "reused"
-)
-
 // BackendSampler is used to monitor an HTTP endpoint and ensure that it is always accessible.
 // It records results into the monitorRecorder that is passed to the StartEndpointMonitoring call.
 type BackendSampler struct {
@@ -43,7 +40,7 @@ type BackendSampler struct {
 	// disruptionBackendName is a shortname for humans to recognize the endpoint being connected to
 	disruptionBackendName string
 	// connectionType indicates what type of connection is being used.
-	connectionType BackendConnectionType
+	connectionType monitorapi.BackendConnectionType
 	// is the `/path` part of the url.  It must start with a slash.
 	path string
 
@@ -90,10 +87,10 @@ type routeCoordinates struct {
 }
 
 // NewSimpleBackend constructs a BackendSampler suitable for use against a generic server
-func NewSimpleBackend(host, disruptionBackendName, path string, connectionType BackendConnectionType) *BackendSampler {
+func NewSimpleBackend(host, disruptionBackendName, path string, connectionType monitorapi.BackendConnectionType) *BackendSampler {
 	ret := &BackendSampler{
 		connectionType:        connectionType,
-		locator:               LocateDisruptionCheck(disruptionBackendName, connectionType),
+		locator:               monitorapi.LocateDisruptionCheck(disruptionBackendName, connectionType),
 		disruptionBackendName: disruptionBackendName,
 		path:                  path,
 		hostGetter:            NewSimpleHostGetter(host),
@@ -104,10 +101,10 @@ func NewSimpleBackend(host, disruptionBackendName, path string, connectionType B
 
 // NewBackend constructs a BackendSampler suitable for use against a generic server, with a late binding HostGetter that
 // allows for later mutation
-func NewBackend(hostGetter HostGetter, disruptionBackendName, path string, connectionType BackendConnectionType) *BackendSampler {
+func NewBackend(hostGetter HostGetter, disruptionBackendName, path string, connectionType monitorapi.BackendConnectionType) *BackendSampler {
 	ret := &BackendSampler{
 		connectionType:        connectionType,
-		locator:               LocateDisruptionCheck(disruptionBackendName, connectionType),
+		locator:               monitorapi.LocateDisruptionCheck(disruptionBackendName, connectionType),
 		disruptionBackendName: disruptionBackendName,
 		path:                  path,
 		hostGetter:            hostGetter,
@@ -117,7 +114,7 @@ func NewBackend(hostGetter HostGetter, disruptionBackendName, path string, conne
 }
 
 // NewAPIServerBackend constructs a BackendSampler suitable for use against a kube-like API server
-func NewAPIServerBackend(clientConfig *rest.Config, disruptionBackendName, path string, connectionType BackendConnectionType) (*BackendSampler, error) {
+func NewAPIServerBackend(clientConfig *rest.Config, disruptionBackendName, path string, connectionType monitorapi.BackendConnectionType) (*BackendSampler, error) {
 
 	kubeTransportConfig, err := clientConfig.TransportConfig()
 	if err != nil {
@@ -130,7 +127,7 @@ func NewAPIServerBackend(clientConfig *rest.Config, disruptionBackendName, path 
 
 	ret := &BackendSampler{
 		connectionType:        connectionType,
-		locator:               LocateDisruptionCheck(disruptionBackendName, connectionType),
+		locator:               monitorapi.LocateDisruptionCheck(disruptionBackendName, connectionType),
 		disruptionBackendName: disruptionBackendName,
 		path:                  path,
 		hostGetter:            NewKubeAPIHostGetter(clientConfig),
@@ -143,10 +140,10 @@ func NewAPIServerBackend(clientConfig *rest.Config, disruptionBackendName, path 
 }
 
 // NewRouteBackend constructs a BackendSampler suitable for use against a routes.route.openshift.io
-func NewRouteBackend(clientConfig *rest.Config, namespace, name, disruptionBackendName, path string, connectionType BackendConnectionType) *BackendSampler {
+func NewRouteBackend(clientConfig *rest.Config, namespace, name, disruptionBackendName, path string, connectionType monitorapi.BackendConnectionType) *BackendSampler {
 	return &BackendSampler{
 		connectionType:        connectionType,
-		locator:               LocateRouteForDisruptionCheck(namespace, name, disruptionBackendName, connectionType),
+		locator:               monitorapi.LocateRouteForDisruptionCheck(namespace, name, disruptionBackendName, connectionType),
 		disruptionBackendName: disruptionBackendName,
 		path:                  path,
 		hostGetter:            NewRouteHostGetter(clientConfig, namespace, name),
@@ -208,7 +205,7 @@ func (b *BackendSampler) GetLocator() string {
 	return b.locator
 }
 
-func (b *BackendSampler) GetConnectionType() BackendConnectionType {
+func (b *BackendSampler) GetConnectionType() monitorapi.BackendConnectionType {
 	return b.connectionType
 }
 
@@ -257,7 +254,7 @@ func (b *BackendSampler) GetHTTPClient() (*http.Client, error) {
 	b.initHTTPClient.Do(func() {
 		var httpTransport *http.Transport
 		switch b.GetConnectionType() {
-		case NewConnectionType:
+		case monitorapi.NewConnectionType:
 			httpTransport = &http.Transport{
 				Dial: (&net.Dialer{
 					Timeout:   timeoutForPartOfRequest,
@@ -272,7 +269,7 @@ func (b *BackendSampler) GetHTTPClient() (*http.Client, error) {
 				Proxy:                 http.ProxyFromEnvironment,
 			}
 
-		case ReusedConnectionType:
+		case monitorapi.ReusedConnectionType:
 			httpTransport = &http.Transport{
 				Dial: (&net.Dialer{
 					Timeout: timeoutForPartOfRequest,
@@ -313,15 +310,16 @@ func (b *BackendSampler) GetHTTPClient() (*http.Client, error) {
 	return b.httpClient, b.httpClientErr
 }
 
-func (b *BackendSampler) checkConnection(ctx context.Context) error {
+// CheckConnnection returns the audit request UID and an error if there was one.
+func (b *BackendSampler) CheckConnection(ctx context.Context) (string, error) {
 	httpClient, err := b.GetHTTPClient()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	url, err := b.GetURL()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// this is longer than the http client timeout to avoid tripping, but is here to be sure we finish eventually
@@ -330,13 +328,16 @@ func (b *BackendSampler) checkConnection(ctx context.Context) error {
 	defer requestCancel()
 	req, err := http.NewRequestWithContext(requestContext, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
+
+	uid := uuid.New().String()
+	req.Header.Set(audit.HeaderAuditID, uid)
 
 	resp, getErr := httpClient.Do(req)
 	if requestContext.Err() == context.Canceled {
 		// this isn't an error, we were simply cancelled
-		return nil
+		return uid, nil
 	}
 
 	var body []byte
@@ -362,7 +363,7 @@ func (b *BackendSampler) checkConnection(ctx context.Context) error {
 		}
 	}
 
-	return sampleErr
+	return uid, sampleErr
 }
 
 // RunEndpointMonitoring sets up a client for the given BackendSampler, starts checking the endpoint, and recording
@@ -487,8 +488,21 @@ func (b *disruptionSampler) produceSamples(ctx context.Context, interval time.Du
 		// was actually 30s before.
 		currDisruptionSample := b.newSample(ctx)
 		go func() {
-			sampleErr := b.backendSampler.checkConnection(ctx)
+			uid, sampleErr := b.backendSampler.CheckConnection(ctx)
 			currDisruptionSample.setSampleError(sampleErr)
+			if sampleErr != nil {
+				// We'd like to include these UUIDs in the backend-disruption.json file but this is
+				// not possible without some work as we're basing everything off intervals today. There is
+				// no place to store request UUIDs without stuffing them into the  interval message, which would break
+				// the code that determines when disruption started/stopped based on the similarity of the message.
+				// For now we will just log clearly the requests that failed and use this to correlate with the
+				// audit log manually.
+				logrus.WithFields(logrus.Fields{
+					"backend": b.backendSampler.disruptionBackendName,
+					"type":    b.backendSampler.connectionType,
+					"auditID": uid,
+				}).Errorf("disruption sample failed: %v", sampleErr)
+			}
 			close(currDisruptionSample.finished)
 		}()
 
@@ -566,7 +580,7 @@ func (b *disruptionSampler) consumeSamples(ctx context.Context, interval time.Du
 			framework.Logf(message)
 			eventRecorder.Eventf(
 				&v1.ObjectReference{Kind: "OpenShiftTest", Namespace: "kube-system", Name: b.backendSampler.GetDisruptionBackendName()}, nil,
-				v1.EventTypeWarning, eventReason, "detected", message)
+				v1.EventTypeWarning, string(eventReason), "detected", message)
 			currCondition := monitorapi.Condition{
 				Level:   level,
 				Locator: b.backendSampler.GetLocator(),
@@ -584,7 +598,7 @@ func (b *disruptionSampler) consumeSamples(ctx context.Context, interval time.Du
 			framework.Logf(message)
 			eventRecorder.Eventf(
 				&v1.ObjectReference{Kind: "OpenShiftTest", Namespace: "kube-system", Name: b.backendSampler.GetDisruptionBackendName()}, nil,
-				v1.EventTypeNormal, DisruptionEndedEventReason, "detected", message)
+				v1.EventTypeNormal, string(monitorapi.DisruptionEndedEventReason), "detected", message)
 			currCondition := monitorapi.Condition{
 				Level:   monitorapi.Info,
 				Locator: b.backendSampler.GetLocator(),
@@ -602,7 +616,7 @@ func (b *disruptionSampler) consumeSamples(ctx context.Context, interval time.Du
 			framework.Logf(message)
 			eventRecorder.Eventf(
 				&v1.ObjectReference{Kind: "OpenShiftTest", Namespace: "kube-system", Name: b.backendSampler.GetDisruptionBackendName()}, nil,
-				v1.EventTypeWarning, eventReason, "detected", message)
+				v1.EventTypeWarning, string(eventReason), "detected", message)
 			currCondition := monitorapi.Condition{
 				Level:   level,
 				Locator: b.backendSampler.GetLocator(),
@@ -662,6 +676,7 @@ func newDisruptionSample(startTime time.Time) *disruptionSample {
 		finished:  make(chan struct{}),
 	}
 }
+
 func (s *disruptionSample) setSampleError(sampleErr error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
