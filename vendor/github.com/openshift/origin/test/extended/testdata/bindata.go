@@ -27,6 +27,7 @@
 // examples/quickstarts/rails-postgresql-persistent.json
 // examples/quickstarts/rails-postgresql.json
 // examples/hello-openshift/Dockerfile
+// examples/hello-openshift/go.mod
 // examples/hello-openshift/hello-pod.json
 // examples/hello-openshift/hello-project.json
 // examples/jenkins/application-template.json
@@ -212,7 +213,6 @@
 // test/extended/testdata/cmd/test/cmd/set-liveness-probe.sh
 // test/extended/testdata/cmd/test/cmd/setbuildhook.sh
 // test/extended/testdata/cmd/test/cmd/setbuildsecret.sh
-// test/extended/testdata/cmd/test/cmd/templates.sh
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-stibuild.json
@@ -336,6 +336,8 @@
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json
+// test/extended/testdata/kernel/rt-tests-environment.yaml
+// test/extended/testdata/kernel/rt-tests-pod.yaml
 // test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt
 // test/extended/testdata/ldap/groupsync/ad/blacklist_openshift.txt
 // test/extended/testdata/ldap/groupsync/ad/ldapgroupuids.txt
@@ -420,6 +422,9 @@
 // test/extended/testdata/oauthserver/oauth-sa.yaml
 // test/extended/testdata/olm/operatorgroup.yaml
 // test/extended/testdata/olm/subscription.yaml
+// test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml
+// test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml
+// test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml
 // test/extended/testdata/releases/payload-1/etcd-operator/image-references
 // test/extended/testdata/releases/payload-1/etcd-operator/manifest.yaml
 // test/extended/testdata/releases/payload-1/image-registry/10_image-registry_crd.yaml
@@ -445,6 +450,10 @@
 // test/extended/testdata/service-serving-cert/nginx-serving-cert.conf
 // test/extended/testdata/signer-buildconfig.yaml
 // test/extended/testdata/stable-busybox.yaml
+// test/extended/testdata/storage/inline/csi-sharedresourcerole.yaml
+// test/extended/testdata/storage/inline/csi-sharedresourcerolebinding.yaml
+// test/extended/testdata/storage/inline/csi-sharedsecret.yaml
+// test/extended/testdata/storage/inline/secret.yaml
 // test/extended/testdata/templates/crunchydata-pod.json
 // test/extended/testdata/templates/guestbook.json
 // test/extended/testdata/templates/guestbook_list.json
@@ -13309,6 +13318,26 @@ func examplesHelloOpenshiftDockerfile() (*asset, error) {
 	return a, nil
 }
 
+var _examplesHelloOpenshiftGoMod = []byte(`module github.com/openshift/origin/examples/hello-openshift
+
+go 1.19
+`)
+
+func examplesHelloOpenshiftGoModBytes() ([]byte, error) {
+	return _examplesHelloOpenshiftGoMod, nil
+}
+
+func examplesHelloOpenshiftGoMod() (*asset, error) {
+	bytes, err := examplesHelloOpenshiftGoModBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "examples/hello-openshift/go.mod", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _examplesHelloOpenshiftHelloPodJson = []byte(`{
   "kind": "Pod",
   "apiVersion": "v1",
@@ -18735,7 +18764,7 @@ func testExtendedTestdataBuildsDockerAddDockerfile() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataBuildsDockerAddDockerAddEnvDockerfile = []byte(`FROM centos
+var _testExtendedTestdataBuildsDockerAddDockerAddEnvDockerfile = []byte(`FROM registry.redhat.io/ubi8/ubi-minimal
 ENV foo=foo
 ADD ./${foo} /tmp/foo
 `)
@@ -30479,8 +30508,8 @@ os::cmd::expect_failure 'oc get imageStreams nodejs'
 os::cmd::expect_failure 'oc get imageStreams postgresql'
 os::cmd::expect_failure 'oc get imageStreams mongodb'
 os::cmd::expect_failure 'oc get imageStreams wildfly'
-os::cmd::try_until_success 'oc get imagestreamTags mysql:5.6'
-os::cmd::try_until_success 'oc get imagestreamTags mysql:5.7'
+os::cmd::try_until_success 'oc get imagestreamTags mariadb:10.3'
+os::cmd::try_until_success 'oc get imagestreamTags mariadb:10.5'
 os::cmd::expect_success_and_text "oc get imagestreams mysql --template='{{ index .metadata.annotations \"openshift.io/image.dockerRepositoryCheck\"}}'" '[0-9]{4}\-[0-9]{2}\-[0-9]{2}' # expect a date like YYYY-MM-DD
 os::cmd::expect_success 'oc describe istag/mysql:latest'
 os::cmd::expect_success_and_text 'oc describe istag/mysql:latest' 'Environment:'
@@ -30505,100 +30534,100 @@ echo "imageStreams: ok"
 os::test::junit::declare_suite_end
 
 os::test::junit::declare_suite_start "cmd/images${IMAGES_TESTS_POSTFIX:-}/import-image"
-# should follow the latest reference to 5.6 and update that, and leave latest unchanged
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 1).from.kind}}'" 'DockerImage'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 2).from.kind}}'" 'ImageStreamTag'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 2).from.name}}'" '5.7'
+# should follow the latest reference to 10.3 and update that, and leave latest unchanged
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 1).from.kind}}'" 'DockerImage'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.name}}'" '10.5'
 # import existing tag (implicit latest)
-os::cmd::expect_success_and_text 'oc import-image mysql' 'sha256:'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 1).from.kind}}'" 'DockerImage'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 2).from.kind}}'" 'ImageStreamTag'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 2).from.name}}'" '5.7'
+os::cmd::expect_success_and_text 'oc import-image mariadb' 'sha256:'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 1).from.kind}}'" 'DockerImage'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.name}}'" '10.5'
 # should prevent changing source
-os::cmd::expect_failure_and_text 'oc import-image mysql --from=quay.io/openshifttest/hello-openshift:openshift' "use the 'tag' command if you want to change the source"
-os::cmd::expect_success 'oc describe is/mysql'
+os::cmd::expect_failure_and_text 'oc import-image mariadb --from=quay.io/openshifttest/hello-openshift:openshift' "use the 'tag' command if you want to change the source"
+os::cmd::expect_success 'oc describe is/mariadb'
 # import existing tag (explicit)
-os::cmd::expect_success_and_text 'oc import-image mysql:5.6' "sha256:"
-os::cmd::expect_success_and_text 'oc import-image mysql:latest' "sha256:"
+os::cmd::expect_success_and_text 'oc import-image mariadb:10.3' "sha256:"
+os::cmd::expect_success_and_text 'oc import-image mariadb:latest' "sha256:"
 # import existing image stream creating new tag
-os::cmd::expect_success_and_text 'oc import-image mysql:external --from=quay.io/openshifttest/hello-openshift:openshift' "sha256:"
-os::cmd::expect_success_and_text "oc get istag/mysql:external --template='{{.tag.from.kind}}'" 'DockerImage'
-os::cmd::expect_success_and_text "oc get istag/mysql:external --template='{{.tag.from.name}}'" 'quay.io/openshifttest/hello-openshift:openshift'
+os::cmd::expect_success_and_text 'oc import-image mariadb:external --from=quay.io/openshifttest/hello-openshift:openshift' "sha256:"
+os::cmd::expect_success_and_text "oc get istag/mariadb:external --template='{{.tag.from.kind}}'" 'DockerImage'
+os::cmd::expect_success_and_text "oc get istag/mariadb:external --template='{{.tag.from.name}}'" 'quay.io/openshifttest/hello-openshift:openshift'
 # import creates new image stream with single tag
-os::cmd::expect_failure_and_text 'oc import-image mysql-new-single:latest --from=quay.io/openshifttest/hello-openshift:openshift' '\-\-confirm'
-os::cmd::expect_success_and_text 'oc import-image mysql-new-single:latest --from=quay.io/openshifttest/hello-openshift:openshift --confirm' 'sha256:'
-os::cmd::expect_success_and_text "oc get is/mysql-new-single --template='{{(len .spec.tags)}}'" '1'
-os::cmd::expect_success 'oc delete is/mysql-new-single'
+os::cmd::expect_failure_and_text 'oc import-image mariadb-new-single:latest --from=quay.io/openshifttest/hello-openshift:openshift' '\-\-confirm'
+os::cmd::expect_success_and_text 'oc import-image mariadb-new-single:latest --from=quay.io/openshifttest/hello-openshift:openshift --confirm' 'sha256:'
+os::cmd::expect_success_and_text "oc get is/mariadb-new-single --template='{{(len .spec.tags)}}'" '1'
+os::cmd::expect_success 'oc delete is/mariadb-new-single'
 # import creates new image stream with all tags
-os::cmd::expect_failure_and_text 'oc import-image mysql-new-all --from=quay.io/openshifttest/hello-openshift --all' '\-\-confirm'
-os::cmd::expect_success_and_text 'oc import-image mysql-new-all --from=quay.io/openshifttest/hello-openshift --all --confirm --request-timeout=1m' 'sha256:'
-name=$(oc get istag/mysql-new-all:openshift --template='{{ .image.metadata.name }}')
+os::cmd::expect_failure_and_text 'oc import-image mariadb-new-all --from=quay.io/openshifttest/hello-openshift --all' '\-\-confirm'
+os::cmd::expect_success_and_text 'oc import-image mariadb-new-all --from=quay.io/openshifttest/hello-openshift --all --confirm --request-timeout=1m' 'sha256:'
+name=$(oc get istag/mariadb-new-all:openshift --template='{{ .image.metadata.name }}')
 echo "import-image: ok"
 os::test::junit::declare_suite_end
 
 os::test::junit::declare_suite_start "cmd/images${IMAGES_TESTS_POSTFIX:-}/tag"
 # oc tag
-os::cmd::expect_success 'oc tag mysql:latest mysql:tag1 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 4).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag mariadb:latest mariadb:tag1 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 4).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_success "oc tag mysql@${name} mysql:tag2 --alias"
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 5).from.kind}}'" 'ImageStreamImage'
+os::cmd::expect_success "oc tag mariadb@${name} mariadb:tag2 --alias"
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 5).from.kind}}'" 'ImageStreamImage'
 
-os::cmd::expect_success 'oc tag mysql:notfound mysql:tag3 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 6).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag mariadb:notfound mariadb:tag3 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 6).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_success 'oc tag --source=imagestreamtag mysql:latest mysql:tag4 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 7).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag --source=imagestreamtag mariadb:latest mariadb:tag4 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 7).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_success 'oc tag --source=istag mysql:latest mysql:tag5 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 8).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag --source=istag mariadb:latest mariadb:tag5 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 8).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_success "oc tag --source=imagestreamimage mysql@${name} mysql:tag6 --alias"
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 9).from.kind}}'" 'ImageStreamImage'
+os::cmd::expect_success "oc tag --source=imagestreamimage mariadb@${name} mariadb:tag6 --alias"
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 9).from.kind}}'" 'ImageStreamImage'
 
-os::cmd::expect_success "oc tag --source=isimage mysql@${name} mysql:tag7 --alias"
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 10).from.kind}}'" 'ImageStreamImage'
+os::cmd::expect_success "oc tag --source=isimage mariadb@${name} mariadb:tag7 --alias"
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 10).from.kind}}'" 'ImageStreamImage'
 
-os::cmd::expect_success 'oc tag --source=docker mysql:latest mysql:tag8 --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 11).from.kind}}'" 'DockerImage'
+os::cmd::expect_success 'oc tag --source=docker mariadb:latest mariadb:tag8 --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 11).from.kind}}'" 'DockerImage'
 
-os::cmd::expect_success 'oc tag mysql:latest mysql:zzz mysql:yyy --alias'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 12).from.kind}}'" 'ImageStreamTag'
-os::cmd::expect_success_and_text "oc get is/mysql --template='{{(index .spec.tags 13).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success 'oc tag mariadb:latest mariadb:zzz mariadb:yyy --alias'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 12).from.kind}}'" 'ImageStreamTag'
+os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 13).from.kind}}'" 'ImageStreamTag'
 
-os::cmd::expect_failure_and_text 'oc tag mysql:latest tagtest:tag1 --alias' 'cannot set alias across'
+os::cmd::expect_failure_and_text 'oc tag mariadb:latest tagtest:tag1 --alias' 'cannot set alias across'
 
 # label image
-imgsha256=$(oc get istag/mysql:latest --template='{{ .image.metadata.name }}')
+imgsha256=$(oc get istag/mariadb:latest --template='{{ .image.metadata.name }}')
 os::cmd::expect_success "oc label image ${imgsha256} foo=bar || true"
 os::cmd::expect_success_and_text "oc get image ${imgsha256} --show-labels" 'foo=bar'
 
 # tag labeled image
-os::cmd::expect_success 'oc label is/mysql labelA=value'
-os::cmd::expect_success 'oc tag mysql:latest mysql:labeled'
-os::cmd::expect_success_and_text "oc get istag/mysql:labeled -o jsonpath='{.metadata.labels.labelA}'" 'value'
+os::cmd::expect_success 'oc label is/mariadb labelA=value'
+os::cmd::expect_success 'oc tag mariadb:latest mariadb:labeled'
+os::cmd::expect_success_and_text "oc get istag/mariadb:labeled -o jsonpath='{.metadata.labels.labelA}'" 'value'
 # test copying tags
 os::cmd::expect_success 'oc tag quay.io/openshift/origin-cli:4.6 newrepo:latest'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).from.kind}}'" 'DockerImage'
-os::cmd::try_until_success 'oc get istag/mysql:5.6'
+os::cmd::try_until_success 'oc get istag/mariadb:10.3'
 # default behavior is to copy the current image, but since this is an external image we preserve the dockerImageReference
-os::cmd::expect_success 'oc tag mysql:5.6 newrepo:latest'
+os::cmd::expect_success 'oc tag mariadb:10.3 newrepo:latest'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
-os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .status.tags 0 \"items\" 0).dockerImageReference}}'" '^registry.centos.org/centos/mysql-56-centos7@sha256:'
+os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .status.tags 0 \"items\" 0).dockerImageReference}}'" '^quay.io/centos7/mariadb-103-centos7@sha256:'
 # when copying a tag that points to the internal registry, update the container image reference
 #os::cmd::expect_success "oc tag test:new newrepo:direct"
 #os::cmd::expect_success_and_text 'oc get istag/newrepo:direct -o jsonpath={.image.dockerImageReference}' "/$project/newrepo@sha256:"
 # test references
-os::cmd::expect_success 'oc tag mysql:5.6 reference:latest --reference'
+os::cmd::expect_success 'oc tag mariadb:10.3 reference:latest --reference'
 os::cmd::expect_success_and_text "oc get is/reference --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
 os::cmd::expect_success_and_text "oc get is/reference --template='{{(index .spec.tags 0).reference}}'" 'true'
 # create a second project to test tagging across projects
 os::cmd::expect_success 'oc new-project test-cmd-images-2'
-os::cmd::expect_success "oc tag $project/mysql:5.6 newrepo:latest"
+os::cmd::expect_success "oc tag $project/mariadb:10.3 newrepo:latest"
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
-os::cmd::expect_success_and_text 'oc get istag/newrepo:latest -o jsonpath={.image.dockerImageReference}' 'registry.centos.org/centos/mysql-56-centos7@sha256:'
+os::cmd::expect_success_and_text 'oc get istag/newrepo:latest -o jsonpath={.image.dockerImageReference}' 'quay.io/centos7/mariadb-103-centos7@sha256:'
 # tag across projects without specifying the source's project
-os::cmd::expect_success_and_text "oc tag newrepo:latest '${project}/mysql:tag1'" "mysql:tag1 set to"
+os::cmd::expect_success_and_text "oc tag newrepo:latest '${project}/mariadb:tag1'" "mariadb:tag1 set to"
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).name}}'" "latest"
 # tagging an image with a DockerImageReference that points to the internal registry across namespaces updates the reference
 #os::cmd::expect_success "oc tag $project/test:new newrepo:direct"
@@ -30612,10 +30641,10 @@ os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.t
 #os::cmd::expect_success_and_text 'oc get istag/newrepo:indirect -o jsonpath={.image.dockerImageReference}' "/$project/test@sha256:"
 os::cmd::expect_success "oc project $project"
 # test scheduled and insecure tagging
-os::cmd::expect_success 'oc tag --source=docker mysql:5.7 newrepo:latest --scheduled'
+os::cmd::expect_success 'oc tag --source=docker mariadb:10.5 newrepo:latest --scheduled'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).importPolicy.scheduled}}'" 'true'
-os::cmd::expect_success_and_text "oc describe is/newrepo" 'updates automatically from registry mysql:5.7'
-os::cmd::expect_success 'oc tag --source=docker mysql:5.7 newrepo:latest --insecure'
+os::cmd::expect_success_and_text "oc describe is/newrepo" 'updates automatically from registry mariadb:10.5'
+os::cmd::expect_success 'oc tag --source=docker mariadb:10.5 newrepo:latest --insecure'
 os::cmd::expect_success_and_text "oc describe is/newrepo" 'will use insecure HTTPS or HTTP connections'
 os::cmd::expect_success_and_not_text "oc describe is/newrepo" 'updates automatically from'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).importPolicy.insecure}}'" 'true'
@@ -30623,11 +30652,11 @@ os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.t
 # test creating streams that don't exist
 os::cmd::expect_failure_and_text 'oc get imageStreams tagtest1' 'not found'
 os::cmd::expect_failure_and_text 'oc get imageStreams tagtest2' 'not found'
-os::cmd::expect_success 'oc tag mysql:latest tagtest1:latest tagtest2:latest'
+os::cmd::expect_success 'oc tag mariadb:latest tagtest1:latest tagtest2:latest'
 os::cmd::expect_success_and_text "oc get is/tagtest1 --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
 os::cmd::expect_success_and_text "oc get is/tagtest2 --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
 os::cmd::expect_success 'oc delete is/tagtest1 is/tagtest2'
-os::cmd::expect_success_and_text 'oc tag mysql:latest tagtest:new1' 'Tag tagtest:new1 set to mysql@sha256:'
+os::cmd::expect_success_and_text 'oc tag mariadb:latest tagtest:new1' 'Tag tagtest:new1 set to mariadb@sha256:'
 
 # test deleting a spec tag using oc tag
 os::cmd::expect_success 'oc create -f ${TEST_DATA}/test-stream.yaml'
@@ -30786,7 +30815,7 @@ os::cmd::expect_success 'oc new-project quota-images --as=deads  --as-group=syst
 os::cmd::expect_success 'oc create quota -n quota-images is-quota --hard openshift.io/imagestreams=1'
 os::cmd::try_until_success 'oc tag -n quota-images openshift/hello-openshift myis2:v2'
 os::cmd::expect_failure_and_text 'oc tag -n quota-images busybox mybox:v1' "exceeded quota"
-os::cmd::expect_failure_and_text 'oc import-image centos -n quota-images --from=registry.centos.org/centos:latest --confirm=true' "exceeded quota"
+os::cmd::expect_failure_and_text 'oc import-image centos -n quota-images --from=quay.io/centos7:latest --confirm=true' "exceeded quota"
 os::cmd::expect_success 'oc delete project quota-images'
 
 echo "imagestreams: ok"
@@ -31291,230 +31320,6 @@ func testExtendedTestdataCmdTestCmdSetbuildsecretSh() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/setbuildsecret.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataCmdTestCmdTemplatesSh = []byte(`#!/bin/bash
-source "$(dirname "${BASH_SOURCE}")/../../hack/lib/init.sh"
-trap os::test::junit::reconcile_output EXIT
-
-# Cleanup cluster resources created by this test
-(
-  set +e
-  oc delete all,templates --all
-  oc delete template/ruby-helloworld-sample -n openshift
-  oc delete project test-template-project
-  oc delete user someval someval=moreval someval=moreval2 someval=moreval3
-  exit 0
-) &>/dev/null
-
-
-os::test::junit::declare_suite_start "cmd/templates"
-# This test validates template commands
-
-os::test::junit::declare_suite_start "cmd/templates/basic"
-os::cmd::expect_success 'oc get templates'
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/application-template-dockerbuild.json'
-os::cmd::expect_success 'oc get templates'
-os::cmd::expect_success 'oc get templates ruby-helloworld-sample'
-os::cmd::expect_success 'oc get template ruby-helloworld-sample -o json | oc process -f -'
-os::cmd::expect_success 'oc process ruby-helloworld-sample'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o template --template "{{.kind}}"'    "List"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o go-template --template "{{.kind}}"' "List"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o go-template={{.kind}}'              "List"
-os::cmd::expect_success 'oc process ruby-helloworld-sample -o go-template-file=/dev/null'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o jsonpath --template "{.kind}"' "List"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o jsonpath={.kind}'              "List"
-os::cmd::expect_success 'oc process ruby-helloworld-sample -o jsonpath-file=/dev/null'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o describe' "ruby-27-centos7"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o json'     "ruby-27-centos7"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o yaml'     "ruby-27-centos7"
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -o name'     "ruby-27-centos7"
-os::cmd::expect_success_and_text 'oc describe templates ruby-helloworld-sample' "BuildConfig.*ruby-sample-build"
-os::cmd::expect_success 'oc delete templates ruby-helloworld-sample'
-os::cmd::expect_success 'oc get templates'
-# TODO: create directly from template
-echo "templates: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/config"
-guestbook_template="${TEST_DATA}/templates/guestbook.json"
-os::cmd::expect_success "oc process -f '${guestbook_template}' -l app=guestbook | oc create -f -"
-os::cmd::expect_success_and_text 'oc status' 'frontend-service'
-echo "template+config: ok"
-
-os::test::junit::declare_suite_start "cmd/templates/local-config"
-# Processes the template locally
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --local -l app=guestbook -o yaml" "app: guestbook"
-# Processes the template locally and get the same output in YAML
-new="$(mktemp -d)"
-os::cmd::expect_success 'oc process -f "${guestbook_template}" --local -l app=guestbook -o yaml ADMIN_USERNAME=au ADMIN_PASSWORD=ap REDIS_PASSWORD=rp > "${new}/localtemplate"'
-os::cmd::expect_success 'oc process -f "${guestbook_template}" -l app=guestbook -o yaml ADMIN_USERNAME=au ADMIN_PASSWORD=ap REDIS_PASSWORD=rp > "${new}/remotetemplate"'
-os::cmd::expect_success 'diff "${new}/localtemplate" "${new}/remotetemplate"'
-# Does not even try to hit the server
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --local -l app=guestbook -o yaml --server 0.0.0.0:1" "app: guestbook"
-echo "template+config+local: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/parameters"
-guestbook_params="${TEST_DATA}/templates/guestbook.env"
-# Individually specified parameter values are honored
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' -p ADMIN_USERNAME=myuser -p ADMIN_PASSWORD=mypassword" '"myuser"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' -p ADMIN_USERNAME=myuser -p ADMIN_PASSWORD=mypassword" '"mypassword"'
-# Argument values are honored
-os::cmd::expect_success_and_text "oc process ADMIN_USERNAME=myuser ADMIN_PASSWORD=mypassword -f '${guestbook_template}'"       '"myuser"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' ADMIN_USERNAME=myuser ADMIN_PASSWORD=mypassword"       '"mypassword"'
-# Argument values with commas are honored
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/application-template-stibuild.json'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample MYSQL_USER=myself MYSQL_PASSWORD=my,1%pa=s'        '"myself"'
-os::cmd::expect_success_and_text 'oc process MYSQL_USER=myself MYSQL_PASSWORD=my,1%pa=s ruby-helloworld-sample'        '"my,1%pa=s"'
-os::cmd::expect_success_and_text 'oc process ruby-helloworld-sample -p MYSQL_USER=myself -p MYSQL_PASSWORD=my,1%pa=s'  '"myself"'
-os::cmd::expect_success_and_text 'oc process -p MYSQL_USER=myself -p MYSQL_PASSWORD=my,1%pa=s ruby-helloworld-sample'  '"my,1%pa=s"'
-# Argument values can be read from file
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}'" '"root"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}'" '"adminpass"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}'" '"redispass"'
-# Argument values can be read from stdin
-os::cmd::expect_success_and_text "cat '${guestbook_params}' | oc process -f '${guestbook_template}' --param-file=-" '"root"'
-os::cmd::expect_success_and_text "cat '${guestbook_params}' | oc process -f '${guestbook_template}' --param-file=-" '"adminpass"'
-os::cmd::expect_success_and_text "cat '${guestbook_params}' | oc process -f '${guestbook_template}' --param-file=-" '"redispass"'
-# Argument values from command line have precedence over those from file
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}' -p ADMIN_USERNAME=myuser"     'ignoring value from file'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}' -p ADMIN_USERNAME=myuser"     '"myuser"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}' -p ADMIN_PASSWORD=mypassword" '"mypassword"'
-os::cmd::expect_success_and_text "oc process -f '${guestbook_template}' --param-file='${guestbook_params}' -p REDIS_PASSWORD=rrr"        '"rrr"'
-# Set template parameters from parameter file with multiline values
-os::cmd::expect_success_and_text "oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=${TEST_DATA}/templates/template_required_params.env -o yaml" 'first$'
-os::cmd::expect_success 'oc delete template ruby-helloworld-sample'
-# Parameter file failure cases
-os::cmd::expect_failure_and_text "oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=does/not/exist"  'no such file or directory'
-os::cmd::expect_failure_and_text "oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=${TEST_DATA}"   'is a directory'
-os::cmd::expect_failure_and_text "oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=/dev/null"       'parameter required_param is required and must be specified'
-os::cmd::expect_success "oc process -f '${guestbook_template}' --param-file=/dev/null --param-file='${guestbook_params}'"
-os::cmd::expect_failure_and_text "echo 'fo%(o=bar' | oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=-"        'invalid parameter assignment'
-os::cmd::expect_failure_and_text "echo 'S P A C E S=test' | oc process -f ${TEST_DATA}/templates/template_required_params.yaml --param-file=-" 'invalid parameter assignment'
-# Handle absent parameter
-os::cmd::expect_failure_and_text "oc process -f '${guestbook_template}' -p ABSENT_PARAMETER=absent" 'unknown parameter name'
-os::cmd::expect_success "oc process -f '${guestbook_template}' -p ABSENT_PARAMETER=absent --ignore-unknown-parameters"
-echo "template+parameters: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/data-precision"
-# Run as cluster-admin to allow choosing any supplemental groups we want
-# Ensure large integers survive unstructured JSON creation
-os::cmd::expect_success 'oc create -f ${TEST_DATA}/templates/template-type-precision.json'
-# ... and processing
-os::cmd::expect_success_and_text 'oc process template-type-precision' '1000030003'
-os::cmd::expect_success_and_text 'oc process template-type-precision' '2147483647'
-os::cmd::expect_success_and_text 'oc process template-type-precision' '9223372036854775807'
-# ... and re-encoding as structured resources
-os::cmd::expect_success 'oc process template-type-precision | oc create -f -'
-# ... and persisting
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' '1000030003'
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' '2147483647'
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' '9223372036854775807'
-# Ensure patch computation preserves data
-patch='{"metadata":{"annotations":{"comment":"patch comment"}}}'
-os::cmd::expect_success "oc patch pod template-type-precision -p '${patch}'"
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' '9223372036854775807'
-os::cmd::expect_success_and_text 'oc get pod/template-type-precision -o json' 'patch comment'
-os::cmd::expect_success 'oc delete template/template-type-precision'
-os::cmd::expect_success 'oc delete pod/template-type-precision'
-echo "template data precision: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/different-namespaces"
-#os::cmd::expect_success 'oc create -f ${TEST_DATA}/application-template-dockerbuild.json -n openshift'
-#os::cmd::expect_success 'oc policy add-role-to-user admin test-user'
-#new="$(mktemp -d)/tempconfig"
-#os::cmd::expect_success "oc config view --raw > ${new}"
-#old="${KUBECONFIG}"
-#export KUBECONFIG=${new}
-#os::cmd::expect_success 'oc login -u test-user -p password'
-#os::cmd::expect_success 'oc new-project test-template-project'
-## make sure the permissions on the new project are set up
-#os::cmd::try_until_success 'oc get templates'
-#os::cmd::expect_success 'oc create -f ${TEST_DATA}/application-template-dockerbuild.json'
-#os::cmd::expect_success 'oc process template/ruby-helloworld-sample'
-#os::cmd::expect_success 'oc process templates/ruby-helloworld-sample'
-#os::cmd::expect_success 'oc process openshift//ruby-helloworld-sample'
-#os::cmd::expect_success 'oc process openshift/template/ruby-helloworld-sample'
-#os::cmd::expect_success 'oc get template ruby-helloworld-sample -n openshift -o yaml | oc process -f -'
-#export KUBECONFIG=${old}
-echo "processing templates in different namespace: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_start "cmd/templates/process"
-# This test validates oc process
-# fail to process two templates by name
-os::cmd::expect_failure_and_text 'oc process name1 name2' 'template name must be specified only once'
-# fail to pass a filename or template by name
-os::cmd::expect_failure_and_text 'oc process' 'Must pass a filename or name of stored template'
-# can't ask for parameters and try process the template
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --param=someval' '\-\-parameters flag does not process the template, can.t be used with \-\-param'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters -p someval' '\-\-parameters flag does not process the template, can.t be used with \-\-param'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --labels=someval' '\-\-parameters flag does not process the template, can.t be used with \-\-labels'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters -l someval' '\-\-parameters flag does not process the template, can.t be used with \-\-labels'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --output=yaml' '\-\-parameters flag does not process the template, can.t be used with \-\-output'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters -o yaml' '\-\-parameters flag does not process the template, can.t be used with \-\-output'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --raw' '\-\-parameters flag does not process the template, can.t be used with \-\-raw'
-os::cmd::expect_failure_and_text 'oc process template-name --parameters --template=someval' '\-\-parameters flag does not process the template, can.t be used with \-\-template'
-# providing a value more than once should fail
-os::cmd::expect_failure_and_text 'oc process template-name key=value key=value' 'provided more than once: key'
-os::cmd::expect_failure_and_text 'oc process template-name --param=key=value --param=key=value' 'provided more than once: key'
-os::cmd::expect_failure_and_text 'oc process template-name key=value --param=key=value' 'provided more than once: key'
-os::cmd::expect_failure_and_text 'oc process template-name key=value other=foo --param=key=value --param=other=baz' 'provided more than once: key, other'
-required_params="${TEST_DATA}/templates/template_required_params.yaml"
-# providing something other than a template is not OK
-os::cmd::expect_failure_and_text "oc process -f '${TEST_DATA}/templates/basic-users-binding.json'" 'not a valid Template but'
-# not providing required parameter should fail
-os::cmd::expect_failure_and_text "oc process -f '${required_params}'" 'parameter required_param is required and must be specified'
-# not providing an optional param is OK
-os::cmd::expect_success "oc process -f '${required_params}' --param=required_param=someval"
-os::cmd::expect_success "oc process -f '${required_params}' -p required_param=someval | oc create -f -"
-# parameters with multiple equal signs are OK
-os::cmd::expect_success "oc process -f '${required_params}' required_param=someval=moreval | oc create -f -"
-os::cmd::expect_success "oc process -f '${required_params}' -p required_param=someval=moreval2 | oc create -f -"
-os::cmd::expect_success "oc process -f '${required_params}' -p required_param=someval=moreval3 | oc create -f -"
-# we should have overwritten the template param
-os::cmd::expect_success_and_text 'oc get user someval -o jsonpath={.metadata.name}' 'someval'
-os::cmd::expect_success_and_text 'oc get user someval=moreval -o jsonpath={.metadata.name}' 'someval=moreval'
-os::cmd::expect_success_and_text 'oc get user someval=moreval2 -o jsonpath={.metadata.name}' 'someval=moreval2'
-os::cmd::expect_success_and_text 'oc get user someval=moreval3 -o jsonpath={.metadata.name}' 'someval=moreval3'
-# providing a value not in the template should fail
-os::cmd::expect_failure_and_text "oc process -f '${required_params}' --param=required_param=someval --param=other_param=otherval" 'unknown parameter name "other_param"'
-# failure on values fails the entire call
-os::cmd::expect_failure_and_text "oc process -f '${required_params}' --param=required_param=someval --param=optional_param" 'invalid parameter assignment in'
-# failure on labels fails the entire call
-os::cmd::expect_failure_and_text "oc process -f '${required_params}' --param=required_param=someval --labels======" 'error parsing labels'
-# values are not split on commas, required parameter is not recognized
-os::cmd::expect_failure_and_text "oc process -f '${required_params}' --param=optional_param=a,required_param=b" 'parameter required_param is required and must be specified'
-# warning is printed iff --value/--param looks like two k-v pairs separated by comma
-os::cmd::expect_success_and_text "oc process -f '${required_params}' --param=required_param=a,b=c,d" 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_not_text "oc process -f '${required_params}' --param=required_param=a_b_c_d" 'no longer accepts comma-separated list'
-os::cmd::expect_success_and_not_text "oc process -f '${required_params}' --param=required_param=a,b,c,d" 'no longer accepts comma-separated list'
-# warning is not printed for template values passed as positional arguments
-os::cmd::expect_success_and_not_text "oc process -f '${required_params}' required_param=a,b=c,d" 'no longer accepts comma-separated list'
-# set template parameter to contents of file
-os::cmd::expect_success_and_text "oc process -f '${required_params}' --param=required_param='` + "`" + `cat ${TEST_DATA}/templates/multiline.txt` + "`" + `'" 'also,with=commas'
-echo "process: ok"
-os::test::junit::declare_suite_end
-
-os::test::junit::declare_suite_end
-`)
-
-func testExtendedTestdataCmdTestCmdTemplatesShBytes() ([]byte, error) {
-	return _testExtendedTestdataCmdTestCmdTemplatesSh, nil
-}
-
-func testExtendedTestdataCmdTestCmdTemplatesSh() (*asset, error) {
-	bytes, err := testExtendedTestdataCmdTestCmdTemplatesShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/templates.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -33043,7 +32848,7 @@ var _testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson = []byte(`
     "containers": [
       {
         "name": "hello-openshift",
-        "image": "registry.k8s.io/e2e-test-images/agnhost:2.40",
+        "image": "registry.k8s.io/e2e-test-images/agnhost:2.43",
         "args": ["netexec"],
         "ports": [
           {
@@ -33347,7 +33152,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/httpd-24-centos7:latest"
+              "name": "quay.io/centos7/httpd-24-centos7:latest"
             },
             "name": "2.4",
             "referencePolicy": {
@@ -33427,7 +33232,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "ImageStreamTag",
-              "name": "10.2"
+              "name": "10.5"
             },
             "name": "latest",
             "referencePolicy": {
@@ -33441,31 +33246,31 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
               "openshift.io/display-name": "MariaDB 10.1",
               "openshift.io/provider-display-name": "Red Hat, Inc.",
               "tags": "database,mariadb",
-              "version": "10.1"
+              "version": "10.3"
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mariadb-101-centos7:latest"
+              "name": "quay.io/centos7/mariadb-103-centos7:latest"
             },
-            "name": "10.1",
+            "name": "10.3",
             "referencePolicy": {
               "type": "Local"
             }
           },
           {
             "annotations": {
-              "description": "Provides a MariaDB 10.2 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mariadb-container/blob/master/10.2/README.md.",
+              "description": "Provides a MariaDB 10.5 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mariadb-container/blob/master/10.2/README.md.",
               "iconClass": "icon-mariadb",
-              "openshift.io/display-name": "MariaDB 10.2",
+              "openshift.io/display-name": "MariaDB 10.5",
               "openshift.io/provider-display-name": "Red Hat, Inc.",
               "tags": "database,mariadb",
-              "version": "10.2"
+              "version": "10.5"
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mariadb-102-centos7:latest"
+              "name": "quay.io/centos7/mariadb-105-centos7:latest"
             },
-            "name": "10.2",
+            "name": "10.5",
             "referencePolicy": {
               "type": "Local"
             }
@@ -33512,7 +33317,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mongodb-26-centos7:latest"
+              "name": "quay.io/centos7/mongodb-26-centos7:latest"
             },
             "name": "2.7",
             "referencePolicy": {
@@ -33530,7 +33335,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mongodb-32-centos7:latest"
+              "name": "quay.io/centos7/mongodb-32-centos7:latest"
             },
             "name": "3.2",
             "referencePolicy": {
@@ -33548,7 +33353,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mongodb-34-centos7:latest"
+              "name": "quay.io/centos7/mongodb-34-centos7:latest"
             },
             "name": "3.4",
             "referencePolicy": {
@@ -33579,7 +33384,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "ImageStreamTag",
-              "name": "5.7"
+              "name": "8"
             },
             "name": "latest",
             "referencePolicy": {
@@ -33588,36 +33393,18 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
           },
           {
             "annotations": {
-              "description": "Provides a MySQL 5.6 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mysql-container/blob/master/README.md.",
+              "description": "Provides a MySQL 8 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mysql-container/blob/master/README.md.",
               "iconClass": "icon-mysql-database",
-              "openshift.io/display-name": "MySQL 5.6",
+              "openshift.io/display-name": "MySQL 8",
               "openshift.io/provider-display-name": "Red Hat, Inc.",
               "tags": "hidden,mysql",
-              "version": "5.6"
+              "version": "8"
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mysql-56-centos7:latest"
+              "name": "quay.io/centos7/mysql-80-centos7:latest"
             },
-            "name": "5.6",
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "annotations": {
-              "description": "Provides a MySQL 5.7 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mysql-container/blob/master/README.md.",
-              "iconClass": "icon-mysql-database",
-              "openshift.io/display-name": "MySQL 5.7",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "tags": "mysql",
-              "version": "5.7"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "registry.centos.org/centos/mysql-57-centos7:latest"
-            },
-            "name": "5.7",
+            "name": "8",
             "referencePolicy": {
               "type": "Local"
             }
@@ -33649,7 +33436,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/nginx-114-centos7:latest"
+              "name": "quay.io/centos7/nginx-114-centos7:latest"
             },
             "name": "1.14",
             "referencePolicy": {
@@ -33669,7 +33456,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/nginx-116-centos7:latest"
+              "name": "quay.io/centos7/nginx-116-centos7:latest"
             },
             "name": "1.16",
             "referencePolicy": {
@@ -33740,7 +33527,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/nodejs-10-centos7:latest"
+              "name": "quay.io/centos7/nodejs-10-centos7:latest"
             },
             "name": "10",
             "referencePolicy": {
@@ -33759,7 +33546,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/nodejs-12-centos7:latest"
+              "name": "quay.io/centos7/nodejs-12-centos7:latest"
             },
             "name": "12",
             "referencePolicy": {
@@ -33889,7 +33676,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/php-70-centos7:latest"
+              "name": "quay.io/centos7/php-70-centos7:latest"
             },
             "name": "7.0",
             "referencePolicy": {
@@ -33909,7 +33696,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/php-71-centos7:latest"
+              "name": "quay.io/centos7/php-71-centos7:latest"
             },
             "name": "7.1",
             "referencePolicy": {
@@ -33958,7 +33745,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/postgresql-95-centos7:latest"
+              "name": "quay.io/centos7/postgresql-95-centos7:latest"
             },
             "name": "9.5",
             "referencePolicy": {
@@ -33976,7 +33763,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/postgresql-96-centos7:latest"
+              "name": "quay.io/centos7/postgresql-96-centos7:latest"
             },
             "name": "9.6",
             "referencePolicy": {
@@ -34029,7 +33816,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/python-27-centos7:latest"
+              "name": "quay.io/centos7/python-27-centos7:latest"
             },
             "name": "2.7",
             "referencePolicy": {
@@ -34049,7 +33836,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/python-36-centos7:latest"
+              "name": "quay.io/centos7/python-36-centos7:latest"
             },
             "name": "3.6",
             "referencePolicy": {
@@ -34098,7 +33885,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.centos.org/centos/redis-5-centos7:latest"
+              "name": "quay.io/centos7/redis-5-centos7:latest"
             },
             "name": "5",
             "referencePolicy": {
@@ -37172,7 +36959,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.40
+                image: registry.k8s.io/e2e-test-images/agnhost:2.43
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -39939,6 +39726,11 @@ spec:
   - type: Allow
     to:
       cidrSelector: 8.8.8.8/32
+  - type: Allow
+    to:
+      nodeSelector:
+        matchLabels:
+          node-role.kubernetes.io/control-plane: ''
   - type: Deny
     to:
       cidrSelector: 0.0.0.0/0
@@ -41372,7 +41164,7 @@ items:
           replicationcontroller: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.40
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.43
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675" ]
           ports:
@@ -41438,7 +41230,7 @@ items:
           deploymentconfig: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.40
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.43
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -42017,6 +41809,104 @@ func testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson() (*asset, error) 
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataKernelRtTestsEnvironmentYaml = []byte(`kind: Project
+apiVersion: project.openshift.io/v1
+metadata:
+  name: ci-realtime-testbed
+  labels:
+    kubernetes.io/metadata.name: rt-tests
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+  annotations:
+    workload.openshift.io/allowed: management
+    openshift.io/node-selector: "node-role.kubernetes.io/worker="
+spec: {}
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rt-tests
+  namespace: ci-realtime-testbed
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:openshift:scc:privileged
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:privileged
+subjects:
+  - kind: ServiceAccount
+    name: rt-tests
+    namespace: ci-realtime-testbed`)
+
+func testExtendedTestdataKernelRtTestsEnvironmentYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataKernelRtTestsEnvironmentYaml, nil
+}
+
+func testExtendedTestdataKernelRtTestsEnvironmentYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataKernelRtTestsEnvironmentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/kernel/rt-tests-environment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataKernelRtTestsPodYaml = []byte(`apiVersion: v1
+kind: Pod
+metadata:
+  name: rt-tests
+  namespace: ci-realtime-testbed
+spec:
+  hostPID: true
+  hostIPC: true
+  hostNetwork: true
+  volumes:
+  - name: host
+    hostPath:
+      path: /sys/kernel/debug
+      type: Directory
+  containers:
+    - name: rt-tests
+      image: image-registry.openshift-image-registry.svc:5000/openshift/tests
+      command:
+        - "sh"
+        - "-c"
+        - "sleep 999999"
+      resources: {}
+      securityContext:
+        privileged: true
+      volumeMounts:
+      - mountPath: /sys/kernel/debug
+        name: host
+  serviceAccount: rt-tests
+  serviceAccountName: rt-tests
+  terminationGracePeriodSeconds: 30`)
+
+func testExtendedTestdataKernelRtTestsPodYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataKernelRtTestsPodYaml, nil
+}
+
+func testExtendedTestdataKernelRtTestsPodYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataKernelRtTestsPodYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/kernel/rt-tests-pod.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -45971,6 +45861,161 @@ func testExtendedTestdataOlmSubscriptionYaml() (*asset, error) {
 	return a, nil
 }
 
+var _testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml = []byte(`---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: always-allow-policy
+spec:
+  maxUnavailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      app: nginx-with-delayed-ready
+
+`)
+
+func testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml, nil
+}
+
+func testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml = []byte(`---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: if-healthy-budget-policy
+spec:
+  maxUnavailable: 1
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+  selector:
+    matchLabels:
+      app: nginx-with-delayed-ready
+
+`)
+
+func testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml, nil
+}
+
+func testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml = []byte(`---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: nginx-with-delayed-ready
+  labels:
+    app: nginx-with-delayed-ready
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-with-delayed-ready
+  template:
+    metadata:
+      labels:
+        app: nginx-with-delayed-ready
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: nginx-with-delayed-ready
+          image: registry.k8s.io/e2e-test-images/nginx:1.15-4
+          command:
+            - /usr/sbin/nginx
+          args:
+            - "-g"
+            - "daemon off;"
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 40
+            successThreshold: 2
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: conf
+              mountPath: /etc/nginx/conf.d
+            - name: tmp
+              mountPath: /var/cache/nginx
+            - name: tmp2
+              mountPath: /var/run
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: conf
+          configMap:
+            name: nginx-conf
+        - name: tmp
+          emptyDir: {}
+        - name: tmp2
+          emptyDir: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  default.conf: |
+    server {
+        listen 8080;
+        server_name  localhost;
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+        }
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/share/nginx/html;
+        }
+    }
+`)
+
+func testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml, nil
+}
+
+func testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataReleasesPayload1EtcdOperatorImageReferences = []byte(`kind: ImageStream
 apiVersion: image.openshift.io/v1
 spec:
@@ -46392,7 +46437,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -46410,7 +46455,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -46445,7 +46490,7 @@ items:
       app: serving-cert
   spec:
     containers:
-    - image: registry.k8s.io/e2e-test-images/nginx:1.15-2
+    - image: registry.k8s.io/e2e-test-images/nginx:1.15-4
       name: serve
       command:
         - /usr/sbin/nginx
@@ -46462,7 +46507,7 @@ items:
         mountPath: /etc/nginx
       - name: tmp
         mountPath: /var/cache/nginx
-      - name: tmp
+      - name: tmp2
         mountPath: /var/run
     volumes:
     - name: conf
@@ -46649,7 +46694,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -46677,22 +46722,21 @@ var _testExtendedTestdataRouterRouterHttpEchoServerYaml = []byte(`apiVersion: v1
 kind: List
 metadata: {}
 items:
-- apiVersion: apps.openshift.io/v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1
+  kind: Deployment
   metadata:
     name: router-http-echo
   spec:
     replicas: 1
     selector:
-      app: router-http-echo
-      deploymentconfig: router-http-echo
+      matchLabels:
+        app: router-http-echo
     strategy:
-      type: Rolling
+      type: RollingUpdate
     template:
       metadata:
         labels:
           app: router-http-echo
-          deploymentconfig: router-http-echo
       spec:
         containers:
         - image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
@@ -46826,7 +46870,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -46844,7 +46888,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.40
+      image: registry.k8s.io/e2e-test-images/agnhost:2.43
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -47475,6 +47519,127 @@ func testExtendedTestdataStableBusyboxYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/stable-busybox.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataStorageInlineCsiSharedresourceroleYaml = []byte(`apiVersion: authorization.openshift.io/v1
+kind: Role
+metadata:
+  name: shared-resource-my-share
+rules:
+- apiGroups:
+    - sharedresource.openshift.io
+  resources:
+    - sharedsecrets
+  resourceNames:
+    - my-share
+  verbs:
+    - use
+`)
+
+func testExtendedTestdataStorageInlineCsiSharedresourceroleYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataStorageInlineCsiSharedresourceroleYaml, nil
+}
+
+func testExtendedTestdataStorageInlineCsiSharedresourceroleYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataStorageInlineCsiSharedresourceroleYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/storage/inline/csi-sharedresourcerole.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml = []byte(`kind: Template
+apiVersion: template.openshift.io/v1
+metadata:
+  name: "inline-volume-csi-roles-template"
+labels:
+  createdBy: "inline-volume-csi-roles-template"
+parameters:
+  - description: "The namespace to create roles in."
+    name: NAMESPACE
+    required: true
+objects:
+  - apiVersion: authorization.openshift.io/v1
+    kind: RoleBinding
+    metadata:
+      name: shared-resource-my-share
+      namespace: ${NAMESPACE}
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: shared-resource-my-share
+      namespace: ${NAMESPACE}
+    subjects:
+    - kind: ServiceAccount
+      name: default
+      namespace: ${NAMESPACE}
+`)
+
+func testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml, nil
+}
+
+func testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/storage/inline/csi-sharedresourcerolebinding.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataStorageInlineCsiSharedsecretYaml = []byte(`apiVersion: sharedresource.openshift.io/v1alpha1
+kind: SharedSecret
+metadata:
+  name: my-share
+spec:
+  secretRef:
+    name: my-secret
+    namespace: default
+`)
+
+func testExtendedTestdataStorageInlineCsiSharedsecretYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataStorageInlineCsiSharedsecretYaml, nil
+}
+
+func testExtendedTestdataStorageInlineCsiSharedsecretYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataStorageInlineCsiSharedsecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/storage/inline/csi-sharedsecret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataStorageInlineSecretYaml = []byte(`apiVersion: v1
+data:
+  key: bXktc2VjcmV0LXZhbHVl # my-secret-value
+kind: Secret
+metadata:
+  name: my-secret
+type: Opaque
+`)
+
+func testExtendedTestdataStorageInlineSecretYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataStorageInlineSecretYaml, nil
+}
+
+func testExtendedTestdataStorageInlineSecretYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataStorageInlineSecretYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/storage/inline/secret.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -48247,7 +48412,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.40
+                image: registry.k8s.io/e2e-test-images/agnhost:2.43
 `)
 
 func testExtendedTestdataTemplatesTemplateinstance_badobjectYamlBytes() ([]byte, error) {
@@ -48307,7 +48472,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.40
+                image: registry.k8s.io/e2e-test-images/agnhost:2.43
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -49211,7 +49376,24 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         return false
     }
 
+    function isInterestingOrPathological(eventInterval) {
+        if (eventInterval.message.includes("pathological/true") || (eventInterval.message.includes("interesting/true"))) {
+            return true
+        }
+        return false
+    }
+
     function isPod(eventInterval) {
+        // this check was added to keep the repeating events out fo the "pods" section
+        const nTimes = new RegExp("\\(\\d+ times\\)")
+        if (eventInterval.message.match(nTimes)) {
+            return false
+        }
+        // this check was added to avoid the events from the "interesting-events" section from being
+        // duplicated in the "pods" section.
+        if (isInterestingOrPathological(eventInterval)) {
+            return false
+        }
         if (eventInterval.locator.includes("pod/") && !eventInterval.locator.includes("alert/")) {
             return true
         }
@@ -49241,6 +49423,13 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
     function isKubeletReadinessCheck(eventInterval) {
         if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/ReadinessFailed") || eventInterval.message.includes("reason/ReadinessErrored"))) {
+            return true
+        }
+        return false
+    }
+
+    function isKubeletStartupProbeFailure(eventInterval) {
+        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/StartupProbeFailed"))) {
             return true
         }
         return false
@@ -49298,6 +49487,19 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         return false
     }
 
+    function interestingEvents(item) {
+        if (item.message.includes("pathological/true")) {
+            if (item.message.includes("interesting/true")) {
+                return [item.locator, ` + "`" + ` (pathological known)` + "`" + `, "PathologicalKnown"];
+            } else {
+                return [item.locator, ` + "`" + ` (pathological new)` + "`" + `, "PathologicalNew"];
+            }
+        }
+        if (item.message.includes("interesting/true")) {
+		    return [item.locator, ` + "`" + ` (interesting event)` + "`" + `, "InterestingEvent"];
+        }
+	}
+
     const reReason = new RegExp("(^| )reason/([^ ]+)")
     function podStateValue(item) {
         let m = item.message.match(reReason);
@@ -49336,6 +49538,9 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
             if (m[2] == "ReadinessErrored") {
                 return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessErrored"];
             }
+        }
+        if (m && isKubeletStartupProbeFailure(item)){
+            return [item.locator, ` + "`" + ` (kubelet container startupProbe)` + "`" + `, "StartupProbeFailed"];
         }
 
         return [item.locator, "", "Unknown"];
@@ -49385,6 +49590,17 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
         // color as critical if nothing matches so that we notice that something has gone wrong
         return [item.locator, "", "AlertCritical"]
+    }
+
+    function disruptionValue(item) {
+        // We classify these disruption samples with this message if it thinks
+        // it looks like a problem in the CI cluster running the tests, not the cluster under test.
+        // (typically DNS lookup problems)
+        let ciClusterDisruption = item.message.indexOf("likely a problem in cluster running tests")
+        if (ciClusterDisruption != -1) {
+            return [item.locator, "", "CIClusterDisruption"]
+        }
+        return [item.locator, "", "Disruption"]
     }
 
     function getDurationString(durationSeconds) {
@@ -49504,7 +49720,7 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         })
 
         timelineGroups.push({group: "endpoint-availability", data: []})
-        createTimelineData("Failed", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEndpointConnectivity, regex)
+        createTimelineData(disruptionValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEndpointConnectivity, regex)
 
         timelineGroups.push({group: "e2e-test-failed", data: []})
         createTimelineData("Failed", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isE2EFailed, regex)
@@ -49514,6 +49730,9 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
         timelineGroups.push({group: "e2e-test-passed", data: []})
         createTimelineData("Passed", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isE2EPassed, regex)
+
+        timelineGroups.push({group: "interesting-events", data: []})
+        createTimelineData(interestingEvents, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isInterestingOrPathological, regex)
 
         var segmentFunc = function (segment) {
             // for (var i in data) {
@@ -49541,18 +49760,22 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         const myChart = TimelinesChart();
         var ordinalScale = d3.scaleOrdinal()
             .domain([
+                'InterestingEvent', 'PathologicalKnown', "PathologicalNew", // interesting and pathological events
                 'AlertInfo', 'AlertPending', 'AlertWarning', 'AlertCritical', // alerts
                 'OperatorUnavailable', 'OperatorDegraded', 'OperatorProgressing', // operators
                 'Update', 'Drain', 'Reboot', 'OperatingSystemUpdate', 'NodeNotReady', // nodes
                 'Passed', 'Skipped', 'Flaked', 'Failed',  // tests
-                'PodCreated', 'PodScheduled', 'PodTerminating','ContainerWait', 'ContainerStart', 'ContainerNotReady', 'ContainerReady', 'ContainerReadinessFailed', 'ContainerReadinessErrored',  // pods
+                'PodCreated', 'PodScheduled', 'PodTerminating','ContainerWait', 'ContainerStart', 'ContainerNotReady', 'ContainerReady', 'ContainerReadinessFailed', 'ContainerReadinessErrored',  'StartupProbeFailed', // pods
+                'CIClusterDisruption', 'Disruption', // disruption
                 'Degraded', 'Upgradeable', 'False', 'Unknown'])
             .range([
+                '#6E6E6E', '#0000ff', '#d0312d', // pathological and interesting events
                 '#fada5e','#fada5e','#ffa500', '#d0312d',  // alerts
                 '#d0312d', '#ffa500', '#fada5e', // operators
                 '#1e7bd9', '#4294e6', '#6aaef2', '#96cbff', '#fada5e', // nodes
                 '#3cb043', '#ceba76', '#ffa500', '#d0312d', // tests
-                '#96cbff', '#1e7bd9', '#ffa500', '#ca8dfd', '#9300ff', '#fada5e','#3cb043', '#d0312d', '#d0312d', // pods
+                '#96cbff', '#1e7bd9', '#ffa500', '#ca8dfd', '#9300ff', '#fada5e','#3cb043', '#d0312d', '#d0312d', '#c90076', // pods
+                '#96cbff', '#d0312d', // disruption
                 '#b65049', '#32b8b6', '#ffffff', '#bbbbbb']);
         myChart.
         data(timelineGroups).
@@ -49794,6 +50017,7 @@ var _bindata = map[string]func() (*asset, error){
 	"examples/quickstarts/rails-postgresql-persistent.json":                                                  examplesQuickstartsRailsPostgresqlPersistentJson,
 	"examples/quickstarts/rails-postgresql.json":                                                             examplesQuickstartsRailsPostgresqlJson,
 	"examples/hello-openshift/Dockerfile":                                                                    examplesHelloOpenshiftDockerfile,
+	"examples/hello-openshift/go.mod":                                                                        examplesHelloOpenshiftGoMod,
 	"examples/hello-openshift/hello-pod.json":                                                                examplesHelloOpenshiftHelloPodJson,
 	"examples/hello-openshift/hello-project.json":                                                            examplesHelloOpenshiftHelloProjectJson,
 	"examples/jenkins/application-template.json":                                                             examplesJenkinsApplicationTemplateJson,
@@ -49979,7 +50203,6 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/cmd/test/cmd/set-liveness-probe.sh":                                              testExtendedTestdataCmdTestCmdSetLivenessProbeSh,
 	"test/extended/testdata/cmd/test/cmd/setbuildhook.sh":                                                    testExtendedTestdataCmdTestCmdSetbuildhookSh,
 	"test/extended/testdata/cmd/test/cmd/setbuildsecret.sh":                                                  testExtendedTestdataCmdTestCmdSetbuildsecretSh,
-	"test/extended/testdata/cmd/test/cmd/templates.sh":                                                       testExtendedTestdataCmdTestCmdTemplatesSh,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateDockerbuildJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-stibuild.json":                        testExtendedTestdataCmdTestCmdTestdataApplicationTemplateStibuildJson,
@@ -50103,6 +50326,8 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl":                                         testExtendedTestdataImage_ecosystemPerlHotdeployIndexPl,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm":                                   testExtendedTestdataImage_ecosystemPerlHotdeployLibMyTestPm,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json":                                        testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson,
+	"test/extended/testdata/kernel/rt-tests-environment.yaml":                                                testExtendedTestdataKernelRtTestsEnvironmentYaml,
+	"test/extended/testdata/kernel/rt-tests-pod.yaml":                                                        testExtendedTestdataKernelRtTestsPodYaml,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt":                                            testExtendedTestdataLdapGroupsyncAdBlacklist_ldapTxt,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_openshift.txt":                                       testExtendedTestdataLdapGroupsyncAdBlacklist_openshiftTxt,
 	"test/extended/testdata/ldap/groupsync/ad/ldapgroupuids.txt":                                             testExtendedTestdataLdapGroupsyncAdLdapgroupuidsTxt,
@@ -50187,6 +50412,9 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/oauthserver/oauth-sa.yaml":                                                       testExtendedTestdataOauthserverOauthSaYaml,
 	"test/extended/testdata/olm/operatorgroup.yaml":                                                          testExtendedTestdataOlmOperatorgroupYaml,
 	"test/extended/testdata/olm/subscription.yaml":                                                           testExtendedTestdataOlmSubscriptionYaml,
+	"test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml":                               testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml,
+	"test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml":                          testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml,
+	"test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml":                   testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml,
 	"test/extended/testdata/releases/payload-1/etcd-operator/image-references":                               testExtendedTestdataReleasesPayload1EtcdOperatorImageReferences,
 	"test/extended/testdata/releases/payload-1/etcd-operator/manifest.yaml":                                  testExtendedTestdataReleasesPayload1EtcdOperatorManifestYaml,
 	"test/extended/testdata/releases/payload-1/image-registry/10_image-registry_crd.yaml":                    testExtendedTestdataReleasesPayload1ImageRegistry10_imageRegistry_crdYaml,
@@ -50212,6 +50440,10 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/service-serving-cert/nginx-serving-cert.conf":                                    testExtendedTestdataServiceServingCertNginxServingCertConf,
 	"test/extended/testdata/signer-buildconfig.yaml":                                                         testExtendedTestdataSignerBuildconfigYaml,
 	"test/extended/testdata/stable-busybox.yaml":                                                             testExtendedTestdataStableBusyboxYaml,
+	"test/extended/testdata/storage/inline/csi-sharedresourcerole.yaml":                                      testExtendedTestdataStorageInlineCsiSharedresourceroleYaml,
+	"test/extended/testdata/storage/inline/csi-sharedresourcerolebinding.yaml":                               testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml,
+	"test/extended/testdata/storage/inline/csi-sharedsecret.yaml":                                            testExtendedTestdataStorageInlineCsiSharedsecretYaml,
+	"test/extended/testdata/storage/inline/secret.yaml":                                                      testExtendedTestdataStorageInlineSecretYaml,
 	"test/extended/testdata/templates/crunchydata-pod.json":                                                  testExtendedTestdataTemplatesCrunchydataPodJson,
 	"test/extended/testdata/templates/guestbook.json":                                                        testExtendedTestdataTemplatesGuestbookJson,
 	"test/extended/testdata/templates/guestbook_list.json":                                                   testExtendedTestdataTemplatesGuestbook_listJson,
@@ -50290,6 +50522,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		}},
 		"hello-openshift": {nil, map[string]*bintree{
 			"Dockerfile":         {examplesHelloOpenshiftDockerfile, map[string]*bintree{}},
+			"go.mod":             {examplesHelloOpenshiftGoMod, map[string]*bintree{}},
 			"hello-pod.json":     {examplesHelloOpenshiftHelloPodJson, map[string]*bintree{}},
 			"hello-project.json": {examplesHelloOpenshiftHelloProjectJson, map[string]*bintree{}},
 		}},
@@ -50602,7 +50835,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"set-liveness-probe.sh": {testExtendedTestdataCmdTestCmdSetLivenessProbeSh, map[string]*bintree{}},
 							"setbuildhook.sh":       {testExtendedTestdataCmdTestCmdSetbuildhookSh, map[string]*bintree{}},
 							"setbuildsecret.sh":     {testExtendedTestdataCmdTestCmdSetbuildsecretSh, map[string]*bintree{}},
-							"templates.sh":          {testExtendedTestdataCmdTestCmdTemplatesSh, map[string]*bintree{}},
 							"testdata": {nil, map[string]*bintree{
 								"application-template-custombuild.json": {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson, map[string]*bintree{}},
 								"application-template-dockerbuild.json": {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateDockerbuildJson, map[string]*bintree{}},
@@ -50795,6 +51027,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"perl.json": {testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson, map[string]*bintree{}},
 					}},
 				}},
+				"kernel": {nil, map[string]*bintree{
+					"rt-tests-environment.yaml": {testExtendedTestdataKernelRtTestsEnvironmentYaml, map[string]*bintree{}},
+					"rt-tests-pod.yaml":         {testExtendedTestdataKernelRtTestsPodYaml, map[string]*bintree{}},
+				}},
 				"ldap": {nil, map[string]*bintree{
 					"groupsync": {nil, map[string]*bintree{
 						"ad": {nil, map[string]*bintree{
@@ -50903,6 +51139,11 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"operatorgroup.yaml": {testExtendedTestdataOlmOperatorgroupYaml, map[string]*bintree{}},
 					"subscription.yaml":  {testExtendedTestdataOlmSubscriptionYaml, map[string]*bintree{}},
 				}},
+				"poddisruptionbudgets": {nil, map[string]*bintree{
+					"always-allow-policy-pdb.yaml":             {testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml, map[string]*bintree{}},
+					"if-healthy-budget-policy-pdb.yaml":        {testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml, map[string]*bintree{}},
+					"nginx-with-delayed-ready-deployment.yaml": {testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml, map[string]*bintree{}},
+				}},
 				"releases": {nil, map[string]*bintree{
 					"payload-1": {nil, map[string]*bintree{
 						"etcd-operator": {nil, map[string]*bintree{
@@ -50948,6 +51189,14 @@ var _bintree = &bintree{nil, map[string]*bintree{
 				}},
 				"signer-buildconfig.yaml": {testExtendedTestdataSignerBuildconfigYaml, map[string]*bintree{}},
 				"stable-busybox.yaml":     {testExtendedTestdataStableBusyboxYaml, map[string]*bintree{}},
+				"storage": {nil, map[string]*bintree{
+					"inline": {nil, map[string]*bintree{
+						"csi-sharedresourcerole.yaml":        {testExtendedTestdataStorageInlineCsiSharedresourceroleYaml, map[string]*bintree{}},
+						"csi-sharedresourcerolebinding.yaml": {testExtendedTestdataStorageInlineCsiSharedresourcerolebindingYaml, map[string]*bintree{}},
+						"csi-sharedsecret.yaml":              {testExtendedTestdataStorageInlineCsiSharedsecretYaml, map[string]*bintree{}},
+						"secret.yaml":                        {testExtendedTestdataStorageInlineSecretYaml, map[string]*bintree{}},
+					}},
+				}},
 				"templates": {nil, map[string]*bintree{
 					"crunchydata-pod.json":              {testExtendedTestdataTemplatesCrunchydataPodJson, map[string]*bintree{}},
 					"guestbook.json":                    {testExtendedTestdataTemplatesGuestbookJson, map[string]*bintree{}},

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
-
 	"github.com/onsi/ginkgo/v2"
 	"github.com/openshift/origin/pkg/monitor"
 	"github.com/openshift/origin/pkg/monitor/backenddisruption"
+	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	"github.com/openshift/origin/pkg/synthetictests/allowedbackenddisruption"
+	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/events"
 	"k8s.io/kubernetes/test/e2e/framework"
@@ -18,7 +18,7 @@ import (
 )
 
 type BackendSampler interface {
-	GetConnectionType() backenddisruption.BackendConnectionType
+	GetConnectionType() monitorapi.BackendConnectionType
 	GetDisruptionBackendName() string
 	GetLocator() string
 	GetURL() (string, error)
@@ -94,6 +94,7 @@ func (t *backendDisruptionTest) historicalAllowedDisruption(f *framework.Framewo
 	if err != nil {
 		return nil, "", err
 	}
+	framework.Logf("checking allowed disruption for job type: %+v", *jobType)
 
 	return allowedbackenddisruption.GetAllowedDisruption(backendName, *jobType)
 }
@@ -134,13 +135,6 @@ func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{
 	stopCh := make(chan struct{})
 	defer close(stopCh)
 
-	allowedDisruption, disruptionDetails, err := t.getAllowedDisruption(f)
-	framework.ExpectNoError(err)
-	if allowedDisruption == nil {
-		framework.Logf(fmt.Sprintf("Skipping: %s: No historical data", t.testName))
-		return
-	}
-
 	newBroadcaster := events.NewBroadcaster(&events.EventSinkImpl{Interface: f.ClientSet.EventsV1()})
 	eventRecorder := newBroadcaster.NewRecorder(scheme.Scheme, "openshift.io/"+t.backend.GetDisruptionBackendName())
 	newBroadcaster.StartRecordingToSink(stopCh)
@@ -180,6 +174,9 @@ func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{
 		framework.Logf(fmt.Sprintf("unable to finish: %s", t.backend.GetLocator()))
 	}
 
+	allowedDisruption, disruptionDetails, err := t.getAllowedDisruption(f)
+	framework.ExpectNoError(err)
+
 	end := time.Now()
 
 	fromTime, endTime := time.Time{}, time.Time{}
@@ -187,7 +184,8 @@ func (t *backendDisruptionTest) Test(f *framework.Framework, done <-chan struct{
 	ginkgo.By(fmt.Sprintf("writing results: %s", t.backend.GetLocator()))
 	ExpectNoDisruptionForDuration(
 		f,
-		*allowedDisruption,
+		t.testName,
+		allowedDisruption,
 		end.Sub(start),
 		events,
 		fmt.Sprintf("%s was unreachable during disruption: %v", t.backend.GetLocator(), disruptionDetails),

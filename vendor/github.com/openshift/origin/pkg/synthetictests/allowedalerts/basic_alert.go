@@ -1,18 +1,17 @@
 package allowedalerts
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/openshift/origin/pkg/synthetictests/historicaldata"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
 	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
 	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
-	"k8s.io/client-go/rest"
 	"k8s.io/kubernetes/test/e2e/framework"
 )
 
@@ -25,7 +24,7 @@ type AlertTest interface {
 	// AlertState is the threshold this test applies to.
 	AlertState() AlertState
 
-	InvariantCheck(ctx context.Context, restConfig *rest.Config, intervals monitorapi.Intervals, r monitorapi.ResourcesMap) ([]*junitapi.JUnitTestCase, error)
+	InvariantCheck(intervals monitorapi.Intervals, r monitorapi.ResourcesMap) ([]*junitapi.JUnitTestCase, error)
 }
 
 // AlertState is the state of the alert. They are logically ordered, so if a test says it limits on "pending", then
@@ -45,6 +44,7 @@ type alertBuilder struct {
 	divideByNamespaces bool
 	alertName          string
 	alertState         AlertState
+	jobType            *platformidentification.JobType
 
 	allowanceCalculator AlertTestAllowanceCalculator
 }
@@ -54,25 +54,28 @@ type basicAlertTest struct {
 	alertName         string
 	namespace         string
 	alertState        AlertState
+	jobType           *platformidentification.JobType
 
 	allowanceCalculator AlertTestAllowanceCalculator
 }
 
-func newAlert(bugzillaComponent, alertName string) *alertBuilder {
+func newAlert(bugzillaComponent, alertName string, jobType *platformidentification.JobType) *alertBuilder {
 	return &alertBuilder{
 		bugzillaComponent:   bugzillaComponent,
 		alertName:           alertName,
 		alertState:          AlertPending,
-		allowanceCalculator: defaultAllowances,
+		allowanceCalculator: DefaultAllowances,
+		jobType:             jobType,
 	}
 }
 
-func newNamespacedAlert(alertName string) *alertBuilder {
+func newNamespacedAlert(alertName string, jobType *platformidentification.JobType) *alertBuilder {
 	return &alertBuilder{
 		divideByNamespaces:  true,
 		alertName:           alertName,
 		alertState:          AlertPending,
-		allowanceCalculator: defaultAllowances,
+		allowanceCalculator: DefaultAllowances,
+		jobType:             jobType,
 	}
 }
 
@@ -114,6 +117,7 @@ func (a *alertBuilder) toTests() []AlertTest {
 				alertName:           a.alertName,
 				alertState:          a.alertState,
 				allowanceCalculator: a.allowanceCalculator,
+				jobType:             a.jobType,
 			},
 		}
 	}
@@ -126,6 +130,7 @@ func (a *alertBuilder) toTests() []AlertTest {
 			alertName:           a.alertName,
 			alertState:          a.alertState,
 			allowanceCalculator: a.allowanceCalculator,
+			jobType:             a.jobType,
 		})
 	}
 	ret = append(ret, &basicAlertTest{
@@ -134,6 +139,7 @@ func (a *alertBuilder) toTests() []AlertTest {
 		alertName:           a.alertName,
 		alertState:          a.alertState,
 		allowanceCalculator: a.allowanceCalculator,
+		jobType:             a.jobType,
 	})
 
 	return ret
@@ -166,7 +172,7 @@ const (
 	fail
 )
 
-func (a *basicAlertTest) failOrFlake(ctx context.Context, restConfig *rest.Config, firingIntervals, pendingIntervals monitorapi.Intervals) (testState, string) {
+func (a *basicAlertTest) failOrFlake(firingIntervals, pendingIntervals monitorapi.Intervals) (testState, string) {
 	var alertIntervals monitorapi.Intervals
 
 	switch a.AlertState() {
@@ -194,31 +200,36 @@ func (a *basicAlertTest) failOrFlake(ctx context.Context, restConfig *rest.Confi
 	firingDuration := firingIntervals.Duration(1 * time.Second)
 	pendingDuration := pendingIntervals.Duration(1 * time.Second)
 
-	jobType, err := platformidentification.GetJobType(ctx, restConfig)
-	if err != nil {
-		return fail, err.Error()
+	dataKey := historicaldata.AlertDataKey{
+		AlertName:      a.alertName,
+		AlertLevel:     string(a.alertState),
+		AlertNamespace: a.namespace,
+		JobType:        *a.jobType,
 	}
 
-	// TODO for namespaced alerts, we need to query the data on a per-namespace basis.
-	//  For the ones we're starting with, they tend to fail one at a time, so this will hopefully not be an awful starting point until we get there.
-
-	failAfter, err := a.allowanceCalculator.FailAfter(a.alertName, *jobType)
+	failAfter, err := a.allowanceCalculator.FailAfter(dataKey)
 	if err != nil {
 		return fail, fmt.Sprintf("unable to calculate allowance for %s which was at %s, err %v\n\n%s", a.AlertName(), a.AlertState(), err, strings.Join(describe, "\n"))
 	}
-	flakeAfter := a.allowanceCalculator.FlakeAfter(a.alertName, *jobType)
+	flakeAfter := a.allowanceCalculator.FlakeAfter(dataKey)
 
 	switch {
 	case durationAtOrAboveLevel > failAfter:
 		return fail, fmt.Sprintf("%s was at or above %s for at least %s on %#v (maxAllowed=%s): pending for %s, firing for %s:\n\n%s",
-			a.AlertName(), a.AlertState(), durationAtOrAboveLevel, *jobType, failAfter, pendingDuration, firingDuration, strings.Join(describe, "\n"))
+			a.AlertName(), a.AlertState(), durationAtOrAboveLevel, *a.jobType, failAfter, pendingDuration, firingDuration, strings.Join(describe, "\n"))
 
 	case durationAtOrAboveLevel > flakeAfter:
 		return flake, fmt.Sprintf("%s was at or above %s for at least %s on %#v (maxAllowed=%s): pending for %s, firing for %s:\n\n%s",
-			a.AlertName(), a.AlertState(), durationAtOrAboveLevel, *jobType, flakeAfter, pendingDuration, firingDuration, strings.Join(describe, "\n"))
+			a.AlertName(), a.AlertState(), durationAtOrAboveLevel, *a.jobType, flakeAfter, pendingDuration, firingDuration, strings.Join(describe, "\n"))
 	}
 
 	return pass, ""
+}
+
+var unrecognizedSignatureRegEx = regexp.MustCompile("reason/ErrImagePull UnrecognizedSignatureFormat")
+
+func kubePodNotReadyDueToErrParsingSignature(trackedEventResources monitorapi.InstanceMap, firingIntervals monitorapi.Intervals) bool {
+	return kubePodNotReadyDueToRegExMatch(trackedEventResources, firingIntervals, unrecognizedSignatureRegEx)
 }
 
 var imagePullBackoffRegEx = regexp.MustCompile("Back-off pulling image .*registry.redhat.io")
@@ -226,31 +237,34 @@ var imagePullBackoffRegEx = regexp.MustCompile("Back-off pulling image .*registr
 // kubePodNotReadyDueToImagePullBackoff returns true if we searched pod events and determined that the
 // KubePodNotReady alert for this pod fired due to an imagePullBackoff event on registry.redhat.io.
 func kubePodNotReadyDueToImagePullBackoff(trackedEventResources monitorapi.InstanceMap, firingIntervals monitorapi.Intervals) bool {
+	return kubePodNotReadyDueToRegExMatch(trackedEventResources, firingIntervals, imagePullBackoffRegEx)
+}
 
+func kubePodNotReadyDueToRegExMatch(trackedEventResources monitorapi.InstanceMap, firingIntervals monitorapi.Intervals, regexp *regexp.Regexp) bool {
 	// Run the check for all firing intervals.
 	for _, firingInterval := range firingIntervals {
 		relatedPodRef := monitorapi.PodFrom(firingInterval.Locator)
 
 		// Find an event
-		foundImagePullBackoffEvent := false
+		foundRegexMatchEvent := false
 		var tmpEvent *corev1.Event
 		for _, obj := range trackedEventResources {
 			tmpEvent = obj.(*corev1.Event)
 			if tmpEvent.InvolvedObject.Name == relatedPodRef.Name &&
 				tmpEvent.InvolvedObject.Namespace == relatedPodRef.Namespace &&
-				imagePullBackoffRegEx.MatchString(tmpEvent.Message) {
-				foundImagePullBackoffEvent = true
+				regexp.MatchString(tmpEvent.Message) {
+				foundRegexMatchEvent = true
 				break
 			}
 		}
-		if !foundImagePullBackoffEvent {
+		if !foundRegexMatchEvent {
 			// No event resources found so we can't do any checking.
 			return false
 		}
-		imagePullBackoffTime := tmpEvent.LastTimestamp.Time
+		regexMatchEventTime := tmpEvent.LastTimestamp.Time
 		alertTime := firingInterval.From
-		if alertTime.After(imagePullBackoffTime) && alertTime.Sub(imagePullBackoffTime) < time.Minute*10 {
-			framework.Logf("KubePodNotReady alert failure suppressed due to registry.redhat.io ImagePullBackoff on pod %s/%s",
+		if alertTime.After(regexMatchEventTime) && alertTime.Sub(regexMatchEventTime) < time.Minute*10 {
+			framework.Logf("KubePodNotReady alert failure suppressed due to %s on pod %s/%s", tmpEvent.Message,
 				tmpEvent.ObjectMeta.Namespace, tmpEvent.ObjectMeta.Name)
 		} else {
 			return false
@@ -294,19 +308,30 @@ func redhatOperatorPodsNotPending(trackedPodResources monitorapi.InstanceMap, fi
 	return true
 }
 
-func (a *basicAlertTest) InvariantCheck(ctx context.Context, restConfig *rest.Config, allEventIntervals monitorapi.Intervals, resourcesMap monitorapi.ResourcesMap) ([]*junitapi.JUnitTestCase, error) {
+func (a *basicAlertTest) InvariantCheck(allEventIntervals monitorapi.Intervals, resourcesMap monitorapi.ResourcesMap) ([]*junitapi.JUnitTestCase, error) {
+
+	if a.jobType == nil {
+		// Hard fail if the higher level job type lookup from the actual cluster failed
+		return []*junitapi.JUnitTestCase{
+			{
+				Name: a.InvariantTestName(),
+				FailureOutput: &junitapi.FailureOutput{
+					Output: "Unable to determine JobType for alert InvariantCheck",
+				},
+				SystemOut: "Unable to determine JobType for alert InvariantCheck",
+			},
+		}, nil
+	}
 	pendingIntervals := allEventIntervals.Filter(monitorapi.AlertPendingInNamespace(a.alertName, a.namespace))
 	firingIntervals := allEventIntervals.Filter(monitorapi.AlertFiringInNamespace(a.alertName, a.namespace))
 
-	state, message := a.failOrFlake(ctx, restConfig, firingIntervals, pendingIntervals)
+	state, message := a.failOrFlake(firingIntervals, pendingIntervals)
 
 	switch a.alertName {
 	case "KubePodNotReady":
-		if state == fail && kubePodNotReadyDueToImagePullBackoff(resourcesMap["events"], firingIntervals) {
-
+		if state == fail && (kubePodNotReadyDueToImagePullBackoff(resourcesMap["events"], firingIntervals) || kubePodNotReadyDueToErrParsingSignature(resourcesMap["events"], firingIntervals)) {
 			// Since this is due to imagePullBackoff, change the state to flake instead of fail
 			state = flake
-
 			break
 		}
 
@@ -325,7 +350,7 @@ func (a *basicAlertTest) InvariantCheck(ctx context.Context, restConfig *rest.Co
 		)
 
 		// recheck the state and message.
-		state, message = a.failOrFlake(ctx, restConfig, firingIntervals, pendingIntervals)
+		state, message = a.failOrFlake(firingIntervals, pendingIntervals)
 
 	case "RedhatOperatorsCatalogError":
 		if state == fail && redhatOperatorPodsNotPending(resourcesMap["pods"], firingIntervals) {

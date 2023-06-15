@@ -14,6 +14,7 @@ import (
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	"github.com/openshift/origin/pkg/alerts"
+	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
@@ -26,6 +27,7 @@ import (
 	kapi "k8s.io/kubernetes/pkg/apis/core"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
+	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	admissionapi "k8s.io/pod-security-admission/api"
 	"sigs.k8s.io/yaml"
@@ -201,10 +203,10 @@ var _ = g.Describe("[sig-instrumentation][Late] Alerts", func() {
 		oc = exutil.NewCLIWithoutNamespace("prometheus")
 	)
 
-	g.It("shouldn't report any unexpected alerts in firing or pending state [apigroup:config.openshift.io]", func() {
+	g.It("shouldn't report any unexpected alerts in firing or pending state", func() {
 		// we only consider samples since the beginning of the test
 		testDuration := exutil.DurationSinceStartInSeconds()
-		alerts.CheckAlerts(alerts.AllowedAlertsDuringConformance, oc.NewPrometheusClient(context.TODO()), oc.AdminConfigClient(), testDuration, nil)
+		alerts.CheckAlerts(alerts.AllowedAlertsDuringConformance, oc.AdminConfig(), oc.NewPrometheusClient(context.TODO()), oc.AdminConfigClient(), testDuration, nil)
 	})
 
 	g.It("shouldn't exceed the 650 series limit of total series sent via telemetry from each cluster", func() {
@@ -504,7 +506,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 			}
 
 			// we exclude alerts that have their own separate tests.
-			for _, alertTest := range allowedalerts.AllAlertTests(context.TODO(), nil, 0) {
+			for _, alertTest := range allowedalerts.AllAlertTests(&platformidentification.JobType{}, allowedalerts.DefaultAllowances) {
 				allowedAlertNames = append(allowedAlertNames, alertTest.AlertName())
 			}
 
@@ -726,7 +728,7 @@ func getBearerTokenURL(url, bearer string) (string, error) {
 
 func getBearerTokenURLViaPod(ns, execPodName, url, bearer string) (string, error) {
 	cmd := fmt.Sprintf("curl -s -k -H 'Authorization: Bearer %s' %q", bearer, url)
-	output, err := e2e.RunHostCmd(ns, execPodName, cmd)
+	output, err := e2eoutput.RunHostCmd(ns, execPodName, cmd)
 	if err != nil {
 		return "", fmt.Errorf("host command failed: %v\n%s", err, output)
 	}

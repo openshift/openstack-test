@@ -201,7 +201,7 @@ func getFromUnstructured(unstr *unstructured.Unstructured, keys ...string) inter
 // IDsFromName returns zero or more IDs corresponding to a name. The returned
 // error is only non-nil in case of failure.
 func serverGroupIDsFromName(client *gophercloud.ServiceClient, name string) ([]string, error) {
-	pages, err := servergroups.List(client).AllPages()
+	pages, err := servergroups.List(client, nil).AllPages()
 	if err != nil {
 		return nil, err
 	}
