@@ -1625,10 +1625,6 @@ var Annotations = map[string]string{
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/dotnet:6.0-ubi8\" should print the usage": "",
 
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.18-ubi7\" should print the usage": "",
-
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.18-ubi8\" should print the usage": "",
-
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.20-ubi7\" should print the usage": "",
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.20-ubi8\" should print the usage": "",
@@ -1678,10 +1674,6 @@ var Annotations = map[string]string{
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/dotnet:3.1-ubi8\" should be SCL enabled": "",
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/dotnet:6.0-ubi8\" should be SCL enabled": "",
-
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.18-ubi7\" should be SCL enabled": "",
-
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.18-ubi8\" should be SCL enabled": "",
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.20-ubi7\" should be SCL enabled": "",
 
@@ -1783,7 +1775,7 @@ var Annotations = map[string]string{
 
 	"[sig-etcd][Feature:DisasterRecovery][Disruptive] [Feature:EtcdRecovery] Cluster should restore itself after quorum loss [apigroup:machine.openshift.io][apigroup:operator.openshift.io]": " [Serial]",
 
-	"[sig-etcd][Feature:EtcdVerticalScaling][Suite:openshift/etcd/scaling] etcd [apigroup:config.openshift.io] is able to vertically scale up and down with a single node [Timeout:60m][apigroup:machine.openshift.io]": "",
+	"[sig-etcd][Feature:EtcdVerticalScaling][Suite:openshift/etcd/scaling] etcd is able to vertically scale up and down with a single node [Timeout:60m][apigroup:machine.openshift.io]": "",
 
 	"[sig-imageregistry] Image registry [apigroup:route.openshift.io] should redirect on blob pull [apigroup:image.openshift.io]": " [Suite:openshift/conformance/parallel]",
 
@@ -2291,9 +2283,9 @@ var Annotations = map[string]string{
 
 	"[sig-network] Networking Granular Checks: Services should be able to handle large requests: udp": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-network] Networking Granular Checks: Services should function for client IP based session affinity: http [LinuxOnly]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-network] Networking Granular Checks: Services should function for client IP based session affinity: http [LinuxOnly]": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-network] Networking Granular Checks: Services should function for client IP based session affinity: udp [LinuxOnly]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-network] Networking Granular Checks: Services should function for client IP based session affinity: udp [LinuxOnly]": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
 	"[sig-network] Networking Granular Checks: Services should function for endpoint-Service: http": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -2377,9 +2369,9 @@ var Annotations = map[string]string{
 
 	"[sig-network] Services should be able to create a functioning NodePort service [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should be able to switch session affinity for NodePort service [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should be able to switch session affinity for NodePort service [LinuxOnly] [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should be able to switch session affinity for service with type clusterIP [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should be able to switch session affinity for service with type clusterIP [LinuxOnly] [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
 	"[sig-network] Services should be able to up and down services": " [Disabled:Broken] [Suite:k8s]",
 
@@ -2413,13 +2405,13 @@ var Annotations = map[string]string{
 
 	"[sig-network] Services should find a service from listing all namespaces [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should have session affinity timeout work for NodePort service [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKuberenetes] [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should have session affinity timeout work for NodePort service [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKuberenetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should have session affinity timeout work for service with type clusterIP [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKuberenetes] [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should have session affinity timeout work for service with type clusterIP [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKuberenetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should have session affinity work for NodePort service [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should have session affinity work for NodePort service [LinuxOnly] [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
-	"[sig-network] Services should have session affinity work for service with type clusterIP [LinuxOnly] [Conformance]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
+	"[sig-network] Services should have session affinity work for service with type clusterIP [LinuxOnly] [Conformance]": " [Suite:openshift/conformance/parallel/minimal] [Suite:k8s]",
 
 	"[sig-network] Services should implement service.kubernetes.io/headless": " [Disabled:Broken] [Suite:k8s]",
 
@@ -2455,9 +2447,9 @@ var Annotations = map[string]string{
 
 	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should be able to handle large requests: udp": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for client IP based session affinity: http [LinuxOnly]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for client IP based session affinity: http [LinuxOnly]": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
-	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for client IP based session affinity: udp [LinuxOnly]": " [Skipped:Network/OVNKubernetes] [Suite:openshift/conformance/parallel] [Suite:k8s]",
+	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for client IP based session affinity: udp [LinuxOnly]": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
 	"[sig-network] [Feature:IPv6DualStack] Granular Checks: Services Secondary IP Family [LinuxOnly] should function for endpoint-Service: http": " [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
@@ -16282,8 +16274,6 @@ var Annotations = map[string]string{
 	"[sig-storage] Volume Provisioning On Clustered Datastore [Feature:vsphere] verify static provisioning on clustered datastore": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
 
 	"[sig-storage] Volume Provisioning on Datastore [Feature:vsphere] verify dynamically provisioned pv using storageclass fails on an invalid datastore": " [Disabled:Unsupported] [Skipped:NoOptionalCapabilities] [Suite:k8s]",
-
-	"[sig-storage] Volume limits should verify that all nodes have volume limits": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
 	"[sig-storage] Volumes ConfigMap should be mountable": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel] [Suite:k8s]",
 
