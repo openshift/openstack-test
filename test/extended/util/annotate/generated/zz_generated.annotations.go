@@ -33,17 +33,25 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack][egressip] An egressIP attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP Amphora LoadBalancer when an UDP svc with monitors and ETP:Local is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on TCP Amphora LoadBalancer when a TCP svc with monitors and ETP:Local is created on Openshift": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP OVN LoadBalancer when an UDP svc with monitors and ETP:Local is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on TCP OVN LoadBalancer when a TCP svc with monitors and ETP:Local is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP Amphora LoadBalancer when a UDP svc with monitors and ETP:Local is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP OVN LoadBalancer when a UDP svc with monitors and ETP:Local is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a UDP Amphora LoadBalancer when a UDP svc with type:LoadBalancer is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a UDP OVN LoadBalancer when a UDP svc with type:LoadBalancer is created on Openshift": "",
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP Amphora LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
 
-	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP Amphora LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift": "",
-
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP OVN LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
-
-	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP OVN LoadBalancer when an UDP svc with type:LoadBalancer is created on Openshift": "",
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should limit service access on an UDP Amphora LoadBalancer when an UDP LoadBalancer svc setting the loadBalancerSourceRanges spec is created on Openshift": "",
 
