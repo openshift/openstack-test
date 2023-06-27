@@ -163,7 +163,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 						results[podName]++
 					}
 				}
-				e2e.Logf("Pods accessed after 100 UDP requests:\n%v\n", results)
+				e2e.Logf("Pods accessed after 100 requests:\n%v\n", results)
 				pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(ctx, metav1.ListOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred())
 
