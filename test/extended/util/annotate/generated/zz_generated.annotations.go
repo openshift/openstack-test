@@ -7,7 +7,19 @@ import (
 )
 
 var Annotations = map[string]string{
-	"[sig-installer][Suite:openshift/openstack] The OpenStack platform after deletion of a machineset should not have leftovers ports": "",
+	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2022627: Machine should report all openstack instance addresses": "",
+
+	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2073398: MachineSet scale-in does not leak OpenStack ports": "",
+
+	"[sig-installer][Suite:openshift/openstack] Machine ProviderSpec is correctly applied to OpenStack instances": "",
+
+	"[sig-installer][Suite:openshift/openstack] Machine are in phase Running": "",
+
+	"[sig-installer][Suite:openshift/openstack] MachineSet ProviderSpec template is correctly applied to Machines": "",
+
+	"[sig-installer][Suite:openshift/openstack] MachineSet have role worker": "",
+
+	"[sig-installer][Suite:openshift/openstack] MachineSet replica number corresponds to the number of Machines": "",
 
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes in a server group": "",
 
@@ -16,10 +28,6 @@ var Annotations = map[string]string{
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Worker nodes in a server group": "",
 
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity": "",
-
-	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on instance creation should follow machineset specs": "",
-
-	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on instance creation should report all openstack instance addresses on the corresponding Machine object": "",
 
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should follow PVC specs during resizing for prometheus": "",
 
