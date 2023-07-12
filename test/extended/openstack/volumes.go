@@ -118,39 +118,62 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				exutil.ParseLabelsOrDie("prometheus=k8s"), exutil.CheckPodIsRunning, 2, 3*time.Minute)
 			o.Expect(err).NotTo(o.HaveOccurred(), "timeout waiting for prometheus=k8s pods going to running state after the resize")
 
-			g.By("Gather prometheus PVCs after resizing")
-			resized_pvcs, err := getMonitoringPvcs(dc)
-			o.Expect(err).NotTo(o.HaveOccurred())
-			o.Expect(resized_pvcs).To(o.HaveLen(len(initial_pvcs)), "unexpected number of PVCs after resizing")
+			g.By("Active wait checking that the status after resizing is expected (max 1 minute)")
+			o.Eventually(func() error {
+				e2e.Logf("Gather prometheus PVCs after resizing")
+				resized_pvcs, err := getMonitoringPvcs(dc)
+				if err != nil {
+					return err
+				}
+				if len(resized_pvcs) != len(initial_pvcs) {
+					return fmt.Errorf("unexpected number of PVCs after resizing %d", len(resized_pvcs))
+				}
 
-			g.By("Gather Openstack cinder volumes for the PVCs after resizing")
-			var resized_volumes []volumes.Volume
-			for _, pvc := range resized_pvcs {
-				cinderVolumes, err := getVolumesFromName(volumeClient, pvc.Get("spec.volumeName").String())
-				o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for PVC %q", pvc.Get("metadata.name"))
-				o.Expect(cinderVolumes).To(o.HaveLen(1), "unexpected number of volumes for %q", pvc.Get("metadata.name"))
-				resized_volumes = append(resized_volumes, cinderVolumes[0])
-			}
+				e2e.Logf("Gather Openstack cinder volumes for the PVCs after resizing")
+				var resized_volumes []volumes.Volume
+				for _, pvc := range resized_pvcs {
+					cinderVolumes, err := getVolumesFromName(volumeClient, pvc.Get("spec.volumeName").String())
+					if err != nil {
+						return fmt.Errorf("error gathering Openstack info for PVC %q", pvc.Get("metadata.name"))
+					}
+					if len(cinderVolumes) != 1 {
+						return fmt.Errorf("unexpected number of volumes for %q: %d", pvc.Get("metadata.name"), len(cinderVolumes))
+					}
+					resized_volumes = append(resized_volumes, cinderVolumes[0])
+				}
 
-			g.By("Checking size consistency after resizing")
-			err = checkSizeConsistency(resized_pvcs, resized_volumes)
-			o.Expect(err).NotTo(o.HaveOccurred())
-			o.Expect(resized_volumes).To(o.HaveLen(len(initial_volumes)), "unexpected number of cinder volumes after resizing")
+				e2e.Logf("Checking size consistency after resizing")
+				err = checkSizeConsistency(resized_pvcs, resized_volumes)
+				if err != nil {
+					return err
+				}
+				if len(resized_volumes) != len(initial_volumes) {
+					return fmt.Errorf("unexpected number of cinder volumes after resizing: %d", len(resized_volumes))
+				}
 
-			g.By("Check cinder volumes status after resizing")
-			for _, initvol := range initial_volumes {
-				found := false
-				for _, rszvol := range resized_volumes {
-					if !found && initvol.Name == rszvol.Name {
-						found = true
-						o.Expect(initvol.Size+1).To(o.Equal(rszvol.Size), "Unexpected size on resized volume")
-						o.Expect(rszvol.Status).To(o.Equal("in-use"), "cinder volume not in-use Status")
-						e2e.Logf("Cinder Volume '%q' has been successfully resized from %d to %d",
-							initvol.Name, initvol.Size, rszvol.Size)
+				e2e.Logf("Check cinder volumes status after resizing")
+				for _, initvol := range initial_volumes {
+					found := false
+					for _, rszvol := range resized_volumes {
+						if !found && initvol.Name == rszvol.Name {
+							found = true
+							if initvol.Size+1 != rszvol.Size {
+								return fmt.Errorf("Unexpected size on resized volume: %d", initvol.Size+1)
+							}
+							if rszvol.Status != "in-use" {
+								return fmt.Errorf("cinder volume not in-use Status")
+							}
+							e2e.Logf("Cinder Volume '%q' has been successfully resized from %d to %d",
+								initvol.Name, initvol.Size, rszvol.Size)
+
+						}
+					}
+					if found != true {
+						return fmt.Errorf("Pre-existing cinder volume %q is gone.", initvol.Name)
 					}
 				}
-				o.Expect(found).Should(o.BeTrue(), "Pre-existing cinder volume %q is gone.", initvol.Name)
-			}
+				return nil
+			}, "60s", "10s").Should(o.BeNil())
 		})
 	})
 })

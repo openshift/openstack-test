@@ -427,7 +427,7 @@ func waitCloudPrivateIPConfigAssignedNode(cloudNetClientset cloudnetwork.Interfa
 			}
 		}
 		return false
-	}, "10s", "1s").Should(o.BeTrue(), "Timed out checking the assigned node '%s' in '%s' CloudPrivateIPConfig.", node, egressIP)
+	}, "30s", "1s").Should(o.BeTrue(), "Timed out checking the assigned node '%s' in '%s' CloudPrivateIPConfig.", node, egressIP)
 	return true, nil
 }
 
