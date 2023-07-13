@@ -25,7 +25,7 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should haul the user config to the expected config maps": "",
 
-	"[sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should set use-octavia and enabled properties in CCM depending on the NetworkType": "",
+	"[sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should set enabled property in [LoadBalancer] section in CCM depending on the NetworkType": "",
 
 	"[sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should store cloud credentials on secrets": "",
 

@@ -116,7 +116,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 		})
 
 		//https://bugzilla.redhat.com/show_bug.cgi?id=2074471
-		g.It("should set use-octavia and enabled properties in CCM depending on the NetworkType", func() {
+		g.It("should set enabled property in [LoadBalancer] section in CCM depending on the NetworkType", func() {
 
 			ccmConfigMap := configParams{
 				namespace: "openshift-cloud-controller-manager",
@@ -126,7 +126,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 			}
 
 			sectionName := "LoadBalancer"
-			propertyNames := []string{"use-octavia", "enabled"}
+			propertyNames := []string{"enabled"}
 
 			cfg, err := e2e.LoadConfig()
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -151,11 +151,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 			}
 
 			g.By(fmt.Sprintf("Checking properties for networkType detected: %q", network.Status.NetworkType))
+			// This being a slice is leftover from when we checked more than one property.
+			// Might be useful in the future, left as is.
 			var expectedValues []string
 			if network.Status.NetworkType == "Kuryr" {
-				expectedValues = []string{"true", "false"}
+				expectedValues = []string{"false"}
 			} else {
-				expectedValues = []string{"true", "#UNDEFINED#"}
+				expectedValues = []string{"#UNDEFINED#"}
 			}
 
 			o.Expect(ccmPropertyValues).Should(o.Equal(expectedValues),
