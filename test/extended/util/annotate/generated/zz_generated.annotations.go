@@ -9,7 +9,7 @@ import (
 var Annotations = map[string]string{
 	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2022627: Machine should report all openstack instance addresses": "",
 
-	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2073398: MachineSet scale-in does not leak OpenStack ports": "",
+	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2073398: [Serial] MachineSet scale-in does not leak OpenStack ports": "",
 
 	"[sig-installer][Suite:openshift/openstack] Machine ProviderSpec is correctly applied to OpenStack instances": "",
 

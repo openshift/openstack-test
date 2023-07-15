@@ -49,7 +49,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 	})
 
 	g.Context("bz_2073398:", func() {
-		g.It("MachineSet scale-in does not leak OpenStack ports", func() {
+		g.It("[Serial] MachineSet scale-in does not leak OpenStack ports", func() {
 			// Check the scenario at https://bugzilla.redhat.com/show_bug.cgi?id=2073398
 
 			g.By("Fetching worker machineSets")
