@@ -14,22 +14,20 @@ import (
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
 	yaml "gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
-
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/ports"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
-	"k8s.io/client-go/kubernetes/scheme"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack platform", func() {
-
+var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 	defer g.GinkgoRecover()
 
 	var dc dynamic.Interface
@@ -38,23 +36,22 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	var ctx context.Context
 	g.BeforeEach(func() {
 		ctx = context.Background()
+
+		g.By("preparing openshift dynamic client")
+		cfg, err := e2e.LoadConfig()
+		o.Expect(err).NotTo(o.HaveOccurred())
+		dc, err = dynamic.NewForConfig(cfg)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		clientSet, err = e2e.LoadClientset()
+		o.Expect(err).NotTo(o.HaveOccurred())
+
+		skipUnlessMachineAPIOperator(ctx, dc, clientSet.CoreV1().Namespaces())
 	})
 
-	g.Context("after deletion of a machineset", func() {
-		g.BeforeEach(func() {
-			g.By("preparing openshift dynamic client")
-			cfg, err := e2e.LoadConfig()
-			o.Expect(err).NotTo(o.HaveOccurred())
-			dc, err = dynamic.NewForConfig(cfg)
-			o.Expect(err).NotTo(o.HaveOccurred())
-			clientSet, err = e2e.LoadClientset()
-			o.Expect(err).NotTo(o.HaveOccurred())
-		})
-
-		g.It("should not have leftovers ports", func() {
+	g.Context("bz_2073398:", func() {
+		g.It("[Serial] MachineSet scale-in does not leak OpenStack ports", func() {
 			// Check the scenario at https://bugzilla.redhat.com/show_bug.cgi?id=2073398
 
-			skipUnlessMachineAPIOperator(ctx, dc, clientSet.CoreV1().Namespaces())
 			g.By("Fetching worker machineSets")
 			var networkClient *gophercloud.ServiceClient
 			var rawBytes []byte
@@ -63,7 +60,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 			networkClient, err := client(serviceNetwork)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack network client")
-			machineSets, err := listWorkerMachineSets(ctx, dc)
+			machineSets, err := getMachineSets(ctx, dc)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error getting the workers machinesets")
 
 			if len(machineSets) == 0 {
