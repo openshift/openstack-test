@@ -471,8 +471,16 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			g.By("Test that the canary service is accessible through new ingressController")
 			route, err := oc.AdminRouteClient().RouteV1().Routes("openshift-ingress-canary").Get(context.Background(), "canary", metav1.GetOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "canary route not found")
+			host := ""
+			for _, ingress := range route.Status.Ingress {
+				if strings.HasSuffix(ingress.Host, domain) {
+					host = ingress.Host
+				}
+			}
+			o.Expect(host).ShouldNot(o.Equal(""), "Host not found in route")
 			for i := 0; i < 100; i++ {
-				resp, err := httpsGetWithCustomLookup(route.Spec.Host, svcIp)
+				e2e.Logf("Attempting to connect using host: %q", host)
+				resp, err := httpsGetWithCustomLookup(host, svcIp)
 				o.Expect(err).NotTo(o.HaveOccurred())
 				defer resp.Body.Close()
 				o.Expect(resp.Status).Should(o.Equal("200 OK"), "Unexpected response on try #%d", i)
