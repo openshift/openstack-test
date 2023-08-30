@@ -29,6 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
@@ -434,7 +435,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
 			g.By("Creating ingresscontroller for sharding the OCP in-built canary service")
-			name := "canary-sharding"
+			name := "shard-" + string(uuid.NewUUID())
 			domain := "sharding-test.apps.shiftstack.com"
 			shardIngressCtrl, err := deployLbIngressController(oc, 10*time.Minute, name, domain, map[string]string{"ingress.openshift.io/canary": "canary_controller"})
 			defer func() {
