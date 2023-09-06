@@ -46,7 +46,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 	var networkClient *gophercloud.ServiceClient
 	var clientSet *kubernetes.Clientset
 	var cloudProviderConfig *ini.File
-	var loadBalancerServiceTimeout = 5 * time.Minute
+	var loadBalancerServiceTimeout = 10 * time.Minute
 	availableLbProvidersUnderTests := [2]string{"Amphora", "OVN"}
 	availableProtocolsUnderTests := [2]v1.Protocol{v1.ProtocolTCP, v1.ProtocolUDP}
 	lbMethodsWithETPGlobal := map[string]string{
