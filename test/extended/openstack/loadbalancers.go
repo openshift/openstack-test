@@ -66,7 +66,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 		// TODO revert once https://issues.redhat.com/browse/OSASINFRA-3079 is resolved
 		// For now, LoadBalancer tests are not applicable when the cluster is running behind a proxy.
-		if os.Getenv("HTTP_PROXY") != "" || os.Getenv("HTTPS_PROXY") != "" {
+		proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(ctx, "cluster", metav1.GetOptions{})
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if os.Getenv("HTTP_PROXY") != "" || os.Getenv("HTTPS_PROXY") != "" || proxy.Status.HTTPProxy != "" {
 			e2eskipper.Skipf("Test not applicable for proxy setup")
 		}
 
