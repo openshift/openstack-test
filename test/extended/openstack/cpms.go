@@ -3,7 +3,6 @@ package openstack
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strconv"
 
 	g "github.com/onsi/ginkgo/v2"
@@ -71,8 +70,22 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 		cpmsSecurityGroups := make(map[string]struct{})
 		cpmsServerGroup := providerSpec.Get("value.serverGroupName").String()
 		cpmsSubnets := make(map[string]struct{})
-		var machineNovaAvailabilityZones []string
-		var cpmsNovaAvailabilityZones []string
+		var cpmsNetworks []string
+		type FailureDomain struct {
+			ComputeZone string
+			VolumeZone  string
+			VolumeType  string
+		}
+		var cpmsFDs []FailureDomain
+		var machinesFDs = make(map[FailureDomain]struct{})
+
+		for _, network := range objects(providerSpec.Get("value.networks")) {
+			subnet := network.Get("subnets").String()
+
+			if subnet == "" {
+				cpmsNetworks = append(cpmsNetworks, network.Get("uuid").String())
+			}
+		}
 
 		for _, sg := range objects(providerSpec.Get("value.securityGroups")) {
 			securityGroupName := sg.Get("name").String()
@@ -87,26 +100,29 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 
 		if fds.String() != "" {
 			for _, fd := range objects(controlPlaneMachineSet.Get("spec.template.machines_v1beta1_machine_openshift_io.failureDomains.openstack")) {
-				nova_az := fd.Get("availabilityZone").String()
-				if nova_az != "" {
-					cpmsNovaAvailabilityZones = append(cpmsNovaAvailabilityZones, nova_az)
-				}
+				cpmsFDs = append(cpmsFDs, FailureDomain{
+					ComputeZone: fd.Get("availabilityZone").String(),
+					VolumeZone:  fd.Get("rootVolume.availabilityZone").String(),
+					VolumeType:  fd.Get("rootVolume.volumeType").String(),
+				})
 			}
 		}
-		sort.Strings(cpmsNovaAvailabilityZones)
-
 		for _, machine := range controlPlaneMachines {
 			machineName := machine.Get("metadata.name").String()
 			g.By("Comparing the MachineSet spec with machine " + machineName)
 
+			machineProviderSpec := machine.Get("spec.providerSpec.value").ObjxMap()
 			machineFlavor := machine.Get("spec.providerSpec.value.flavor").String()
 			machineImage := machine.Get("spec.providerSpec.value.image").String()
 			machineSecurityGroups := make(map[string]struct{})
 			machineSubnets := make(map[string]struct{})
-			machineServerGroup := machine.Get("spec.providerSpec.value.serverGroupName").String()
-			machineNovaAvailabilityZone := machine.Get("spec.providerSpec.value.availabilityZone").String()
+			machineServerGroup := machineProviderSpec.Get("serverGroupName").String()
+			machineNovaAz := machine.Get("spec.providerSpec.value.availabilityZone").String()
+			machineCinderAz := machine.Get("spec.providerSpec.value.rootVolume.availabilityZone").String()
+			machineVolumeType := machine.Get("spec.providerSpec.value.rootVolume.volumeType").String()
+			var machineNetworks []string
 
-			for _, sg := range objects(machine.Get("spec.providerSpec.value.securityGroups")) {
+			for _, sg := range objects(machineProviderSpec.Get("securityGroups")) {
 				securityGroupName := sg.Get("name").String()
 				machineSecurityGroups[securityGroupName] = struct{}{}
 			}
@@ -115,17 +131,34 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 				subnetName := subnet.Get("filter.name").String()
 				machineSubnets[subnetName] = struct{}{}
 			}
-			if machineNovaAvailabilityZone != "" {
-				machineNovaAvailabilityZones = append(machineNovaAvailabilityZones, machineNovaAvailabilityZone)
+			if machineNovaAz != "" || machineCinderAz != "" || machineVolumeType != "" {
+				fd := FailureDomain{
+					ComputeZone: machineNovaAz,
+					VolumeZone:  machineCinderAz,
+					VolumeType:  machineVolumeType,
+				}
+				o.Expect(cpmsFDs).To(o.ContainElement(fd))
+				machinesFDs[fd] = struct{}{}
 			}
+
+			for _, network := range objects(machine.Get("spec.providerSpec.value.networks")) {
+				if network.Get("subnets").String() == "" {
+					machineNetworks = append(machineNetworks, network.Get("uuid").String())
+				}
+			}
+
 			o.Expect(machineFlavor).To(o.Equal(cpmsFlavor), "flavor mismatch on Machine %q", machineName)
 			o.Expect(machineImage).To(o.Equal(cpmsImage), "image mismatch on Machine %q", machineName)
 			o.Expect(machineSecurityGroups).To(o.Equal(cpmsSecurityGroups), "security group mismatch on Machine %q", machineName)
 			o.Expect(machineSubnets).To(o.Equal(cpmsSubnets), "subnets mismatch on Machine %q", machineName)
 			o.Expect(machineServerGroup).To(o.Equal(cpmsServerGroup), "server group	 mismatch on Machine %q", machineName)
+			o.Expect(machineNetworks).To(o.Equal(cpmsNetworks), "Network mismatch on Machine %q", machineName)
 		}
-		sort.Strings(machineNovaAvailabilityZones)
-		o.Expect(machineNovaAvailabilityZones).To(o.Equal(cpmsNovaAvailabilityZones))
+		if len(cpmsFDs) > 3 {
+			o.Expect(machinesFDs).To(o.HaveLen(3))
+		} else {
+			o.Expect(machinesFDs).To(o.HaveLen(len(cpmsFDs)))
+		}
 	})
 })
 
