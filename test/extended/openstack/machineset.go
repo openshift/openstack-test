@@ -6,6 +6,7 @@ import (
 
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/openstack-test/test/extended/openstack/machines"
 	"github.com/stretchr/objx"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -22,25 +23,6 @@ const (
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] MachineSet", func() {
-
-	// getMachinesByMachineSet returns all machines beloging to the MachineSet with the given name
-	getMachinesByMachineSet := func(ctx context.Context, dc dynamic.Interface, machineSetName string) ([]objx.Map, error) {
-		machines, err := getMachines(ctx, dc)
-		if err != nil {
-			return nil, err
-		}
-		result := make([]objx.Map, 0, len(machines))
-		for i := range machines {
-			labels := machines[i].Get("metadata.labels").Data().(map[string]interface{})
-			if val, ok := labels[machineSetOwningLabel]; ok {
-				if val == machineSetName {
-					result = append(result, machines[i])
-				}
-			}
-		}
-		return result, nil
-	}
-
 	defer g.GinkgoRecover()
 
 	var ctx context.Context
@@ -76,7 +58,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] MachineSet", func
 		for _, machineSet := range machineSets {
 			machineSetName := machineSet.Get("metadata.name").String()
 			replicaNumber, _ := strconv.Atoi(machineSet.Get("spec.replicas").String())
-			o.Expect(getMachinesByMachineSet(ctx, dc, machineSetName)).
+			o.Expect(machines.List(ctx, dc, machines.ByMachineSet(machineSetName))).
 				To(o.HaveLen(replicaNumber), "unexpected number of replicas for machineset %q", machineSetName)
 		}
 	})
@@ -93,7 +75,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] MachineSet", func
 				msSecurityGroups[securityGroupName] = struct{}{}
 			}
 
-			machines, err := getMachinesByMachineSet(ctx, dc, msName)
+			machines, err := machines.List(ctx, dc, machines.ByMachineSet(msName))
 			o.Expect(err).NotTo(o.HaveOccurred(), "error fetching machines for MachineSet %q", msName)
 
 			for _, machine := range machines {
