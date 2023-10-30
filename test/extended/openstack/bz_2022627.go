@@ -10,6 +10,7 @@ import (
 
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/openstack-test/test/extended/openstack/machines"
 	"github.com/stretchr/objx"
 
 	"k8s.io/client-go/dynamic"
@@ -84,7 +85,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 			// iterates over Machine objects which exist.
 
 			g.By("fetching machines")
-			machines, err := getMachines(ctx, dc)
+			machines, err := machines.List(ctx, dc)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			// Create 2 maps of machine names to addresses: one from the machine specs, and one from OpenStack

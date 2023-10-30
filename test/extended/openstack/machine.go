@@ -7,6 +7,7 @@ import (
 
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/openstack-test/test/extended/openstack/machines"
 	"github.com/stretchr/objx"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -32,7 +33,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() 
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 	var computeClient *gophercloud.ServiceClient
-	var machines []objx.Map
+	var machineResources []objx.Map
 
 	g.BeforeEach(func() {
 		ctx = context.Background()
@@ -52,18 +53,18 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() 
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		g.By("fetching Machines")
-		machines, err = getMachines(ctx, dc)
+		machineResources, err = machines.List(ctx, dc)
 		o.Expect(err).NotTo(o.HaveOccurred())
 	})
 
 	g.It("are in phase Running", func() {
-		for _, machine := range machines {
+		for _, machine := range machineResources {
 			o.Expect(machine.Get("status.phase").String()).To(o.Equal("Running"), "unexpected phase for Machine %q", machine.Get("metadata.name"))
 		}
 	})
 
 	g.It("ProviderSpec is correctly applied to OpenStack instances", func() {
-		for _, machine := range machines {
+		for _, machine := range machineResources {
 			machineName := machine.Get("metadata.name").String()
 			machineFlavor := machine.Get("spec.providerSpec.value.flavor").String()
 			machineImage := machine.Get("spec.providerSpec.value.image").String()
@@ -128,20 +129,6 @@ func objects(from *objx.Value) []objx.Map {
 		}
 	}
 	return values
-}
-
-// getMachines lists all machines in the cluster
-func getMachines(ctx context.Context, dc dynamic.Interface) ([]objx.Map, error) {
-	mc := dc.Resource(schema.GroupVersionResource{
-		Group:    machineAPIGroup,
-		Version:  "v1beta1",
-		Resource: "machines",
-	}).Namespace(machineAPINamespace)
-	obj, err := mc.List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return objects(objx.Map(obj.UnstructuredContent()).Get("items")), nil
 }
 
 // skipUnlessMachineAPI is used to determine if the Machine API is installed and running in a cluster.
