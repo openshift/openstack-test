@@ -27,7 +27,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 	var clientSet *kubernetes.Clientset
 	var controlPlaneMachineSet objx.Map
 	var controlPlaneMachines []objx.Map
-	var numCpms int
 
 	g.BeforeEach(func() {
 		ctx = context.Background()
@@ -41,14 +40,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		skipUnlessMachineAPIOperator(ctx, dc, clientSet.CoreV1().Namespaces())
-		controlPlaneMachineSet, numCpms, err = getControlPlaneMachineSet(ctx, dc)
+		controlPlaneMachineSet, err = getControlPlaneMachineSet(ctx, dc)
 		if err != nil {
-			if numCpms == 0 {
-				// In some cases (e.g. UPI), the control plane machine set is not created.
-				e2eskipper.Skipf("Failed to get control plane machine sets: %v", err)
-			} else {
-				o.Expect(err).NotTo(o.HaveOccurred())
-			}
+			e2eskipper.Skipf("Failed to get control plane machine sets: %v", err)
 		}
 		controlPlaneMachines, err = machines.List(ctx, dc, machines.ByRole("master"))
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -129,8 +123,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 	})
 })
 
-func getControlPlaneMachineSet(ctx context.Context, dc dynamic.Interface) (objx.Map, int, error) {
-	var numCpms int = 0
+func getControlPlaneMachineSet(ctx context.Context, dc dynamic.Interface) (objx.Map, error) {
 	mc := dc.Resource(schema.GroupVersionResource{
 		Group:    machineAPIGroup,
 		Version:  "v1",
@@ -138,11 +131,11 @@ func getControlPlaneMachineSet(ctx context.Context, dc dynamic.Interface) (objx.
 	}).Namespace(machineAPINamespace)
 	obj, err := mc.List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return nil, numCpms, err
+		return nil, err
 	}
 	cpmsList := objx.Map(obj.UnstructuredContent()).Get("items").ObjxMapSlice()
 	if numCpms := len(cpmsList); numCpms != 1 {
-		return nil, numCpms, fmt.Errorf("expected one CPMS, found %d", numCpms)
+		return nil, fmt.Errorf("expected one CPMS, found %d", numCpms)
 	}
-	return cpmsList[0], numCpms, nil
+	return cpmsList[0], nil
 }
