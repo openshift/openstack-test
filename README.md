@@ -4,6 +4,7 @@ This repository contains tests specific to OpenShift on OpenStack, based on the 
 
 The tests sit in [`test/extended/openstack`][2]
 
+
 Run the tests by exporting both OpenShift and OpenStack credentials, then running `make run`:
 1. `export OS_CLOUD=<OS_CLOUD>`
 1. `export KUBECONFIG=<kubeconfig>`
@@ -17,6 +18,7 @@ Origin is referenced as a dependency in `go.mod`. Regularly update it with:
 ```sh
 GONOPROXY=* GONOSUMDB=* go get -d github.com/openshift/origin@<latest-commit-sha>
 ```
+
 
 Two Origin packages remain vendored and require manual update:
 
@@ -55,6 +57,7 @@ index ab002b730e..dc244b5574 100644
  
  // mergeMaps updates an existing map of string slices with the
 ```
+
 
 [1]: https://github.com/openshift/origin
 [2]: test/extended/openstack
