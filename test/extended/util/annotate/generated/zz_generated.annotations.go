@@ -75,6 +75,10 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should limit service access on an UDP Amphora LoadBalancer when an UDP LoadBalancer svc setting the loadBalancerSourceRanges spec is created on Openshift": "",
 
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should not re-use an existing UDP Amphora LoadBalancer if shared internal svc is created": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should not re-use an existing UDP OVN LoadBalancer if shared internal svc is created": "",
+
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should re-use an existing UDP Amphora LoadBalancer when new svc is created on Openshift with the proper annotation": "",
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should re-use an existing UDP OVN LoadBalancer when new svc is created on Openshift with the proper annotation": "",
