@@ -56,7 +56,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		// TODO revert once https://issues.redhat.com/browse/OSASINFRA-3079 is resolved
 		proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(ctx, "cluster", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
-		if proxy.Status.HTTPProxy != "" {
+		if os.Getenv("HTTP_PROXY") != "" || os.Getenv("HTTPS_PROXY") != "" || proxy.Status.HTTPProxy != "" {
 			e2eskipper.Skipf("Test not applicable for proxy setup")
 		}
 
