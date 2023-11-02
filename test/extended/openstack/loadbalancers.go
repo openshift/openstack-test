@@ -28,12 +28,14 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2edeployment "k8s.io/kubernetes/test/e2e/framework/deployment"
+	e2eevents "k8s.io/kubernetes/test/e2e/framework/events"
 	e2eservice "k8s.io/kubernetes/test/e2e/framework/service"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	imageutils "k8s.io/kubernetes/test/utils/image"
@@ -255,6 +257,77 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				o.Expect(podName).Should(o.BeElementOf(podNames))
 				e2e.Logf("Pod %s successfully accessed through svc loadbalancer on ip %s and port %d", podName, fip, svcPort)
 			}
+		})
+
+		// https://github.com/kubernetes/cloud-provider-openstack/blob/master/docs/openstack-cloud-controller-manager/expose-applications-using-loadbalancer-type-service.md#sharing-load-balancer-with-multiple-services
+		// In order to prevent accidental exposure internal Services cannot share a load balancer with any other Service.
+		g.It(fmt.Sprintf("should not re-use an existing UDP %s LoadBalancer if shared internal svc is created", lbProviderUnderTest), func() {
+
+			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
+
+			g.By("Checking cluster configuration")
+			setting, err := getClusterLoadBalancerSetting("max-shared-lb", cloudProviderConfig)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			maxSharedLb, err := strconv.Atoi(setting)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			if maxSharedLb < 2 {
+				e2eskipper.Skipf("Test not applicable when max-shared-lb is lower than 2 and it is %d", maxSharedLb)
+			}
+
+			g.By("Creating Openshift deployment")
+			labels := map[string]string{"app": "udp-lb-shared-dep"}
+			testDeployment := createTestDeployment("udp-lb-shared-dep", labels, 2, v1.ProtocolUDP, 8081)
+			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
+				testDeployment, metav1.CreateOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Creating first Openshift service")
+			svcName1 := "udp-lb-shared1-svc"
+			svcPort1 := int32(8082)
+			jig := e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName1)
+			jig.Labels = labels
+			svc1, err := jig.CreateLoadBalancerService(ctx, loadBalancerServiceTimeout, func(svc *v1.Service) {
+				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort1, TargetPort: intstr.FromInt(8081)}}
+				svc.Spec.Selector = labels
+			})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			loadBalancerId := svc1.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]
+			o.Expect(loadBalancerId).ShouldNot(o.BeEmpty(), "load-balancer-id annotation missing")
+			e2e.Logf("detected loadbalancer id is %q", loadBalancerId)
+
+			g.By(fmt.Sprintf("Creating internal Openshift service using the existing Openstack loadbalancer %s -"+
+				"This should not be allowed.", loadBalancerId))
+			svcName2 := "udp-lb-shared2-internal-svc"
+			svcPort2 := int32(8083)
+			jig = e2eservice.NewTestJig(clientSet, oc.Namespace(), svcName2)
+			jig.Labels = labels
+			svc2, err := jig.CreateLoadBalancerService(ctx, 1*time.Second, func(svc *v1.Service) {
+				svc.Spec.Ports = []v1.ServicePort{{Protocol: v1.ProtocolUDP, Port: svcPort2, TargetPort: intstr.FromInt(8081)}}
+				svc.Spec.Selector = labels
+				svc.SetAnnotations(map[string]string{"loadbalancer.openstack.org/load-balancer-id": loadBalancerId,
+					"service.beta.kubernetes.io/openstack-internal-load-balancer": "true"})
+			})
+			o.Expect(err).To(o.HaveOccurred()) //Error is expected
+			o.Expect(svc2).To(o.BeNil())
+			g.By("Waiting for event reporting the error creating the internal lb")
+			eventSelector := fields.Set{
+				"involvedObject.kind":      "Service",
+				"involvedObject.name":      svcName2,
+				"involvedObject.namespace": oc.Namespace(),
+				"reason":                   "SyncLoadBalancerFailed",
+			}.AsSelector().String()
+			msg := "internal Service cannot share a load balancer"
+			err = e2eevents.WaitTimeoutForEvent(ctx, clientSet, oc.Namespace(), eventSelector, msg, 100*time.Second)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Expected event not found.")
+			e2e.Logf("Expected event found.")
+
+			g.By("Checks from openstack perspective that there is still only one pool for the lb")
+			lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(lb.Pools).Should(o.HaveLen(1), "Unexpected number of pools on Openstack LoadBalancer %q", lb.Name)
+			e2e.Logf("Expected number of pools found on the openstack loadbalancer.")
 		})
 
 		for _, j := range availableProtocolsUnderTests {
