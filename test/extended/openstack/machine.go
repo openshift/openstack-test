@@ -21,9 +21,12 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 
 	"github.com/gophercloud/gophercloud"
+	"github.com/gophercloud/gophercloud/openstack/blockstorage/v3/volumes"
+	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/availabilityzones"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/flavors"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/images"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() {
@@ -33,6 +36,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() 
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 	var computeClient *gophercloud.ServiceClient
+	var networkClient *gophercloud.ServiceClient
+	var volumeClient *gophercloud.ServiceClient
 	var machineResources []objx.Map
 
 	g.BeforeEach(func() {
@@ -51,6 +56,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() 
 		g.By("preparing openstack client")
 		computeClient, err = client(serviceCompute)
 		o.Expect(err).NotTo(o.HaveOccurred())
+		networkClient, err = client(serviceNetwork)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack network client")
+		volumeClient, err = client("volume")
+		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack volume client")
 
 		g.By("fetching Machines")
 		machineResources, err = machines.List(ctx, dc)
@@ -64,18 +73,37 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() 
 	})
 
 	g.It("ProviderSpec is correctly applied to OpenStack instances", func() {
+		type ServerWithAZ struct {
+			servers.Server
+			availabilityzones.ServerAvailabilityZoneExt
+		}
 		for _, machine := range machineResources {
+			var err error
+			var instance ServerWithAZ
+			var machineNetworks []string
+			var machineNetwork *networks.Network
 			machineName := machine.Get("metadata.name").String()
 			machineFlavor := machine.Get("spec.providerSpec.value.flavor").String()
 			machineImage := machine.Get("spec.providerSpec.value.image").String()
+			machineAZ := machine.Get("spec.providerSpec.value.availabilityZone").String()
+			machineRootVolCinderAz := machine.Get("spec.providerSpec.value.rootVolume.availabilityZone").String()
+			machineRootVolVolumeType := machine.Get("spec.providerSpec.value.rootVolume.volumeType").String()
 			machineSecurityGroups := make(map[string]struct{})
+			for _, network := range objects(machine.Get("spec.providerSpec.value.networks")) {
+				if network.Get("subnets").String() == "" {
+					machineNetwork, err = networks.Get(networkClient, network.Get("uuid").String()).Extract()
+					o.Expect(err).NotTo(o.HaveOccurred())
+					machineNetworks = append(machineNetworks, machineNetwork.Name)
+				}
+			}
 			for _, sg := range objects(machine.Get("spec.providerSpec.value.securityGroups")) {
 				securityGroupName := sg["name"].(string)
 				machineSecurityGroups[securityGroupName] = struct{}{}
 			}
 
 			g.By(fmt.Sprintf("Gathering Openstack instance for Machine %q", machineName))
-			instance, err := servers.Get(computeClient, machine.Get("metadata.annotations.openstack-resourceId").String()).Extract()
+			err = servers.Get(computeClient, machine.Get("metadata.annotations.openstack-resourceId").String()).ExtractInto(&instance)
+
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error fetching Openstack instance for Machine %q", machineName)
 
 			g.By(fmt.Sprintf("Comparing Machine %q with instance %q: flavor", machineName, instance.Name), func() {
@@ -95,10 +123,14 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() 
 			})
 
 			g.By(fmt.Sprintf("Comparing Machine %q with instance %q: root volume", machineName, instance.Name), func() {
-				if instance.Image["id"] != nil {
-					instanceImage, err := images.Get(computeClient, fmt.Sprintf("%v", instance.Image["id"])).Extract()
-					o.Expect(err).NotTo(o.HaveOccurred())
-					o.Expect(instanceImage.Name).To(o.Equal(machineImage), "Image not matching for instance %q", instance.Name)
+				for _, vol := range instance.AttachedVolumes {
+					v, err := volumes.Get(volumeClient, vol.ID).Extract()
+					o.Expect(err).NotTo(o.HaveOccurred(), "Error fetching volume %v", vol.ID)
+
+					if v.Bootable == "True" {
+						o.Expect(v.AvailabilityZone).To(o.Equal(machineRootVolCinderAz))
+						o.Expect(v.VolumeType).To(o.Equal(machineRootVolVolumeType))
+					}
 				}
 			})
 
@@ -111,6 +143,17 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() 
 
 				o.Expect(instanceSecurityGroups).To(o.Equal(machineSecurityGroups), "SGs not matching for %q", instance.Name)
 			})
+
+			g.By(fmt.Sprintf("Comparing Machine %q with instance %q: Nova Availability Zone", machineName, instance.Name), func() {
+				if machineAZ != "" {
+					o.Expect(instance.AvailabilityZone).To(o.Equal(machineAZ), "Nova Availability Zone not matching for instance %q", instance.Name)
+				}
+			})
+
+			g.By(fmt.Sprintf("Comparing Machine %q with instance %q: Additional networks", machineName, instance.Name), func() {
+				o.Expect(mapKeys(instance.Addresses)).To(o.ContainElements(machineNetworks))
+			})
+
 		}
 
 	})
