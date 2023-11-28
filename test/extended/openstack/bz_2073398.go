@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
@@ -15,6 +16,7 @@ import (
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -100,6 +102,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 			err = GetMachinesetRetry(ctx, rclient, ms, true)
 
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get the new Machineset")
+			err = waitUntilNMachinesPrefix(ctx, dc, ms.Name, 1)
+
+			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("Deleting the new machineset")
 			framework.DeleteMachineSets(rclient, ms)
@@ -136,6 +141,26 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 				}
 			}
 			o.Expect(portID).To(o.Equal(""))
+			err = waitUntilNMachinesPrefix(ctx, dc, ms.Name, 0)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Machines from machineset %v were not deleted", ms.Name)
 		})
 	})
 })
+
+// Wait until N machines with a specific prefix exist
+func waitUntilNMachinesPrefix(ctx context.Context, dc dynamic.Interface, prefix string, numMachines int) error {
+	err := wait.PollUntilContextTimeout(ctx, 1*time.Second, 2*time.Minute, false, func(ctx context.Context) (bool, error) {
+
+		machinesList, err := getMachinesByPrefix(prefix, ctx, dc)
+		if err != nil {
+			return false, err
+		} else {
+			if len(machinesList) == numMachines {
+				return true, nil
+			}
+		}
+		return false, nil
+
+	})
+	return err
+}

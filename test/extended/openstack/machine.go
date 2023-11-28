@@ -3,6 +3,7 @@ package openstack
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	g "github.com/onsi/ginkgo/v2"
@@ -212,6 +213,30 @@ func skipUnlessMachineAPIOperator(ctx context.Context, dc dynamic.Interface, c c
 		return false, nil
 	})
 	o.Expect(err).NotTo(o.HaveOccurred())
+}
+
+func getMachinesByPrefix(prefix string, ctx context.Context, dc dynamic.Interface) ([]objx.Map, error) {
+	var machinesList []objx.Map
+
+	machines, err := machines.List(ctx, dc)
+
+	for _, machine := range machines {
+		machineName := machine.Get("metadata.name").String()
+		if strings.HasPrefix(machineName, prefix) {
+			machinesList = append(machinesList, machine)
+		}
+	}
+	return machinesList, err
+}
+
+func getMachinesNames(machines []objx.Map) []string {
+	var machinesNames []string
+
+	for _, machine := range machines {
+		machineName := machine.Get("metadata.name").String()
+		machinesNames = append(machinesNames, machineName)
+	}
+	return machinesNames
 }
 
 func mapKeys[K comparable, V any](m map[K]V) (keys []K) {
