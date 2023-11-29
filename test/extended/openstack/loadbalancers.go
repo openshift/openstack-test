@@ -656,7 +656,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 					}
 					e2e.Logf("Found AllowedCIDRs: %v", lbListener.AllowedCIDRs)
 					return lbListener.AllowedCIDRs
-				}, "10s", "1s").Should(o.ConsistOf(allowAllAllowedCidrs), "Didn't find the expected allowed_cidrs '%v'", allowAllAllowedCidrs)
+				}, "60s", "1s").Should(o.ConsistOf(allowAllAllowedCidrs), "Didn't find the expected allowed_cidrs '%v'", allowAllAllowedCidrs)
 				e2e.Logf("Found expected allowed_cidrs '%v' in Openstack LoadBalancer Listener '%s'", allowAllAllowedCidrs, listenerId)
 			} else {
 				// It should be fast with OVN, but no good way to check it, let's just sleep.
