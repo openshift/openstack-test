@@ -131,7 +131,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				o.Expect(loadBalancerId).ShouldNot(o.BeEmpty(), "load-balancer-id annotation missing")
 				o.Expect(svc.Status.LoadBalancer.Ingress).ShouldNot(o.BeEmpty(), "svc.Status.LoadBalancer.Ingress should not be empty")
 				svcIp := svc.Status.LoadBalancer.Ingress[0].IP
-				o.Expect(svcIp).ShouldNot(o.BeEmpty(), "FIP missing on svc Status")
+				o.Expect(svcIp).ShouldNot(o.BeEmpty(), "Ingress IP missing on svc Status")
 				o.Expect(svc.Spec.ExternalTrafficPolicy).Should(o.Equal(v1.ServiceExternalTrafficPolicyTypeCluster),
 					"Unexpected ExternalTrafficPolicy on svc specs")
 
@@ -139,10 +139,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(lb.Provider).Should(o.Equal(strings.ToLower(lbProviderUnderTest)), "Unexpected provider in the Openstack LoadBalancer")
-
-				fip, err := getFipbyFixedIP(networkClient, lb.VipAddress)
-				o.Expect(err).NotTo(o.HaveOccurred())
-				o.Expect(fip.FloatingIP).Should(o.Equal(svcIp), "Unexpected floatingIp in the Openstack LoadBalancer")
+				if isIpv4(lb.VipAddress) { // No FIP assignment on ipv6
+					fip, err := getFipbyFixedIP(networkClient, lb.VipAddress)
+					o.Expect(err).NotTo(o.HaveOccurred())
+					o.Expect(fip.FloatingIP).Should(o.Equal(svcIp), "Unexpected floatingIp in the Openstack LoadBalancer")
+				}
 				o.Expect(lb.Pools).Should(o.HaveLen(1), "Unexpected number of pools on Openstack LoadBalancer %q", lb.Name)
 
 				pool, err := pools.Get(loadBalancerClient, lb.Pools[0].ID).Extract()
@@ -387,7 +388,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				loadBalancerId := svc.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]
 				o.Expect(loadBalancerId).ShouldNot(o.BeEmpty(), "load-balancer-id annotation missing")
 				svcIp := svc.Status.LoadBalancer.Ingress[0].IP
-				o.Expect(svcIp).ShouldNot(o.BeEmpty(), "FIP missing on svc Status")
+				o.Expect(svcIp).ShouldNot(o.BeEmpty(), "Ingress IP missing on svc Status")
 				o.Expect(svc.Spec.ExternalTrafficPolicy).Should(o.Equal(v1.ServiceExternalTrafficPolicyTypeLocal),
 					"Unexpected ExternalTrafficPolicy on svc specs")
 
@@ -441,6 +442,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		g.It(fmt.Sprintf("should create an UDP %s LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift", lbProviderUnderTest), func() {
 
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
+
+			var err error
+			dualstackIpv6Primary, err := isIpv6primaryDualStackCluster(ctx, oc)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			if dualstackIpv6Primary { //This test is covering and scenario that has no sense with ipv6 as there is no FIP/VIP association.
+				e2eskipper.Skipf("Test not applicable for ipv6primary dualstack environments")
+			}
 
 			g.By("Create FIP to be used on the subsequent LoadBalancer Service")
 			var fip *floatingips.FloatingIP
@@ -521,7 +529,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			o.Expect(loadBalancerId).ShouldNot(o.BeEmpty(), "load-balancer-id annotation missing")
 			o.Expect(svc.Status.LoadBalancer.Ingress).ShouldNot(o.BeEmpty(), "svc.Status.LoadBalancer.Ingress should not be empty")
 			svcIp := svc.Status.LoadBalancer.Ingress[0].IP
-			o.Expect(svcIp).ShouldNot(o.BeEmpty(), "FIP missing on svc Status")
+			o.Expect(svcIp).ShouldNot(o.BeEmpty(), "Ingress IP missing on svc Status")
 			o.Expect(svc.Spec.ExternalTrafficPolicy).Should(o.Equal(v1.ServiceExternalTrafficPolicyTypeLocal),
 				"Unexpected ExternalTrafficPolicy on svc specs")
 			e2e.Logf("Service with LoadBalancerType exists with public ip %q and it is pointing to openstack loadbalancer with id %q", svcIp, loadBalancerId)
@@ -734,6 +742,13 @@ func getFipbyFixedIP(client *gophercloud.ServiceClient, vip string) (floatingips
 }
 
 func getPodNameThroughLb(ip string, port string, protocol v1.Protocol, message string) (string, error) {
+
+	if net.ParseIP(ip) == nil {
+		return "", fmt.Errorf("invalid ip %q", ip)
+	}
+	if isIpv6(ip) {
+		ip = "[" + ip + "]"
+	}
 
 	if protocol == v1.ProtocolUDP {
 		// Send message on provided ip and UDP port and return the answer.
@@ -979,6 +994,13 @@ func waitForIngressControllerCondition(oc *exutil.CLI, timeout time.Duration, na
 
 // Create https GET towards a given domain using a given IP on transport level. Returns the response or error.
 func httpsGetWithCustomLookup(url string, ip string) (*http.Response, error) {
+
+	if net.ParseIP(ip) == nil {
+		return nil, fmt.Errorf("invalid ip %q", ip)
+	}
+	if isIpv6(ip) {
+		ip = "[" + ip + "]"
+	}
 
 	// Create a custom resolver that overrides DNS lookups
 	resolver := &net.Resolver{

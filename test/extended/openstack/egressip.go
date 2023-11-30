@@ -73,6 +73,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 
 	g.It("attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType", func() {
 
+		dualstackIpv6Primary, err := isIpv6primaryDualStackCluster(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if dualstackIpv6Primary { //This test is covering and scenario that has no sense with ipv6 as there is no FIP/egressIP association.
+			e2eskipper.Skipf("Test not applicable for ipv6primary dualstack environments")
+		}
+
 		g.By("Getting the network type")
 		networkType, err := getNetworkType(ctx, oc)
 		o.Expect(err).NotTo(o.HaveOccurred())
