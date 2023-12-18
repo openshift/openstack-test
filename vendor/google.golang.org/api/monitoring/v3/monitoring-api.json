@@ -2714,7 +2714,7 @@
       }
     }
   },
-  "revision": "20221205",
+  "revision": "20230212",
   "rootUrl": "https://monitoring.googleapis.com/",
   "schemas": {
     "Aggregation": {
@@ -3334,7 +3334,7 @@
       "id": "Criteria",
       "properties": {
         "policies": {
-          "description": "The specific AlertPolicy names for the alert that should be snoozed. The format is: projects/[PROJECT_ID_OR_NUMBER]/alertPolicies/[POLICY_ID] There is a limit of 10 policies per snooze. This limit is checked during snooze creation.",
+          "description": "The specific AlertPolicy names for the alert that should be snoozed. The format is: projects/[PROJECT_ID_OR_NUMBER]/alertPolicies/[POLICY_ID] There is a limit of 16 policies per snooze. This limit is checked during snooze creation.",
           "items": {
             "type": "string"
           },
@@ -3823,12 +3823,18 @@
           "description": "The content type header to use for the check. The following configurations result in errors: 1. Content type is specified in both the headers field and the content_type field. 2. Request method is GET and content_type is not TYPE_UNSPECIFIED 3. Request method is POST and content_type is TYPE_UNSPECIFIED. 4. Request method is POST and a \"Content-Type\" header is provided via headers field. The content_type field should be used instead.",
           "enum": [
             "TYPE_UNSPECIFIED",
-            "URL_ENCODED"
+            "URL_ENCODED",
+            "USER_PROVIDED"
           ],
           "enumDescriptions": [
             "No content type specified.",
-            "body is in URL-encoded form. Equivalent to setting the Content-Type to application/x-www-form-urlencoded in the HTTP request."
+            "body is in URL-encoded form. Equivalent to setting the Content-Type to application/x-www-form-urlencoded in the HTTP request.",
+            "body is in custom_content_type form. Equivalent to setting the Content-Type to the contents of custom_content_type in the HTTP request."
           ],
+          "type": "string"
+        },
+        "customContentType": {
+          "description": "A user provided content type header to use for the check. The invalid configurations outlined in the content_type field apply to custom_content_type, as well as the following: 1. content_type is URL_ENCODED and custom_content_type is set. 2. content_type is USER_PROVIDED and custom_content_type is not set.",
           "type": "string"
         },
         "headers": {
@@ -4629,7 +4635,7 @@
         },
         "forecastOptions": {
           "$ref": "ForecastOptions",
-          "description": "When this field is present, the MetricThreshold condition forecasts whether the time series is predicted to violate the threshold within the forecast_horizion. When this field is not set, the MetricThreshold tests the current value of the timeseries against the threshold."
+          "description": "When this field is present, the MetricThreshold condition forecasts whether the time series is predicted to violate the threshold within the forecast_horizon. When this field is not set, the MetricThreshold tests the current value of the timeseries against the threshold."
         },
         "thresholdValue": {
           "description": "A value against which to compare the time series.",
@@ -5760,14 +5766,20 @@
               "USA",
               "EUROPE",
               "SOUTH_AMERICA",
-              "ASIA_PACIFIC"
+              "ASIA_PACIFIC",
+              "USA_OREGON",
+              "USA_IOWA",
+              "USA_VIRGINIA"
             ],
             "enumDescriptions": [
               "Default value if no region is specified. Will result in Uptime checks running from all regions.",
               "Allows checks to run from locations within the United States of America.",
               "Allows checks to run from locations within the continent of Europe.",
               "Allows checks to run from locations within the continent of South America.",
-              "Allows checks to run from locations within the Asia Pacific area (ex: Singapore)."
+              "Allows checks to run from locations within the Asia Pacific area (ex: Singapore).",
+              "Allows checks to run from locations within the western United States of America",
+              "Allows checks to run from locations within the central United States of America",
+              "Allows checks to run from locations within the eastern United States of America"
             ],
             "type": "string"
           },
@@ -5811,14 +5823,20 @@
             "USA",
             "EUROPE",
             "SOUTH_AMERICA",
-            "ASIA_PACIFIC"
+            "ASIA_PACIFIC",
+            "USA_OREGON",
+            "USA_IOWA",
+            "USA_VIRGINIA"
           ],
           "enumDescriptions": [
             "Default value if no region is specified. Will result in Uptime checks running from all regions.",
             "Allows checks to run from locations within the United States of America.",
             "Allows checks to run from locations within the continent of Europe.",
             "Allows checks to run from locations within the continent of South America.",
-            "Allows checks to run from locations within the Asia Pacific area (ex: Singapore)."
+            "Allows checks to run from locations within the Asia Pacific area (ex: Singapore).",
+            "Allows checks to run from locations within the western United States of America",
+            "Allows checks to run from locations within the central United States of America",
+            "Allows checks to run from locations within the eastern United States of America"
           ],
           "type": "string"
         }

@@ -3,16 +3,22 @@ package ginkgo
 import (
 	"context"
 	"fmt"
-	"io"
+	"github.com/sirupsen/logrus"
+	"os"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/openshift/origin/pkg/clioptions/clusterinfo"
+
+	"github.com/openshift/origin/pkg/monitortestframework"
+
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/ginkgo/v2/types"
-
+	"github.com/openshift/origin/pkg/defaultmonitortests"
 	"github.com/openshift/origin/pkg/monitor"
 	"github.com/openshift/origin/pkg/test/ginkgo/result"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 type ExitError struct {
@@ -27,30 +33,31 @@ func (e ExitError) Error() string {
 type TestOptions struct {
 	// EnableMonitor is an easy way to enable monitor gathering for a single e2e test.
 	// TODO if this is useful enough for general users, we can extend this into an arg, this just ensures the plumbing.
-	EnableMonitor        bool
-	MonitorEventsOptions *MonitorEventsOptions
+	EnableMonitor bool
 
 	DryRun bool
-	Out    io.Writer
-	ErrOut io.Writer
+	genericclioptions.IOStreams
+
+	ExactMonitorTests   []string
+	DisableMonitorTests []string
 }
 
 var _ ginkgo.GinkgoTestingT = &TestOptions{}
 
-func NewTestOptions(out io.Writer, errOut io.Writer) *TestOptions {
+func NewTestOptions(streams genericclioptions.IOStreams) *TestOptions {
 	return &TestOptions{
-		MonitorEventsOptions: NewMonitorEventsOptions(out, errOut),
-		Out:                  out,
-		ErrOut:               errOut,
+		IOStreams: streams,
 	}
 }
 
-func (opt *TestOptions) Run(args []string) error {
+func (o *TestOptions) Run(args []string) error {
 	ctx := context.TODO()
 
 	if len(args) != 1 {
 		return fmt.Errorf("only a single test name may be passed")
 	}
+
+	start := time.Now()
 
 	// Ignore the upstream suite behavior within test execution
 	ginkgo.GetSuite().ClearBeforeAndAfterSuiteNodes()
@@ -69,18 +76,36 @@ func (opt *TestOptions) Run(args []string) error {
 		return fmt.Errorf("no test exists with that name: %s", args[0])
 	}
 
-	if opt.DryRun {
-		fmt.Fprintf(opt.Out, "Running test (dry-run)\n")
+	if o.DryRun {
+		fmt.Fprintf(o.Out, "Running test (dry-run)\n")
 		return nil
 	}
 
-	restConfig, err := monitor.GetMonitorRESTConfig()
+	restConfig, err := clusterinfo.GetMonitorRESTConfig()
 	if err != nil {
 		return err
 	}
-	if opt.EnableMonitor {
-		_, err = opt.MonitorEventsOptions.Start(ctx, restConfig)
+	monitorTestInfo := monitortestframework.MonitorTestInitializationInfo{
+		ClusterStabilityDuringTest: monitortestframework.Stable,
+		ExactMonitorTests:          o.ExactMonitorTests,
+		DisableMonitorTests:        o.DisableMonitorTests,
+	}
+	var m monitor.Interface
+	if o.EnableMonitor {
+		// individual tests are always stable, it's the jobs that aren't.
+		monitorTests, err := defaultmonitortests.NewMonitorTestsFor(monitorTestInfo)
 		if err != nil {
+			logrus.Errorf("Error getting monitor tests: %v", err)
+		}
+
+		monitorEventRecorder := monitor.NewRecorder()
+		m = monitor.NewMonitor(
+			monitorEventRecorder,
+			restConfig,
+			"",
+			monitorTests,
+		)
+		if err := m.Start(ctx); err != nil {
 			return err
 		}
 	}
@@ -90,27 +115,30 @@ func (opt *TestOptions) Run(args []string) error {
 
 	// These settings are matched to upstream's ginkgo configuration. See:
 	// https://github.com/kubernetes/kubernetes/blob/v1.25.0/test/e2e/framework/test_context.go#L354-L355
-	// Turn on EmitSpecProgress to get spec progress (especially on interrupt)
-	suiteConfig.EmitSpecProgress = true
 	// Randomize specs as well as suites
 	suiteConfig.RandomizeAllSpecs = true
-	// turn off stdout/stderr capture see https://github.com/kubernetes/kubernetes/pull/111240
-	suiteConfig.OutputInterceptorMode = "none"
 	// https://github.com/kubernetes/kubernetes/blob/v1.25.0/hack/ginkgo-e2e.sh#L172-L173
 	suiteConfig.Timeout = 24 * time.Hour
 	reporterConfig.NoColor = true
+	reporterConfig.Verbose = true
 
 	ginkgo.SetReporterConfig(reporterConfig)
-	ginkgo.GetSuite().RunSpec(test.spec, ginkgo.Labels{}, "", ginkgo.GetFailer(), ginkgo.GetWriter(), suiteConfig)
 
-	if opt.EnableMonitor {
-		if err := opt.MonitorEventsOptions.End(ctx, restConfig, ""); err != nil {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	ginkgo.GetSuite().RunSpec(test.spec, ginkgo.Labels{}, "OpenShift e2e suite", cwd, ginkgo.GetFailer(), ginkgo.GetWriter(), suiteConfig, reporterConfig)
+
+	if m != nil {
+		// ignore the resultstate of the monitor tests because we're only focused on a single one.
+		if _, err := m.Stop(ctx); err != nil {
 			return err
 		}
-		timeSuffix := fmt.Sprintf("_%s", opt.MonitorEventsOptions.GetStartTime().
-			UTC().Format("20060102-150405"))
-		if err := opt.MonitorEventsOptions.WriteRunDataToArtifactsDir("", timeSuffix); err != nil {
-			fmt.Fprintf(opt.ErrOut, "error: Failed to write run-data: %v\n", err)
+
+		timeSuffix := fmt.Sprintf("_%s", start.UTC().Format("20060102-150405"))
+		if err := m.SerializeResults(ctx, "missing-junit-suite", timeSuffix); err != nil {
+			fmt.Fprintf(o.ErrOut, "error: Failed to serialize run-data: %v\n", err)
 		}
 	}
 
@@ -124,26 +152,26 @@ func (opt *TestOptions) Run(args []string) error {
 	switch {
 	case summary.State == types.SpecStatePassed:
 		if s, ok := result.LastFlake(); ok {
-			fmt.Fprintf(opt.ErrOut, "flake: %s\n", s)
+			fmt.Fprintf(o.ErrOut, "flake: %s\n", s)
 			return ExitError{Code: 4}
 		}
 	case summary.State == types.SpecStateSkipped:
 		if len(summary.Failure.Message) > 0 {
-			fmt.Fprintf(opt.ErrOut, "skip [%s:%d]: %s\n", lastFilenameSegment(summary.Failure.Location.FileName), summary.Failure.Location.LineNumber, summary.Failure.Message)
+			fmt.Fprintf(o.ErrOut, "skip [%s:%d]: %s\n", lastFilenameSegment(summary.Failure.Location.FileName), summary.Failure.Location.LineNumber, summary.Failure.Message)
 		}
 		if len(summary.Failure.ForwardedPanic) > 0 {
-			fmt.Fprintf(opt.ErrOut, "skip [%s:%d]: %s\n", lastFilenameSegment(summary.Failure.Location.FileName), summary.Failure.Location.LineNumber, summary.Failure.ForwardedPanic)
+			fmt.Fprintf(o.ErrOut, "skip [%s:%d]: %s\n", lastFilenameSegment(summary.Failure.Location.FileName), summary.Failure.Location.LineNumber, summary.Failure.ForwardedPanic)
 		}
 		return ExitError{Code: 3}
 	case summary.State == types.SpecStateFailed, summary.State == types.SpecStatePanicked, summary.State == types.SpecStateInterrupted:
 		if len(summary.Failure.ForwardedPanic) > 0 {
 			if len(summary.Failure.Location.FullStackTrace) > 0 {
-				fmt.Fprintf(opt.ErrOut, "\n%s\n", summary.Failure.Location.FullStackTrace)
+				fmt.Fprintf(o.ErrOut, "\n%s\n", summary.Failure.Location.FullStackTrace)
 			}
-			fmt.Fprintf(opt.ErrOut, "fail [%s:%d]: Test Panicked: %s\n", lastFilenameSegment(summary.Failure.Location.FileName), summary.Failure.Location.LineNumber, summary.Failure.ForwardedPanic)
+			fmt.Fprintf(o.ErrOut, "fail [%s:%d]: Test Panicked: %s\n", lastFilenameSegment(summary.Failure.Location.FileName), summary.Failure.Location.LineNumber, summary.Failure.ForwardedPanic)
 			return ExitError{Code: 1}
 		}
-		fmt.Fprintf(opt.ErrOut, "fail [%s:%d]: %s\n", lastFilenameSegment(summary.Failure.Location.FileName), summary.Failure.Location.LineNumber, summary.Failure.Message)
+		fmt.Fprintf(o.ErrOut, "fail [%s:%d]: %s\n", lastFilenameSegment(summary.Failure.Location.FileName), summary.Failure.Location.LineNumber, summary.Failure.Message)
 		return ExitError{Code: 1}
 	default:
 		return fmt.Errorf("unrecognized test case outcome: %#v", summary)
@@ -151,7 +179,7 @@ func (opt *TestOptions) Run(args []string) error {
 	return nil
 }
 
-func (opt *TestOptions) Fail() {
+func (o *TestOptions) Fail() {
 	// this function allows us to pass TestOptions as the first argument,
 	// it's empty becase we have failure check mechanism implemented above.
 }

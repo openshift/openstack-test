@@ -2,7 +2,6 @@ package monitorapi
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -13,34 +12,14 @@ const (
 	ReusedConnectionType BackendConnectionType = "reused"
 )
 
-func LocateRouteForDisruptionCheck(ns, name, disruptionBackendName string, connectionType BackendConnectionType) string {
-	return fmt.Sprintf("ns/%s route/%s disruption/%s connection/%s", ns, name, disruptionBackendName, connectionType)
-}
-
-func LocateDisruptionCheck(disruptionBackendName string, connectionType BackendConnectionType) string {
-	return fmt.Sprintf("disruption/%s connection/%s", disruptionBackendName, connectionType)
-}
-
-func E2ETestLocator(testName string) string {
-	return fmt.Sprintf("e2e-test/%q", testName)
-}
-
-func IsE2ETest(locator string) bool {
-	_, ret := E2ETestFromLocator(locator)
+func IsE2ETest(l Locator) bool {
+	_, ret := E2ETestFromLocator(l)
 	return ret
 }
 
-func E2ETestFromLocator(locator string) (string, bool) {
-	if !strings.HasPrefix(locator, "e2e-test/") {
-		return "", false
-	}
-	parts := strings.SplitN(locator, "/", 2)
-	quotedTestName := parts[1]
-	testName, err := strconv.Unquote(quotedTestName)
-	if err != nil {
-		return "", false
-	}
-	return testName, true
+func E2ETestFromLocator(l Locator) (string, bool) {
+	test, ok := l.Keys[LocatorE2ETestKey]
+	return test, ok
 }
 
 func NodeLocator(testName string) string {
@@ -53,11 +32,8 @@ func IsNode(locator string) bool {
 }
 
 func NodeFromLocator(locator string) (string, bool) {
-	if !strings.HasPrefix(locator, "node/") {
-		return "", false
-	}
-	parts := strings.SplitN(strings.TrimPrefix(locator, "node/"), " ", 2)
-	return parts[0], true
+	ret := NodeFrom(LocatorParts(locator))
+	return ret, len(ret) > 0
 }
 
 func OperatorLocator(operatorName string) string {
@@ -65,11 +41,23 @@ func OperatorLocator(operatorName string) string {
 }
 
 func OperatorFromLocator(locator string) (string, bool) {
-	if !strings.HasPrefix(locator, "clusteroperator/") {
-		return "", false
+	ret := OperatorFrom(LocatorParts(locator))
+	return ret, len(ret) > 0
+}
+
+func NamespaceFromLocator(locator string) string {
+	locatorParts := LocatorParts(locator)
+	if ns, ok := locatorParts["ns"]; ok {
+		return ns
 	}
-	parts := strings.SplitN(strings.TrimPrefix(locator, "clusteroperator/"), " ", 2)
-	return parts[0], true
+	if ns, ok := locatorParts["namespace"]; ok {
+		return ns
+	}
+	return ""
+}
+
+func AlertFromLocator(locator string) string {
+	return AlertFrom(LocatorParts(locator))
 }
 
 func LocatorParts(locator string) map[string]string {
@@ -98,31 +86,33 @@ func NamespaceFrom(locatorParts map[string]string) string {
 	return ""
 }
 
-func NamespaceFromLocator(locator string) string {
-	locatorParts := LocatorParts(locator)
-	if ns, ok := locatorParts["ns"]; ok {
-		return ns
-	}
-	if ns, ok := locatorParts["namespace"]; ok {
-		return ns
-	}
-	return ""
+func NodeFrom(locatorParts map[string]string) string {
+	return locatorParts["node"]
 }
 
-func AlertFromLocator(locator string) string {
-	return AlertFrom(LocatorParts(locator))
+func OperatorFrom(locatorParts map[string]string) string {
+	return locatorParts[string(LocatorClusterOperatorKey)]
 }
 
 func AlertFrom(locatorParts map[string]string) string {
 	return locatorParts["alert"]
 }
 
-func DisruptionFrom(locatorParts map[string]string) string {
-	return locatorParts["disruption"]
+func ThisDisruptionInstanceFrom(locatorParts map[string]string) string {
+	return locatorParts[string(LocatorDisruptionKey)]
 }
 
-func DisruptionConnectionTypeFrom(locatorParts map[string]string) string {
-	return locatorParts["connection"]
+func BackendDisruptionNameFromLocator(locator Locator) string {
+	return locator.Keys[LocatorBackendDisruptionNameKey]
+}
+
+// BackendDisruptionNameFrom holds the value used to store and locate historical data related to the amount of disruption.
+func BackendDisruptionNameFrom(locatorParts map[string]string) string {
+	return locatorParts[string(LocatorBackendDisruptionNameKey)]
+}
+
+func DisruptionConnectionTypeFrom(locatorParts map[string]string) BackendConnectionType {
+	return BackendConnectionType(locatorParts[string(LocatorConnectionKey)])
 }
 
 func DisruptionLoadBalancerTypeFrom(locatorParts map[string]string) string {
@@ -138,8 +128,17 @@ func DisruptionTargetAPIFrom(locatorParts map[string]string) string {
 }
 
 func IsEventForLocator(locator string) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		if eventInterval.Locator == locator {
+			return true
+		}
+		return false
+	}
+}
+
+func IsEventForBackendDisruptionName(backendDisruptionName string) EventIntervalMatchesFunc {
+	return func(eventInterval Interval) bool {
+		if BackendDisruptionNameFrom(LocatorParts(eventInterval.Locator)) == backendDisruptionName {
 			return true
 		}
 		return false

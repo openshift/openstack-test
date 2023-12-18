@@ -11,50 +11,15 @@ Run the tests by exporting both OpenShift and OpenStack credentials, then runnin
 
 ---
 
-## Implementation details
+## Rebase on origin
 
-Origin is referenced as a dependency in `go.mod`. Regularly update it with:
-```sh
-GONOPROXY=* GONOSUMDB=* go get -d github.com/openshift/origin@<latest-commit-sha>
-```
+The Origin repository is undergoing changes in preparation for the federated testing infrastructure.
 
-Two Origin packages remain vendored and require manual update:
+Until federated testing is available, this repo must be regularly rebased on Origin.
 
-* the `main` package under `cmd/openshift-tests`;
-* the code needed to `go generate` the test list in `test/extended/util/annotate`.
+To rebase:
 
-These two are vendored with these changes:
-
-```diff
-diff --git a/cmd/openshift-tests/e2e.go b/cmd/openshift-tests/e2e.go
-index 2b99f9e7e7..c74c279169 100644
---- a/cmd/openshift-tests/e2e.go
-+++ b/cmd/openshift-tests/e2e.go
-@@ -10,8 +10,8 @@ import (
- 	exutil "github.com/openshift/origin/test/extended/util"
- 	"k8s.io/kubectl/pkg/util/templates"
- 
--	_ "github.com/openshift/origin/test/extended"
--	_ "github.com/openshift/origin/test/extended/util/annotate/generated"
-+	_ "github.com/openshift/openstack-test/test/extended"
-+	_ "github.com/openshift/openstack-test/test/extended/util/annotate/generated"
- )
- 
- func isDisabled(name string) bool {
-diff --git a/test/extended/util/annotate/annotate.go b/test/extended/util/annotate/annotate.go
-index ab002b730e..dc244b5574 100644
---- a/test/extended/util/annotate/annotate.go
-+++ b/test/extended/util/annotate/annotate.go
-@@ -6,7 +6,7 @@ import (
- 	"k8s.io/apimachinery/pkg/util/sets"
- 	"k8s.io/kubernetes/openshift-hack/e2e/annotate"
- 
--	_ "github.com/openshift/origin/test/extended"
-+	_ "github.com/openshift/openstack-test/test/extended"
- )
- 
- // mergeMaps updates an existing map of string slices with the
-```
-
-[1]: https://github.com/openshift/origin
-[2]: test/extended/openstack
+1. update the dependency with `GONOPROXY=* GONOSUMDB=* go get -d github.com/openshift/origin@<latest-commit-sha>`
+1. Update the content of `cmd/openshift-tests` preserving the import of `pkg/cmd/openshift-tests/run` from the current repository
+1. Update the content of `pkg` if the logic changes (ignore updates in tests that we don't import)
+1. Update the content of `test/extended/util/annotate` if the logic changes

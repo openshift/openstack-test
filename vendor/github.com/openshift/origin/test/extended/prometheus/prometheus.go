@@ -11,10 +11,11 @@ import (
 	"strings"
 	"time"
 
+	allowedalerts2 "github.com/openshift/origin/pkg/monitortestlibrary/allowedalerts"
+	"github.com/openshift/origin/pkg/monitortestlibrary/platformidentification"
+
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
-	"github.com/openshift/origin/pkg/alerts"
-	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
@@ -23,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
 	clientset "k8s.io/client-go/kubernetes"
 	kapi "k8s.io/kubernetes/pkg/apis/core"
 	"k8s.io/kubernetes/test/e2e/framework"
@@ -34,7 +36,6 @@ import (
 
 	configv1 "github.com/openshift/api/config/v1"
 
-	"github.com/openshift/origin/pkg/synthetictests/allowedalerts"
 	testresult "github.com/openshift/origin/pkg/test/ginkgo/result"
 	"github.com/openshift/origin/test/extended/networking"
 	exutil "github.com/openshift/origin/test/extended/util"
@@ -54,17 +55,34 @@ type TelemeterClientConfig struct {
 var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigroup:image.openshift.io]", func() {
 	defer g.GinkgoRecover()
 
-	// These alerts are known to be missing the summary and/or description
-	// annotations.  Bugzillas have been filed, and are linked here.  These
-	// should be fixed one-by-one and removed from this list.
-	descriptionExceptions := sets.NewString(
-		// Repo: openshift/machine-config-operator
-		// https://issues.redhat.com/browse/OCPBUGS-14185
-		"KubeletHealthState",
-		"MCCDrainError",
-		"MCDPivotError",
+	criticalAlertsMissingRunbookURLExceptions := sets.NewString(
+		// Repository: https://github.com/openshift/cluster-network-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14062
+		"OVNKubernetesNorthboundDatabaseClusterIDError",
+		"OVNKubernetesSouthboundDatabaseClusterIDError",
+		"OVNKubernetesNorthboundDatabaseLeaderError",
+		"OVNKubernetesSouthboundDatabaseLeaderError",
+		"OVNKubernetesNorthboundDatabaseMultipleLeadersError",
+		"OVNKubernetesSouthboundDatabaseMultipleLeadersError",
+		"OVNKubernetesNorthdInactive",
+
+		// Repository: https://github.com/openshift/machine-api-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14055
+		"MachineAPIOperatorMetricsCollectionFailing",
+
+		// Repository: https://github.com/openshift/machine-config-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14056
 		"MCDRebootError",
-		"SystemMemoryExceedsReservation",
+		"ExtremelyHighIndividualControlPlaneMemory",
+
+		// Repository: https://github.com/openshift/cluster-ingress-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14057
+		"HAProxyDown",
+
+		// Repository: https://github.com/openshift/cluster-version-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14246
+		"ClusterOperatorDown",
+		"ClusterVersionOperatorDown",
 	)
 
 	var alertingRules map[string][]promv1.AlertingRule
@@ -119,11 +137,6 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 
 	g.It("should have description and summary annotations", func() {
 		err := helper.ForEachAlertingRule(alertingRules, func(alert promv1.AlertingRule) sets.String {
-			if descriptionExceptions.Has(alert.Name) {
-				framework.Logf("Alerting rule %q is known to have missing annotations.", alert.Name)
-				return nil
-			}
-
 			violations := sets.NewString()
 
 			if _, found := alert.Annotations["description"]; !found {
@@ -151,6 +164,10 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 
 	g.It("should have a runbook_url annotation if the alert is critical", func() {
 		err := helper.ForEachAlertingRule(alertingRules, func(alert promv1.AlertingRule) sets.String {
+			if criticalAlertsMissingRunbookURLExceptions.Has(alert.Name) {
+				framework.Logf("Critical alerting rule %q is known to have missing runbook_url.", alert.Name)
+				return nil
+			}
 			violations := sets.NewString()
 			severity := string(alert.Labels["severity"])
 			runbook := string(alert.Annotations["runbook_url"])
@@ -159,13 +176,26 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 				violations.Insert(
 					fmt.Sprintf("WARNING: Alert %q is critical and has no 'runbook_url' annotation", alert.Name),
 				)
-			} else if runbook != "" {
-				// If there's a 'runbook_url' annotation, make sure it's a
-				// valid URL and that we can fetch the contents.
-				if err := helper.ValidateURL(runbook, 10*time.Second); err != nil {
+			}
+
+			return violations
+		})
+
+		if err != nil {
+			e2e.Failf(err.Error())
+		}
+	})
+
+	g.It("should link to an HTTP(S) location if the runbook_url annotation is defined", func() {
+		err := helper.ForEachAlertingRule(alertingRules, func(alert promv1.AlertingRule) sets.String {
+			violations := sets.NewString()
+			runbook_url := string(alert.Annotations["runbook_url"])
+
+			if runbook_url != "" {
+				// If there's a 'runbook_url' annotation, make sure that it is a valid URL
+				if err := helper.ValidateURL(runbook_url); err != nil {
 					violations.Insert(
-						fmt.Sprintf("WARNING: Alert %q has an invalid 'runbook_url' annotation: %v",
-							alert.Name, err),
+						fmt.Sprintf("has an 'runbook_url' annotation which is not valid: %v", err),
 					)
 				}
 			}
@@ -174,8 +204,31 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 		})
 
 		if err != nil {
-			// We are still gathering data on how many alerts need to
-			// be fixed, so this is marked as a flake for now.
+			e2e.Failf(err.Error())
+		}
+	})
+
+	g.It("should link to a valid URL if the runbook_url annotation is defined", func() {
+		err := helper.ForEachAlertingRule(alertingRules, func(alert promv1.AlertingRule) sets.String {
+			violations := sets.NewString()
+			runbook_url := string(alert.Annotations["runbook_url"])
+
+			if runbook_url == "" {
+				return nil
+			}
+			// If there's a 'runbook_url' annotation, make sure that we can fetch the contents.
+			if err := helper.QueryURL(runbook_url, 10*time.Second); err != nil {
+				violations.Insert(
+					fmt.Sprintf("has a runbook URL which cannot be fetched: %v", err),
+				)
+			}
+
+			return violations
+		})
+
+		if err != nil {
+			// We can't fail the test because the runbook URLs might be temporarily unavailable.
+			// At least we can manually check the CI logs to identify buggy URLs.
 			testresult.Flakef(err.Error())
 		}
 	})
@@ -188,10 +241,14 @@ var _ = g.Describe("[sig-instrumentation][Late] Alerts", func() {
 		oc = exutil.NewCLIWithoutNamespace("prometheus")
 	)
 
-	g.It("shouldn't report any unexpected alerts in firing or pending state", func() {
-		// we only consider samples since the beginning of the test
-		testDuration := exutil.DurationSinceStartInSeconds()
-		alerts.CheckAlerts(alerts.AllowedAlertsDuringConformance, oc.AdminConfig(), oc.NewPrometheusClient(context.TODO()), oc.AdminConfigClient(), testDuration, nil)
+	g.BeforeEach(func() {
+		kubeClient, err := kubernetes.NewForConfig(oc.AdminConfig())
+		o.Expect(err).NotTo(o.HaveOccurred())
+		nsExist, err := exutil.IsNamespaceExist(kubeClient, "openshift-monitoring")
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if !nsExist {
+			g.Skip("openshift-monitoring namespace does not exist, skipping")
+		}
 	})
 
 	g.It("shouldn't exceed the series limit of total series sent via telemetry from each cluster", func() {
@@ -259,7 +316,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 	})
 
 	g.Describe("when installed on the cluster", func() {
-		g.It("should report telemetry [Late]", func() {
+		g.It("should report telemetry [Serial] [Late]", func() {
 			if enabledErr, err := telemetryIsEnabled(ctx, oc.AdminKubeClient()); err != nil {
 				e2e.Failf("could not determine if Telemetry is enabled: %v", err)
 			} else if enabledErr != nil {
@@ -287,6 +344,11 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			e2e.Logf("Telemetry is enabled: %s", bearerToken)
+
+			if err != nil {
+				// Making the test flaky until monitoring team fixes the rate limit issue.
+				testresult.Flakef(err.Error())
+			}
 		})
 
 		g.It("should start and expose a secured proxy and unsecured metrics [apigroup:config.openshift.io]", func() {
@@ -358,8 +420,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 						targets.Expect(labels{"job": "controller-manager"}, "up", "^https://.*/metrics$"),
 
 						// The kube control plane
-						// TODO restore this after etcd operator lands
-						//targets.Expect(labels{"job": "etcd"}, "up", "^https://.*/metrics$"),
+						targets.Expect(labels{"job": "etcd"}, "up", "^https://.*/metrics$"),
 						targets.Expect(labels{"job": "apiserver"}, "up", "^https://.*/metrics$"),
 						targets.Expect(labels{"job": "kube-controller-manager"}, "up", "^https://.*/metrics$"),
 						targets.Expect(labels{"job": "scheduler"}, "up", "^https://.*/metrics$"),
@@ -482,16 +543,13 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 		})
 
 		g.It("shouldn't report any alerts in firing state apart from Watchdog and AlertmanagerReceiversNotConfigured [Early][apigroup:config.openshift.io]", func() {
-			// Checking Watchdog alert state is done in "should have a Watchdog alert in firing state".
-			allowedAlertNames := []string{
-				"Watchdog",
-				"AlertmanagerReceiversNotConfigured",
-				"PrometheusRemoteWriteDesiredShards",
-				"KubeJobFailed", // this is a result of bug https://bugzilla.redhat.com/show_bug.cgi?id=2054426 .  We should catch these in the late test above.
-			}
+			// Copy so we can expand:
+			allowedAlertNames := make([]string, len(allowedalerts2.AllowedAlertNames))
+			copy(allowedAlertNames, allowedalerts2.AllowedAlertNames)
 
+			// Checking Watchdog alert state is done in "should have a Watchdog alert in firing state".
 			// we exclude alerts that have their own separate tests.
-			for _, alertTest := range allowedalerts.AllAlertTests(&platformidentification.JobType{}, allowedalerts.DefaultAllowances) {
+			for _, alertTest := range allowedalerts2.AllAlertTests(&platformidentification.JobType{}, allowedalerts2.DefaultAllowances) {
 				allowedAlertNames = append(allowedAlertNames, alertTest.AlertName())
 			}
 

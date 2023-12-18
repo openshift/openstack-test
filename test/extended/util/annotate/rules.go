@@ -53,15 +53,6 @@ var (
 			// https://issues.redhat.com/browse/OCPBUGS-3339
 			`\[sig-devex\]\[Feature:ImageEcosystem\]\[mysql\]\[Slow\] openshift mysql image Creating from a template should instantiate the template`,
 			`\[sig-devex\]\[Feature:ImageEcosystem\]\[mariadb\]\[Slow\] openshift mariadb image Creating from a template should instantiate the template`,
-
-			// https://issues.redhat.com/browse/OCPBUGS-11652
-			`\[sig-cli\] oc adm node-logs`,
-		},
-		// tests that need to be temporarily disabled while the rebase is in progress.
-		"[Disabled:RebaseInProgress]": {
-			// https://issues.redhat.com/browse/OCPBUGS-13392
-			`\[sig-network\] NetworkPolicyLegacy \[LinuxOnly\] NetworkPolicy between server and client should enforce policy to allow traffic only from a pod in a different namespace based on PodSelector and NamespaceSelector`,
-			`\[sig-network\] NetworkPolicyLegacy \[LinuxOnly\] NetworkPolicy between server and client should enforce updated policy`,
 		},
 		// tests that may work, but we don't support them
 		"[Disabled:Unsupported]": {},
@@ -195,7 +186,7 @@ var (
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should have non-Pod host cAdvisor metrics`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should provide ingress metrics`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should provide named network metrics`,
-			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should report telemetry \[Late\]`,
+			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should report telemetry \[Serial\] \[Late\]`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should start and expose a secured proxy and unsecured metrics`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster shouldn't have failing rules evaluation`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster shouldn't report any alerts in firing state apart from Watchdog and AlertmanagerReceiversNotConfigured \[Early\]`,
@@ -240,6 +231,22 @@ var (
 		"[Skipped:NoOptionalCapabilities]": {
 			// This test requires a valid console url which doesn't exist when the optional console capability is disabled.
 			`\[sig-cli\] oc basics can show correct whoami result with console`,
+
+			// Image Registry Skips:
+			// Requires ImageRegistry to upload appended images
+			`\[sig-imageregistry\]\[Feature:ImageAppend\] Image append should create images by appending them`,
+			// Requires ImageRegistry to redirect blob pull
+			`\[sig-imageregistry\] Image registry \[apigroup:route.openshift.io\] should redirect on blob pull`,
+			// Requires ImageRegistry service to be active for OCM to be able to create pull secrets
+			`\[sig-devex\]\[Feature:OpenShiftControllerManager\] TestAutomaticCreationOfPullSecrets \[apigroup:config.openshift.io\]`,
+			`\[sig-devex\]\[Feature:OpenShiftControllerManager\] TestDockercfgTokenDeletedController \[apigroup:image.openshift.io\]`,
+
+			// These tests run against OLM which does not exist when the optional OLM capability is disabled.
+			`\[sig-operator\] OLM should Implement packages API server and list packagemanifest info with namespace not NULL`,
+			`\[sig-operator\] OLM should be installed with`,
+			`\[sig-operator\] OLM should have imagePullPolicy:IfNotPresent on thier deployments`,
+			`\[sig-operator\] an end user can use OLM`,
+			`\[sig-arch\] ocp payload should be based on existing source OLM`,
 		},
 	}
 )

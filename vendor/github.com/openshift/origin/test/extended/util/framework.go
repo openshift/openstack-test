@@ -240,10 +240,25 @@ func processScanError(log string) error {
 // WaitForOpenShiftNamespaceImageStreams waits for the standard set of imagestreams to be imported
 func WaitForOpenShiftNamespaceImageStreams(oc *CLI) error {
 	ctx := context.Background()
-	langs := []string{"ruby", "nodejs", "perl", "php", "python", "mysql", "postgresql", "jenkins"}
+	images := []string{"ruby", "nodejs", "perl", "php", "python", "mysql", "postgresql", "jenkins"}
+
+	hasSamplesOperator, err := IsCapabilityEnabled(oc, configv1.ClusterVersionCapabilityOpenShiftSamples)
+	if err != nil {
+		return err
+	}
+	// Check to see if we have ImageRegistry and SamplesOperator enabled
+	hasImageRegistry, err := IsCapabilityEnabled(oc, configv1.ClusterVersionCapabilityImageRegistry)
+	if err != nil {
+		return err
+	}
+
+	if !hasSamplesOperator {
+		images = []string{"cli", "tools", "tests", "installer"}
+	}
+
 	e2e.Logf("waiting for image ecoystem imagestreams to be imported")
-	for _, lang := range langs {
-		err := WaitForSamplesImagestream(ctx, oc, lang)
+	for _, image := range images {
+		err := WaitForSamplesImagestream(ctx, oc, image, hasImageRegistry, hasSamplesOperator)
 		if err != nil {
 			DumpSampleOperator(oc)
 			return err
@@ -258,11 +273,15 @@ func WaitForOpenShiftNamespaceImageStreams(oc *CLI) error {
 // managed by the samples operator, and therefore will not be retried.
 //
 // This will wait up to 150 seconds for the referenced imagestream to finish importing.
-func WaitForSamplesImagestream(ctx context.Context, oc *CLI, imagestream string) error {
-	// First wait for the internal registry hostname to be published
-	registryHostname, err := WaitForInternalRegistryHostname(oc)
-	if err != nil {
-		return err
+func WaitForSamplesImagestream(ctx context.Context, oc *CLI, imagestream string, imageRegistryEnabled, openshiftSamplesEnabled bool) error {
+	var registryHostname string
+	var err error
+
+	if imageRegistryEnabled {
+		registryHostname, err = WaitForInternalRegistryHostname(oc)
+		if err != nil {
+			return err
+		}
 	}
 
 	var retried bool
@@ -271,12 +290,14 @@ func WaitForSamplesImagestream(ctx context.Context, oc *CLI, imagestream string)
 	// Based on a sampling of CI tests, imagestream imports from registry.redhat.io can take up to 2 minutes to complete.
 	// Imports which take longer generally indicate that there is a performance regression or outage in the container registry.
 	pollErr := wait.Poll(10*time.Second, 150*time.Second, func() (bool, error) {
-		retried, err = retrySamplesImagestreamImportIfNeeded(ctx, oc, imagestream)
-		if err != nil {
-			return false, err
-		}
-		if retried {
-			return false, nil
+		if openshiftSamplesEnabled {
+			retried, err = retrySamplesImagestreamImportIfNeeded(ctx, oc, imagestream)
+			if err != nil {
+				return false, err
+			}
+			if retried {
+				return false, nil
+			}
 		}
 		return checkOpenShiftNamespaceImageStreamImported(ctx, oc, imagestream, registryHostname)
 	})
@@ -2071,17 +2092,25 @@ func IsTechPreviewNoUpgrade(oc *CLI) bool {
 
 // DoesApiResourceExist searches the list of ApiResources and returns "true" if a given
 // apiResourceName Exists. Valid search strings are for example "cloudprivateipconfigs" or "machines".
-func DoesApiResourceExist(config *rest.Config, apiResourceName, groupVersionName string) (bool, error) {
+func DoesApiResourceExist(config *rest.Config, apiResourceName, group string) (bool, error) {
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return false, err
 	}
 	_, allResourceList, err := discoveryClient.ServerGroupsAndResources()
-	if err != nil {
+	var groupFailed *discovery.ErrGroupDiscoveryFailed
+	if errors.As(err, &groupFailed) {
+		for gv, err := range groupFailed.Groups {
+			if gv.Group == group {
+				return false, err
+			}
+		}
+	} else if err != nil {
 		return false, err
 	}
+
 	for _, apiResourceList := range allResourceList {
-		if groupName(groupVersionName) != groupName(apiResourceList.GroupVersion) {
+		if groupName(group) != groupName(apiResourceList.GroupVersion) {
 			continue
 		}
 		for _, apiResource := range apiResourceList.APIResources {
@@ -2092,6 +2121,40 @@ func DoesApiResourceExist(config *rest.Config, apiResourceName, groupVersionName
 	}
 
 	return false, nil
+}
+
+func IsNamespaceExist(kubeClient *kubernetes.Clientset, namespace string) (bool, error) {
+	_, err := kubeClient.CoreV1().Namespaces().Get(context.Background(), namespace, metav1.GetOptions{})
+	if err != nil {
+		if kapierrs.IsNotFound(err) {
+			e2e.Logf("%s namespace not found", namespace)
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+// IsMicroShiftCluster returns "true" if a cluster is MicroShift,
+// "false" otherwise. It needs kube-admin client as input.
+func IsMicroShiftCluster(kubeClient k8sclient.Interface) (bool, error) {
+	// MicroShift cluster contains "microshift-version" configmap in "kube-public" namespace
+	cm, err := kubeClient.CoreV1().ConfigMaps("kube-public").Get(context.Background(), "microshift-version", metav1.GetOptions{})
+	if err != nil {
+		if kapierrs.IsNotFound(err) {
+			e2e.Logf("microshift-version configmap not found")
+			return false, nil
+		}
+		e2e.Logf("error accessing microshift-version configmap: %v", err)
+		return false, err
+	}
+	if cm == nil {
+		e2e.Logf("microshift-version configmap is nil")
+		return false, nil
+	}
+	e2e.Logf("MicroShift cluster with version: %s", cm.Data["version"])
+	return true, nil
 }
 
 func groupName(groupVersionName string) string {
@@ -2162,4 +2225,17 @@ func collectConfigManifestsFromDir(configManifestsDir string) (error, []runtime.
 	})
 
 	return err, objects
+}
+
+func IsCapabilityEnabled(oc *CLI, cap configv1.ClusterVersionCapability) (bool, error) {
+	cv, err := oc.AdminConfigClient().ConfigV1().ClusterVersions().Get(context.Background(), "version", metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+	for _, capability := range cv.Status.Capabilities.EnabledCapabilities {
+		if capability == cap {
+			return true, nil
+		}
+	}
+	return false, nil
 }
