@@ -3,8 +3,8 @@ module github.com/openshift/openstack-test
 go 1.20
 
 require (
-	github.com/gophercloud/gophercloud v1.4.0
-	github.com/gophercloud/utils v0.0.0-20230523080330-de873b9cf00d
+	github.com/gophercloud/gophercloud v1.8.0
+	github.com/gophercloud/utils v0.0.0-20231010081019-80377eca5d56
 	github.com/openshift/origin v1.5.0-alpha.3.0.20230609045613-8db5731e8d00
 )
 
