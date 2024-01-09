@@ -23,8 +23,6 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack] MachineSet ProviderSpec template is correctly applied to Machines": "",
 
-	"[sig-installer][Suite:openshift/openstack] MachineSet have role worker": "",
-
 	"[sig-installer][Suite:openshift/openstack] MachineSet replica number corresponds to the number of Machines": "",
 
 	"[sig-installer][Suite:openshift/openstack] The OpenShift cluster runs with etcd on ephemeral local block device": "",
