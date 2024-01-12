@@ -47,13 +47,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] MachineSet", func
 		o.Expect(err).NotTo(o.HaveOccurred())
 	})
 
-	g.It("have role worker", func() {
-		for i := range machineSets {
-			labels := machineSets[i].Get("spec.template.metadata.labels").Data().(map[string]interface{})
-			o.Expect(labels[machineLabelRole]).To(o.Equal("worker"), "unexpected or absent MachineSet role label")
-		}
-	})
-
 	g.It("replica number corresponds to the number of Machines", func() {
 		for _, machineSet := range machineSets {
 			machineSetName := machineSet.Get("metadata.name").String()
@@ -75,12 +68,19 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] MachineSet", func
 				msSecurityGroups[securityGroupName] = struct{}{}
 			}
 
+			msLabels := machineSet.Get("spec.template.metadata.labels").Data().(map[string]interface{})
+
 			machines, err := machines.List(ctx, dc, machines.ByMachineSet(msName))
 			o.Expect(err).NotTo(o.HaveOccurred(), "error fetching machines for MachineSet %q", msName)
 
 			for _, machine := range machines {
 				machineName := machine.Get("metadata.name").String()
 				g.By("Comparing the MachineSet spec with machine " + machineName)
+
+				machineLabels := machine.Get("metadata.labels").Data().(map[string]interface{})
+				for label, value := range msLabels {
+					o.Expect(machineLabels[label]).To(o.Equal(value), "label mismatch on Machine %q of MachineSet %q", machineName, msName)
+				}
 
 				machineFlavor := machine.Get("spec.providerSpec.value.flavor").String()
 				machineImage := machine.Get("spec.providerSpec.value.image").String()
