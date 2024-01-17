@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/netip"
 	"os"
+	"strings"
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
@@ -36,7 +38,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 	var networkClient *gophercloud.ServiceClient
 	var clientSet *kubernetes.Clientset
 	var err error
-	var infraID string
 	var workerNodeList *corev1.NodeList
 	var cloudNetworkClientset cloudnetwork.Interface
 	oc := exutil.NewCLI("openstack")
@@ -60,10 +61,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 			e2eskipper.Skipf("Test not applicable for proxy setup")
 		}
 
-		infrastructure, err := oc.AdminConfigClient().ConfigV1().Infrastructures().Get(ctx, "cluster", metav1.GetOptions{})
-		o.Expect(err).NotTo(o.HaveOccurred())
-		infraID = infrastructure.Status.InfrastructureName
-
 		g.By("Getting the worker node list")
 		workerNodeList, err = clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{
 			LabelSelector: "node-role.kubernetes.io/worker",
@@ -72,12 +69,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 	})
 
 	g.It("attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType", func() {
-
-		dualstackIpv6Primary, err := isIpv6primaryDualStackCluster(ctx, oc)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		if dualstackIpv6Primary { //This test is covering and scenario that has no sense with ipv6 as there is no FIP/egressIP association.
-			e2eskipper.Skipf("Test not applicable for ipv6primary dualstack environments")
-		}
 
 		g.By("Getting the network type")
 		networkType, err := getNetworkType(ctx, oc)
@@ -108,13 +99,15 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		defer node.RemoveLabelOffNode(clientSet, primaryWorker.Name, egressAssignableLabelKey)
 
 		g.By(fmt.Sprintf("Getting the EgressIP network from the '%s' annotation", egressIPConfigAnnotationKey))
-		egressIPNetCidrStr, err := getEgressIPNetwork(primaryWorker)
+		egressIPNetCidrStr, egressPortId, err := getEgressNetworkInfo(primaryWorker, "ipv4")
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(egressIPNetCidrStr).NotTo(o.BeEmpty(), "Could not get the EgressIP network from the '%s' annotation", egressIPConfigAnnotationKey)
 		e2e.Logf("Found the EgressIP network: %s", egressIPNetCidrStr)
+		o.Expect(egressPortId).NotTo(o.BeEmpty(), "Could not get the Egress openstack portId from the '%s' annotation", egressPortId)
+		e2e.Logf("Found the Egress PortID: %s", egressPortId)
 
-		g.By("Obtaining a not in use IP address from the EgressIP network (machineNetwork cidr)")
-		machineNetworkID, err := getNetworkIdFromSubnetCidr(networkClient, egressIPNetCidrStr, infraID)
+		g.By("Finding the openstack network ID from the egressPortId defined in openshift node annotation")
+		machineNetworkID, err := getNetworkIdFromPortId(networkClient, egressPortId)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(machineNetworkID).NotTo(o.BeEmpty(), "Could not get the EgressIP network ID in openstack for '%s' subnet CIDR", egressIPNetCidrStr)
 		e2e.Logf("Found the EgressIP network ID '%s' in Openstack for the EgressIP CIDR '%s'", machineNetworkID, egressIPNetCidrStr)
@@ -130,29 +123,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		e2e.Logf("Created '%s' temporary directory", egressIPTempDir)
 		defer os.RemoveAll(egressIPTempDir)
 
-		g.By("Creating an EgressIP yaml file")
-		var egressIPname = "egress-ip"
-		var egressIPYamlFileName = "egressip.yaml"
-		var egressIPYamlFilePath = egressIPTempDir + "/" + egressIPYamlFileName
-		var egressIPYamlTemplate = `apiVersion: k8s.ovn.org/v1
-kind: EgressIP
-metadata:
-  name: %s
-spec:
-  egressIPs:
-  - %s
-  namespaceSelector:
-    matchLabels:
-      %s`
-
-		egressIPYaml := fmt.Sprintf(egressIPYamlTemplate, egressIPname, egressIPAddrStr, "app: egress")
-		e2e.Logf("egressIPYaml: %s", egressIPYaml)
-
-		err = os.WriteFile(egressIPYamlFilePath, []byte(egressIPYaml), 0644)
-		o.Expect(err).NotTo(o.HaveOccurred())
-
-		g.By(fmt.Sprintf("Creating an EgressIP object from '%s'", egressIPYamlFilePath))
-		err = oc.AsAdmin().Run("create").Args("-f", egressIPYamlFilePath).Execute()
+		g.By("Create egressIP resource in openshift")
+		egressIPname := "egress-ip"
+		err = createEgressIpResource(oc, egressIPname, egressIPAddrStr, "app: egress")
 		o.Expect(err).NotTo(o.HaveOccurred())
 		defer oc.AsAdmin().Run("delete").Args("egressip", egressIPname).Execute()
 
@@ -234,6 +207,85 @@ spec:
 		e2e.Logf("Found the expected Fixed IP (%s) for the FIP '%s'", egressIPAddrStr, fip.FloatingIP)
 
 	})
+
+	// https://issues.redhat.com/browse/OCPBUGS-27222
+	g.It("with IPv6 format should be created on dualstack cluster with OVN-Kubernetes NetworkType and dhcpv6-stateful mode", func() {
+
+		networks, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
+		o.Expect(err).NotTo(o.HaveOccurred())
+		dualstack, err := isDualStackCluster(networks.Status.ClusterNetwork)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if !dualstack {
+			e2eskipper.Skipf("Test only applicable for dualstack clusters")
+		}
+
+		g.By("Getting the network type")
+		networkType, err := getNetworkType(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if networkType != NetworkTypeOVNKubernetes {
+			e2eskipper.Skipf("Test not applicable for '%s' NetworkType (only valid for '%s')", networkType, NetworkTypeOVNKubernetes)
+		}
+
+		e2e.Logf("Getting the worker for the EgressIP")
+		worker := workerNodeList.Items[0]
+
+		g.By(fmt.Sprintf("Getting the EgressIP network from the '%s' annotation", egressIPConfigAnnotationKey))
+		egressIPNetCidrStr, egressPortId, err := getEgressNetworkInfo(worker, "ipv6")
+		o.Expect(err).NotTo(o.HaveOccurred())
+		o.Expect(egressIPNetCidrStr).NotTo(o.BeEmpty(), "Could not get the EgressIP network from the '%s' annotation", egressIPConfigAnnotationKey)
+		e2e.Logf("Found the EgressIP network: %s", egressIPNetCidrStr)
+		o.Expect(egressPortId).NotTo(o.BeEmpty(), "Could not get the Egress openstack portId from the '%s' annotation", egressPortId)
+		e2e.Logf("Found the Egress PortID: %s", egressPortId)
+
+		g.By("Finding the openstack network ID from the egressPortId defined in openshift node annotation")
+		machineNetworkID, err := getNetworkIdFromPortId(networkClient, egressPortId)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		o.Expect(machineNetworkID).NotTo(o.BeEmpty(), "Could not get the EgressIP network ID in openstack for '%s' subnet CIDR", egressIPNetCidrStr)
+		e2e.Logf("Found the EgressIP network ID '%s' in Openstack for the EgressIP CIDR '%s'", machineNetworkID, egressIPNetCidrStr)
+
+		g.By("Discovering the ipv6 mode configured in the subnet")
+		ipv6mode, err := getipv6ModeFromSubnetCidr(networkClient, egressIPNetCidrStr, machineNetworkID)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if ipv6mode != "dhcpv6-stateful" {
+			e2eskipper.Skipf("Test not applicable for '%s' ipv6mode (only valid for '%s')", ipv6mode, "dhcpv6-stateful")
+		}
+
+		// Label the worker node as EgressIP assignable node
+		g.By(fmt.Sprintf("Labeling the primary node '%s' with '%s'", worker.Name, egressAssignableLabelKey))
+		node.AddOrUpdateLabelOnNode(clientSet, worker.Name, egressAssignableLabelKey, "dummy")
+		defer node.RemoveLabelOffNode(clientSet, worker.Name, egressAssignableLabelKey)
+
+		g.By("Looking for a free IP in the subnet to use for the egressIP object in openshift")
+		egressIPAddrStr, err := getNotInUseEgressIP(networkClient, egressIPNetCidrStr, machineNetworkID)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		o.Expect(egressIPAddrStr).NotTo(o.BeEmpty(), "Couldn't find a free IP address in '%s' network in Openstack", egressIPNetCidrStr)
+		o.Expect(isIpv6(egressIPAddrStr)).To(o.BeTrue(), "egressIP should be IPv6 but it's %q", egressIPAddrStr)
+		e2e.Logf("Found '%s' free IP address in the EgressIP network in Openstack", egressIPAddrStr)
+
+		g.By("Create egressIP resource in openshift")
+		egressIPname := "egress-ip"
+		err = createEgressIpResource(oc, egressIPname, egressIPAddrStr, "app: egress")
+		o.Expect(err).NotTo(o.HaveOccurred())
+		defer oc.AsAdmin().Run("delete").Args("egressip", egressIPname).Execute()
+
+		g.By("Waiting until CloudPrivateIPConfig is created and assigned to the primary worker node")
+		cloudNetworkClientset, err = cloudnetwork.NewForConfig(oc.AdminConfig())
+		o.Expect(err).NotTo(o.HaveOccurred())
+		egressIPAddr, err := netip.ParseAddr(egressIPAddrStr)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		waitOk, err := waitCloudPrivateIPConfigAssignedNode(ctx, cloudNetworkClientset, strings.ReplaceAll(egressIPAddr.StringExpanded(), ":", "."), worker.Name)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		o.Expect(waitOk).To(o.BeTrue(), "Not found the expected assigned node '%s' in '%s' CloudPrivateIPConfig", worker.Name, egressIPAddrStr)
+		e2e.Logf("Found the expected assigned node '%s' in '%s' CloudPrivateIPConfig", worker.Name, egressIPAddrStr)
+
+		g.By("Checking that the port exists from openstack perspective")
+		egressNetInUseIPs, err := getInUseIPs(networkClient, machineNetworkID)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		o.Expect(egressNetInUseIPs).To(o.ContainElement(egressIPAddrStr))
+
+		g.By("Checking that the allowed_addresses_pairs are properly updated for the worker in the Openstack")
+		checkAllowedAddressesPairs(networkClient, worker, corev1.Node{}, egressIPAddrStr, machineNetworkID)
+	})
 })
 
 // getNotInUseEgressIP returns a not in use IP address from the EgressIP network CIDR
@@ -254,8 +306,8 @@ func getNotInUseEgressIP(client *gophercloud.ServiceClient, egressCidr string, e
 	return freeIP, nil
 }
 
-// getEgressIPNetwork returns the IP address from the node egress-ipconfig annotation
-func getEgressIPNetwork(node corev1.Node) (string, error) {
+// getEgressNetworkInfo returns the IP address CIDR and openstack portId from the node egress-ipconfig annotation
+func getEgressNetworkInfo(node corev1.Node, ipVersion string) (string, string, error) {
 	type ifAddr struct {
 		IPv4 string `json:"ipv4,omitempty"`
 		IPv6 string `json:"ipv6,omitempty"`
@@ -274,27 +326,47 @@ func getEgressIPNetwork(node corev1.Node) (string, error) {
 	annotation, ok := node.Annotations[egressIPConfigAnnotationKey]
 	if !ok {
 		e2e.Logf("Annotation '%s' not found in '%s' node", egressIPConfigAnnotationKey, node.Name)
-		return "", nil
+		return "", "", nil
 	}
 	e2e.Logf("Found '%s' annotation in '%s': %s", egressIPConfigAnnotationKey, node.Name, annotation)
 	var nodeEgressIPConfigs []*NodeEgressIPConfiguration
 	err := json.Unmarshal([]byte(annotation), &nodeEgressIPConfigs)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	egressIPNetStr := nodeEgressIPConfigs[0].IFAddr.IPv4
-	if egressIPNetStr == "" {
-		e2e.Logf("Empty ifaddr.ipv4 in the '%s' annotation", egressIPConfigAnnotationKey)
-		return "", nil
+	egressIPNetStr := ""
+	if ipVersion == "ipv6" {
+		egressIPNetStr = nodeEgressIPConfigs[0].IFAddr.IPv6
+		if egressIPNetStr == "" {
+			e2e.Logf("Empty ifaddr.ipv6 in the '%s' annotation", egressIPConfigAnnotationKey)
+			return "", "", nil
+		}
+	} else if ipVersion == "ipv4" {
+		egressIPNetStr = nodeEgressIPConfigs[0].IFAddr.IPv4
+		if egressIPNetStr == "" {
+			e2e.Logf("Empty ifaddr.ipv4 in the '%s' annotation", egressIPConfigAnnotationKey)
+			return "", "", nil
+		}
+	} else {
+		return "", "", fmt.Errorf("Unknown ipVersion. Only ipv4 and ipv6 supported")
 	}
-	return egressIPNetStr, nil
+
+	return egressIPNetStr, nodeEgressIPConfigs[0].Interface, nil
 }
 
-// getNetworkIdFromSubnetCidr returns the Openstack network ID for a given Openstack subnet CIDR
-func getNetworkIdFromSubnetCidr(client *gophercloud.ServiceClient, subnetCidr string, infraID string) (string, error) {
+// getNetworkIdFromPortId returns the Openstack network ID for a given Openstack port
+func getNetworkIdFromPortId(client *gophercloud.ServiceClient, portId string) (string, error) {
+	port, err := ports.Get(client, portId).Extract()
+	if err != nil {
+		return "", fmt.Errorf("failed to get port")
+	}
+	return port.NetworkID, nil
+}
+
+func getipv6ModeFromSubnetCidr(client *gophercloud.ServiceClient, subnetCidr string, networkId string) (string, error) {
 	listOpts := subnets.ListOpts{
-		CIDR: subnetCidr,
-		Tags: "openshiftClusterID=" + infraID,
+		CIDR:      subnetCidr,
+		NetworkID: networkId,
 	}
 	allPages, err := subnets.List(client, listOpts).AllPages()
 	if err != nil {
@@ -307,7 +379,7 @@ func getNetworkIdFromSubnetCidr(client *gophercloud.ServiceClient, subnetCidr st
 	if len(allSubnets) != 1 {
 		return "", fmt.Errorf("unexpected number of subnets found  with '%s' CIDR: %d subnets", subnetCidr, len(allSubnets))
 	}
-	return allSubnets[0].NetworkID, nil
+	return allSubnets[0].IPv6AddressMode, nil
 }
 
 // getInUseIPs returns the in use IPs in a given network ID in Openstack
@@ -451,13 +523,13 @@ func waitCloudPrivateIPConfigAssignedNode(ctx context.Context, cloudNetClientset
 func getAllowedIPsFromNode(client *gophercloud.ServiceClient, node corev1.Node, machineNetwork string) ([]string, error) {
 
 	result := []string{}
-	ip := node.GetAnnotations()["alpha.kubernetes.io/provided-node-ip"]
+	ip := strings.Split(node.GetAnnotations()["alpha.kubernetes.io/provided-node-ip"], ",")[0]
 	nodePorts, err := getPortsByIP(client, ip, machineNetwork)
 	if err != nil {
 		return nil, err
 	}
 	if len(nodePorts) != 1 {
-		return nil, fmt.Errorf("unexpected number of openstack ports for IP %s", ip)
+		return nil, fmt.Errorf("unexpected number of openstack ports (%d) for IP %s", len(nodePorts), ip)
 	}
 	for _, addressPair := range nodePorts[0].AllowedAddressPairs {
 		result = append(result, addressPair.IPAddress)
@@ -471,7 +543,7 @@ func checkAllowedAddressesPairs(client *gophercloud.ServiceClient, nodeHoldingEg
 	o.Eventually(func() bool {
 		allowedIpList, err := getAllowedIPsFromNode(client, nodeHoldingEgressIp, networkID)
 		if err != nil {
-			e2e.Logf("error obtaining allowedIpList")
+			e2e.Logf("error obtaining allowedIpList: %q", err)
 			return false
 		} else if !contains(allowedIpList, egressIp) {
 			e2e.Logf("egressIP %s still not found on obtained allowedIpList (%s) for node %s", egressIp, allowedIpList, nodeHoldingEgressIp.Name)
@@ -481,16 +553,60 @@ func checkAllowedAddressesPairs(client *gophercloud.ServiceClient, nodeHoldingEg
 	}, "10s", "1s").Should(o.BeTrue(), "Timed out checking allowed address pairs for node %s", nodeHoldingEgressIp.Name)
 	e2e.Logf("egressIp %s correctly included on the node allowed-address-pairs for %s", egressIp, nodeHoldingEgressIp.Name)
 
-	o.Eventually(func() bool {
-		allowedIpList, err := getAllowedIPsFromNode(client, nodeNotHoldingEgressIp, networkID)
-		if err != nil {
-			e2e.Logf("error obtaining allowedIpList")
-			return false
-		} else if contains(allowedIpList, egressIp) {
-			e2e.Logf("egressIP %s still found on obtained allowedIpList (%s) for node %s", egressIp, allowedIpList, nodeNotHoldingEgressIp.Name)
-			return false
-		}
-		return true
-	}, "10s", "1s").Should(o.BeTrue(), "Timed out checking allowed address pairs for node %s", nodeNotHoldingEgressIp.Name)
-	e2e.Logf("egressIp %s correctly not included on the node allowed-address-pairs for %s", egressIp, nodeNotHoldingEgressIp.Name)
+	if nodeNotHoldingEgressIp.Name != "" {
+		o.Eventually(func() bool {
+			allowedIpList, err := getAllowedIPsFromNode(client, nodeNotHoldingEgressIp, networkID)
+			if err != nil {
+				e2e.Logf("error obtaining allowedIpList")
+				return false
+			} else if contains(allowedIpList, egressIp) {
+				e2e.Logf("egressIP %s still found on obtained allowedIpList (%s) for node %s", egressIp, allowedIpList, nodeNotHoldingEgressIp.Name)
+				return false
+			}
+			return true
+		}, "10s", "1s").Should(o.BeTrue(), "Timed out checking allowed address pairs for node %s", nodeNotHoldingEgressIp.Name)
+		e2e.Logf("egressIp %s correctly not included on the node allowed-address-pairs for %s", egressIp, nodeNotHoldingEgressIp.Name)
+	} else {
+		e2e.Logf("Skipping check for worker not holding the egressIP")
+	}
+}
+
+func createEgressIpResource(oc *exutil.CLI, egressIPname string, egressIPAddrStr string, labels string) error {
+
+	g.By("Creating a temp directory")
+	egressIPTempDir, err := os.MkdirTemp("", "egressip-e2e")
+	if err != nil {
+		return err
+	}
+	e2e.Logf("Created '%s' temporary directory", egressIPTempDir)
+	defer os.RemoveAll(egressIPTempDir)
+
+	g.By("Creating an EgressIP yaml file")
+	var egressIPYamlFileName = "egressip.yaml"
+	var egressIPYamlFilePath = egressIPTempDir + "/" + egressIPYamlFileName
+	var egressIPYamlTemplate = `apiVersion: k8s.ovn.org/v1
+kind: EgressIP
+metadata:
+  name: %s
+spec:
+  egressIPs:
+  - %s
+  namespaceSelector:
+    matchLabels:
+      %s`
+
+	egressIPYaml := fmt.Sprintf(egressIPYamlTemplate, egressIPname, egressIPAddrStr, labels)
+	e2e.Logf("egressIPYaml: %s", egressIPYaml)
+
+	err = os.WriteFile(egressIPYamlFilePath, []byte(egressIPYaml), 0644)
+	if err != nil {
+		return err
+	}
+
+	g.By(fmt.Sprintf("Creating an EgressIP object from '%s'", egressIPYamlFilePath))
+	err = oc.AsAdmin().Run("create").Args("-f", egressIPYamlFilePath).Execute()
+	if err != nil {
+		return err
+	}
+	return nil
 }
