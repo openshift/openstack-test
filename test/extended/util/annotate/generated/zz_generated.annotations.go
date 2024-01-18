@@ -57,9 +57,17 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when LoadBalancerService ingressController is created on Openshift": "",
 
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when a TCP svc with type:LoadBalancer and IP family policy PreferDualStack and IP families [IPv4 IPv6] is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when a TCP svc with type:LoadBalancer and IP family policy PreferDualStack and IP families [IPv6 IPv4] is created on Openshift": "",
+
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when LoadBalancerService ingressController is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when a TCP svc with type:LoadBalancer and IP family policy PreferDualStack and IP families [IPv4 IPv6] is created on Openshift": "",
+
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when a TCP svc with type:LoadBalancer and IP family policy PreferDualStack and IP families [IPv6 IPv4] is created on Openshift": "",
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
 
