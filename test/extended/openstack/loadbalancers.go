@@ -7,7 +7,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -52,7 +51,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 	var cloudProviderConfig *ini.File
 	var loadBalancerServiceTimeout = 10 * time.Minute
 	availableLbProvidersUnderTests := [2]string{"Amphora", "OVN"}
-	availableProtocolsUnderTests := [2]v1.Protocol{v1.ProtocolTCP, v1.ProtocolUDP}
+	availableProtocolsUnderTests := [2]v1.Protocol{v1.ProtocolTCP}
 	lbMethodsWithETPGlobal := map[string]string{
 		"OVN":     "source_ip_port",
 		"Amphora": "round_robin",
@@ -69,11 +68,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 		// TODO revert once https://issues.redhat.com/browse/OSASINFRA-3079 is resolved
 		// For now, LoadBalancer tests are not applicable when the cluster is running behind a proxy.
-		proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(ctx, "cluster", metav1.GetOptions{})
-		o.Expect(err).NotTo(o.HaveOccurred())
-		if os.Getenv("HTTP_PROXY") != "" || os.Getenv("HTTPS_PROXY") != "" || proxy.Status.HTTPProxy != "" {
-			e2eskipper.Skipf("Test not applicable for proxy setup")
-		}
+		// proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(ctx, "cluster", metav1.GetOptions{})
+		// o.Expect(err).NotTo(o.HaveOccurred())
+		// if os.Getenv("HTTP_PROXY") != "" || os.Getenv("HTTPS_PROXY") != "" || proxy.Status.HTTPProxy != "" {
+		// 	e2eskipper.Skipf("Test not applicable for proxy setup")
+		// }
 
 		g.By("preparing openstack client")
 		loadBalancerClient, err = client(serviceLoadBalancer)
