@@ -71,7 +71,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 			VolumeType  string
 		}
 		var cpmsFDs []FailureDomain
-		var machinesFDs = make(map[FailureDomain]struct{})
+		var machinesFDs []FailureDomain
 
 		for _, network := range objects(providerSpec.Get("value.networks")) {
 			subnet := network.Get("subnets").String()
@@ -132,7 +132,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 					VolumeType:  machineVolumeType,
 				}
 				o.Expect(cpmsFDs).To(o.ContainElement(fd))
-				machinesFDs[fd] = struct{}{}
+				machinesFDs = append(machinesFDs, fd)
 			}
 
 			for _, network := range objects(machine.Get("spec.providerSpec.value.networks")) {
