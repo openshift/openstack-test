@@ -256,7 +256,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		e2e.Logf("Found '%s' free IP address in the EgressIP network in Openstack", egressIPAddrStr)
 
 		g.By("Create egressIP resource in openshift")
-		egressIPname := "egress-ip"
+		egressIPname := "egress-ipv6"
 		err = createEgressIpResource(oc, egressIPname, egressIPAddrStr, "app: egress")
 		o.Expect(err).NotTo(o.HaveOccurred())
 		defer oc.AsAdmin().Run("delete").Args("egressip", egressIPname).Execute()
