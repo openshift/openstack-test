@@ -63,7 +63,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 
 		g.By("Getting the worker node list")
 		workerNodeList, err = clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{
-			LabelSelector: "node-role.kubernetes.io/worker",
+			LabelSelector: "node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=",
 		})
 		o.Expect(err).NotTo(o.HaveOccurred())
 	})
