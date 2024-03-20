@@ -1621,7 +1621,7 @@ type Criteria struct {
 	// Policies: The specific AlertPolicy names for the alert that should be
 	// snoozed. The format is:
 	// projects/[PROJECT_ID_OR_NUMBER]/alertPolicies/[POLICY_ID] There is a
-	// limit of 10 policies per snooze. This limit is checked during snooze
+	// limit of 16 policies per snooze. This limit is checked during snooze
 	// creation.
 	Policies []string `json:"policies,omitempty"`
 
@@ -2561,7 +2561,17 @@ type HttpCheck struct {
 	//   "URL_ENCODED" - body is in URL-encoded form. Equivalent to setting
 	// the Content-Type to application/x-www-form-urlencoded in the HTTP
 	// request.
+	//   "USER_PROVIDED" - body is in custom_content_type form. Equivalent
+	// to setting the Content-Type to the contents of custom_content_type in
+	// the HTTP request.
 	ContentType string `json:"contentType,omitempty"`
+
+	// CustomContentType: A user provided content type header to use for the
+	// check. The invalid configurations outlined in the content_type field
+	// apply to custom_content_type, as well as the following: 1.
+	// content_type is URL_ENCODED and custom_content_type is set. 2.
+	// content_type is USER_PROVIDED and custom_content_type is not set.
+	CustomContentType string `json:"customContentType,omitempty"`
 
 	// Headers: The list of headers to send as part of the Uptime check
 	// request. If two headers have the same key and different values, they
@@ -4092,7 +4102,7 @@ type MetricThreshold struct {
 
 	// ForecastOptions: When this field is present, the MetricThreshold
 	// condition forecasts whether the time series is predicted to violate
-	// the threshold within the forecast_horizion. When this field is not
+	// the threshold within the forecast_horizon. When this field is not
 	// set, the MetricThreshold tests the current value of the timeseries
 	// against the threshold.
 	ForecastOptions *ForecastOptions `json:"forecastOptions,omitempty"`
@@ -6190,6 +6200,12 @@ type UptimeCheckConfig struct {
 	// continent of South America.
 	//   "ASIA_PACIFIC" - Allows checks to run from locations within the
 	// Asia Pacific area (ex: Singapore).
+	//   "USA_OREGON" - Allows checks to run from locations within the
+	// western United States of America
+	//   "USA_IOWA" - Allows checks to run from locations within the central
+	// United States of America
+	//   "USA_VIRGINIA" - Allows checks to run from locations within the
+	// eastern United States of America
 	SelectedRegions []string `json:"selectedRegions,omitempty"`
 
 	// TcpCheck: Contains information needed to make a TCP check.
@@ -6264,6 +6280,12 @@ type UptimeCheckIp struct {
 	// continent of South America.
 	//   "ASIA_PACIFIC" - Allows checks to run from locations within the
 	// Asia Pacific area (ex: Singapore).
+	//   "USA_OREGON" - Allows checks to run from locations within the
+	// western United States of America
+	//   "USA_IOWA" - Allows checks to run from locations within the central
+	// United States of America
+	//   "USA_VIRGINIA" - Allows checks to run from locations within the
+	// eastern United States of America
 	Region string `json:"region,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "IpAddress") to
