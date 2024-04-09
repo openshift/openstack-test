@@ -356,8 +356,26 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 				g.By("Creating Openshift deployment")
 				labels := map[string]string{"app": "lb-etplocal-dep"}
-				replicas := int32(2)
-				testDeployment := createTestDeployment("lb-etplocal-dep", labels, replicas, protocolUnderTest, 8081)
+				workerNodeList, err := clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{
+					LabelSelector: "node-role.kubernetes.io/worker",
+				})
+				o.Expect(err).NotTo(o.HaveOccurred())
+				replicas := len(workerNodeList.Items)
+				testDeployment := createTestDeployment("lb-etplocal-dep", labels, int32(replicas), protocolUnderTest, 8081)
+
+				testDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
+					PodAntiAffinity: &v1.PodAntiAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{{
+							TopologyKey: "kubernetes.io/hostname",
+							LabelSelector: &metav1.LabelSelector{
+								MatchExpressions: []metav1.LabelSelectorRequirement{
+									{
+										Key:      "app",
+										Operator: metav1.LabelSelectorOpIn,
+										Values:   []string{"lb-etplocal-dep"},
+									},
+								},
+							}}}}}
 				deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 					testDeployment, metav1.CreateOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred())
