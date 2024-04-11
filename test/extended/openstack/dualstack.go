@@ -85,7 +85,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 				g.By("Creating Openshift deployment")
 				labels := map[string]string{"app": "lb-dualstack-dep"}
-				testDeployment := createTestDeployment("lb-dualstack-dep", labels, 2, protocolUnderTest, 8081)
+				testDeployment := createTestDeployment(deploymentOpts{
+					Name:     "lb-dualstack-dep",
+					Labels:   labels,
+					Replicas: 2,
+					Protocol: protocolUnderTest,
+					Port:     8081,
+				})
 				deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 					testDeployment, metav1.CreateOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred())
