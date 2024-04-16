@@ -14,6 +14,7 @@ import (
 	machinev1alpha1 "github.com/openshift/api/machine/v1alpha1"
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -24,9 +25,10 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/ports"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/ports"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/subnets"
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
@@ -34,6 +36,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
+	var networkClient *gophercloud.ServiceClient
 
 	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing openshift dynamic client")
@@ -45,6 +48,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		skipUnlessMachineAPIOperator(ctx, dc, clientSet.CoreV1().Namespaces())
+
+		g.By("preparing the openstack client")
+		networkClient, err = client.GetServiceClient(ctx, openstack.NewNetworkV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
 	})
 
 	g.Context("bz_2073398:", func() {
@@ -52,13 +59,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 			// Check the scenario at https://bugzilla.redhat.com/show_bug.cgi?id=2073398
 
 			g.By("Fetching worker machineSets")
-			var networkClient *gophercloud.ServiceClient
 			var rawBytes []byte
 			var newProviderSpec machinev1alpha1.OpenstackProviderSpec
 			var rclient runtimeclient.Client
 
-			networkClient, err := client(serviceNetwork)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack network client")
 			machineSets, err := getMachineSets(ctx, dc)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error getting the workers machinesets")
 
@@ -113,7 +117,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to Unmarshal the new Machineset")
 
 			subnetListOpts := subnets.ListOpts{ID: config.PrimarySubnet}
-			subnetAllPages, err := subnets.List(networkClient, subnetListOpts).AllPages()
+			subnetAllPages, err := subnets.List(networkClient, subnetListOpts).AllPages(ctx)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get subnets")
 			allSubnets, err := subnets.ExtractSubnets(subnetAllPages)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to extract subnets")
@@ -125,7 +129,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 			}
 
 			g.By("Checking if an orphaned port related to the delete machineset exists")
-			allPages, err := ports.List(networkClient, portListOpts).AllPages()
+			allPages, err := ports.List(networkClient, portListOpts).AllPages(ctx)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get ports")
 
 			allPorts, err := ports.ExtractPorts(allPages)

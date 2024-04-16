@@ -4,11 +4,13 @@ import (
 	"context"
 	"strings"
 
-	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/servergroups"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servergroups"
+	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servers"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	exutil "github.com/openshift/origin/test/extended/util"
 	yaml "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
@@ -44,6 +46,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		dc, err = dynamic.NewForConfig(cfg)
 		o.Expect(err).NotTo(o.HaveOccurred())
 
+		g.By("preparing the openstack client")
+		computeClient, err = client.GetServiceClient(ctx, openstack.NewComputeV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
+
 		g.By("getting the IDs of the Control plane and Worker instances")
 		{
 			masterInstanceUUIDs = make([]interface{}, 0, 3)
@@ -75,8 +81,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				workerInstanceUUIDs = append(workerInstanceUUIDs, uuid)
 
 			}
-			computeClient, err = client(serviceCompute)
-			o.Expect(err).NotTo(o.HaveOccurred())
 		}
 	})
 
@@ -105,10 +109,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		}
 		g.By("Checking the actual members of the Server Group")
 		{
-			serverGroupsWithThatName, err := serverGroupIDsFromName(computeClient, controlPlaneGroupName)
+			serverGroupsWithThatName, err := serverGroupIDsFromName(ctx, computeClient, controlPlaneGroupName)
 			o.Expect(serverGroupsWithThatName, err).To(o.HaveLen(1), "the server group name either was not found or is not unique")
 
-			serverGroup, err := servergroups.Get(computeClient, serverGroupsWithThatName[0]).Extract()
+			serverGroup, err := servergroups.Get(ctx, computeClient, serverGroupsWithThatName[0]).Extract()
 			o.Expect(serverGroup.Members, err).To(o.ContainElements(masterInstanceUUIDs...))
 		}
 
@@ -125,7 +129,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		host_ids := make(map[string]int)
 
 		for _, server_id := range masterInstanceUUIDs {
-			server, err := servers.Get(computeClient, server_id.(string)).Extract()
+			server, err := servers.Get(ctx, computeClient, server_id.(string)).Extract()
 			o.Expect(err).NotTo(o.HaveOccurred())
 			host_ids[server.HostID] += 1
 		}
@@ -165,10 +169,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		{
 			totalMembers := []string{}
 			for _, workerGroupName := range workerAZGroupNameMap {
-				serverGroupsWithThatName, err := serverGroupIDsFromName(computeClient, workerGroupName)
+				serverGroupsWithThatName, err := serverGroupIDsFromName(ctx, computeClient, workerGroupName)
 				o.Expect(serverGroupsWithThatName, err).To(o.HaveLen(1), "the Server Group name either was not found or is not unique")
 
-				serverGroup, err := servergroups.Get(computeClient, serverGroupsWithThatName[0]).Extract()
+				serverGroup, err := servergroups.Get(ctx, computeClient, serverGroupsWithThatName[0]).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				totalMembers = append(totalMembers, serverGroup.Members...)
 			}
@@ -188,7 +192,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		host_ids := make(map[string]int)
 
 		for _, server_id := range workerInstanceUUIDs {
-			server, err := servers.Get(computeClient, server_id.(string)).Extract()
+			server, err := servers.Get(ctx, computeClient, server_id.(string)).Extract()
 			o.Expect(err).NotTo(o.HaveOccurred())
 			host_ids[server.HostID] += 1
 		}
@@ -208,8 +212,8 @@ func getFromUnstructured(unstr *unstructured.Unstructured, keys ...string) inter
 
 // IDsFromName returns zero or more IDs corresponding to a name. The returned
 // error is only non-nil in case of failure.
-func serverGroupIDsFromName(client *gophercloud.ServiceClient, name string) ([]string, error) {
-	pages, err := servergroups.List(client, nil).AllPages()
+func serverGroupIDsFromName(ctx context.Context, client *gophercloud.ServiceClient, name string) ([]string, error) {
+	pages, err := servergroups.List(client, nil).AllPages(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -7,11 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack/blockstorage/v3/volumes"
-	"github.com/gophercloud/gophercloud/openstack/sharedfilesystems/v2/shares"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/blockstorage/v3/volumes"
+	"github.com/gophercloud/gophercloud/v2/openstack/sharedfilesystems/v2/shares"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	exutil "github.com/openshift/origin/test/extended/util"
 	"github.com/stretchr/objx"
 	yaml "gopkg.in/yaml.v2"
@@ -33,7 +35,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 	var volumeClient *gophercloud.ServiceClient
-	var shareClient *gophercloud.ServiceClient
 	oc := exutil.NewCLI("openstack")
 
 	g.Context("on volume creation", func() {
@@ -46,9 +47,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			o.Expect(err).NotTo(o.HaveOccurred())
 			clientSet, err = e2e.LoadClientset()
 			o.Expect(err).NotTo(o.HaveOccurred())
-			g.By("preparing openstack client")
-			volumeClient, err = client("volume")
-			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("preparing the openstack client")
+			volumeClient, err = client.GetServiceClient(ctx, openstack.NewBlockStorageV3)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
 		})
 
 		// https://access.redhat.com/support/cases/#/case/03081641
@@ -66,7 +68,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			g.By("Gather Openstack cinder volumes for the PVCs before resizing")
 			var initial_volumes []volumes.Volume
 			for _, pvc := range initial_pvcs {
-				cinderVolumes, err := getVolumesFromName(volumeClient, pvc.Get("spec.volumeName").String())
+				cinderVolumes, err := getVolumesFromName(ctx, volumeClient, pvc.Get("spec.volumeName").String())
 				o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for PVC %q", pvc.Get("metadata.name"))
 				o.Expect(cinderVolumes).To(o.HaveLen(1), "unexpected number of volumes for %q", pvc.Get("metadata.name"))
 				initial_volumes = append(initial_volumes, cinderVolumes[0])
@@ -96,7 +98,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 			//oc edit pvc prometheus-k8s-db-prometheus-k8s-0 -n openshift-monitoring
 			for _, pvc := range initial_pvcs {
-				vols, err := getVolumesFromName(volumeClient, pvc.Get("spec.volumeName").String())
+				vols, err := getVolumesFromName(ctx, volumeClient, pvc.Get("spec.volumeName").String())
 				o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for PVC %q", pvc.Get("metadata.name"))
 				o.Expect(vols).To(o.HaveLen(1), "unexpected number of volumes for %q", pvc.Get("metadata.name"))
 				new_size := vols[0].Size + 1
@@ -137,7 +139,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				e2e.Logf("Gather Openstack cinder volumes for the PVCs after resizing")
 				var resized_volumes []volumes.Volume
 				for _, pvc := range resized_pvcs {
-					cinderVolumes, err := getVolumesFromName(volumeClient, pvc.Get("spec.volumeName").String())
+					cinderVolumes, err := getVolumesFromName(ctx, volumeClient, pvc.Get("spec.volumeName").String())
 					if err != nil {
 						return fmt.Errorf("error gathering Openstack info for PVC %q", pvc.Get("metadata.name"))
 					}
@@ -190,20 +192,21 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				e2eskipper.Skipf("No StorageClass with manila.csi.openstack.org provisioner")
 			}
 
+			shareClient, err := client.GetServiceClient(ctx, openstack.NewSharedFileSystemV2)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
 			ns := oc.Namespace()
 			pvc := CreatePVC(ctx, clientSet, "manila-pvc", ns, manilaSc.Name, "1Gi")
 			fileContent := "hello"
 
-			shareClient, err = client("sharev2")
-			o.Expect(err).NotTo(o.HaveOccurred())
 			// Make sure a Manila share was created with the same name as the PVC
 			err = waitPvcVolume(ctx, clientSet, pvc.Name, ns)
 			o.Expect(err).NotTo(o.HaveOccurred())
-			manilaShares, err := GetSharesFromName(shareClient, pvc.Spec.VolumeName)
+			manilaShares, err := GetSharesFromName(ctx, shareClient, pvc.Spec.VolumeName)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(len(manilaShares)).To(o.Equal(1))
 			shareID := manilaShares[0].ID
-			_, err = shares.Get(shareClient, shareID).Extract()
+			_, err = shares.Get(ctx, shareClient, shareID).Extract()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			// Creating a deployment with the volumes attached
@@ -216,7 +219,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				Replicas: 2,
 				Protocol: v1.ProtocolTCP,
 				Port:     8080,
-				Volumes: []volumeOption{volumeOption{
+				Volumes: []volumeOption{{
 					Name:      "data-volume",
 					PvcName:   pvc.Name,
 					MountPath: "data",
@@ -278,12 +281,12 @@ func getMonitoringPvcs(ctx context.Context, dc dynamic.Interface) ([]objx.Map, e
 }
 
 // return volume from openstack with specific name
-func getVolumesFromName(client *gophercloud.ServiceClient, volumeName string) ([]volumes.Volume, error) {
+func getVolumesFromName(ctx context.Context, client *gophercloud.ServiceClient, volumeName string) ([]volumes.Volume, error) {
 	var emptyVol []volumes.Volume
 	listOpts := volumes.ListOpts{
 		Name: volumeName,
 	}
-	allPages, err := volumes.List(client, listOpts).AllPages()
+	allPages, err := volumes.List(client, listOpts).AllPages(ctx)
 	if err != nil {
 		return emptyVol, err
 	}

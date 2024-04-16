@@ -1,5 +1,5 @@
-# Will be replaced in the CI with registry.ci.openshift.org/ocp/builder:rhel-8-golang-1.16-openshift-4.10
-FROM golang:1.18 AS builder
+# Will be replaced in the CI
+FROM golang:1.21 AS builder
 
 WORKDIR /src
 

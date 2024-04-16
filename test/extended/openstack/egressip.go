@@ -9,13 +9,15 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/ports"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/extensions/layer3/floatingips"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/ports"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/subnets"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	cloudnetwork "github.com/openshift/client-go/cloudnetwork/clientset/versioned"
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	exutil "github.com/openshift/origin/test/extended/util"
 
 	corev1 "k8s.io/api/core/v1"
@@ -34,7 +36,6 @@ const (
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egressIP", func() {
-
 	var networkClient *gophercloud.ServiceClient
 	var clientSet *kubernetes.Clientset
 	var err error
@@ -47,8 +48,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		clientSet, err = e2e.LoadClientset()
 		o.Expect(err).NotTo(o.HaveOccurred())
 
-		networkClient, err = client(serviceNetwork)
-		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack network client")
+		g.By("preparing the openstack client")
+		networkClient, err = client.GetServiceClient(ctx, openstack.NewNetworkV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
 
 		// TODO revert once https://issues.redhat.com/browse/OSASINFRA-3079 is resolved
 		proxy, err := oc.AdminConfigClient().ConfigV1().Proxies().Get(ctx, "cluster", metav1.GetOptions{})
@@ -103,12 +105,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		e2e.Logf("Found the Egress PortID: %s", egressPortId)
 
 		g.By("Finding the openstack network ID from the egressPortId defined in openshift node annotation")
-		machineNetworkID, err := getNetworkIdFromPortId(networkClient, egressPortId)
+		machineNetworkID, err := getNetworkIdFromPortId(ctx, networkClient, egressPortId)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(machineNetworkID).NotTo(o.BeEmpty(), "Could not get the EgressIP network ID in openstack for '%s' subnet CIDR", egressIPNetCidrStr)
 		e2e.Logf("Found the EgressIP network ID '%s' in Openstack for the EgressIP CIDR '%s'", machineNetworkID, egressIPNetCidrStr)
 
-		egressIPAddrStr, err := getNotInUseEgressIP(networkClient, egressIPNetCidrStr, machineNetworkID)
+		egressIPAddrStr, err := getNotInUseEgressIP(ctx, networkClient, egressIPNetCidrStr, machineNetworkID)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(egressIPAddrStr).NotTo(o.BeEmpty(), "Couldn't find a free IP address in '%s' network in Openstack", egressIPNetCidrStr)
 		e2e.Logf("Found '%s' free IP address in the EgressIP network in Openstack", egressIPAddrStr)
@@ -146,26 +148,26 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		o.Expect(cpicAssignedNode).To(o.Equal(primaryWorker.Name), "'%s' egressIP has been deassigned to the '%s' node", egressIPAddrStr, primaryWorker.Name)
 
 		g.By("Checking a port has been created in Openstack for the EgressIP")
-		ports, err := getPortsByIP(networkClient, egressIPAddrStr, machineNetworkID)
+		ports, err := getPortsByIP(ctx, networkClient, egressIPAddrStr, machineNetworkID)
 		o.Expect(err).NotTo(o.HaveOccurred(), "Could not find the Openstack port with IP address '%s'", egressIPAddrStr)
 		o.Expect(ports).To(o.HaveLen(1), "Unexpected number of Openstack ports (%d) found with IP address '%s'", len(ports), egressIPAddrStr)
 		egressIPPort := ports[0]
 		e2e.Logf("Found '%s' Openstack port with IP address '%s'", egressIPPort.Name, egressIPAddrStr)
 
 		g.By("Checking that the allowed_addresses_pairs are properly updated for the workers in the Openstack before failover")
-		checkAllowedAddressesPairs(networkClient, primaryWorker, secondaryWorker, egressIPAddrStr, machineNetworkID)
+		checkAllowedAddressesPairs(ctx, networkClient, primaryWorker, secondaryWorker, egressIPAddrStr, machineNetworkID)
 
 		g.By("Creating a FIP in Openstack")
 		var fip *floatingips.FloatingIP
-		externalNetworkId, err := GetFloatingNetworkID(networkClient)
+		externalNetworkId, err := GetFloatingNetworkID(ctx, networkClient)
 		o.Expect(err).NotTo(o.HaveOccurred())
-		fip, err = floatingips.Create(networkClient, floatingips.CreateOpts{FloatingNetworkID: externalNetworkId}).Extract()
+		fip, err = floatingips.Create(ctx, networkClient, floatingips.CreateOpts{FloatingNetworkID: externalNetworkId}).Extract()
 		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating FIP using discovered floatingNetwork ID '%s'", externalNetworkId)
 		e2e.Logf("The FIP '%s' has been created in Openstack", fip.FloatingIP)
-		defer floatingips.Delete(networkClient, fip.ID)
+		defer floatingips.Delete(ctx, networkClient, fip.ID)
 
 		g.By(fmt.Sprintf("Attaching the FIP %s to the EgressIP port '%s'", fip.FloatingIP, egressIPPort.Name))
-		fip, err = floatingips.Update(networkClient, fip.ID, floatingips.UpdateOpts{PortID: &egressIPPort.ID}).Extract()
+		fip, err = floatingips.Update(ctx, networkClient, fip.ID, floatingips.UpdateOpts{PortID: &egressIPPort.ID}).Extract()
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(fip.FixedIP).To(o.Equal(egressIPAddrStr), "FIP '%s' Fixed IP Address (%s) is not the expected one (%s)", fip.FloatingIP, fip.FixedIP, egressIPAddrStr)
 		e2e.Logf("Fixed IP (%s) attached to FIP '%s'", egressIPAddrStr, fip.FloatingIP)
@@ -180,17 +182,17 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		e2e.Logf("Found the expected assigned node '%s' in '%s' CloudPrivateIPConfig", secondaryWorker.Name, egressIPAddrStr)
 
 		g.By("Checking the Openstack port is kept after the EgressIP failover")
-		ports, err = getPortsByIP(networkClient, egressIPAddrStr, machineNetworkID)
+		ports, err = getPortsByIP(ctx, networkClient, egressIPAddrStr, machineNetworkID)
 		o.Expect(err).NotTo(o.HaveOccurred(), "Could not find the Openstack port with IP address '%s'", egressIPAddrStr)
 		o.Expect(ports).To(o.HaveLen(1), "Unexpected number of Openstack ports (%d) found with IP address '%s'", len(ports), egressIPAddrStr)
 		o.Expect(ports[0].ID).To(o.Equal(egressIPPort.ID), "Found different Openstack port ID for the EgressIP after the EgressIP failover")
 		e2e.Logf("The Openstack port '%s' has been kept after the EgressIP failover", egressIPPort.Name)
 
 		g.By("Checking that the allowed_addresses_pairs are properly updated for the workers in the Openstack after failover")
-		checkAllowedAddressesPairs(networkClient, secondaryWorker, primaryWorker, egressIPAddrStr, machineNetworkID)
+		checkAllowedAddressesPairs(ctx, networkClient, secondaryWorker, primaryWorker, egressIPAddrStr, machineNetworkID)
 
 		g.By("Checking the FIP Fixed IP address is kept")
-		fip, err = floatingips.Get(networkClient, fip.ID).Extract()
+		fip, err = floatingips.Get(ctx, networkClient, fip.ID).Extract()
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(fip.FixedIP).To(o.Equal(egressIPAddrStr), "FIP '%s' Fixed IP Address (%s) is not the expected one (%s)", fip.FloatingIP, fip.FixedIP, egressIPAddrStr)
 		e2e.Logf("Found the expected Fixed IP (%s) for the FIP '%s'", egressIPAddrStr, fip.FloatingIP)
@@ -227,13 +229,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		e2e.Logf("Found the Egress PortID: %s", egressPortId)
 
 		g.By("Finding the openstack network ID from the egressPortId defined in openshift node annotation")
-		machineNetworkID, err := getNetworkIdFromPortId(networkClient, egressPortId)
+		machineNetworkID, err := getNetworkIdFromPortId(ctx, networkClient, egressPortId)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(machineNetworkID).NotTo(o.BeEmpty(), "Could not get the EgressIP network ID in openstack for '%s' subnet CIDR", egressIPNetCidrStr)
 		e2e.Logf("Found the EgressIP network ID '%s' in Openstack for the EgressIP CIDR '%s'", machineNetworkID, egressIPNetCidrStr)
 
 		g.By("Discovering the ipv6 mode configured in the subnet")
-		ipv6mode, err := getipv6ModeFromSubnetCidr(networkClient, egressIPNetCidrStr, machineNetworkID)
+		ipv6mode, err := getipv6ModeFromSubnetCidr(ctx, networkClient, egressIPNetCidrStr, machineNetworkID)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		if ipv6mode != "dhcpv6-stateful" {
 			e2eskipper.Skipf("Test not applicable for '%s' ipv6mode (only valid for '%s')", ipv6mode, "dhcpv6-stateful")
@@ -245,7 +247,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		defer node.RemoveLabelOffNode(clientSet, worker.Name, egressAssignableLabelKey)
 
 		g.By("Looking for a free IP in the subnet to use for the egressIP object in openshift")
-		egressIPAddrStr, err := getNotInUseEgressIP(networkClient, egressIPNetCidrStr, machineNetworkID)
+		egressIPAddrStr, err := getNotInUseEgressIP(ctx, networkClient, egressIPNetCidrStr, machineNetworkID)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(egressIPAddrStr).NotTo(o.BeEmpty(), "Couldn't find a free IP address in '%s' network in Openstack", egressIPNetCidrStr)
 		o.Expect(isIpv6(egressIPAddrStr)).To(o.BeTrue(), "egressIP should be IPv6 but it's %q", egressIPAddrStr)
@@ -268,20 +270,20 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		e2e.Logf("Found the expected assigned node '%s' in '%s' CloudPrivateIPConfig", worker.Name, egressIPAddrStr)
 
 		g.By("Checking that the port exists from openstack perspective")
-		egressNetInUseIPs, err := getInUseIPs(networkClient, machineNetworkID)
+		egressNetInUseIPs, err := getInUseIPs(ctx, networkClient, machineNetworkID)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		o.Expect(egressNetInUseIPs).To(o.ContainElement(egressIPAddrStr))
 
 		g.By("Checking that the allowed_addresses_pairs are properly updated for the worker in the Openstack")
-		checkAllowedAddressesPairs(networkClient, worker, corev1.Node{}, egressIPAddrStr, machineNetworkID)
+		checkAllowedAddressesPairs(ctx, networkClient, worker, corev1.Node{}, egressIPAddrStr, machineNetworkID)
 	})
 })
 
 // getNotInUseEgressIP returns a not in use IP address from the EgressIP network CIDR
-func getNotInUseEgressIP(client *gophercloud.ServiceClient, egressCidr string, egressIPNetID string) (string, error) {
+func getNotInUseEgressIP(ctx context.Context, client *gophercloud.ServiceClient, egressCidr string, egressIPNetID string) (string, error) {
 
 	// Obtain the IPs in use in the EgressIP network in Openstack
-	egressNetInUseIPs, err := getInUseIPs(client, egressIPNetID)
+	egressNetInUseIPs, err := getInUseIPs(ctx, client, egressIPNetID)
 	if err != nil {
 		return "", err
 	}
@@ -344,20 +346,20 @@ func getEgressNetworkInfo(node corev1.Node, ipVersion string) (string, string, e
 }
 
 // getNetworkIdFromPortId returns the Openstack network ID for a given Openstack port
-func getNetworkIdFromPortId(client *gophercloud.ServiceClient, portId string) (string, error) {
-	port, err := ports.Get(client, portId).Extract()
+func getNetworkIdFromPortId(ctx context.Context, client *gophercloud.ServiceClient, portId string) (string, error) {
+	port, err := ports.Get(ctx, client, portId).Extract()
 	if err != nil {
 		return "", fmt.Errorf("failed to get port")
 	}
 	return port.NetworkID, nil
 }
 
-func getipv6ModeFromSubnetCidr(client *gophercloud.ServiceClient, subnetCidr string, networkId string) (string, error) {
+func getipv6ModeFromSubnetCidr(ctx context.Context, client *gophercloud.ServiceClient, subnetCidr string, networkId string) (string, error) {
 	listOpts := subnets.ListOpts{
 		CIDR:      subnetCidr,
 		NetworkID: networkId,
 	}
-	allPages, err := subnets.List(client, listOpts).AllPages()
+	allPages, err := subnets.List(client, listOpts).AllPages(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to get subnets")
 	}
@@ -372,12 +374,12 @@ func getipv6ModeFromSubnetCidr(client *gophercloud.ServiceClient, subnetCidr str
 }
 
 // getInUseIPs returns the in use IPs in a given network ID in Openstack
-func getInUseIPs(client *gophercloud.ServiceClient, networkId string) ([]string, error) {
+func getInUseIPs(ctx context.Context, client *gophercloud.ServiceClient, networkId string) ([]string, error) {
 	var inUseIPs []string
 	portListOpts := ports.ListOpts{
 		NetworkID: networkId,
 	}
-	allPages, err := ports.List(client, portListOpts).AllPages()
+	allPages, err := ports.List(client, portListOpts).AllPages(ctx)
 	if err != nil {
 		e2e.Logf("Failed to get ports")
 		return nil, err
@@ -460,12 +462,12 @@ func getCpipAssignedNode(ctx context.Context, cloudNetClientset cloudnetwork.Int
 	return privIPconfig.Spec.Node, nil
 }
 
-func getPortsByIP(client *gophercloud.ServiceClient, ipAddr string, networkID string) ([]ports.Port, error) {
+func getPortsByIP(ctx context.Context, client *gophercloud.ServiceClient, ipAddr string, networkID string) ([]ports.Port, error) {
 	portListOpts := ports.ListOpts{
 		FixedIPs:  []ports.FixedIPOpts{{IPAddress: ipAddr}},
 		NetworkID: networkID,
 	}
-	allPages, err := ports.List(client, portListOpts).AllPages()
+	allPages, err := ports.List(client, portListOpts).AllPages(ctx)
 	if err != nil {
 		e2e.Logf("Failed to get ports")
 		return nil, err
@@ -509,11 +511,10 @@ func waitCloudPrivateIPConfigAssignedNode(ctx context.Context, cloudNetClientset
 }
 
 // Returns the list of IPs present on the openstack allowed_address_pairs attribute in the node main port
-func getAllowedIPsFromNode(client *gophercloud.ServiceClient, node corev1.Node, machineNetwork string) ([]string, error) {
-
+func getAllowedIPsFromNode(ctx context.Context, client *gophercloud.ServiceClient, node corev1.Node, machineNetwork string) ([]string, error) {
 	result := []string{}
 	ip := strings.Split(node.GetAnnotations()["alpha.kubernetes.io/provided-node-ip"], ",")[0]
-	nodePorts, err := getPortsByIP(client, ip, machineNetwork)
+	nodePorts, err := getPortsByIP(ctx, client, ip, machineNetwork)
 	if err != nil {
 		return nil, err
 	}
@@ -527,10 +528,10 @@ func getAllowedIPsFromNode(client *gophercloud.ServiceClient, node corev1.Node, 
 }
 
 // Checking the egressIP is added to allowed_address_pairs in the expected node and it is not present in the other
-func checkAllowedAddressesPairs(client *gophercloud.ServiceClient, nodeHoldingEgressIp corev1.Node, nodeNotHoldingEgressIp corev1.Node, egressIp string, networkID string) {
+func checkAllowedAddressesPairs(ctx context.Context, client *gophercloud.ServiceClient, nodeHoldingEgressIp corev1.Node, nodeNotHoldingEgressIp corev1.Node, egressIp string, networkID string) {
 
 	o.Eventually(func() bool {
-		allowedIpList, err := getAllowedIPsFromNode(client, nodeHoldingEgressIp, networkID)
+		allowedIpList, err := getAllowedIPsFromNode(ctx, client, nodeHoldingEgressIp, networkID)
 		if err != nil {
 			e2e.Logf("error obtaining allowedIpList: %q", err)
 			return false
@@ -544,7 +545,7 @@ func checkAllowedAddressesPairs(client *gophercloud.ServiceClient, nodeHoldingEg
 
 	if nodeNotHoldingEgressIp.Name != "" {
 		o.Eventually(func() bool {
-			allowedIpList, err := getAllowedIPsFromNode(client, nodeNotHoldingEgressIp, networkID)
+			allowedIpList, err := getAllowedIPsFromNode(ctx, client, nodeNotHoldingEgressIp, networkID)
 			if err != nil {
 				e2e.Logf("error obtaining allowedIpList")
 				return false
