@@ -21,15 +21,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 
 	defer g.GinkgoRecover()
 
-	var ctx context.Context
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 	var controlPlaneMachineSet objx.Map
 	var controlPlaneMachines []objx.Map
 
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing openshift dynamic client")
 		cfg, err := e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())

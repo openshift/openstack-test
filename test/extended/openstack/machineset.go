@@ -25,14 +25,11 @@ const (
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] MachineSet", func() {
 	defer g.GinkgoRecover()
 
-	var ctx context.Context
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 	var machineSets []objx.Map
 
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing openshift dynamic client")
 		cfg, err := e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -47,7 +44,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] MachineSet", func
 		o.Expect(err).NotTo(o.HaveOccurred())
 	})
 
-	g.It("replica number corresponds to the number of Machines", func() {
+	g.It("replica number corresponds to the number of Machines", func(ctx g.SpecContext) {
 		for _, machineSet := range machineSets {
 			machineSetName := machineSet.Get("metadata.name").String()
 			replicaNumber, _ := strconv.Atoi(machineSet.Get("spec.replicas").String())
@@ -56,7 +53,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] MachineSet", func
 		}
 	})
 
-	g.It("ProviderSpec template is correctly applied to Machines", func() {
+	g.It("ProviderSpec template is correctly applied to Machines", func(ctx g.SpecContext) {
 		for _, machineSet := range machineSets {
 			msName := machineSet.Get("metadata.name").String()
 

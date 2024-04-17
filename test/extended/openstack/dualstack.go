@@ -1,7 +1,6 @@
 package openstack
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -24,8 +23,6 @@ import (
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform", func() {
-	var ctx context.Context
-
 	oc := exutil.NewCLI("openstack")
 	var loadBalancerClient *gophercloud.ServiceClient
 	var networkClient *gophercloud.ServiceClient
@@ -36,9 +33,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 	ipFamilyPolicy := "PreferDualStack"
 	ipFamilies := [][]v1.IPFamily{{v1.IPv4Protocol, v1.IPv6Protocol}, {v1.IPv6Protocol, v1.IPv4Protocol}}
 
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		network, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 		dualstack, err := isDualStackCluster(network.Status.ClusterNetwork)
@@ -79,7 +74,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		lbProviderUnderTest := i
 		protocolUnderTest := v1.Protocol("TCP")
 		for _, ipFamiliesList := range ipFamilies {
-			g.It(fmt.Sprintf("should create a %s %s LoadBalancer when a %s svc with type:LoadBalancer and IP family policy %s and IP families %s is created on Openshift", protocolUnderTest, lbProviderUnderTest, protocolUnderTest, ipFamilyPolicy, ipFamiliesList), func() {
+			g.It(fmt.Sprintf("should create a %s %s LoadBalancer when a %s svc with type:LoadBalancer and IP family policy %s and IP families %s is created on Openshift", protocolUnderTest, lbProviderUnderTest, protocolUnderTest, ipFamilyPolicy, ipFamiliesList), func(ctx g.SpecContext) {
 				fmt.Fprintf(g.GinkgoWriter, "Some log text: %v\n", lbProviderUnderTest)
 				skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 

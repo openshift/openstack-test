@@ -42,11 +42,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 	var cloudNetworkClientset cloudnetwork.Interface
 	oc := exutil.NewCLI("openstack")
 
-	var ctx context.Context
-
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("Loading the kubernetes clientset")
 		clientSet, err = e2e.LoadClientset()
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -68,7 +64,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		o.Expect(err).NotTo(o.HaveOccurred())
 	})
 
-	g.It("attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType", func() {
+	g.It("attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType", func(ctx g.SpecContext) {
 
 		g.By("Getting the network type")
 		networkType, err := getNetworkType(ctx, oc)
@@ -202,7 +198,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 	})
 
 	// https://issues.redhat.com/browse/OCPBUGS-27222
-	g.It("with IPv6 format should be created on dualstack cluster with OVN-Kubernetes NetworkType and dhcpv6-stateful mode", func() {
+	g.It("with IPv6 format should be created on dualstack cluster with OVN-Kubernetes NetworkType and dhcpv6-stateful mode", func(ctx g.SpecContext) {
 
 		networks, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())

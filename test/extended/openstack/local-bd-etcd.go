@@ -1,7 +1,6 @@
 package openstack
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 
@@ -24,7 +23,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenShift clu
 	const etcdBlockDeviceName = "etcd"
 
 	var computeClient *gophercloud.ServiceClient
-	var ctx context.Context
 	var dc dynamic.Interface
 	var controlPlaneFlavor string
 	var clientSet *kubernetes.Clientset
@@ -63,9 +61,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenShift clu
 		}
 	}
 
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing a dynamic client")
 		cfg, err := e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -88,7 +84,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenShift clu
 		skipUnlessEtcdAdditionalBlockDevice(cpms)
 	})
 
-	g.It("runs with etcd on ephemeral local block device", func() {
+	g.It("runs with etcd on ephemeral local block device", func(ctx g.SpecContext) {
 
 		g.By("checking that the control plane flavor has enough ephemeral storage")
 		{

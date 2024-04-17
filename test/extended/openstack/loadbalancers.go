@@ -43,8 +43,6 @@ import (
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform", func() {
-	var ctx context.Context
-
 	oc := exutil.NewCLI("openstack")
 	var loadBalancerClient *gophercloud.ServiceClient
 	var networkClient *gophercloud.ServiceClient
@@ -58,9 +56,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		"Amphora": "round_robin",
 	}
 
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		network, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 		if network.Status.NetworkType == "Kuryr" {
@@ -103,7 +99,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 			// https://issues.redhat.com/browse/OSASINFRA-2753
 			// https://issues.redhat.com/browse/OSASINFRA-2412
-			g.It(fmt.Sprintf("should create a %s %s LoadBalancer when a %s svc with type:LoadBalancer is created on Openshift", protocolUnderTest, lbProviderUnderTest, protocolUnderTest), func() {
+			g.It(fmt.Sprintf("should create a %s %s LoadBalancer when a %s svc with type:LoadBalancer is created on Openshift", protocolUnderTest, lbProviderUnderTest, protocolUnderTest), func(ctx g.SpecContext) {
 
 				skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
@@ -183,7 +179,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		}
 
 		// https://github.com/kubernetes/cloud-provider-openstack/blob/master/docs/openstack-cloud-controller-manager/expose-applications-using-loadbalancer-type-service.md#sharing-load-balancer-with-multiple-services
-		g.It(fmt.Sprintf("should re-use an existing UDP %s LoadBalancer when new svc is created on Openshift with the proper annotation", lbProviderUnderTest), func() {
+		g.It(fmt.Sprintf("should re-use an existing UDP %s LoadBalancer when new svc is created on Openshift with the proper annotation", lbProviderUnderTest), func(ctx g.SpecContext) {
 
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
@@ -263,7 +259,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 		// https://github.com/kubernetes/cloud-provider-openstack/blob/master/docs/openstack-cloud-controller-manager/expose-applications-using-loadbalancer-type-service.md#sharing-load-balancer-with-multiple-services
 		// In order to prevent accidental exposure internal Services cannot share a load balancer with any other Service.
-		g.It(fmt.Sprintf("should not re-use an existing UDP %s LoadBalancer if shared internal svc is created", lbProviderUnderTest), func() {
+		g.It(fmt.Sprintf("should not re-use an existing UDP %s LoadBalancer if shared internal svc is created", lbProviderUnderTest), func(ctx g.SpecContext) {
 
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
@@ -336,7 +332,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			protocolUnderTest := j
 
 			// https://issues.redhat.com/browse/OCPBUGS-2350
-			g.It(fmt.Sprintf("should apply lb-method on %s %s LoadBalancer when a %s svc with monitors and ETP:Local is created on Openshift", protocolUnderTest, lbProviderUnderTest, protocolUnderTest), func() {
+			g.It(fmt.Sprintf("should apply lb-method on %s %s LoadBalancer when a %s svc with monitors and ETP:Local is created on Openshift", protocolUnderTest, lbProviderUnderTest, protocolUnderTest), func(ctx g.SpecContext) {
 
 				skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
@@ -458,7 +454,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		}
 
 		// https://bugzilla.redhat.com/show_bug.cgi?id=1997704
-		g.It(fmt.Sprintf("should create an UDP %s LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift", lbProviderUnderTest), func() {
+		g.It(fmt.Sprintf("should create an UDP %s LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift", lbProviderUnderTest), func(ctx g.SpecContext) {
 
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
@@ -530,22 +526,22 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		})
 
 		// https://issues.redhat.com/browse/OSASINFRA-2412
-		g.It(fmt.Sprintf("should create a TCP %s LoadBalancer when LoadBalancerService ingressController is created on Openshift", lbProviderUnderTest), func() {
+		g.It(fmt.Sprintf("should create a TCP %s LoadBalancer when LoadBalancerService ingressController is created on Openshift", lbProviderUnderTest), func(ctx g.SpecContext) {
 
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
 			g.By("Creating ingresscontroller for sharding the OCP in-built canary service")
 			name := "shard-" + string(uuid.NewUUID())
 			domain := "sharding-test.apps.shiftstack.com"
-			shardIngressCtrl, err := deployLbIngressController(oc, 10*time.Minute, name, domain, map[string]string{"ingress.openshift.io/canary": "canary_controller"})
+			shardIngressCtrl, err := deployLbIngressController(ctx, oc, 10*time.Minute, name, domain, map[string]string{"ingress.openshift.io/canary": "canary_controller"})
 			defer func() {
-				err := oc.AdminOperatorClient().OperatorV1().IngressControllers(shardIngressCtrl.Namespace).Delete(context.Background(), shardIngressCtrl.Name, metav1.DeleteOptions{})
+				err := oc.AdminOperatorClient().OperatorV1().IngressControllers(shardIngressCtrl.Namespace).Delete(ctx, shardIngressCtrl.Name, metav1.DeleteOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred(), "error destroying ingress-controller created during the test")
 			}()
 			o.Expect(err).NotTo(o.HaveOccurred(), "new ingresscontroller did not rollout")
 
 			g.By("Checks from openshift perspective")
-			svc, err := oc.AdminKubeClient().CoreV1().Services("openshift-ingress").Get(context.Background(), "router-"+name, metav1.GetOptions{})
+			svc, err := oc.AdminKubeClient().CoreV1().Services("openshift-ingress").Get(ctx, "router-"+name, metav1.GetOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "router-%q not found in openshift-ingress namespace", name)
 			o.Expect(svc.Spec.Type).Should(o.Equal(v1.ServiceTypeLoadBalancer), "Unexpected svc Type: %q", svc.Spec.Type)
 			loadBalancerId := svc.GetAnnotations()["loadbalancer.openstack.org/load-balancer-id"]
@@ -570,7 +566,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			}
 
 			g.By("Test that the canary service is accessible through new ingressController")
-			route, err := oc.AdminRouteClient().RouteV1().Routes("openshift-ingress-canary").Get(context.Background(), "canary", metav1.GetOptions{})
+			route, err := oc.AdminRouteClient().RouteV1().Routes("openshift-ingress-canary").Get(ctx, "canary", metav1.GetOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "canary route not found")
 			host := ""
 			for _, ingress := range route.Status.Ingress {
@@ -593,7 +589,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			e2e.Logf("Canary service successfully accessed through new ingressController")
 		})
 
-		g.It(fmt.Sprintf("should limit service access on an UDP %s LoadBalancer when an UDP LoadBalancer svc setting the loadBalancerSourceRanges spec is created on Openshift", lbProviderUnderTest), func() {
+		g.It(fmt.Sprintf("should limit service access on an UDP %s LoadBalancer when an UDP LoadBalancer svc setting the loadBalancerSourceRanges spec is created on Openshift", lbProviderUnderTest), func(ctx g.SpecContext) {
 
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
@@ -996,7 +992,7 @@ func getMembersMatchingStatus(client *gophercloud.ServiceClient, pool *pools.Poo
 }
 
 // Deploy ingressController with Type "LoadBalancerService" and wait until it is ready
-func deployLbIngressController(oc *exutil.CLI, timeout time.Duration, name, domain string, routeSelectorlabels map[string]string) (*operatorv1.IngressController, error) {
+func deployLbIngressController(ctx context.Context, oc *exutil.CLI, timeout time.Duration, name, domain string, routeSelectorlabels map[string]string) (*operatorv1.IngressController, error) {
 
 	var ingressControllerLbAvailableConditions = []operatorv1.OperatorCondition{
 		{Type: operatorv1.IngressControllerAvailableConditionType, Status: operatorv1.ConditionTrue},
@@ -1019,17 +1015,17 @@ func deployLbIngressController(oc *exutil.CLI, timeout time.Duration, name, doma
 			},
 		},
 	}
-	_, err := oc.AdminOperatorClient().OperatorV1().IngressControllers(ingressCtrl.Namespace).Create(context.Background(), ingressCtrl, metav1.CreateOptions{})
+	_, err := oc.AdminOperatorClient().OperatorV1().IngressControllers(ingressCtrl.Namespace).Create(ctx, ingressCtrl, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	return ingressCtrl, waitForIngressControllerCondition(oc, timeout, types.NamespacedName{Namespace: ingressCtrl.Namespace, Name: ingressCtrl.Name}, ingressControllerLbAvailableConditions...)
+	return ingressCtrl, waitForIngressControllerCondition(ctx, oc, timeout, types.NamespacedName{Namespace: ingressCtrl.Namespace, Name: ingressCtrl.Name}, ingressControllerLbAvailableConditions...)
 }
 
-func waitForIngressControllerCondition(oc *exutil.CLI, timeout time.Duration, name types.NamespacedName, conditions ...operatorv1.OperatorCondition) error {
+func waitForIngressControllerCondition(ctx context.Context, oc *exutil.CLI, timeout time.Duration, name types.NamespacedName, conditions ...operatorv1.OperatorCondition) error {
 	return wait.PollImmediate(3*time.Second, timeout, func() (bool, error) {
-		ic, err := oc.AdminOperatorClient().OperatorV1().IngressControllers(name.Namespace).Get(context.Background(), name.Name, metav1.GetOptions{})
+		ic, err := oc.AdminOperatorClient().OperatorV1().IngressControllers(name.Namespace).Get(ctx, name.Name, metav1.GetOptions{})
 		if err != nil {
 			e2e.Logf("failed to get ingresscontroller %s/%s: %v, retrying...", name.Namespace, name.Name, err)
 			return false, nil

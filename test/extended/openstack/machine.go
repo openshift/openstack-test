@@ -33,7 +33,6 @@ import (
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() {
 	defer g.GinkgoRecover()
 
-	var ctx context.Context
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 	var computeClient *gophercloud.ServiceClient
@@ -41,9 +40,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() 
 	var volumeClient *gophercloud.ServiceClient
 	var machineResources []objx.Map
 
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing openshift dynamic client")
 		cfg, err := e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
