@@ -35,10 +35,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 
-	var ctx context.Context
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing openshift dynamic client")
 		cfg, err := e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -51,7 +48,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 	})
 
 	g.Context("bz_2073398:", func() {
-		g.It("[Serial] MachineSet scale-in does not leak OpenStack ports", func() {
+		g.It("[Serial] MachineSet scale-in does not leak OpenStack ports", func(ctx g.SpecContext) {
 			// Check the scenario at https://bugzilla.redhat.com/show_bug.cgi?id=2073398
 
 			g.By("Fetching worker machineSets")

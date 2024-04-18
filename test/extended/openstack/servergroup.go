@@ -25,7 +25,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	defer g.GinkgoRecover()
 
 	var computeClient *gophercloud.ServiceClient
-	var ctx context.Context
 	var dc dynamic.Interface
 	var oc *exutil.CLI
 	var masterInstanceUUIDs []interface{}
@@ -38,9 +37,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 	oc = exutil.NewCLI("openstack")
 
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing a dynamic client")
 		cfg, err := e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -84,7 +81,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	})
 
 	// OCP 4.5: https://issues.redhat.com/browse/OSASINFRA-1300
-	g.It("creates Control plane nodes in a server group", func() {
+	g.It("creates Control plane nodes in a server group", func(ctx g.SpecContext) {
 		g.By("Checking the Control plane instances are in the same Server Group")
 		{
 			for _, item := range masterNodeList.Items {
@@ -118,7 +115,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	})
 
 	// OCP 4.10: https://issues.redhat.com/browse/OSASINFRA-2507
-	g.It("creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity", func() {
+	g.It("creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity", func(ctx g.SpecContext) {
 		installConfig, err := installConfigFromCluster(ctx, oc.AdminKubeClient().CoreV1())
 		o.Expect(err).NotTo(o.HaveOccurred())
 		serverGroupPolicy := installConfig.ControlPlane.Platform.OpenStack.ServerGroupPolicy
@@ -136,7 +133,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			"Master nodes should be on different hosts when anti-affinity policy is used")
 	})
 
-	g.It("creates Worker nodes in a server group", func() {
+	g.It("creates Worker nodes in a server group", func(ctx g.SpecContext) {
 		g.By("Checking the Worker instances in a given AZ are in the same Server Group")
 		{
 			workerAZGroupNameMap = map[string]string{}
@@ -181,7 +178,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	})
 
 	// OCP 4.10: https://issues.redhat.com/browse/OSASINFRA-2570
-	g.It("creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity", func() {
+	g.It("creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity", func(ctx g.SpecContext) {
 		installConfig, err := installConfigFromCluster(ctx, oc.AdminKubeClient().CoreV1())
 		o.Expect(err).NotTo(o.HaveOccurred())
 		serverGroupPolicy := installConfig.Compute[0].Platform.OpenStack.ServerGroupPolicy

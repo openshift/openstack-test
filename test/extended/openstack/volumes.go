@@ -31,11 +31,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	var clientSet *kubernetes.Clientset
 	var volumeClient *gophercloud.ServiceClient
 
-	var ctx context.Context
-	g.BeforeEach(func() {
-		ctx = context.Background()
-	})
-
 	g.Context("on volume creation", func() {
 
 		g.BeforeEach(func() {
@@ -53,7 +48,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 		// https://access.redhat.com/support/cases/#/case/03081641
 		// https://access.redhat.com/solutions/5325711
-		g.It("should follow PVC specs during resizing for prometheus", func() {
+		g.It("should follow PVC specs during resizing for prometheus", func(ctx g.SpecContext) {
 
 			if !isPersistentStorageEnabledOnPrometheusK8s(ctx, clientSet) {
 				e2eskipper.Skipf("openshift-monitoring does not have Persistent Storage enabled.")

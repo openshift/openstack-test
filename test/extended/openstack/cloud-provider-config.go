@@ -1,7 +1,6 @@
 package openstack
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -29,11 +28,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 		skip      []string //Slice of properties that are not expected to be present in the internal configMaps
 	}
 
-	var ctx context.Context
-	g.BeforeEach(func() {
-		ctx = context.Background()
-	})
-
 	g.Context("on cloud provider configuration", func() {
 
 		g.BeforeEach(func() {
@@ -44,7 +38,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 		})
 
 		// https://bugzilla.redhat.com/show_bug.cgi?id=2065597
-		g.It("should haul the user config to the expected config maps", func() {
+		g.It("should haul the user config to the expected config maps", func(ctx g.SpecContext) {
 
 			userConfigMap := configParams{
 				namespace: "openshift-config",
@@ -116,7 +110,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 		})
 
 		//https://bugzilla.redhat.com/show_bug.cgi?id=2074471
-		g.It("should set enabled property in [LoadBalancer] section in CCM depending on the NetworkType", func() {
+		g.It("should set enabled property in [LoadBalancer] section in CCM depending on the NetworkType", func(ctx g.SpecContext) {
 
 			ccmConfigMap := configParams{
 				namespace: "openshift-cloud-controller-manager",
@@ -170,7 +164,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 		})
 
 		//Reference: https://github.com/openshift/installer/blob/master/docs/user/openstack/README.md#openstack-credentials-update
-		g.It("should store cloud credentials on secrets", func() {
+		g.It("should store cloud credentials on secrets", func(ctx g.SpecContext) {
 
 			systemNamespace := "kube-system"
 			openstackCredsRole := "openstack-creds-secret-reader"

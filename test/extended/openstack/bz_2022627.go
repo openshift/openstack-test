@@ -1,7 +1,6 @@
 package openstack
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -56,14 +55,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 		return result, nil
 	}
 
-	var ctx context.Context
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 	var computeClient *gophercloud.ServiceClient
 
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing openshift dynamic client")
 		cfg, err := e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -80,7 +76,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 	})
 
 	g.Context("bz_2022627:", func() {
-		g.It("Machine should report all openstack instance addresses", func() {
+		g.It("Machine should report all openstack instance addresses", func(ctx g.SpecContext) {
 			// N.B. A UPI installation will not have any Machine objects. This test correctly trivially succeeds in that case because it
 			// iterates over Machine objects which exist.
 

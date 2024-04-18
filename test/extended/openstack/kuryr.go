@@ -1,8 +1,6 @@
 package openstack
 
 import (
-	"context"
-
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	configv1client "github.com/openshift/client-go/config/clientset/versioned"
@@ -16,11 +14,7 @@ import (
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack][Kuryr] Kuryr", func() {
 	var clientSet *kubernetes.Clientset
 
-	var ctx context.Context
-
-	g.BeforeEach(func() {
-		ctx = context.Background()
-
+	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing openshift dynamic client")
 		cfg, err := e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -37,7 +31,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][Kuryr] Kuryr", fu
 		}
 	})
 
-	g.It("should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace", func() {
+	g.It("should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace", func(ctx g.SpecContext) {
 		g.By("Creating a Namespace and pods")
 		{
 			ns := CreateNamespace(ctx, clientSet, "kuryr-hostnetwork", true)
