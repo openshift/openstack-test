@@ -9,11 +9,13 @@ import (
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/blockstorage/v3/volumes"
+	"github.com/gophercloud/gophercloud/openstack/sharedfilesystems/v2/shares"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	exutil "github.com/openshift/origin/test/extended/util"
 	"github.com/stretchr/objx"
 	yaml "gopkg.in/yaml.v2"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -21,6 +23,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
+	e2edeployment "k8s.io/kubernetes/test/e2e/framework/deployment"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
@@ -30,10 +33,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	var dc dynamic.Interface
 	var clientSet *kubernetes.Clientset
 	var volumeClient *gophercloud.ServiceClient
+	var shareClient *gophercloud.ServiceClient
+	oc := exutil.NewCLI("openstack")
 
 	g.Context("on volume creation", func() {
 
-		g.BeforeEach(func() {
+		g.BeforeEach(func(ctx g.SpecContext) {
 			g.By("preparing openshift dynamic client")
 			cfg, err := e2e.LoadConfig()
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -174,6 +179,64 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				}
 				return nil
 			}, "60s", "10s").Should(o.BeNil())
+		})
+
+		g.It("should create a manila share when using manila storage class", func(ctx g.SpecContext) {
+			var err error
+			manilaSc := FindStorageClassByProvider(oc, "manila.csi.openstack.org")
+
+			// Skip if Manila Storage class is not defined
+			if manilaSc == nil {
+				e2eskipper.Skipf("No StorageClass with manila.csi.openstack.org provisioner")
+			}
+
+			ns := oc.Namespace()
+			pvc := CreatePVC(ctx, clientSet, "manila-pvc", ns, manilaSc.Name, "1Gi")
+			fileContent := "hello"
+
+			shareClient, err = client("sharev2")
+			o.Expect(err).NotTo(o.HaveOccurred())
+			// Make sure a Manila share was created with the same name as the PVC
+			err = waitPvcVolume(ctx, clientSet, pvc.Name, ns)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			manilaShares, err := GetSharesFromName(shareClient, pvc.Spec.VolumeName)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(len(manilaShares)).To(o.Equal(1))
+			shareID := manilaShares[0].ID
+			_, err = shares.Get(shareClient, shareID).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			// Creating a deployment with the volumes attached
+			g.By("Creating Openshift deployment with 2 replicas and volumes attached")
+			labels := map[string]string{"app": "manila-test-dep"}
+
+			testDeployment := createTestDeployment(deploymentOpts{
+				Name:     "manila-test-dep",
+				Labels:   labels,
+				Replicas: 2,
+				Protocol: v1.ProtocolTCP,
+				Port:     8080,
+				Volumes: []volumeOption{volumeOption{
+					Name:      "data-volume",
+					PvcName:   pvc.Name,
+					MountPath: "data",
+				}},
+			})
+
+			deployment, err := clientSet.AppsV1().Deployments(ns).Create(ctx,
+				testDeployment, metav1.CreateOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			pods, err := oc.AdminKubeClient().CoreV1().Pods(ns).List(ctx, metav1.ListOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			// Create a file in one pod's attached volume and read it in the second one
+			_, err = oc.Run("exec").Args(pods.Items[0].Name, "--", "bash", "-c", fmt.Sprintf("echo %s > /data/1", fileContent)).Output()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			out, err := oc.Run("exec").Args(pods.Items[1].Name, "--", "bash", "-c", "cat /data/1").Output()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(out).To(o.Equal(fileContent))
 		})
 	})
 })

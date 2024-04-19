@@ -25,7 +25,6 @@ import (
 	operatorv1 "github.com/openshift/api/operator/v1"
 	exutil "github.com/openshift/origin/test/extended/util"
 	ini "gopkg.in/ini.v1"
-	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -39,7 +38,6 @@ import (
 	e2eevents "k8s.io/kubernetes/test/e2e/framework/events"
 	e2eservice "k8s.io/kubernetes/test/e2e/framework/service"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
-	imageutils "k8s.io/kubernetes/test/utils/image"
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform", func() {
@@ -105,7 +103,15 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 				g.By("Creating Openshift deployment")
 				labels := map[string]string{"app": "lb-default-dep"}
-				testDeployment := createTestDeployment("lb-default-dep", labels, 2, protocolUnderTest, 8081)
+
+				testDeployment := createTestDeployment(deploymentOpts{
+					Name:     "lb-default-dep",
+					Labels:   labels,
+					Replicas: 2,
+					Protocol: protocolUnderTest,
+					Port:     8081,
+				})
+
 				deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 					testDeployment, metav1.CreateOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred())
@@ -194,7 +200,14 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 			g.By("Creating Openshift deployment")
 			labels := map[string]string{"app": "udp-lb-shared-dep"}
-			testDeployment := createTestDeployment("udp-lb-shared-dep", labels, 2, v1.ProtocolUDP, 8081)
+			testDeployment := createTestDeployment(deploymentOpts{
+				Name:     "udp-lb-shared-dep",
+				Labels:   labels,
+				Replicas: 2,
+				Protocol: v1.ProtocolUDP,
+				Port:     8081,
+			})
+
 			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -274,7 +287,14 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 			g.By("Creating Openshift deployment")
 			labels := map[string]string{"app": "udp-lb-shared-dep"}
-			testDeployment := createTestDeployment("udp-lb-shared-dep", labels, 2, v1.ProtocolUDP, 8081)
+			testDeployment := createTestDeployment(deploymentOpts{
+				Name:     "udp-lb-shared-dep",
+				Labels:   labels,
+				Replicas: 2,
+				Protocol: v1.ProtocolUDP,
+				Port:     8081,
+			})
+
 			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -357,7 +377,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				})
 				o.Expect(err).NotTo(o.HaveOccurred())
 				replicas := len(workerNodeList.Items)
-				testDeployment := createTestDeployment("lb-etplocal-dep", labels, int32(replicas), protocolUnderTest, 8081)
+				testDeployment := createTestDeployment(deploymentOpts{
+					Name:     "lb-etplocal-dep",
+					Labels:   labels,
+					Replicas: int32(replicas),
+					Protocol: protocolUnderTest,
+					Port:     8081,
+				})
 
 				testDeployment.Spec.Template.Spec.Affinity = &v1.Affinity{
 					PodAntiAffinity: &v1.PodAntiAffinity{
@@ -488,7 +514,15 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			svcName := "udp-lb-precreatedfip-svc"
 			svcPort := int32(8022)
 			labels := map[string]string{"app": depName}
-			testDeployment := createTestDeployment(depName, labels, 2, v1.ProtocolUDP, 8081)
+
+			testDeployment := createTestDeployment(deploymentOpts{
+				Name:     depName,
+				Labels:   labels,
+				Replicas: 2,
+				Protocol: v1.ProtocolUDP,
+				Port:     8081,
+			})
+
 			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -603,7 +637,15 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			if ipv6PrimaryDualStack {
 				allowed_sourcerange = "2001:db8:2222:5555::/64"
 			}
-			testDeployment := createTestDeployment(depName, labels, int32(2), v1.ProtocolUDP, 8081)
+
+			testDeployment := createTestDeployment(deploymentOpts{
+				Name:     depName,
+				Labels:   labels,
+				Replicas: 2,
+				Protocol: v1.ProtocolUDP,
+				Port:     8081,
+			})
+
 			deployment, err := clientSet.AppsV1().Deployments(oc.Namespace()).Create(ctx,
 				testDeployment, metav1.CreateOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -890,38 +932,6 @@ func isLbMethodApplied(lbMethod string, results map[string]int, pods *v1.PodList
 		e2e.Logf("LB-Method check not implemented for %q", lbMethod)
 		return true
 	}
-}
-
-// Creates *appsv1.Deployment using the image agnhost configuring a server on the specified port and protocol
-// Further info on: https://github.com/kubernetes/kubernetes/blob/master/test/images/agnhost/README.md#netexec
-func createTestDeployment(depName string, labels map[string]string, replicas int32, protocol v1.Protocol, port int32) *appsv1.Deployment {
-
-	isFalse := false
-	isTrue := true
-
-	var netExecParams string
-	switch protocol {
-	case v1.ProtocolTCP:
-		netExecParams = fmt.Sprintf("--http-port=%d", port)
-	default:
-		netExecParams = fmt.Sprintf("--%s-port=%d", strings.ToLower(string(protocol)), port)
-	}
-
-	testDeployment := e2edeployment.NewDeployment(depName, replicas, labels, "test",
-		imageutils.GetE2EImage(imageutils.Agnhost), appsv1.RollingUpdateDeploymentStrategyType)
-	testDeployment.Spec.Template.Spec.SecurityContext = &v1.PodSecurityContext{}
-	testDeployment.Spec.Template.Spec.Containers[0].SecurityContext = &v1.SecurityContext{
-		Capabilities:             &v1.Capabilities{Drop: []v1.Capability{"ALL"}},
-		AllowPrivilegeEscalation: &isFalse,
-		RunAsNonRoot:             &isTrue,
-		SeccompProfile:           &v1.SeccompProfile{Type: v1.SeccompProfileTypeRuntimeDefault},
-	}
-	testDeployment.Spec.Template.Spec.Containers[0].Args = []string{"netexec", netExecParams}
-	testDeployment.Spec.Template.Spec.Containers[0].Ports = []v1.ContainerPort{{
-		ContainerPort: port,
-		Protocol:      protocol,
-	}}
-	return testDeployment
 }
 
 // getSubnet checks if a Subnet is present in the list of Subnets the tenant has access to and returns it
