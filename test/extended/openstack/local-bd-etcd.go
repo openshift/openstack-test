@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/flavors"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/flavors"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	"github.com/openshift/openstack-test/test/extended/openstack/machines"
 	"github.com/stretchr/objx"
 	"k8s.io/client-go/dynamic"
@@ -70,7 +72,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenShift clu
 		clientSet, err = e2e.LoadClientset()
 		o.Expect(err).NotTo(o.HaveOccurred())
 
-		computeClient, err = client(serviceCompute)
+		g.By("preparing the openstack client")
+		computeClient, err = client.GetServiceClient(ctx, openstack.NewComputeV2)
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		skipUnlessMachineAPIOperator(ctx, dc, clientSet.CoreV1().Namespaces())
@@ -90,7 +93,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenShift clu
 		{
 			controlPlaneFlavor = cpmsProviderSpec.Get("value.flavor").String()
 			o.Expect(controlPlaneFlavor).NotTo(o.BeEmpty())
-			allPages, err := flavors.ListDetail(computeClient, flavors.ListOpts{}).AllPages()
+			allPages, err := flavors.ListDetail(computeClient, flavors.ListOpts{}).AllPages(ctx)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			flavors, err := flavors.ExtractFlavors(allPages)
 			o.Expect(err).NotTo(o.HaveOccurred())

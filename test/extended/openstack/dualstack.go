@@ -6,10 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gophercloud/gophercloud"
-	octavialoadbalancers "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	octavialoadbalancers "github.com/gophercloud/gophercloud/v2/openstack/loadbalancer/v2/loadbalancers"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	exutil "github.com/openshift/origin/test/extended/util"
 	ini "gopkg.in/ini.v1"
 	v1 "k8s.io/api/core/v1"
@@ -51,11 +53,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			e2eskipper.Skipf("Test not applicable for proxy setup")
 		}
 
-		g.By("preparing openstack client")
-		loadBalancerClient, err = client(serviceLoadBalancer)
-		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack LoadBalancer client")
-		networkClient, err = client(serviceNetwork)
-		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack network client")
+		g.By("preparing the openstack client")
+		loadBalancerClient, err = client.GetServiceClient(ctx, openstack.NewLoadBalancerV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
+		networkClient, err = client.GetServiceClient(ctx, openstack.NewNetworkV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
 
 		g.By("preparing openshift dynamic client")
 		clientSet, err = e2e.LoadClientset()
@@ -116,11 +118,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 					"Unexpected ExternalTrafficPolicy on svc specs")
 
 				g.By("Checks from openstack perspective")
-				lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+				lb, err := octavialoadbalancers.Get(ctx, loadBalancerClient, loadBalancerId).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(lb.Provider).Should(o.Equal(strings.ToLower(lbProviderUnderTest)), "Unexpected provider in the Openstack LoadBalancer")
 				if isIpv4(lb.VipAddress) { // No FIP assignment on ipv6
-					fip, err := getFipbyFixedIP(networkClient, lb.VipAddress)
+					fip, err := getFipbyFixedIP(ctx, networkClient, lb.VipAddress)
 					o.Expect(err).NotTo(o.HaveOccurred())
 					o.Expect(fip.FloatingIP).Should(o.Equal(svcIp), "Unexpected floatingIp in the Openstack LoadBalancer")
 				}

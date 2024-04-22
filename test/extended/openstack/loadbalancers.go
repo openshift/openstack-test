@@ -13,16 +13,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gophercloud/gophercloud"
-	octavialisteners "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/listeners"
-	octavialoadbalancers "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/loadbalancers"
-	octaviamonitors "github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/monitors"
-	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/pools"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	octavialisteners "github.com/gophercloud/gophercloud/v2/openstack/loadbalancer/v2/listeners"
+	octavialoadbalancers "github.com/gophercloud/gophercloud/v2/openstack/loadbalancer/v2/loadbalancers"
+	octaviamonitors "github.com/gophercloud/gophercloud/v2/openstack/loadbalancer/v2/monitors"
+	"github.com/gophercloud/gophercloud/v2/openstack/loadbalancer/v2/pools"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/extensions/layer3/floatingips"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/subnets"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	operatorv1 "github.com/openshift/api/operator/v1"
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	exutil "github.com/openshift/origin/test/extended/util"
 	ini "gopkg.in/ini.v1"
 	v1 "k8s.io/api/core/v1"
@@ -69,11 +71,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			e2eskipper.Skipf("Test not applicable for proxy setup")
 		}
 
-		g.By("preparing openstack client")
-		loadBalancerClient, err = client(serviceLoadBalancer)
-		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack LoadBalancer client")
-		networkClient, err = client(serviceNetwork)
-		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an openstack network client")
+		g.By("preparing the openstack client")
+		networkClient, err = client.GetServiceClient(ctx, openstack.NewNetworkV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
+		loadBalancerClient, err = client.GetServiceClient(ctx, openstack.NewLoadBalancerV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
 
 		g.By("preparing openshift dynamic client")
 		clientSet, err = e2e.LoadClientset()
@@ -139,17 +141,17 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 					"Unexpected ExternalTrafficPolicy on svc specs")
 
 				g.By("Checks from openstack perspective")
-				lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+				lb, err := octavialoadbalancers.Get(ctx, loadBalancerClient, loadBalancerId).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(lb.Provider).Should(o.Equal(strings.ToLower(lbProviderUnderTest)), "Unexpected provider in the Openstack LoadBalancer")
 				if isIpv4(lb.VipAddress) { // No FIP assignment on ipv6
-					fip, err := getFipbyFixedIP(networkClient, lb.VipAddress)
+					fip, err := getFipbyFixedIP(ctx, networkClient, lb.VipAddress)
 					o.Expect(err).NotTo(o.HaveOccurred())
 					o.Expect(fip.FloatingIP).Should(o.Equal(svcIp), "Unexpected floatingIp in the Openstack LoadBalancer")
 				}
 				o.Expect(lb.Pools).Should(o.HaveLen(1), "Unexpected number of pools on Openstack LoadBalancer %q", lb.Name)
 
-				pool, err := pools.Get(loadBalancerClient, lb.Pools[0].ID).Extract()
+				pool, err := pools.Get(ctx, loadBalancerClient, lb.Pools[0].ID).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(pool.Protocol).Should(o.Equal(string(protocolUnderTest)), "Unexpected protocol on Openstack LoadBalancer Pool: %q", pool.Name)
 				//Set as OFFLINE in vexxhost despite the lb is operative
@@ -160,7 +162,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				nodeList, err := clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred())
 				expectedNumberOfMembers := len(nodeList.Items)
-				o.Expect(waitUntilNmembersReady(loadBalancerClient, pool, expectedNumberOfMembers, "NO_MONITOR|ONLINE")).NotTo(o.HaveOccurred(),
+				o.Expect(waitUntilNmembersReady(ctx, loadBalancerClient, pool, expectedNumberOfMembers, "NO_MONITOR|ONLINE")).NotTo(o.HaveOccurred(),
 					"Error waiting for %d members with NO_MONITOR or ONLINE OperatingStatus", len(nodeList.Items))
 
 				g.By("accessing the service 100 times from outside and storing the name of the pods answering")
@@ -241,7 +243,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("Checks from openstack perspective")
-			lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+			lb, err := octavialoadbalancers.Get(ctx, loadBalancerClient, loadBalancerId).Extract()
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(lb.Pools).Should(o.HaveLen(2), "Unexpected number of pools on Openstack LoadBalancer %q", lb.Name)
 
@@ -342,7 +344,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			e2e.Logf("Expected event found.")
 
 			g.By("Checks from openstack perspective that there is still only one pool for the lb")
-			lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+			lb, err := octavialoadbalancers.Get(ctx, loadBalancerClient, loadBalancerId).Extract()
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(lb.Pools).Should(o.HaveLen(1), "Unexpected number of pools on Openstack LoadBalancer %q", lb.Name)
 			e2e.Logf("Expected number of pools found on the openstack loadbalancer.")
@@ -363,7 +365,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				networkType, err := getNetworkType(ctx, oc)
 				o.Expect(err).NotTo(o.HaveOccurred())
 
-				octaviaGreaterOrEqualV2_16, err := IsOctaviaVersionGreaterThanOrEqual(loadBalancerClient, octaviaMinVersion)
+				octaviaGreaterOrEqualV2_16, err := IsOctaviaVersionGreaterThanOrEqual(ctx, loadBalancerClient, octaviaMinVersion)
 				o.Expect(err).NotTo(o.HaveOccurred())
 
 				if networkType == NetworkTypeOpenShiftSDN && !octaviaGreaterOrEqualV2_16 && protocolUnderTest == v1.ProtocolUDP {
@@ -434,13 +436,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 					"Unexpected ExternalTrafficPolicy on svc specs")
 
 				g.By("Checks from openstack perspective")
-				lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+				lb, err := octavialoadbalancers.Get(ctx, loadBalancerClient, loadBalancerId).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(lb.Provider).Should(o.Equal(strings.ToLower(lbProviderUnderTest)), "Unexpected provider in the Openstack LoadBalancer")
-				pool, err := pools.Get(loadBalancerClient, lb.Pools[0].ID).Extract()
+				pool, err := pools.Get(ctx, loadBalancerClient, lb.Pools[0].ID).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(pool.Protocol).Should(o.Equal(string(protocolUnderTest)), "Unexpected protocol on Openstack LoadBalancer Pool: %q", pool.Name)
-				monitor, err := octaviamonitors.Get(loadBalancerClient, pool.MonitorID).Extract()
+				monitor, err := octaviamonitors.Get(ctx, loadBalancerClient, pool.MonitorID).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(monitor.AdminStateUp).Should(o.BeTrue(), "Unexpected healthmonitor adminStateUp on Openstack LoadBalancer Pool: %q", pool.Name)
 				o.Expect(monitor.Delay).Should(o.Equal(monitorDelay), "Unexpected healthmonitor delay on Openstack LoadBalancer Pool: %q", pool.Name)
@@ -451,7 +453,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", pool.LBMethod)
 
 				if monitor.Type == "UDP-CONNECT" {
-					o.Expect(waitUntilNmembersReady(loadBalancerClient, pool, int(replicas), "ONLINE")).NotTo(o.HaveOccurred(),
+					o.Expect(waitUntilNmembersReady(ctx, loadBalancerClient, pool, int(replicas), "ONLINE")).NotTo(o.HaveOccurred(),
 						"Error waiting for %d members with ONLINE OperatingStatus", replicas)
 				} else if monitor.Type == "HTTP" {
 					// vexxhost uses HTTP healthmonitor and the OperatingStatus is not updated in that case.
@@ -497,17 +499,17 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			configuredNetworkId, _ := getClusterLoadBalancerSetting("floating-network-id", cloudProviderConfig)
 			configuredSubnetId, _ := getClusterLoadBalancerSetting("floating-subnet-id", cloudProviderConfig)
 			if configuredNetworkId != "" {
-				fip, err = floatingips.Create(networkClient, floatingips.CreateOpts{FloatingNetworkID: configuredNetworkId, SubnetID: configuredSubnetId}).Extract()
+				fip, err = floatingips.Create(ctx, networkClient, floatingips.CreateOpts{FloatingNetworkID: configuredNetworkId, SubnetID: configuredSubnetId}).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred(), "error creating FIP using IDs configured on the OCP cluster. Network-id: %s. Subnet-id: %s", configuredNetworkId, configuredSubnetId)
 			} else {
 				// If not, discover the first FloatingNetwork existing on OSP
-				foundNetworkId, err := GetFloatingNetworkID(networkClient)
+				foundNetworkId, err := GetFloatingNetworkID(ctx, networkClient)
 				o.Expect(err).NotTo(o.HaveOccurred())
-				fip, err = floatingips.Create(networkClient, floatingips.CreateOpts{FloatingNetworkID: foundNetworkId}).Extract()
+				fip, err = floatingips.Create(ctx, networkClient, floatingips.CreateOpts{FloatingNetworkID: foundNetworkId}).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred(), "error creating FIP using discovered floatingNetwork ID %s", foundNetworkId)
 			}
 			g.By(fmt.Sprintf("FIP created: %s", fip.FloatingIP))
-			defer floatingips.Delete(networkClient, fip.ID)
+			defer floatingips.Delete(ctx, networkClient, fip.ID)
 
 			g.By("Creating Openshift deployment")
 			depName := "udp-lb-precreatedfip-dep"
@@ -588,13 +590,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			e2e.Logf("Service with LoadBalancerType exists with public ip %q and it is pointing to openstack loadbalancer with id %q", svcIp, loadBalancerId)
 
 			g.By("Checks from openstack perspective")
-			lb, err := octavialoadbalancers.Get(loadBalancerClient, loadBalancerId).Extract()
+			lb, err := octavialoadbalancers.Get(ctx, loadBalancerClient, loadBalancerId).Extract()
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(lb.Provider).Should(o.Equal(strings.ToLower(lbProviderUnderTest)), "Unexpected provider in the Openstack LoadBalancer")
 			//In canary, two pools are created: ports 80 and 443. Checking all existing pools:
 			for i := 0; i < len(svc.Spec.Ports); i++ {
 				poolId := lb.Pools[i].ID
-				pool, err := pools.Get(loadBalancerClient, poolId).Extract()
+				pool, err := pools.Get(ctx, loadBalancerClient, poolId).Extract()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(pool.Protocol).Should(o.Equal("TCP"), "Unexpected protocol on Openstack LoadBalancer Pool: %q", pool.Name)
 			}
@@ -671,7 +673,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			e2e.Logf("Service IP: %s", svcIp)
 
 			g.By("Checks from openstack perspective")
-			allPages, err := octavialisteners.List(loadBalancerClient, octavialisteners.ListOpts{LoadbalancerID: loadBalancerId}).AllPages()
+			allPages, err := octavialisteners.List(loadBalancerClient, octavialisteners.ListOpts{LoadbalancerID: loadBalancerId}).AllPages(ctx)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			listeners, err := octavialisteners.ExtractListeners(allPages)
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -717,7 +719,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				allowAllAllowedCidrs := []string{"0.0.0.0/0"}
 				e2e.Logf("Expected allowed_cidrs: '%v'", allowAllAllowedCidrs)
 				o.Eventually(func() []string {
-					lbListener, err := octavialisteners.Get(loadBalancerClient, listenerId).Extract()
+					lbListener, err := octavialisteners.Get(ctx, loadBalancerClient, listenerId).Extract()
 					if err != nil {
 						e2e.Logf("Error ocurred: %v, trying next iteration", err)
 						return []string{}
@@ -735,7 +737,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			activeProvisioningStatus := "ACTIVE"
 			e2e.Logf("Expected ProvisioningStatus: '%s'", activeProvisioningStatus)
 			o.Eventually(func() string {
-				lbListener, err := octavialisteners.Get(loadBalancerClient, listenerId).Extract()
+				lbListener, err := octavialisteners.Get(ctx, loadBalancerClient, listenerId).Extract()
 				if err != nil {
 					e2e.Logf("Error ocurred: %v, trying next iteration", err)
 					return ""
@@ -746,7 +748,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			e2e.Logf("Found expected ProvisioningStatus '%s' in Openstack LoadBalancer Listener '%s'", activeProvisioningStatus, listenerId)
 
 			// Check there is still only one listener in the LB and that the Id matches with the previously stored one
-			allPages, err = octavialisteners.List(loadBalancerClient, octavialisteners.ListOpts{LoadbalancerID: loadBalancerId}).AllPages()
+			allPages, err = octavialisteners.List(loadBalancerClient, octavialisteners.ListOpts{LoadbalancerID: loadBalancerId}).AllPages(ctx)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			listeners, err = octavialisteners.ExtractListeners(allPages)
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -813,9 +815,9 @@ func getClusterLoadBalancerSetting(setting string, config *ini.File) (string, er
 }
 
 // Return the FloatingIP assigned to a provided IP and return error if it is not found.
-func getFipbyFixedIP(client *gophercloud.ServiceClient, vip string) (floatingips.FloatingIP, error) {
+func getFipbyFixedIP(ctx context.Context, client *gophercloud.ServiceClient, vip string) (floatingips.FloatingIP, error) {
 	var result floatingips.FloatingIP
-	allPages, err := floatingips.List(client, floatingips.ListOpts{}).AllPages()
+	allPages, err := floatingips.List(client, floatingips.ListOpts{}).AllPages(ctx)
 	if err != nil {
 		return result, err
 	}
@@ -945,21 +947,20 @@ func getSubnet(networkSubnet string, subnetList []subnets.Subnet) *subnets.Subne
 }
 
 // Active wait (up to 3 minutes) until a certain number of members match a regex on status attribute.
-func waitUntilNmembersReady(client *gophercloud.ServiceClient, pool *pools.Pool, n int, status string) error {
-
+func waitUntilNmembersReady(ctx context.Context, client *gophercloud.ServiceClient, pool *pools.Pool, n int, status string) error {
 	var resultingMembers []string
 	var err error
 
 	e2e.Logf("Waiting for %d members matching status %s in the pool %s", n, status, pool.Name)
 	err = wait.Poll(15*time.Second, 3*time.Minute, func() (bool, error) {
-		resultingMembers, err = getMembersMatchingStatus(client, pool, status)
+		resultingMembers, err = getMembersMatchingStatus(ctx, client, pool, status)
 		if err != nil {
 			return false, err
 		}
 		if len(resultingMembers) == int(n) {
 			e2e.Logf("Found expected number of %s members, checking again 5 seconds later to confirm that it is stable", status)
 			time.Sleep(5 * time.Second)
-			resultingMembers, err = getMembersMatchingStatus(client, pool, status)
+			resultingMembers, err = getMembersMatchingStatus(ctx, client, pool, status)
 			if err != nil {
 				return false, err
 			} else if len(resultingMembers) == int(n) {
@@ -972,8 +973,8 @@ func waitUntilNmembersReady(client *gophercloud.ServiceClient, pool *pools.Pool,
 	})
 
 	if err != nil && strings.Contains(err.Error(), "timed out waiting for the condition") {
-		resultingMembers, err = getMembersMatchingStatus(client, pool, status)
-		allMembers, err := pools.ListMembers(client, pool.ID, pools.ListMembersOpts{}).AllPages()
+		resultingMembers, err = getMembersMatchingStatus(ctx, client, pool, status)
+		allMembers, err := pools.ListMembers(client, pool.ID, pools.ListMembersOpts{}).AllPages(ctx)
 		if err != nil {
 			return err
 		}
@@ -983,11 +984,11 @@ func waitUntilNmembersReady(client *gophercloud.ServiceClient, pool *pools.Pool,
 }
 
 // Return the name of the members matching a regex in the OperatingStatus attribute
-func getMembersMatchingStatus(client *gophercloud.ServiceClient, pool *pools.Pool, status string) ([]string, error) {
+func getMembersMatchingStatus(ctx context.Context, client *gophercloud.ServiceClient, pool *pools.Pool, status string) ([]string, error) {
 
 	var members []string
 	for _, aux := range pool.Members {
-		member, err := pools.GetMember(client, pool.ID, aux.ID).Extract()
+		member, err := pools.GetMember(ctx, client, pool.ID, aux.ID).Extract()
 		if err != nil {
 			return nil, err
 		}

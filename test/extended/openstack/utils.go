@@ -12,13 +12,12 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack/loadbalancer/v2/apiversions"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/external"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
-	"github.com/gophercloud/gophercloud/openstack/sharedfilesystems/v2/shares"
-
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack/loadbalancer/v2/apiversions"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/extensions/external"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/networks"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/subnets"
+	"github.com/gophercloud/gophercloud/v2/openstack/sharedfilesystems/v2/shares"
 	configv1 "github.com/openshift/api/config/v1"
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	operatorv1 "github.com/openshift/api/operator/v1"
@@ -178,13 +177,13 @@ func waitPvcVolume(ctx context.Context, clientSet *kubernetes.Clientset, pvc str
 }
 
 // return share from openstack with specific name
-func GetSharesFromName(client *gophercloud.ServiceClient, shareName string) ([]shares.Share, error) {
+func GetSharesFromName(ctx context.Context, client *gophercloud.ServiceClient, shareName string) ([]shares.Share, error) {
 	var emptyShare []shares.Share
 
 	listOpts := shares.ListOpts{
 		Name: shareName,
 	}
-	allPages, err := shares.ListDetail(client, listOpts).AllPages()
+	allPages, err := shares.ListDetail(client, listOpts).AllPages(ctx)
 	if err != nil {
 		return emptyShare, err
 	}
@@ -421,8 +420,8 @@ func isIpv6primaryDualStackCluster(ctx context.Context, oc *exutil.CLI) (bool, e
 	return false, nil
 }
 
-func getMaxOctaviaAPIVersion(client *gophercloud.ServiceClient) (*semver.Version, error) {
-	allPages, err := apiversions.List(client).AllPages()
+func getMaxOctaviaAPIVersion(ctx context.Context, client *gophercloud.ServiceClient) (*semver.Version, error) {
+	allPages, err := apiversions.List(client).AllPages(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -457,8 +456,8 @@ func getMaxOctaviaAPIVersion(client *gophercloud.ServiceClient) (*semver.Version
 	return max, nil
 }
 
-func IsOctaviaVersionGreaterThanOrEqual(client *gophercloud.ServiceClient, constraint string) (bool, error) {
-	maxOctaviaVersion, err := getMaxOctaviaAPIVersion(client)
+func IsOctaviaVersionGreaterThanOrEqual(ctx context.Context, client *gophercloud.ServiceClient, constraint string) (bool, error) {
+	maxOctaviaVersion, err := getMaxOctaviaAPIVersion(ctx, client)
 	if err != nil {
 		return false, err
 	}
@@ -469,14 +468,14 @@ func IsOctaviaVersionGreaterThanOrEqual(client *gophercloud.ServiceClient, const
 }
 
 // GetFloatingNetworkID returns a floating network ID.
-func GetFloatingNetworkID(client *gophercloud.ServiceClient) (string, error) {
+func GetFloatingNetworkID(ctx context.Context, client *gophercloud.ServiceClient) (string, error) {
 	type NetworkWithExternalExt struct {
 		networks.Network
 		external.NetworkExternalExt
 	}
 	var allNetworks []NetworkWithExternalExt
 
-	page, err := networks.List(client, networks.ListOpts{}).AllPages()
+	page, err := networks.List(client, networks.ListOpts{}).AllPages(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -488,7 +487,7 @@ func GetFloatingNetworkID(client *gophercloud.ServiceClient) (string, error) {
 
 	for _, network := range allNetworks {
 		if network.External && len(network.Subnets) > 0 {
-			page, err := subnets.List(client, subnets.ListOpts{NetworkID: network.ID}).AllPages()
+			page, err := subnets.List(client, subnets.ListOpts{NetworkID: network.ID}).AllPages(ctx)
 			if err != nil {
 				return "", err
 			}

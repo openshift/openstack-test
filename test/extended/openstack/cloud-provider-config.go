@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gophercloud/utils/openstack/clientconfig"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/config/clouds"
 	ini "gopkg.in/ini.v1"
 
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	configv1client "github.com/openshift/client-go/config/clientset/versioned"
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
@@ -19,8 +22,9 @@ import (
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", func() {
 	defer g.GinkgoRecover()
 
-	var clientSet *kubernetes.Clientset
 	var err error
+	var clientSet *kubernetes.Clientset
+	var computeClient *gophercloud.ServiceClient
 	type configParams struct {
 		namespace string
 		name      string
@@ -28,15 +32,17 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 		skip      []string //Slice of properties that are not expected to be present in the internal configMaps
 	}
 
+	g.BeforeEach(func(ctx g.SpecContext) {
+		g.By("preparing openshift dynamic client")
+		clientSet, err = e2e.LoadClientset()
+		o.Expect(err).NotTo(o.HaveOccurred())
+
+		g.By("preparing the openstack client")
+		computeClient, err = client.GetServiceClient(ctx, openstack.NewComputeV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
+	})
+
 	g.Context("on cloud provider configuration", func() {
-
-		g.BeforeEach(func() {
-			g.By("preparing openshift dynamic client")
-			clientSet, err = e2e.LoadClientset()
-			o.Expect(err).NotTo(o.HaveOccurred())
-
-		})
-
 		// https://bugzilla.redhat.com/show_bug.cgi?id=2065597
 		g.It("should haul the user config to the expected config maps", func(ctx g.SpecContext) {
 
@@ -191,15 +197,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 				"property auth-url not found on %q secret in %q namespace", expectedSecretName, systemNamespace)
 
 			g.By(fmt.Sprintf("Getting the openstack auth url from clouds.yaml in secret %q in %q namespace", expectedSecretName, systemNamespace))
-			cloudsYaml := make(map[string]map[string]*clientconfig.Cloud)
+			cloudsYaml := make(map[string]map[string]*clouds.Cloud)
 			err = yaml.Unmarshal([]byte(secret.Data["clouds.yaml"]), &cloudsYaml)
 			o.Expect(err).NotTo(o.HaveOccurred(),
 				"Error unmarshaling clouds.yaml on %q secret in %q namespace", expectedSecretName, systemNamespace)
 			clouds := cloudsYaml["clouds"]["openstack"]
 
 			g.By("Compare cloud auth url on secret with openstack API")
-			computeClient, err := client(serviceCompute)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Error creating openstack client")
 			o.Expect(computeClient.IdentityEndpoint).To(o.HavePrefix(authUrl.Value()), "Unexpected auth url on clouds.conf")
 			o.Expect(computeClient.IdentityEndpoint).To(o.HavePrefix(clouds.AuthInfo.AuthURL), "Unexpected auth url on clouds.yaml")
 

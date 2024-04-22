@@ -9,6 +9,7 @@ import (
 
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	"github.com/openshift/openstack-test/test/extended/openstack/machines"
 	"github.com/stretchr/objx"
 
@@ -16,8 +17,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 
-	"github.com/gophercloud/gophercloud"
-	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servers"
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
@@ -70,9 +72,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 
 		skipUnlessMachineAPIOperator(ctx, dc, clientSet.CoreV1().Namespaces())
 
-		g.By("preparing openstack client")
-		computeClient, err = client(serviceCompute)
-		o.Expect(err).NotTo(o.HaveOccurred())
+		g.By("preparing the openstack client")
+		computeClient, err = client.GetServiceClient(ctx, openstack.NewComputeV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
 	})
 
 	g.Context("bz_2022627:", func() {
@@ -99,7 +101,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 				}
 
 				g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machineName))
-				instance, err := servers.Get(computeClient, machineResourceID).Extract()
+				instance, err := servers.Get(ctx, computeClient, machineResourceID).Extract()
 
 				var gerr gophercloud.ErrDefault404
 				if !errors.As(err, &gerr) {
