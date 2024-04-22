@@ -2,10 +2,8 @@
 # This file just uses aliases defined in OWNERS_ALIASES.
 
 approvers:
-  - kuryr-reviewers
-  - openstack-reviewers
+  - openstack-approvers
   - qe-approvers
 reviewers:
-  - kuryr-reviewers
   - openstack-reviewers
   - qe-reviewers

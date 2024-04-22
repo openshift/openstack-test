@@ -3,31 +3,25 @@
 aliases:
   openstack-approvers:
     - EmilienM
+    - MaysaMacedo
+    - gryf
     - mandre
     - mdbooth
     - pierreprinetti
     - stephenfin
   openstack-reviewers:
     - EmilienM
+    - MaysaMacedo
+    - gryf
     - mandre
     - mdbooth
     - pierreprinetti
     - stephenfin
-  kuryr-approvers:
-    - MaysaMacedo
-    - dulek
-    - gryf
-    - luis5tb
-  kuryr-reviewers:
-    - MaysaMacedo
-    - dulek
-    - gryf
-    - luis5tb
   qe-approvers:
+    - eurijon
     - itzikb-redhat
     - rlobillo
-    - eurijon
   qe-reviewers:
+    - eurijon
     - itzikb-redhat
     - rlobillo
-    - eurijon
