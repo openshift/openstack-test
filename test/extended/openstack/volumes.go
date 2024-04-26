@@ -62,7 +62,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			}
 
 			g.By("Gather prometheus PVCs before resizing")
-			initial_pvcs, err := getMonitoringPvcs(ctx, dc)
+			initial_pvcs, err := GetPVCsFromNamespace(ctx, dc, "openshift-monitoring")
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("Gather Openstack cinder volumes for the PVCs before resizing")
@@ -128,7 +128,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			g.By("Active wait checking that the status after resizing is expected (max 1 minute)")
 			o.Eventually(func() error {
 				e2e.Logf("Gather prometheus PVCs after resizing")
-				resized_pvcs, err := getMonitoringPvcs(ctx, dc)
+				resized_pvcs, err := GetPVCsFromNamespace(ctx, dc, "openshift-monitoring")
 				if err != nil {
 					return err
 				}
@@ -165,7 +165,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 						if !found && initvol.Name == rszvol.Name {
 							found = true
 							if initvol.Size+1 != rszvol.Size {
-								return fmt.Errorf("Unexpected size on resized volume: %d", initvol.Size+1)
+								return fmt.Errorf("unexpected size on resized volume: %d", initvol.Size+1)
 							}
 							if rszvol.Status != "in-use" {
 								return fmt.Errorf("cinder volume not in-use Status")
@@ -175,8 +175,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 						}
 					}
-					if found != true {
-						return fmt.Errorf("Pre-existing cinder volume %q is gone.", initvol.Name)
+					if !found {
+						return fmt.Errorf("pre-existing cinder volume %q is gone", initvol.Name)
 					}
 				}
 				return nil
@@ -185,7 +185,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 		g.It("should create a manila share when using manila storage class", func(ctx g.SpecContext) {
 			var err error
-			manilaSc := FindStorageClassByProvider(oc, "manila.csi.openstack.org")
+			manilaSc := FindStorageClassByProvider(oc, "manila.csi.openstack.org", false)
 
 			// Skip if Manila Storage class is not defined
 			if manilaSc == nil {
@@ -241,6 +241,78 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(out).To(o.Equal(fileContent))
 		})
+
+		g.It("should create a cinder volume when using cinder default storage class", func(ctx g.SpecContext) {
+
+			var err error
+
+			cinderSc := FindStorageClassByProvider(oc, "cinder.csi.openstack.org", true)
+			o.Expect(cinderSc).NotTo(o.BeNil(), "default cinder-csi storageClass not found.")
+
+			volumeClient, err = client.GetServiceClient(ctx, openstack.NewBlockStorageV3)
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			ns := oc.Namespace()
+			pvc := CreatePVC(ctx, clientSet, "cinder-pvc", ns, cinderSc.Name, "1Gi")
+			fileContent := "hello"
+
+			// Creating a deployment with the volumes attached
+			g.By("Creating Openshift deployment with 1 replica and cinder volume attached")
+			labels := map[string]string{"app": "cinder-test-dep"}
+
+			testDeployment := createTestDeployment(deploymentOpts{
+				Name:     "cinder-test-dep",
+				Labels:   labels,
+				Replicas: 1,
+				Protocol: v1.ProtocolTCP,
+				Port:     8080,
+				Volumes: []volumeOption{{
+					Name:      "data-volume",
+					PvcName:   pvc.Name,
+					MountPath: "data",
+				}},
+			})
+
+			deployment, err := clientSet.AppsV1().Deployments(ns).Create(ctx,
+				testDeployment, metav1.CreateOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			pods, err := oc.AdminKubeClient().CoreV1().Pods(ns).List(ctx, metav1.ListOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			pvcs, err := GetPVCsFromNamespace(ctx, dc, ns)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(len(pvcs)).To(o.Equal(1))
+
+			cinderVolumes, err := getVolumesFromName(ctx, volumeClient, pvcs[0].Get("spec.volumeName").String())
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(len(cinderVolumes)).To(o.Equal(1))
+			volumeID := cinderVolumes[0].ID
+			_, err = volumes.Get(ctx, volumeClient, volumeID).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Create a file in the pod's attached volume, restart it and read what was written")
+			_, err = oc.Run("exec").Args(pods.Items[0].Name, "--", "bash", "-c", fmt.Sprintf("echo %s > /data/1", fileContent)).Output()
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Delete pod so a new one is created")
+			err = oc.Run("delete").Args("pod", pods.Items[0].Name).Execute()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			_, err = exutil.WaitForPods(clientSet.CoreV1().Pods(ns),
+				exutil.ParseLabelsOrDie(""), exutil.CheckPodIsReady, 1, 3*time.Minute)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			restarted_pods, err := oc.AdminKubeClient().CoreV1().Pods(ns).List(ctx, metav1.ListOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			g.By("Read pod and confirm data is persistent")
+			out, err := oc.Run("exec").Args(restarted_pods.Items[0].Name, "--", "bash", "-c", "cat /data/1").Output()
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(out).To(o.Equal(fileContent))
+
+		})
 	})
 })
 
@@ -269,10 +341,10 @@ func checkSizeConsistency(pvcs []objx.Map, volumes []volumes.Volume) error {
 	return nil
 }
 
-// return list of PVCs defined in openshift-monitoring namespace
-func getMonitoringPvcs(ctx context.Context, dc dynamic.Interface) ([]objx.Map, error) {
+// return list of PVCs defined in a given namespace
+func GetPVCsFromNamespace(ctx context.Context, dc dynamic.Interface, namespace string) ([]objx.Map, error) {
 	pvc_schema := schema.GroupVersionResource{Group: "", Version: "v1", Resource: "persistentvolumeclaims"}
-	obj, err := dc.Resource(pvc_schema).Namespace("openshift-monitoring").
+	obj, err := dc.Resource(pvc_schema).Namespace(namespace).
 		List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
