@@ -161,20 +161,23 @@ func CreatePVC(ctx context.Context, clientSet *kubernetes.Clientset, baseName st
 	return pvc
 }
 
-func waitPvcVolume(ctx context.Context, clientSet *kubernetes.Clientset, pvc string, ns string) error {
+// Wait for a PVC to have Spec.VolumeName
+func waitPvcVolume(ctx context.Context, clientSet *kubernetes.Clientset, pvc string, ns string) (string, error) {
+	var volumeName string
 	err := wait.PollUntilContextTimeout(ctx, 15*time.Second, 3*time.Minute, true, func(ctx context.Context) (bool, error) {
 		pvc, err := clientSet.CoreV1().PersistentVolumeClaims(ns).Get(ctx, pvc, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		} else {
 			if pvc.Spec.VolumeName != "" {
+				volumeName = pvc.Spec.VolumeName
 				return true, nil
 			} else {
 				return false, nil
 			}
 		}
 	})
-	return err
+	return volumeName, err
 }
 
 // return share from openstack with specific name

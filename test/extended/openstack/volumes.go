@@ -202,9 +202,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			shareClient, err = client("sharev2")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			// Make sure a Manila share was created with the same name as the PVC
-			err = waitPvcVolume(ctx, clientSet, pvc.Name, ns)
+			pvcVolumeName, err := waitPvcVolume(ctx, clientSet, pvc.Name, ns)
 			o.Expect(err).NotTo(o.HaveOccurred())
-			manilaShares, err := GetSharesFromName(shareClient, pvc.Spec.VolumeName)
+			manilaShares, err := GetSharesFromName(shareClient, pvcVolumeName)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(len(manilaShares)).To(o.Equal(1))
 			shareID := manilaShares[0].ID
