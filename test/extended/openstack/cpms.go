@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/objx"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
@@ -66,8 +67,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 			VolumeZone  string
 			VolumeType  string
 		}
-		var cpmsFDs []FailureDomain
-		var machinesFDs []FailureDomain
+		cpmsFdsSet := sets.New(FailureDomain{})
+		machinesFdsSet := sets.New(FailureDomain{})
 
 		for _, network := range objects(providerSpec.Get("value.networks")) {
 			subnet := network.Get("subnets").String()
@@ -90,11 +91,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 
 		if fds.String() != "" {
 			for _, fd := range objects(controlPlaneMachineSet.Get("spec.template.machines_v1beta1_machine_openshift_io.failureDomains.openstack")) {
-				cpmsFDs = append(cpmsFDs, FailureDomain{
+				newFD := FailureDomain{
 					ComputeZone: fd.Get("availabilityZone").String(),
 					VolumeZone:  fd.Get("rootVolume.availabilityZone").String(),
 					VolumeType:  fd.Get("rootVolume.volumeType").String(),
-				})
+				}
+				cpmsFdsSet.Insert(newFD)
 			}
 		}
 		for _, machine := range controlPlaneMachines {
@@ -127,8 +129,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 					VolumeZone:  machineCinderAz,
 					VolumeType:  machineVolumeType,
 				}
-				o.Expect(cpmsFDs).To(o.ContainElement(fd))
-				machinesFDs = append(machinesFDs, fd)
+				machinesFdsSet.Insert(fd)
 			}
 
 			for _, network := range objects(machine.Get("spec.providerSpec.value.networks")) {
@@ -144,11 +145,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane Mach
 			o.Expect(machineServerGroup).To(o.Equal(cpmsServerGroup), "server group	 mismatch on Machine %q", machineName)
 			o.Expect(machineNetworks).To(o.Equal(cpmsNetworks), "Network mismatch on Machine %q", machineName)
 		}
-		if len(cpmsFDs) > 3 {
-			o.Expect(machinesFDs).To(o.HaveLen(3))
-		} else {
-			o.Expect(machinesFDs).To(o.HaveLen(len(cpmsFDs)))
-		}
+		o.Expect(cpmsFdsSet.Equal(machinesFdsSet)).To(o.BeTrue())
 	})
 })
 
