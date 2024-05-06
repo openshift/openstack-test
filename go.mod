@@ -6,7 +6,7 @@ require github.com/openshift/origin v1.5.0-alpha.3.0.20230609045613-8db5731e8d00
 
 require (
 	github.com/Masterminds/semver v1.5.0
-	github.com/gophercloud/gophercloud/v2 v2.0.0-beta.4
+	github.com/gophercloud/gophercloud/v2 v2.0.0-beta.5
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.33.0
 	github.com/openshift/api v0.0.0-20230524230522-75b5a44dbeeb

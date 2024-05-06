@@ -1,9 +1,9 @@
 package openstack
 
 import (
-	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"reflect"
 	"strings"
 
@@ -103,8 +103,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 				g.By(fmt.Sprintf("Gather Openstack attributes for machine %q", machineName))
 				instance, err := servers.Get(ctx, computeClient, machineResourceID).Extract()
 
-				var gerr gophercloud.ErrDefault404
-				if !errors.As(err, &gerr) {
+				if !gophercloud.ResponseCodeIs(err, http.StatusNotFound) {
 					o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack info for machine %v", machineName)
 					instanceAddresses, err := parseInstanceAddresses(instance.Addresses)
 					o.Expect(err).NotTo(o.HaveOccurred(), "Error parsing addresses for instance %q", instance.Name)
