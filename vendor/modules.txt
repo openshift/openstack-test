@@ -409,7 +409,7 @@ github.com/googleapis/gax-go/v2
 github.com/googleapis/gax-go/v2/apierror
 github.com/googleapis/gax-go/v2/apierror/internal/proto
 github.com/googleapis/gax-go/v2/internal
-# github.com/gophercloud/gophercloud/v2 v2.0.0-beta.4
+# github.com/gophercloud/gophercloud/v2 v2.0.0-beta.5
 ## explicit; go 1.21
 github.com/gophercloud/gophercloud/v2
 github.com/gophercloud/gophercloud/v2/openstack
