@@ -198,7 +198,8 @@ func GetSharesFromName(client *gophercloud.ServiceClient, shareName string) ([]s
 	return shares, nil
 }
 
-func FindStorageClassByProvider(oc *exutil.CLI, provisioner string) *storagev1.StorageClass {
+// return storageClass with specific provisioner. If seek_default is true, it will look also for the default annotation.
+func FindStorageClassByProvider(oc *exutil.CLI, provisioner string, seek_default bool) *storagev1.StorageClass {
 	scList, err := oc.AdminKubeClient().StorageV1().StorageClasses().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -209,7 +210,16 @@ func FindStorageClassByProvider(oc *exutil.CLI, provisioner string) *storagev1.S
 	}
 	for _, sc := range scList.Items {
 		if sc.Provisioner == provisioner {
-			return &sc
+			if seek_default {
+				val, ok := sc.GetAnnotations()["storageclass.kubernetes.io/is-default-class"]
+				// if we're explicitly looking for a default, the annotation must exist
+				if ok && val == "true" {
+					return &sc
+				}
+			} else {
+				// if we're not looking for a default, simply return the first result
+				return &sc
+			}
 		}
 	}
 	e2e.Logf("no default storage class found")

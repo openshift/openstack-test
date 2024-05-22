@@ -35,6 +35,8 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity": "",
 
+	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should create a cinder volume when using cinder default storage class": "",
+
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should create a manila share when using manila storage class": "",
 
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should follow PVC specs during resizing for prometheus": "",
