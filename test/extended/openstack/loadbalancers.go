@@ -568,7 +568,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 			g.By("Creating ingresscontroller for sharding the OCP in-built canary service")
 			name := "shard-" + string(uuid.NewUUID())
-			domain := "sharding-test.apps.shiftstack.com"
+			// TODO: Figure out how we can dynamically get the domain name
+			// https://issues.redhat.com//browse/OCPBUGS-35505
+			domain := "ingress-canary.openshift-ingress-canary.svc"
 			shardIngressCtrl, err := deployLbIngressController(ctx, oc, 10*time.Minute, name, domain, map[string]string{"ingress.openshift.io/canary": "canary_controller"})
 			defer func() {
 				err := oc.AdminOperatorClient().OperatorV1().IngressControllers(shardIngressCtrl.Namespace).Delete(ctx, shardIngressCtrl.Name, metav1.DeleteOptions{})
@@ -620,7 +622,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				body, err := io.ReadAll(resp.Body)
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(string(body)).Should(o.Equal("Healthcheck requested\n"), "Unexpected response on try #%d", i)
-				o.Expect(fmt.Sprintf("%q", resp.TLS.PeerCertificates[0].Subject)).Should(o.Equal("\"CN=*."+domain+"\""), "Unexpected response on try #%d", i)
+				o.Expect(fmt.Sprintf("%q", resp.TLS.PeerCertificates[0].Subject)).Should(o.Equal("\"CN="+domain+"\""), "Unexpected response on try #%d", i)
 			}
 			e2e.Logf("Canary service successfully accessed through new ingressController")
 		})
