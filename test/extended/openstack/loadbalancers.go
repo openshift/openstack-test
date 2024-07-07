@@ -150,7 +150,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				o.Expect(pool.Protocol).Should(o.Equal(string(protocolUnderTest)), "Unexpected protocol on Openstack LoadBalancer Pool: %q", pool.Name)
 				//Set as OFFLINE in vexxhost despite the lb is operative
 				//o.Expect(pool.OperatingStatus).Should(o.Equal("ONLINE"), "Unexpected Operating Status on Openstack Pool: %q", pool.Name)
-				lbMethod, err := getClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
+				lbMethod, err := GetClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", strings.ToLower(pool.LBMethod))
 				nodeList, err := clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
@@ -186,7 +186,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
 			g.By("Checking cluster configuration")
-			setting, err := getClusterLoadBalancerSetting("max-shared-lb", cloudProviderConfig)
+			setting, err := GetClusterLoadBalancerSetting("max-shared-lb", cloudProviderConfig)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			maxSharedLb, err := strconv.Atoi(setting)
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -266,7 +266,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			skipIfNotLbProvider(lbProviderUnderTest, cloudProviderConfig)
 
 			g.By("Checking cluster configuration")
-			setting, err := getClusterLoadBalancerSetting("max-shared-lb", cloudProviderConfig)
+			setting, err := GetClusterLoadBalancerSetting("max-shared-lb", cloudProviderConfig)
 			o.Expect(err).NotTo(o.HaveOccurred())
 			maxSharedLb, err := strconv.Atoi(setting)
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -404,7 +404,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				o.Expect(monitor.Delay).Should(o.Equal(monitorDelay), "Unexpected healthmonitor delay on Openstack LoadBalancer Pool: %q", pool.Name)
 				o.Expect(monitor.Timeout).Should(o.Equal(monitorTimeout), "Unexpected healthmonitor timeout on Openstack LoadBalancer Pool: %q", pool.Name)
 				o.Expect(monitor.MaxRetries).Should(o.Equal(monitorMaxRetries), "Unexpected healthmonitor MaxRetries on Openstack LoadBalancer Pool: %q", pool.Name)
-				lbMethod, err := getClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
+				lbMethod, err := GetClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", pool.LBMethod)
 
@@ -444,20 +444,15 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 
 			g.By("Create FIP to be used on the subsequent LoadBalancer Service")
 			var fip *floatingips.FloatingIP
-			var err error
-			// Use network configured on cloud-provider-config if any
-			configuredNetworkId, _ := getClusterLoadBalancerSetting("floating-network-id", cloudProviderConfig)
-			configuredSubnetId, _ := getClusterLoadBalancerSetting("floating-subnet-id", cloudProviderConfig)
-			if configuredNetworkId != "" {
-				fip, err = floatingips.Create(networkClient, floatingips.CreateOpts{FloatingNetworkID: configuredNetworkId, SubnetID: configuredSubnetId}).Extract()
-				o.Expect(err).NotTo(o.HaveOccurred(), "error creating FIP using IDs configured on the OCP cluster. Network-id: %s. Subnet-id: %s", configuredNetworkId, configuredSubnetId)
-			} else {
-				// If not, discover the first FloatingNetwork existing on OSP
-				foundNetworkId, err := GetFloatingNetworkID(networkClient)
-				o.Expect(err).NotTo(o.HaveOccurred())
-				fip, err = floatingips.Create(networkClient, floatingips.CreateOpts{FloatingNetworkID: foundNetworkId}).Extract()
-				o.Expect(err).NotTo(o.HaveOccurred(), "error creating FIP using discovered floatingNetwork ID %s", foundNetworkId)
+			foundNetworkId, err := GetFloatingNetworkID(networkClient, cloudProviderConfig)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			createOpts := floatingips.CreateOpts{FloatingNetworkID: foundNetworkId}
+			configuredSubnetId, _ := GetClusterLoadBalancerSetting("floating-subnet-id", cloudProviderConfig)
+			if configuredSubnetId != "" {
+				createOpts.SubnetID = configuredSubnetId
 			}
+			fip, err = floatingips.Create(networkClient, createOpts).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred(), "error creating FIP using IDs configured on the OCP cluster. Network-id: %s. Subnet-id: %s", foundNetworkId, configuredSubnetId)
 			g.By(fmt.Sprintf("FIP created: %s", fip.FloatingIP))
 			defer floatingips.Delete(networkClient, fip.ID)
 
@@ -712,31 +707,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 // Check ini.File from cloudProviderConfig and skip the tests if lb-provider is not matching the expected value
 func skipIfNotLbProvider(expectedLbProvider string, ini *ini.File) {
 
-	foundLbProvider, err := getClusterLoadBalancerSetting("lb-provider", ini)
+	foundLbProvider, err := GetClusterLoadBalancerSetting("lb-provider", ini)
 	o.Expect(err).NotTo(o.HaveOccurred())
 	if foundLbProvider != strings.ToLower(expectedLbProvider) {
 		e2eskipper.Skipf("Test not applicable for LoadBalancer provider different than %s. Cluster is configured with %q", expectedLbProvider, foundLbProvider)
 	}
-}
-
-// get the LoadBalancer setting based on the provided CloudProviderConfig INI file and the default values
-func getClusterLoadBalancerSetting(setting string, config *ini.File) (string, error) {
-
-	defaultLoadBalancerSettings := map[string]string{
-		"lb-provider":   "amphora",
-		"lb-method":     "round_robin",
-		"max-shared-lb": "2",
-	}
-
-	result, err := getPropertyValue("LoadBalancer", setting, config)
-	if err != nil || result == "#UNDEFINED#" {
-		if _, ok := defaultLoadBalancerSettings[setting]; !ok {
-			return "", fmt.Errorf("%q setting value not found and default is unknown", setting)
-		}
-		result = defaultLoadBalancerSettings[setting]
-		e2e.Logf("%q is not set on LoadBalancer section in cloud-provider-config, considering default value %q", setting, result)
-	}
-	return strings.ToLower(result), nil
 }
 
 // Return the FloatingIP assigned to a provided IP and return error if it is not found.

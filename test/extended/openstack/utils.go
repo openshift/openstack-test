@@ -264,7 +264,11 @@ func IsOctaviaVersionGreaterThanOrEqual(client *gophercloud.ServiceClient, const
 }
 
 // GetFloatingNetworkID returns a floating network ID.
-func GetFloatingNetworkID(client *gophercloud.ServiceClient) (string, error) {
+func GetFloatingNetworkID(client *gophercloud.ServiceClient, cloudProviderConfig *ini.File) (string, error) {
+	configuredNetworkId, _ := GetClusterLoadBalancerSetting("floating-network-id", cloudProviderConfig)
+	if configuredNetworkId != "" {
+		return configuredNetworkId, nil
+	}
 	type NetworkWithExternalExt struct {
 		networks.Network
 		external.NetworkExternalExt
@@ -331,4 +335,24 @@ func conditionsMatchExpected(expected, actual map[string]string) bool {
 		}
 	}
 	return reflect.DeepEqual(expected, filtered)
+}
+
+// get the LoadBalancer setting based on the provided CloudProviderConfig INI file and the default values
+func GetClusterLoadBalancerSetting(setting string, config *ini.File) (string, error) {
+
+	defaultLoadBalancerSettings := map[string]string{
+		"lb-provider":   "amphora",
+		"lb-method":     "round_robin",
+		"max-shared-lb": "2",
+	}
+
+	result, err := getPropertyValue("LoadBalancer", setting, config)
+	if err != nil || result == "#UNDEFINED#" {
+		if _, ok := defaultLoadBalancerSettings[setting]; !ok {
+			return "", fmt.Errorf("%q setting value not found and default is unknown", setting)
+		}
+		result = defaultLoadBalancerSettings[setting]
+		e2e.Logf("%q is not set on LoadBalancer section in cloud-provider-config, considering default value %q", setting, result)
+	}
+	return strings.ToLower(result), nil
 }
