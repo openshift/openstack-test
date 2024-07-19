@@ -11,7 +11,9 @@ import (
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	"github.com/openshift/openstack-test/test/extended/openstack/client"
+	"github.com/openshift/openstack-test/test/extended/openstack/machines"
 	exutil "github.com/openshift/origin/test/extended/util"
+	"github.com/stretchr/objx"
 	yaml "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,6 +38,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 	var ms dynamic.NamespaceableResourceInterface
 	var controlPlaneGroupName string
 	var workerAZGroupNameMap map[string]string
+	var machineList []objx.Map
 
 	oc = exutil.NewCLI("openstack")
 
@@ -45,6 +48,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		o.Expect(err).NotTo(o.HaveOccurred())
 		dc, err = dynamic.NewForConfig(cfg)
 		o.Expect(err).NotTo(o.HaveOccurred())
+
+		g.By("fetching Machines")
+		machineList, err = machines.List(ctx, dc)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if len(machineList) == 0 {
+			e2eskipper.Skipf("Skipping: the cluster does not have Machine objects managed by the machine-api operator")
+		}
 
 		g.By("preparing the openstack client")
 		computeClient, err = client.GetServiceClient(ctx, openstack.NewComputeV2)
