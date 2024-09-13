@@ -91,6 +91,8 @@
 // test/extended/testdata/builds/docker-add/docker-add-env/Dockerfile
 // test/extended/testdata/builds/docker-add/docker-add-env/foo
 // test/extended/testdata/builds/incremental-auth-build.json
+// test/extended/testdata/builds/jenkins-pipeline/jenkins-ephemeral.json
+// test/extended/testdata/builds/jenkins-pipeline/jenkins-rhel.yaml
 // test/extended/testdata/builds/pullsecret/linked-nodejs-bc.yaml
 // test/extended/testdata/builds/pullsecret/pullsecret-nodejs-bc.yaml
 // test/extended/testdata/builds/s2i-environment-build-app/.s2i/environment
@@ -108,6 +110,11 @@
 // test/extended/testdata/builds/statusfail-oomkilled.yaml
 // test/extended/testdata/builds/statusfail-postcommithook.yaml
 // test/extended/testdata/builds/statusfail-pushtoregistry.yaml
+// test/extended/testdata/builds/subscription-content/build-imagestream.yaml
+// test/extended/testdata/builds/subscription-content/buildconfig-subscription-content-rhel7.yaml
+// test/extended/testdata/builds/subscription-content/buildconfig-subscription-content-rhel8.yaml
+// test/extended/testdata/builds/subscription-content/buildconfig-subscription-content-rhel9.yaml
+// test/extended/testdata/builds/subscription-content/secret-template.txt
 // test/extended/testdata/builds/test-auth-build.yaml
 // test/extended/testdata/builds/test-bc-with-pr-ref.yaml
 // test/extended/testdata/builds/test-build-app/Dockerfile
@@ -215,10 +222,12 @@
 // test/extended/testdata/cmd/test/cmd/setbuildsecret.sh
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json
+// test/extended/testdata/cmd/test/cmd/testdata/application-template-mix.json
 // test/extended/testdata/cmd/test/cmd/testdata/application-template-stibuild.json
 // test/extended/testdata/cmd/test/cmd/testdata/external-service.yaml
 // test/extended/testdata/cmd/test/cmd/testdata/hello-openshift/hello-pod.json
 // test/extended/testdata/cmd/test/cmd/testdata/idling-dc.yaml
+// test/extended/testdata/cmd/test/cmd/testdata/idling-deployment.yaml
 // test/extended/testdata/cmd/test/cmd/testdata/idling-svc-route.yaml
 // test/extended/testdata/cmd/test/cmd/testdata/image-streams/image-streams-centos7.json
 // test/extended/testdata/cmd/test/cmd/testdata/jenkins/jenkins-ephemeral-template.json
@@ -234,6 +243,7 @@
 // test/extended/testdata/cmd/test/cmd/testdata/new-app/invalid.json
 // test/extended/testdata/cmd/test/cmd/testdata/new-app/template-minimal-expose.json
 // test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-app-label.json
+// test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-crd-ns.yaml
 // test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-crd.yaml
 // test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-namespaces.json
 // test/extended/testdata/cmd/test/cmd/testdata/new-app/template-without-app-label.json
@@ -264,6 +274,7 @@
 // test/extended/testdata/cmd/test/cmd/testdata/test-bc.yaml
 // test/extended/testdata/cmd/test/cmd/testdata/test-buildcli.json
 // test/extended/testdata/cmd/test/cmd/testdata/test-deployment-config.yaml
+// test/extended/testdata/cmd/test/cmd/testdata/test-deployment.yaml
 // test/extended/testdata/cmd/test/cmd/testdata/test-docker-build.json
 // test/extended/testdata/cmd/test/cmd/testdata/test-image-stream.json
 // test/extended/testdata/cmd/test/cmd/testdata/test-image.json
@@ -284,6 +295,7 @@
 // test/extended/testdata/deployments/deployment-image-resolution-is.yaml
 // test/extended/testdata/deployments/deployment-image-resolution.yaml
 // test/extended/testdata/deployments/deployment-min-ready-seconds.yaml
+// test/extended/testdata/deployments/deployment-simple-sleep.yaml
 // test/extended/testdata/deployments/deployment-simple.yaml
 // test/extended/testdata/deployments/deployment-trigger.yaml
 // test/extended/testdata/deployments/deployment-with-ref-env.yaml
@@ -296,6 +308,7 @@
 // test/extended/testdata/deployments/test-deployment-broken.yaml
 // test/extended/testdata/deployments/test-deployment-test.yaml
 // test/extended/testdata/egress-firewall/ovnk-egressfirewall-test.yaml
+// test/extended/testdata/egress-firewall/ovnk-egressfirewall-wildcard-test.yaml
 // test/extended/testdata/egress-firewall/sdn-egressnetworkpolicy-test.yaml
 // test/extended/testdata/egress-router-cni/egress-router-cni-v4-cr.yaml
 // test/extended/testdata/egress-router-cni/egress-router-cni-v6-cr.yaml
@@ -324,6 +337,7 @@
 // test/extended/testdata/hello-builder/Dockerfile
 // test/extended/testdata/hello-builder/scripts/assemble
 // test/extended/testdata/hello-builder/scripts/run
+// test/extended/testdata/idling-echo-server-deployment.yaml
 // test/extended/testdata/idling-echo-server-rc.yaml
 // test/extended/testdata/idling-echo-server.yaml
 // test/extended/testdata/image/deployment-with-annotation-trigger.yaml
@@ -336,6 +350,8 @@
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json
+// test/extended/testdata/ipsec/ipsec-nsconfig-machine-config.yaml
+// test/extended/testdata/ipsec/nmstate.yaml
 // test/extended/testdata/kernel/rt-tests-environment.yaml
 // test/extended/testdata/kernel/rt-tests-pod.yaml
 // test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt
@@ -418,6 +434,7 @@
 // test/extended/testdata/net-attach-defs/whereabouts-nad.yml
 // test/extended/testdata/net-attach-defs/whereabouts-race-awake.yml
 // test/extended/testdata/net-attach-defs/whereabouts-race-sleepy.yml
+// test/extended/testdata/node_tuning/nto-stalld.yaml
 // test/extended/testdata/oauthserver/cabundle-cm.yaml
 // test/extended/testdata/oauthserver/oauth-network.yaml
 // test/extended/testdata/oauthserver/oauth-pod.yaml
@@ -466,6 +483,7 @@
 // test/extended/testdata/test-buildcli.json
 // test/extended/testdata/test-cli-debug.yaml
 // test/extended/testdata/test-deployment-config.yaml
+// test/extended/testdata/test-deployment.yaml
 // test/extended/testdata/test-env-pod.json
 // test/extended/testdata/test-replication-controller.yaml
 // test/extended/testdata/test-secret.json
@@ -2898,52 +2916,6 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             "referencePolicy": {
               "type": "Local"
             }
-          },
-          {
-            "name": "3.1-el7",
-            "annotations": {
-              "description": "Build and run .NET Core 3.1 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/redhat-developer/s2i-dotnetcore/tree/master/3.1/build/README.md.",
-              "iconClass": "icon-dotnet",
-              "openshift.io/display-name": ".NET Core 3.1 (CentOS 7)",
-              "sampleContextDir": "app",
-              "sampleRef": "dotnetcore-3.1",
-              "sampleRepo": "https://github.com/redhat-developer/s2i-dotnetcore-ex",
-              "supports": "dotnet:3.1,dotnet",
-              "tags": "builder,.net,dotnet,dotnetcore,rh-dotnet31",
-              "version": "3.1"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "registry.centos.org/dotnet/dotnet-31-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "3.1",
-            "annotations": {
-              "description": "Build and run .NET Core 3.1 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/redhat-developer/s2i-dotnetcore/tree/master/3.1/build/README.md.",
-              "iconClass": "icon-dotnet",
-              "openshift.io/display-name": ".NET Core 3.1 (CentOS 7)",
-              "sampleContextDir": "app",
-              "sampleRef": "dotnetcore-3.1",
-              "sampleRepo": "https://github.com/redhat-developer/s2i-dotnetcore-ex",
-              "supports": "dotnet:3.1,dotnet",
-              "tags": "builder,.net,dotnet,dotnetcore,rh-dotnet31,hidden",
-              "version": "3.1"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "registry.centos.org/dotnet/dotnet-31-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
           }
         ]
       },
@@ -3032,28 +3004,6 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             }
           },
           {
-            "name": "2.4-el8",
-            "annotations": {
-              "description": "Build and serve static content via Apache HTTP Server (httpd) 2.4 on CentOS 8. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/httpd-container/blob/master/2.4/README.md.",
-              "iconClass": "icon-apache",
-              "openshift.io/display-name": "Apache HTTP Server 2.4 (CentOS 8)",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/sclorg/httpd-ex.git",
-              "supports": "httpd",
-              "tags": "builder,httpd,hidden",
-              "version": "2.4"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/centos/httpd-24-centos8:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
             "name": "2.4-el7",
             "annotations": {
               "description": "Build and serve static content via Apache HTTP Server (httpd) 2.4 on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/httpd-container/blob/master/2.4/README.md.",
@@ -3067,7 +3017,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/httpd-24-centos7:latest"
+              "name": "quay.io/centos7/httpd-24-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -3089,7 +3039,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/httpd-24-centos7:latest"
+              "name": "quay.io/centos7/httpd-24-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -3270,27 +3220,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mariadb-105-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "10.3-el8",
-            "annotations": {
-              "description": "Provides a MariaDB 10.3 database on CentOS 8. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mariadb-container/tree/master/10.3/README.md.",
-              "iconClass": "icon-mariadb",
-              "openshift.io/display-name": "MariaDB 10.3 (CentOS 8)",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "tags": "database,mariadb",
-              "version": "10.3"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/centos/mariadb-103-centos8:latest"
+              "name": "quay.io/centos7/mariadb-105-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -3310,7 +3240,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mariadb-103-centos7:latest"
+              "name": "quay.io/centos7/mariadb-103-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -3330,7 +3260,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mariadb-103-centos7:latest"
+              "name": "quay.io/centos7/mariadb-103-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -3379,26 +3309,6 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             }
           },
           {
-            "name": "8.0-el8",
-            "annotations": {
-              "description": "Provides a MySQL 8.0 database on CentOS 8. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mysql-container/blob/master/README.md.",
-              "iconClass": "icon-mysql-database",
-              "openshift.io/display-name": "MySQL 8.0 (CentOS 8)",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "tags": "mysql",
-              "version": "8.0"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/centos/mysql-80-centos8:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
             "name": "8.0-el7",
             "annotations": {
               "description": "Provides a MySQL 8.0 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/mysql-container/blob/master/README.md.",
@@ -3410,7 +3320,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mysql-80-centos7:latest"
+              "name": "quay.io/centos7/mysql-80-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -3430,7 +3340,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mysql-80-centos7:latest"
+              "name": "quay.io/centos7/mysql-80-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -3901,7 +3811,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/perl-530-centos7:latest"
+              "name": "quay.io/centos7/perl-530-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -3923,7 +3833,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/perl-530-centos7:latest"
+              "name": "quay.io/centos7/perl-530-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4097,7 +4007,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/php-73-centos7:latest"
+              "name": "quay.io/centos7/php-73-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4157,27 +4067,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/postgresql-13-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "12-el8",
-            "annotations": {
-              "description": "Provides a PostgreSQL 12 database on CentOS 8. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/postgresql-container/blob/master/README.md.",
-              "iconClass": "icon-postgresql",
-              "openshift.io/display-name": "PostgreSQL 12 (CentOS 8)",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "tags": "database,postgresql",
-              "version": "12"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/centos/postgresql-12-centos8:latest"
+              "name": "quay.io/centos7/postgresql-13-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4197,7 +4087,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/postgresql-13-centos7:latest"
+              "name": "quay.io/centos7/postgresql-13-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4217,7 +4107,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/postgresql-12-centos7:latest"
+              "name": "quay.io/centos7/postgresql-12-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4237,27 +4127,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/postgresql-12-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "10-el8",
-            "annotations": {
-              "description": "Provides a PostgreSQL 10 database on CentOS 8. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/postgresql-container/blob/master/README.md.",
-              "iconClass": "icon-postgresql",
-              "openshift.io/display-name": "PostgreSQL 10 (CentOS 8)",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "tags": "database,postgresql",
-              "version": "10"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/centos/postgresql-10-centos8:latest"
+              "name": "quay.io/centos7/postgresql-12-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4277,7 +4147,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/postgresql-10-centos7:latest"
+              "name": "quay.io/centos7/postgresql-10-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4297,7 +4167,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/postgresql-10-centos7:latest"
+              "name": "quay.io/centos7/postgresql-10-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4520,26 +4390,6 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             }
           },
           {
-            "name": "5-el8",
-            "annotations": {
-              "description": "Provides a Redis 5 database on CentOS 8. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/redis-container/tree/master/5/README.md.",
-              "iconClass": "icon-redis",
-              "openshift.io/display-name": "Redis 5 (CentOS 8)",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "tags": "redis",
-              "version": "5"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/centos/redis-5-centos8:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
             "name": "5-el7",
             "annotations": {
               "description": "Provides a Redis 5 database on CentOS 7. For more information about using this database image, including OpenShift considerations, see https://github.com/sclorg/redis-container/tree/master/5/README.md.",
@@ -4551,7 +4401,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/redis-5-centos7:latest"
+              "name": "quay.io/centos7/redis-5-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4571,7 +4421,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/redis-5-centos7:latest"
+              "name": "quay.io/centos7/redis-5-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4744,7 +4594,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/ruby-27-centos7:latest"
+              "name": "quay.io/centos7/ruby-27-centos7:centos7"
             },
             "generation": null,
             "importPolicy": {},
@@ -4809,226 +4659,6 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             "from": {
               "kind": "DockerImage",
               "name": "quay.io/wildfly/wildfly-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "8.1",
-            "annotations": {
-              "description": "Build and run WildFly 8.1 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 8.1",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:8.1,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "8.1"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-81-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "9.0",
-            "annotations": {
-              "description": "Build and run WildFly 9.0 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 9.0",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:9.0,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "9.0"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-90-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "10.0",
-            "annotations": {
-              "description": "Build and run WildFly 10.0 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 10.0",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:10.0,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "10.0"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-100-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "10.1",
-            "annotations": {
-              "description": "Build and run WildFly 10.1 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 10.1",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:10.1,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "10.1"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-101-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "11.0",
-            "annotations": {
-              "description": "Build and run WildFly 11 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 11",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:11,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "11.0"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-110-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "12.0",
-            "annotations": {
-              "description": "Build and run WildFly 12 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 12",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:12,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "12.0"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-120-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "13.0",
-            "annotations": {
-              "description": "Build and run WildFly 13 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 13",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:13,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "13.0"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-130-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "14.0",
-            "annotations": {
-              "description": "Build and run WildFly 14 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 14",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:14,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "14.0"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-140-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "15.0",
-            "annotations": {
-              "description": "Build and run WildFly 15 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 15",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:15,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "15.0"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-150-centos7:latest"
-            },
-            "generation": null,
-            "importPolicy": {},
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "name": "16.0",
-            "annotations": {
-              "description": "Build and run WildFly 16 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/openshift-s2i/s2i-wildfly/blob/master/README.md.",
-              "iconClass": "icon-wildfly",
-              "openshift.io/display-name": "WildFly 16",
-              "openshift.io/provider-display-name": "Red Hat, Inc.",
-              "sampleRepo": "https://github.com/openshift/openshift-jee-sample.git",
-              "supports": "wildfly:16,jee,java",
-              "tags": "builder,wildfly,java",
-              "version": "16.0"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "docker.io/openshift/wildfly-160-centos7:latest"
             },
             "generation": null,
             "importPolicy": {},
@@ -12189,7 +11819,7 @@ var _examplesQuickstartsRailsPostgresqlPersistentJson = []byte(`{
 						],
 						"from": {
 							"kind": "ImageStreamTag",
-							"name": "ruby:2.7-ubi8",
+							"name": "ruby:3.0-ubi8",
 							"namespace": "${NAMESPACE}"
 						}
 					},
@@ -12816,7 +12446,7 @@ var _examplesQuickstartsRailsPostgresqlJson = []byte(`{
 						],
 						"from": {
 							"kind": "ImageStreamTag",
-							"name": "ruby:2.7-ubi8",
+							"name": "ruby:3.0-ubi8",
 							"namespace": "${NAMESPACE}"
 						}
 					},
@@ -13323,7 +12953,7 @@ func examplesHelloOpenshiftDockerfile() (*asset, error) {
 
 var _examplesHelloOpenshiftGoMod = []byte(`module github.com/openshift/origin/examples/hello-openshift
 
-go 1.19
+go 1.21
 `)
 
 func examplesHelloOpenshiftGoModBytes() ([]byte, error) {
@@ -18235,7 +17865,7 @@ var _testExtendedTestdataBuildsBuildSecretsTestS2iBuildJson = []byte(`{
       "sourceStrategy": {
         "from": {
           "kind": "DockerImage",
-          "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+          "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8"
         },
         "env": [
           {
@@ -18854,7 +18484,7 @@ var _testExtendedTestdataBuildsIncrementalAuthBuildJson = []byte(`{
             ],
             "from": {
               "kind": "DockerImage",
-              "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+              "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.5-ubi8"
             },
             "incremental": true
           }
@@ -18886,6 +18516,492 @@ func testExtendedTestdataBuildsIncrementalAuthBuildJson() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/builds/incremental-auth-build.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataBuildsJenkinsPipelineJenkinsEphemeralJson = []byte(`{
+  "kind": "Template",
+  "apiVersion": "template.openshift.io/v1",
+  "metadata": {
+    "name": "jenkins-ephemeral",
+    "annotations": {
+      "openshift.io/display-name": "Jenkins (Ephemeral)",
+      "description": "Jenkins service, without persistent storage.\n\nWARNING: Any data stored will be lost upon pod destruction. Only use this template for testing.",
+      "iconClass": "icon-jenkins",
+      "tags": "instant-app,jenkins",
+      "openshift.io/long-description": "This template deploys a Jenkins server capable of managing OpenShift Pipeline builds and supporting OpenShift-based oauth login.  The Jenkins configuration is stored in non-persistent storage, so this configuration should be used for experimental purposes only.",
+      "openshift.io/provider-display-name": "Red Hat, Inc.",
+      "openshift.io/documentation-url": "https://docs.okd.io/latest/using_images/other_images/jenkins.html",
+      "openshift.io/support-url": "https://access.redhat.com"
+    }
+  },
+  "message": "A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/master/examples/jenkins/README.md contains more information about using this template.",
+  "labels": {
+    "app": "jenkins-ephemeral",
+    "template": "jenkins-ephemeral-template"
+  },
+  "objects": [
+    {
+      "kind": "Route",
+      "apiVersion": "route.openshift.io/v1",
+      "metadata": {
+        "name": "${JENKINS_SERVICE_NAME}",
+        "annotations": {
+          "template.openshift.io/expose-uri": "http://{.spec.host}{.spec.path}",
+          "haproxy.router.openshift.io/timeout": "4m"
+        }
+      },
+      "spec": {
+        "to": {
+          "kind": "Service",
+          "name": "${JENKINS_SERVICE_NAME}"
+        },
+        "tls": {
+          "termination": "edge",
+          "insecureEdgeTerminationPolicy": "Redirect"
+        }
+      }
+    },
+    {
+      "kind": "ConfigMap",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${JENKINS_SERVICE_NAME}-trusted-ca-bundle",
+        "labels": {
+          "config.openshift.io/inject-trusted-cabundle": "true"
+        }
+      }
+    },
+    {
+      "kind": "DeploymentConfig",
+      "apiVersion": "apps.openshift.io/v1",
+      "metadata": {
+        "name": "${JENKINS_SERVICE_NAME}",
+        "annotations": {
+          "template.alpha.openshift.io/wait-for-ready": "true"
+        }
+      },
+      "spec": {
+        "strategy": {
+          "type": "Recreate"
+        },
+        "triggers": [
+          {
+            "type": "ImageChange",
+            "imageChangeParams": {
+              "automatic": true,
+              "containerNames": [
+                "jenkins"
+              ],
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "${JENKINS_IMAGE_STREAM_TAG}",
+                "namespace": "${NAMESPACE}"
+              },
+              "lastTriggeredImage": ""
+            }
+          },
+          {
+            "type": "ConfigChange"
+          }
+        ],
+        "replicas": 1,
+        "selector": {
+          "name": "${JENKINS_SERVICE_NAME}"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "name": "${JENKINS_SERVICE_NAME}"
+            }
+          },
+          "spec": {
+            "serviceAccountName": "${JENKINS_SERVICE_NAME}",
+            "containers": [
+              {
+                "name": "jenkins",
+                "image": " ",
+                "readinessProbe": {
+                  "timeoutSeconds": 240,
+                  "initialDelaySeconds": 3,
+                  "httpGet": {
+                    "path": "/login",
+                    "port": 8080
+                  }
+                },
+                "livenessProbe": {
+                  "timeoutSeconds": 240,
+                  "periodSeconds": 360,
+                  "initialDelaySeconds": 420,
+                  "failureThreshold": 2,
+                  "httpGet": {
+                    "path": "/login",
+                    "port": 8080
+                  }
+                },
+                "env": [
+                  {
+                    "name": "OPENSHIFT_ENABLE_OAUTH",
+                    "value": "${ENABLE_OAUTH}"
+                  },
+                  {
+                    "name": "OPENSHIFT_ENABLE_REDIRECT_PROMPT",
+                    "value": "true"
+                  },
+                  {
+                    "name": "DISABLE_ADMINISTRATIVE_MONITORS",
+                    "value": "${DISABLE_ADMINISTRATIVE_MONITORS}"
+                  },
+                  {
+                    "name": "KUBERNETES_MASTER",
+                    "value": "https://kubernetes.default:443"
+                  },
+                  {
+                    "name": "KUBERNETES_TRUST_CERTIFICATES",
+                    "value": "true"
+                  },
+                  {
+                    "name": "JENKINS_SERVICE_NAME",
+                    "value": "${JENKINS_SERVICE_NAME}"
+                  },
+                  {
+                    "name": "JNLP_SERVICE_NAME",
+                    "value": "${JNLP_SERVICE_NAME}"
+                  },
+                  {
+                    "name": "JENKINS_UC_INSECURE",
+                    "value": "${JENKINS_UC_INSECURE}"
+                  },
+                  {
+                    "name": "CASC_JENKINS_CONFIG",
+                    "value": "/var/lib/jenkins/proxy.yaml"
+                  },
+                  {
+                    "name": "JAVA_FIPS_OPTIONS",
+                    "value": "${JAVA_FIPS_OPTIONS}"
+                  }
+                ],
+                "resources": {
+                  "limits": {
+                    "memory": "${MEMORY_LIMIT}"
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "${JENKINS_SERVICE_NAME}-data",
+                    "mountPath": "/var/lib/jenkins"
+                  },
+                  {
+                    "name": "${JENKINS_SERVICE_NAME}-trusted-ca-bundle",
+                    "mountPath": "/etc/pki/ca-trust/source/anchors"
+                  }
+                ],
+                "terminationMessagePath": "/dev/termination-log",
+                "imagePullPolicy": "IfNotPresent",
+                "capabilities": {},
+                "securityContext": {
+                  "capabilities": {},
+                  "privileged": false
+                }
+              }
+            ],
+            "volumes": [
+              {
+                "name": "${JENKINS_SERVICE_NAME}-data",
+                "emptyDir": {
+                  "medium": ""
+                }
+              },
+              {
+                "name": "${JENKINS_SERVICE_NAME}-trusted-ca-bundle",
+                "configMap": {
+                  "name": "${JENKINS_SERVICE_NAME}-trusted-ca-bundle",
+                  "optional": true
+                }
+              }
+            ],
+            "restartPolicy": "Always",
+            "dnsPolicy": "ClusterFirst"
+          }
+        }
+      }
+    },
+    {
+      "kind": "ServiceAccount",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${JENKINS_SERVICE_NAME}",
+        "annotations": {
+          "serviceaccounts.openshift.io/oauth-redirectreference.jenkins": "{\"kind\":\"OAuthRedirectReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"Route\",\"name\":\"${JENKINS_SERVICE_NAME}\"}}"
+        }
+      }
+    },
+    {
+      "kind": "RoleBinding",
+      "apiVersion": "authorization.openshift.io/v1",
+      "metadata": {
+        "name": "${JENKINS_SERVICE_NAME}_edit"
+      },
+      "groupNames": null,
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "name": "${JENKINS_SERVICE_NAME}"
+        }
+      ],
+      "roleRef": {
+        "name": "edit"
+      }
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${JNLP_SERVICE_NAME}"
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "agent",
+            "protocol": "TCP",
+            "port": 50000,
+            "targetPort": 50000,
+            "nodePort": 0
+          }
+        ],
+        "selector": {
+          "name": "${JENKINS_SERVICE_NAME}"
+        },
+        "type": "ClusterIP",
+        "sessionAffinity": "None"
+      }
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${JENKINS_SERVICE_NAME}",
+        "annotations": {
+          "service.alpha.openshift.io/dependencies": "[{\"name\": \"${JNLP_SERVICE_NAME}\", \"namespace\": \"\", \"kind\": \"Service\"}]",
+          "service.openshift.io/infrastructure": "true"
+        }
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "web",
+            "protocol": "TCP",
+            "port": 80,
+            "targetPort": 8080,
+            "nodePort": 0
+          }
+        ],
+        "selector": {
+          "name": "${JENKINS_SERVICE_NAME}"
+        },
+        "type": "ClusterIP",
+        "sessionAffinity": "None"
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "name": "JENKINS_SERVICE_NAME",
+      "displayName": "Jenkins Service Name",
+      "description": "The name of the OpenShift Service exposed for the Jenkins container.",
+      "value": "jenkins"
+    },
+    {
+      "name": "JNLP_SERVICE_NAME",
+      "displayName": "Jenkins JNLP Service Name",
+      "description": "The name of the service used for master/slave communication.",
+      "value": "jenkins-jnlp"
+    },
+    {
+      "name": "ENABLE_OAUTH",
+      "displayName": "Enable OAuth in Jenkins",
+      "description": "Whether to enable OAuth OpenShift integration. If false, the static account 'admin' will be initialized with the password 'password'.",
+      "value": "true"
+    },
+    {
+      "name": "MEMORY_LIMIT",
+      "displayName": "Memory Limit",
+      "description": "Maximum amount of memory the container can use.",
+      "value": "1Gi"
+    },
+    {
+      "name": "NAMESPACE",
+      "displayName": "Jenkins ImageStream Namespace",
+      "description": "The OpenShift Namespace where the Jenkins ImageStream resides.",
+      "value": "openshift"
+    },
+    {
+      "name": "DISABLE_ADMINISTRATIVE_MONITORS",
+      "displayName": "Disable memory intensive administrative monitors",
+      "description": "Whether to perform memory intensive, possibly slow, synchronization with the Jenkins Update Center on start.  If true, the Jenkins core update monitor and site warnings monitor are disabled.",
+      "value": "false"
+    },
+    {
+      "name": "JAVA_FIPS_OPTIONS",
+      "displayName": "Allows control over how the JVM interacts with FIPS on startup.",
+      "description": "See https://access.redhat.com/documentation/en-us/openjdk/11/html-single/configuring_openjdk_11_on_rhel_with_fips/index#config-fips-in-openjdk for the available command line properties to facilitate the JVM running on FIPS nodes.",
+      "value": "-Dcom.redhat.fips=false"
+    },
+    {
+      "name": "JENKINS_IMAGE_STREAM_TAG",
+      "displayName": "Jenkins ImageStreamTag",
+      "description": "Name of the ImageStreamTag to be used for the Jenkins image.",
+      "value": "jenkins:2"
+    },
+    {
+      "name": "JENKINS_UC_INSECURE",
+      "displayName": "Allows use of Jenkins Update Center repository with invalid SSL certificate",
+      "description": "Whether to allow use of a Jenkins Update Center that uses invalid certificate (self-signed, unknown CA). If any value other than 'false', certificate check is bypassed. By default, certificate check is enforced.",
+      "value": "false"
+    },
+    {
+      "name": "AGENT_BASE_IMAGE",
+      "displayName": "Image used for the 'jnlp' container of the sample 'java-sidecar' and 'nodejs-sidecar' PodTemplates",
+      "description": "Setting this value overrides the image used for the 'jnlp' container in the sample kubernetes plug-in PodTemplates provided with this image.  Otherwise, the image from the 'jenkins-agent-base:latest' ImageStreamTag in the 'openshift' namespace is used.",
+      "value": "image-registry.openshift-image-registry.svc:5000/openshift/jenkins-agent-base:latest"
+    },
+    {
+      "name": "JAVA_BUILDER_IMAGE",
+      "displayName": "Image used for the 'java' container of the sample 'java-builder' PodTemplate",
+      "description": "Setting this value overrides the image used for the 'java-builder' container in the sample kubernetes plug-in PodTemplates provided with this image.  Otherwise, the image from the 'java:latest' ImageStreamTag in the 'openshift' namespace is used.",
+      "value": "image-registry.openshift-image-registry.svc:5000/openshift/java:latest"
+    },
+    {
+      "name": "NODEJS_BUILDER_IMAGE",
+      "displayName": "Image used for the 'nodejs' container of the sample 'nodejs-builder' PodTemplate",
+      "description": "Setting this value overrides the image used for the 'nodejs-builder' container in the sample kubernetes plug-in PodTemplates provided with this image.  Otherwise, the image from the 'nodejs:latest' ImageStreamTag in the 'openshift' namespace is used.",
+      "value": "image-registry.openshift-image-registry.svc:5000/openshift/nodejs:latest"
+    }
+  ]
+}
+`)
+
+func testExtendedTestdataBuildsJenkinsPipelineJenkinsEphemeralJsonBytes() ([]byte, error) {
+	return _testExtendedTestdataBuildsJenkinsPipelineJenkinsEphemeralJson, nil
+}
+
+func testExtendedTestdataBuildsJenkinsPipelineJenkinsEphemeralJson() (*asset, error) {
+	bytes, err := testExtendedTestdataBuildsJenkinsPipelineJenkinsEphemeralJsonBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/builds/jenkins-pipeline/jenkins-ephemeral.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataBuildsJenkinsPipelineJenkinsRhelYaml = []byte(`kind: ImageStream
+apiVersion: image.openshift.io/v1
+metadata:
+  name: jenkins
+  annotations:
+    openshift.io/display-name: Jenkins
+spec:
+  tags:
+    - name: latest
+      annotations:
+        openshift.io/display-name: Jenkins (Latest)
+        openshift.io/provider-display-name: Red Hat, Inc.
+        description: |-
+          Provides a Jenkins server from registry.redhat.io. For more information about using this container image, including OpenShift considerations, see https://github.com/openshift/jenkins/blob/master/README.md.
+
+          WARNING: By selecting this tag, your application will automatically update to use the latest version of Jenkins available on OpenShift, including major versions updates.
+        iconClass: icon-jenkins
+        tags: jenkins
+      from:
+        kind: ImageStreamTag
+        name: "2"
+      referencePolicy:
+        type: Local
+    - name: ocp-upgrade-redeploy
+      annotations:
+        openshift.io/display-name: Jenkins (Latest)
+        openshift.io/provider-display-name: Red Hat, Inc.
+        description:
+          Provides a Jenkins 2.X server from registry.redhat.io. For more information about
+          using this container image, including OpenShift considerations, see https://github.com/openshift/jenkins/blob/master/README.md.
+          This tag will will redeploy the Jenkins DeploymentConfig on an upgrade in OCP versions if the Jenkins image reference has changed.
+        iconClass: icon-jenkins
+        tags: jenkins
+      from:
+        kind: ImageStreamTag
+        name: "2"
+      referencePolicy:
+        type: Local
+    - name: "2"
+      annotations:
+        openshift.io/display-name: Jenkins 2.X
+        openshift.io/provider-display-name: Red Hat, Inc.
+        description:
+          Provides a Jenkins 2.X server from registry.redhat.io. For more information about
+          using this container image, including OpenShift considerations, see https://github.com/openshift/jenkins/blob/master/README.md.
+          This tag will will redeploy the Jenkins DeploymentConfig on an upgrade in OCP versions if the Jenkins image reference has changed.
+        iconClass: icon-jenkins
+        tags: jenkins
+        version: 2.x
+      from:
+        kind: DockerImage
+        name: registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.13.0-1686682222
+      referencePolicy:
+        type: Local
+    - name: "user-maintained-upgrade-redeploy"
+      annotations:
+        openshift.io/display-name: Jenkins 2.X
+        openshift.io/provider-display-name: Red Hat, Inc.
+        description:
+          Provides a Jenkins 2.X server from registry.redhat.io. For more information about
+          using this container image, including OpenShift considerations, see https://github.com/openshift/jenkins/blob/master/README.md.
+          This tag will will redeploy the Jenkins DeploymentConfig on an upgrade in OCP versions if the Jenkins image reference has changed.
+          A user must invoke 'oc import-image jenkins:user-maintained-upgrade-redeploy -n openshift' in order for the ImageStream controller
+          to pull the latest digest for the image tag, and if a new digest exists, any running Jenkins DeploymentConfig will redeploy.
+        iconClass: icon-jenkins
+        tags: jenkins
+        version: 2.x
+      from:
+        kind: DockerImage
+        name: registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.13.0
+      referencePolicy:
+        type: Local
+    - name: "scheduled-upgrade-redeploy"
+      annotations:
+        openshift.io/display-name: Jenkins 2.X
+        openshift.io/provider-display-name: Red Hat, Inc.
+        description:
+          Provides a Jenkins 2.X server from registry.redhat.io. For more information about
+          using this container image, including OpenShift considerations, see https://github.com/openshift/jenkins/blob/master/README.md.
+          This tag will will redeploy the Jenkins DeploymentConfig on an upgrade in OCP versions if the Jenkins image reference has changed.
+          OpenShift will periodically check to ensure that the latest digest for this image tag is imported. If an update occurs, any running
+          Jenkins DeploymentConfig will redeploy.
+        iconClass: icon-jenkins
+        tags: jenkins
+        version: 2.x
+      from:
+        kind: DockerImage
+        name: registry.redhat.io/ocp-tools-4/jenkins-rhel8:v4.13.0
+      importPolicy:
+        scheduled: true
+      referencePolicy:
+        type: Local
+`)
+
+func testExtendedTestdataBuildsJenkinsPipelineJenkinsRhelYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataBuildsJenkinsPipelineJenkinsRhelYaml, nil
+}
+
+func testExtendedTestdataBuildsJenkinsPipelineJenkinsRhelYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataBuildsJenkinsPipelineJenkinsRhelYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/builds/jenkins-pipeline/jenkins-rhel.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -19080,7 +19196,7 @@ spec:
         value: "2"
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
 `)
 
 func testExtendedTestdataBuildsStatusfailBadcontextdirs2iYamlBytes() ([]byte, error) {
@@ -19180,7 +19296,7 @@ spec:
     dockerStrategy:
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
 `)
 
 func testExtendedTestdataBuildsStatusfailFetchimagecontentdockerYamlBytes() ([]byte, error) {
@@ -19214,7 +19330,7 @@ spec:
           value: "2"
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
 `)
 
 func testExtendedTestdataBuildsStatusfailFetchsourcedockerYamlBytes() ([]byte, error) {
@@ -19248,7 +19364,7 @@ spec:
           value: "2"
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
 `)
 
 func testExtendedTestdataBuildsStatusfailFetchsources2iYamlBytes() ([]byte, error) {
@@ -19280,7 +19396,7 @@ spec:
 
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
       scripts: "http://example.org/scripts"
       env:
         - name: http_proxy
@@ -19323,7 +19439,7 @@ spec:
           value: "2"
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
       forcePull: true
 `)
 
@@ -19414,6 +19530,221 @@ func testExtendedTestdataBuildsStatusfailPushtoregistryYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/builds/statusfail-pushtoregistry.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataBuildsSubscriptionContentBuildImagestreamYaml = []byte(`apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: subscription-content
+`)
+
+func testExtendedTestdataBuildsSubscriptionContentBuildImagestreamYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataBuildsSubscriptionContentBuildImagestreamYaml, nil
+}
+
+func testExtendedTestdataBuildsSubscriptionContentBuildImagestreamYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataBuildsSubscriptionContentBuildImagestreamYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/builds/subscription-content/build-imagestream.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel7Yaml = []byte(`` + "\xEF\xBB\xBF" + `kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: subscription-content-rhel7
+spec:
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'subscription-content:rhel7'
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: DockerImage
+        name: 'registry.access.redhat.com/ubi7/ubi:latest'
+      volumes:
+        - name: etc-pki-entitlement
+          source:
+            type: Secret
+            secret:
+              secretName: etc-pki-entitlement
+              defaultMode: 420
+          mounts:
+            - destinationPath: /etc/pki/entitlement
+  postCommit: {}
+  source:
+    type: Dockerfile
+    dockerfile: |
+      FROM registry.access.redhat.com/ubi7/ubi:latest
+      RUN rm -rf /etc/rhsm-host
+      RUN yum --enablerepo=rhel-server-rhscl-7-rpms install \
+          nss_wrapper -y && \
+          yum clean all -y
+      RUN ln -s /run/secrets/rhsm /etc/rhsm-host
+  runPolicy: Serial
+`)
+
+func testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel7YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel7Yaml, nil
+}
+
+func testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel7Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel7YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/builds/subscription-content/buildconfig-subscription-content-rhel7.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel8Yaml = []byte(`` + "\xEF\xBB\xBF" + `kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: subscription-content-rhel8
+spec:
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'subscription-content:rhel8'
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: DockerImage
+        name: 'registry.access.redhat.com/ubi8/ubi:latest'
+      volumes:
+        - name: etc-pki-entitlement
+          source:
+            type: Secret
+            secret:
+              secretName: etc-pki-entitlement
+              defaultMode: 420
+          mounts:
+            - destinationPath: /etc/pki/entitlement
+  postCommit: {}
+  source:
+    type: Dockerfile
+    dockerfile: |
+      FROM registry.access.redhat.com/ubi8/ubi:latest
+      RUN rm -rf /etc/rhsm-host
+      RUN yum --enablerepo=codeready-builder-for-rhel-8-x86_64-rpms install \
+          nss_wrapper \
+          uid_wrapper -y && \
+          yum clean all -y
+      RUN ln -s /run/secrets/rhsm /etc/rhsm-host
+  runPolicy: Serial
+`)
+
+func testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel8YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel8Yaml, nil
+}
+
+func testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel8Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel8YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/builds/subscription-content/buildconfig-subscription-content-rhel8.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel9Yaml = []byte(`` + "\xEF\xBB\xBF" + `kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: subscription-content-rhel9
+spec:
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'subscription-content:rhel9'
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  strategy:
+    type: Docker
+    dockerStrategy:
+      from:
+        kind: DockerImage
+        name: 'registry.access.redhat.com/ubi9/ubi:latest'
+      volumes:
+        - name: etc-pki-entitlement
+          source:
+            type: Secret
+            secret:
+              secretName: etc-pki-entitlement
+              defaultMode: 420
+          mounts:
+            - destinationPath: /etc/pki/entitlement
+  postCommit: {}
+  source:
+    type: Dockerfile
+    dockerfile: |
+      FROM registry.access.redhat.com/ubi9/ubi:latest
+      RUN rm -rf /etc/rhsm-host
+      RUN yum --enablerepo=codeready-builder-for-rhel-9-x86_64-rpms install \
+          nss_wrapper \
+          uid_wrapper -y && \
+          yum clean all -y
+      RUN ln -s /run/secrets/rhsm /etc/rhsm-host
+  runPolicy: Serial
+`)
+
+func testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel9YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel9Yaml, nil
+}
+
+func testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel9Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel9YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/builds/subscription-content/buildconfig-subscription-content-rhel9.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataBuildsSubscriptionContentSecretTemplateTxt = []byte(`kind: Secret
+apiVersion: v1
+metadata:
+  name: etc-pki-entitlement
+type: Opaque
+data: {{ range $key, $value := .data }}
+  {{ $key }}: {{ $value }} {{ end }}
+`)
+
+func testExtendedTestdataBuildsSubscriptionContentSecretTemplateTxtBytes() ([]byte, error) {
+	return _testExtendedTestdataBuildsSubscriptionContentSecretTemplateTxt, nil
+}
+
+func testExtendedTestdataBuildsSubscriptionContentSecretTemplateTxt() (*asset, error) {
+	bytes, err := testExtendedTestdataBuildsSubscriptionContentSecretTemplateTxtBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/builds/subscription-content/secret-template.txt", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -19834,7 +20165,7 @@ items:
       dockerStrategy:
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
         env:
         - name: SOME_HTTP_PROXY
           value: https://envuser:password@proxy3.com
@@ -20023,7 +20354,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
     resources: {}
   status:
     lastVersion: 0
@@ -20052,7 +20383,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
     resources: {}
   status:
     lastVersion: 0
@@ -20080,7 +20411,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
     resources: {}
   status:
     lastVersion: 0
@@ -20109,7 +20440,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
     resources: {}
   status:
     lastVersion: 0
@@ -20137,7 +20468,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8
     resources: {}
     nodeSelector:
       nodelabelkey: nodelabelvalue
@@ -20490,7 +20821,7 @@ var _testExtendedTestdataBuildsTestContextBuildJson = []byte(`{
           "git": {
             "uri":"https://github.com/sclorg/s2i-ruby-container"
           },
-          "contextDir": "2.7/test/puma-test-app"
+          "contextDir": "3.3/test/puma-test-app"
         },
         "strategy": {
           "type": "Source",
@@ -20502,8 +20833,8 @@ var _testExtendedTestdataBuildsTestContextBuildJson = []byte(`{
               }
             ],
             "from": {
-              "kind": "DockerImage",
-              "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+              "kind": "ImageStreamTag",
+              "name": "ruby:latest"
             }
           }
         },
@@ -20905,38 +21236,38 @@ func testExtendedTestdataBuildsTestDockerNoOutputnameJson() (*asset, error) {
 }
 
 var _testExtendedTestdataBuildsTestEnvBuildJson = []byte(`{
-  "kind":"BuildConfig",
-  "apiVersion":"build.openshift.io/v1",
-  "metadata":{
-    "name":"test",
-    "labels":{
-      "name":"test"
+  "kind": "BuildConfig",
+  "apiVersion": "build.openshift.io/v1",
+  "metadata": {
+    "name": "test",
+    "labels": {
+      "name": "test"
     }
   },
-  "spec":{
-    "triggers":[],
-    "source":{
-      "type":"Binary"
+  "spec": {
+    "triggers": [],
+    "source": {
+      "type": "Binary"
     },
-    "strategy":{
-      "type":"Source",
-      "sourceStrategy":{
-        "env":[
+    "strategy": {
+      "type": "Source",
+      "sourceStrategy": {
+        "env": [
           {
-             "name":"BUILD_LOGLEVEL",
-             "value":"2"
+            "name": "BUILD_LOGLEVEL",
+            "value": "2"
           }
-       ],
-        "from":{
-          "kind":"DockerImage",
-          "name":"image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+        ],
+        "from": {
+          "kind": "DockerImage",
+          "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8"
         }
       }
     },
-    "output":{
-      "to":{
-        "kind":"ImageStreamTag",
-        "name":"test:latest"
+    "output": {
+      "to": {
+        "kind": "ImageStreamTag",
+        "name": "test:latest"
       }
     }
   }
@@ -21278,7 +21609,7 @@ items:
             value: "2"
         from:
           kind: ImageStreamTag
-          name: ruby:2.7-ubi8
+          name: ruby:3.0-ubi8
           namespace: openshift
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
@@ -28394,7 +28725,7 @@ var _testExtendedTestdataClusterQuickstartsDancerMysqlJson = []byte(`{
 			"name": "PERL_VERSION",
 			"displayName": "Version of Perl Image",
 			"description": "Version of Perl image to be used (5.30-el7, 5.30-ubi8, or latest).",
-			"value": "5.30-ubi8",
+			"value": "5.32-ubi8",
 			"required": true
 		},
 		{
@@ -28492,7 +28823,8 @@ var _testExtendedTestdataClusterQuickstartsDancerMysqlJson = []byte(`{
 		"app": "dancer-mysql-example",
 		"template": "dancer-mysql-example"
 	}
-}`)
+}
+`)
 
 func testExtendedTestdataClusterQuickstartsDancerMysqlJsonBytes() ([]byte, error) {
 	return _testExtendedTestdataClusterQuickstartsDancerMysqlJson, nil
@@ -29722,7 +30054,7 @@ var _testExtendedTestdataClusterQuickstartsRailsPostgresqlJson = []byte(`{
 						],
 						"from": {
 							"kind": "ImageStreamTag",
-							"name": "ruby:2.7-ubi8",
+							"name": "ruby:3.0-ubi8",
 							"namespace": "${NAMESPACE}"
 						}
 					},
@@ -31004,6 +31336,8 @@ oc new-project "${namespace}"
 
 oc label namespace ${namespace} --overwrite \
   pod-security.kubernetes.io/enforce=baseline \
+  pod-security.kubernetes.io/warn=baseline \
+  pod-security.kubernetes.io/audit=baseline \
   security.openshift.io/scc.podSecurityLabelSync=false
 `)
 
@@ -33664,7 +33998,6 @@ os::cmd::expect_failure 'oc get imageStreams nodejs'
 os::cmd::expect_failure 'oc get imageStreams postgresql'
 os::cmd::expect_failure 'oc get imageStreams mongodb'
 os::cmd::expect_failure 'oc get imageStreams wildfly'
-os::cmd::try_until_success 'oc get imagestreamTags mariadb:10.3'
 os::cmd::try_until_success 'oc get imagestreamTags mariadb:10.5'
 os::cmd::expect_success_and_text "oc get imagestreams mysql --template='{{ index .metadata.annotations \"openshift.io/image.dockerRepositoryCheck\"}}'" '[0-9]{4}\-[0-9]{2}\-[0-9]{2}' # expect a date like YYYY-MM-DD
 os::cmd::expect_success 'oc describe istag/mysql:latest'
@@ -33690,7 +34023,7 @@ echo "imageStreams: ok"
 os::test::junit::declare_suite_end
 
 os::test::junit::declare_suite_start "cmd/images${IMAGES_TESTS_POSTFIX:-}/import-image"
-# should follow the latest reference to 10.3 and update that, and leave latest unchanged
+# should follow the latest reference to 10.5 and update that, and leave latest unchanged
 os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 1).from.kind}}'" 'DockerImage'
 os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.kind}}'" 'ImageStreamTag'
 os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.tags 2).from.name}}'" '10.5'
@@ -33703,7 +34036,7 @@ os::cmd::expect_success_and_text "oc get is/mariadb --template='{{(index .spec.t
 os::cmd::expect_failure_and_text 'oc import-image mariadb --from=quay.io/openshifttest/hello-openshift:openshift' "use the 'tag' command if you want to change the source"
 os::cmd::expect_success 'oc describe is/mariadb'
 # import existing tag (explicit)
-os::cmd::expect_success_and_text 'oc import-image mariadb:10.3' "sha256:"
+os::cmd::expect_success_and_text 'oc import-image mariadb:10.5' "sha256:"
 os::cmd::expect_success_and_text 'oc import-image mariadb:latest' "sha256:"
 # import existing image stream creating new tag
 os::cmd::expect_success_and_text 'oc import-image mariadb:external --from=quay.io/openshifttest/hello-openshift:openshift' "sha256:"
@@ -33765,23 +34098,23 @@ os::cmd::expect_success_and_text "oc get istag/mariadb:labeled -o jsonpath='{.me
 # test copying tags
 os::cmd::expect_success 'oc tag quay.io/openshift/origin-cli:4.6 newrepo:latest'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).from.kind}}'" 'DockerImage'
-os::cmd::try_until_success 'oc get istag/mariadb:10.3'
+os::cmd::try_until_success 'oc get istag/mariadb:10.5'
 # default behavior is to copy the current image, but since this is an external image we preserve the dockerImageReference
-os::cmd::expect_success 'oc tag mariadb:10.3 newrepo:latest'
+os::cmd::expect_success 'oc tag mariadb:10.5 newrepo:latest'
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
-os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .status.tags 0 \"items\" 0).dockerImageReference}}'" '^quay.io/centos7/mariadb-103-centos7@sha256:'
+os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .status.tags 0 \"items\" 0).dockerImageReference}}'" '^quay.io/centos7/mariadb-105-centos7@sha256:'
 # when copying a tag that points to the internal registry, update the container image reference
 #os::cmd::expect_success "oc tag test:new newrepo:direct"
 #os::cmd::expect_success_and_text 'oc get istag/newrepo:direct -o jsonpath={.image.dockerImageReference}' "/$project/newrepo@sha256:"
 # test references
-os::cmd::expect_success 'oc tag mariadb:10.3 reference:latest --reference'
+os::cmd::expect_success 'oc tag mariadb:10.5 reference:latest --reference'
 os::cmd::expect_success_and_text "oc get is/reference --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
 os::cmd::expect_success_and_text "oc get is/reference --template='{{(index .spec.tags 0).reference}}'" 'true'
 # create a second project to test tagging across projects
 os::cmd::expect_success 'oc new-project test-cmd-images-2'
-os::cmd::expect_success "oc tag $project/mariadb:10.3 newrepo:latest"
+os::cmd::expect_success "oc tag $project/mariadb:10.5 newrepo:latest"
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).from.kind}}'" 'ImageStreamImage'
-os::cmd::expect_success_and_text 'oc get istag/newrepo:latest -o jsonpath={.image.dockerImageReference}' 'quay.io/centos7/mariadb-103-centos7@sha256:'
+os::cmd::expect_success_and_text 'oc get istag/newrepo:latest -o jsonpath={.image.dockerImageReference}' 'quay.io/centos7/mariadb-105-centos7@sha256:'
 # tag across projects without specifying the source's project
 os::cmd::expect_success_and_text "oc tag newrepo:latest '${project}/mariadb:tag1'" "mariadb:tag1 set to"
 os::cmd::expect_success_and_text "oc get is/newrepo --template='{{(index .spec.tags 0).name}}'" "latest"
@@ -33823,12 +34156,12 @@ os::test::junit::declare_suite_end
 
 os::test::junit::declare_suite_start "cmd/images${IMAGES_TESTS_POSTFIX:-}/delete-istag"
 # test deleting a tag using oc delete
-os::cmd::expect_success_and_text "oc get is perl --template '{{(index .spec.tags 0).name}}'" '5.30-'
-os::cmd::expect_success_and_text "oc get is perl --template '{{(index .status.tags 0).tag}}'" '5.30-'
-os::cmd::expect_success_and_text "oc describe is perl | sed -n -e '0,/^Tags:/d' -e '/^\s\+/d' -e '/./p' | head -n 1" '5.30-'
-os::cmd::expect_success "oc delete istag/perl:5.30-el7 --context='${cluster_admin_context}'"
-os::cmd::expect_success_and_not_text 'oc get is/perl --template={{.spec.tags}}' 'name:5.30-el7'
-os::cmd::expect_success_and_not_text 'oc get is/perl --template={{.status.tags}}' 'tag:5.30-el7'
+os::cmd::expect_success_and_text "oc get is perl --template '{{(index .spec.tags 0).name}}'" '5.32-'
+os::cmd::expect_success_and_text "oc get is perl --template '{{(index .status.tags 0).tag}}'" '5.32-'
+os::cmd::expect_success_and_text "oc describe is perl | sed -n -e '0,/^Tags:/d' -e '/^\s\+/d' -e '/./p' | head -n 1" '5.32-'
+os::cmd::expect_success "oc delete istag/perl:5.32-el8 --context='${cluster_admin_context}'"
+os::cmd::expect_success_and_not_text 'oc get is/perl --template={{.spec.tags}}' 'name:5.32-el8'
+os::cmd::expect_success_and_not_text 'oc get is/perl --template={{.status.tags}}' 'tag:5.32-el8'
 os::cmd::expect_success 'oc delete all --all'
 
 echo "delete istag: ok"
@@ -33837,9 +34170,9 @@ os::test::junit::declare_suite_end
 os::test::junit::declare_suite_start "cmd/images${IMAGES_TESTS_POSTFIX:-}/merge-tags-on-apply"
 os::cmd::expect_success 'oc new-project merge-tags'
 os::cmd::expect_success 'oc create -f ${TEST_DATA}/image-streams/image-streams-centos7.json'
-os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[*].name}' '2.7-ubi8 latest'
+os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[*].name}' '2.7-ubi8 3.0-ubi7 3.0-ubi8 3.0-ubi9 latest'
 os::cmd::expect_success 'oc apply -f ${TEST_DATA}/modified-ruby-imagestream.json'
-os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[*].name}' '2.7-ubi8 latest newtag'
+os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[*].name}' '2.7-ubi8 3.0-ubi7 3.0-ubi8 3.0-ubi9 latest newtag'
 os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[0].annotations.version}' '2.7 patched'
 os::cmd::expect_success 'oc delete project merge-tags'
 echo "apply new imagestream tags: ok"
@@ -33936,11 +34269,13 @@ os::test::junit::declare_suite_start "cmd/quota/clusterquota"
 os::cmd::expect_success 'oc new-project quota-foo --as=deads --as-group=system:authenticated --as-group=system:authenticated:oauth'
 os::cmd::expect_success 'oc label namespace/quota-foo owner=deads'
 # before k8s 1.24 this will return 9, starting from 1.24 it'll return 6
-os::cmd::try_until_text 'oc get secrets -o name -n quota-foo | wc -l' '6|9'
+# OCP 4.16+ no longer creates legacy API tokens so it will only return 3
+os::cmd::try_until_text 'oc get secrets -o name -n quota-foo | wc -l' '3|6|9'
 os::cmd::expect_success 'oc create clusterquota for-deads --project-label-selector=owner=deads --hard=secrets=10'
 os::cmd::try_until_text 'oc get appliedclusterresourcequota -n quota-foo --as deads -o name' "for-deads"
 # before k8s 1.24 this will return 9, starting from 1.24 it'll return 6
-os::cmd::try_until_text 'oc get secrets --all-namespaces; oc get appliedclusterresourcequota/for-deads -n quota-foo --as deads -o jsonpath=used={.status.total.used.secrets}' "used=6|used=9"
+# OCP 4.16+ no longer creates legacy API tokens so it will only return 3
+os::cmd::try_until_text 'oc get secrets --all-namespaces; oc get appliedclusterresourcequota/for-deads -n quota-foo --as deads -o jsonpath=used={.status.total.used.secrets}' "used=3|used=6|used=9"
 
 os::cmd::expect_failure_and_text 'oc create clusterquota for-deads-malformed --project-annotation-selector="openshift.#$%/requester=deads"' "prefix part a (DNS-1123|lowercase RFC 1123) subdomain must consist of lower case alphanumeric characters"
 os::cmd::expect_failure_and_text 'oc create clusterquota for-deads-malformed --project-annotation-selector=openshift.io/requester=deads,openshift.io/novalue' "Malformed annotation selector"
@@ -33956,7 +34291,8 @@ os::cmd::try_until_text 'oc get appliedclusterresourcequota -n quota-asmail --as
 # the create_dockercfg controller can issue multiple creates if the token controller doesn't fill them in, but the creates are duplicates
 # since an annotation tracks the intended secrets to be created.  That results in multi-counting quota until reconciliation runs
 # do not go past 26.  If you get to 27, you might be selecting an extra namespace.
-os::cmd::try_until_text 'oc get secrets --all-namespaces; oc get appliedclusterresourcequota/for-deads-by-annotation -n quota-bar --as deads -o jsonpath=used={.status.total.used.secrets}' "used=(1[0-9]|20|21|22|23|24|25|26)"
+# OCP 4.16+ no longer creates legacy API tokens so we expect much fewer secrets (6)
+os::cmd::try_until_text 'oc get secrets --all-namespaces; oc get appliedclusterresourcequota/for-deads-by-annotation -n quota-bar --as deads -o jsonpath=used={.status.total.used.secrets}' "used=([6-9]|1[0-9]|20|21|22|23|24|25|26)"
 os::cmd::expect_success 'oc delete project quota-foo'
 os::cmd::try_until_not_text 'oc get clusterresourcequota/for-deads-by-annotation -o jsonpath="{.status.namespaces[*].namespace}"' 'quota-foo'
 os::cmd::expect_success 'oc delete project quota-bar'
@@ -35382,6 +35718,164 @@ func testExtendedTestdataCmdTestCmdTestdataApplicationTemplateDockerbuildJson() 
 	return a, nil
 }
 
+var _testExtendedTestdataCmdTestCmdTestdataApplicationTemplateMixJson = []byte(`{
+  "kind": "Template",
+  "apiVersion": "template.openshift.io/v1",
+  "metadata": {
+    "name": "ruby-helloworld-sample",
+    "annotations": {
+      "description": "Mix of random manifests for testing template rendering picked from application-template-stibuild.json",
+      "iconClass": "icon-ruby",
+      "tags": "instant-app,ruby,mysql"
+    }
+  },
+  "objects": [
+    {
+      "kind": "Secret",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "dbsecret"
+      },
+      "stringData" : {
+        "mysql-user" : "${MYSQL_USER}",
+        "mysql-password" : "${MYSQL_PASSWORD}"
+      }
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "frontend"
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "web",
+            "protocol": "TCP",
+            "port": 5432,
+            "targetPort": 8080,
+            "nodePort": 0
+          }
+        ],
+        "selector": {
+          "name": "frontend"
+        },
+        "type": "ClusterIP",
+        "sessionAffinity": "None"
+      },
+      "status": {
+        "loadBalancer": {}
+      }
+    },
+    {
+      "kind": "Route",
+      "apiVersion": "route.openshift.io/v1",
+      "metadata": {
+        "name": "route-edge",
+        "annotations": {
+          "template.openshift.io/expose-uri": "http://{.spec.host}{.spec.path}"
+        }
+     },
+      "spec": {
+        "host": "www.example.com",
+        "to": {
+          "kind": "Service",
+          "name": "frontend"
+        },
+        "tls": {
+          "termination": "edge"
+        }
+      },
+      "status": {}
+    },
+    {
+      "kind": "ImageStream",
+      "apiVersion": "image.openshift.io/v1",
+      "metadata": {
+        "name": "origin-ruby-sample"
+      },
+      "spec": {},
+      "status": {
+        "dockerImageRepository": ""
+      }
+    },
+    {
+      "kind": "ImageStream",
+      "apiVersion": "image.openshift.io/v1",
+      "metadata": {
+        "name": "ruby-27"
+      },
+      "spec": {
+        "dockerImageRepository": "registry.access.redhat.com/ubi8/ruby-27"
+      },
+      "status": {
+        "dockerImageRepository": ""
+      }
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "database"
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "db",
+            "protocol": "TCP",
+            "port": 5434,
+            "targetPort": 3306,
+            "nodePort": 0
+          }
+        ],
+        "selector": {
+          "name": "database"
+        },
+        "type": "ClusterIP",
+        "sessionAffinity": "None"
+      },
+      "status": {
+        "loadBalancer": {}
+      }
+    }
+  ],
+  "parameters": [
+    {
+      "name": "MYSQL_USER",
+      "description": "database username",
+      "generate": "expression",
+      "from": "user[A-Z0-9]{3}",
+      "required": true
+    },
+    {
+      "name": "MYSQL_PASSWORD",
+      "description": "database password",
+      "generate": "expression",
+      "from": "[a-zA-Z0-9]{8}",
+      "required": true
+    }
+  ],
+  "labels": {
+    "template": "application-template-stibuild"
+  }
+}
+`)
+
+func testExtendedTestdataCmdTestCmdTestdataApplicationTemplateMixJsonBytes() ([]byte, error) {
+	return _testExtendedTestdataCmdTestCmdTestdataApplicationTemplateMixJson, nil
+}
+
+func testExtendedTestdataCmdTestCmdTestdataApplicationTemplateMixJson() (*asset, error) {
+	bytes, err := testExtendedTestdataCmdTestCmdTestdataApplicationTemplateMixJsonBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/testdata/application-template-mix.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataCmdTestCmdTestdataApplicationTemplateStibuildJson = []byte(`{
   "kind": "Template",
   "apiVersion": "template.openshift.io/v1",
@@ -35938,7 +36432,7 @@ var _testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson = []byte(`
     "containers": [
       {
         "name": "hello-openshift",
-        "image": "registry.k8s.io/e2e-test-images/agnhost:2.43",
+        "image": "registry.k8s.io/e2e-test-images/agnhost:2.47",
         "args": ["netexec"],
         "ports": [
           {
@@ -35994,6 +36488,9 @@ var _testExtendedTestdataCmdTestCmdTestdataIdlingDcYaml = []byte(`apiVersion: ap
 kind: DeploymentConfig
 metadata:
   generateName: idling-echo-
+  labels:
+    app: idling-echo
+    deploymentconfig: idling-echo
 spec:
   replicas: 2
   selector:
@@ -36042,6 +36539,66 @@ func testExtendedTestdataCmdTestCmdTestdataIdlingDcYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/testdata/idling-dc.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataCmdTestCmdTestdataIdlingDeploymentYaml = []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  generateName: idling-echo-
+  labels:
+    app: idling-echo
+    deployment: idling-echo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: idling-echo
+      deployment: idling-echo
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: idling-echo
+        deployment: idling-echo
+    spec:
+      containers:
+      - image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
+        name: idling-tcp-echo
+        command:
+          - /usr/bin/socat
+          - TCP4-LISTEN:8675,reuseaddr,fork
+          - EXEC:'/bin/cat'
+        ports:
+        - containerPort: 8675
+          protocol: TCP
+      - image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
+        name: idling-udp-echo
+        command:
+          - /usr/bin/socat
+          - UDP4-LISTEN:3090,reuseaddr,fork
+          - EXEC:'/bin/cat'
+        ports:
+        - containerPort: 3090
+          protocol: UDP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+`)
+
+func testExtendedTestdataCmdTestCmdTestdataIdlingDeploymentYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataCmdTestCmdTestdataIdlingDeploymentYaml, nil
+}
+
+func testExtendedTestdataCmdTestCmdTestdataIdlingDeploymentYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataCmdTestCmdTestdataIdlingDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/testdata/idling-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -36134,76 +36691,6 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
       "kind": "ImageStream",
       "metadata": {
         "annotations": {
-          "openshift.io/display-name": ".NET Core"
-        },
-        "name": "dotnet"
-      },
-      "spec": {
-        "tags": [
-          {
-            "annotations": {
-              "description": "Build and run .NET Core applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/redhat-developer/s2i-dotnetcore/blob/master/README.md.\n\nWARNING: By selecting this tag, your application will automatically update to use the latest version of .NET Core available on OpenShift, including major versions updates.",
-              "iconClass": "icon-dotnet",
-              "openshift.io/display-name": ".NET Core (Latest)",
-              "sampleContextDir": "app",
-              "sampleRef": "dotnetcore-3.1",
-              "sampleRepo": "https://github.com/redhat-developer/s2i-dotnetcore-ex.git",
-              "supports": "dotnet",
-              "tags": "builder,.net,dotnet,dotnetcore"
-            },
-            "from": {
-              "kind": "ImageStreamTag",
-              "name": "3.1"
-            },
-            "name": "latest",
-            "referencePolicy": {
-              "type": "Local"
-            }
-          },
-          {
-            "annotations": {
-              "description": "Build and run .NET Core 2.2 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/redhat-developer/s2i-dotnetcore/blob/master/2.2/build/README.md.",
-              "iconClass": "icon-dotnet",
-              "openshift.io/display-name": ".NET Core 2.2",
-              "sampleContextDir": "app",
-              "sampleRef": "dotnetcore-2.2",
-              "sampleRepo": "https://github.com/redhat-developer/s2i-dotnetcore-ex.git",
-              "supports": "dotnet:2.2,dotnet",
-              "tags": "builder,.net,dotnet,dotnetcore,rh-dotnet21",
-              "version": "2.2"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "registry.centos.org/dotnet/dotnet-22-centos7:latest"
-            },
-            "name": "2.2"
-          },
-          {
-            "annotations": {
-              "description": "Build and run .NET Core 3.1 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/redhat-developer/s2i-dotnetcore/blob/master/3.1/build/README.md.",
-              "iconClass": "icon-dotnet",
-              "openshift.io/display-name": ".NET Core 3.1",
-              "sampleContextDir": "app",
-              "sampleRef": "dotnetcore-3.1",
-              "sampleRepo": "https://github.com/redhat-developer/s2i-dotnetcore-ex.git",
-              "supports": "dotnet:3.1,dotnet",
-              "tags": "builder,.net,dotnet,dotnetcore,rh-dotnet21",
-              "version": "3.1"
-            },
-            "from": {
-              "kind": "DockerImage",
-              "name": "registry.centos.org/dotnet/dotnet-31-centos7:latest"
-            },
-            "name": "3.1"
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "image.openshift.io/v1",
-      "kind": "ImageStream",
-      "metadata": {
-        "annotations": {
           "openshift.io/display-name": "Apache HTTP Server (httpd)"
         },
         "name": "httpd"
@@ -36242,7 +36729,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/httpd-24-centos7:latest"
+              "name": "quay.io/centos7/httpd-24-centos7:centos7"
             },
             "name": "2.4",
             "referencePolicy": {
@@ -36340,7 +36827,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mariadb-103-centos7:latest"
+              "name": "quay.io/centos7/mariadb-103-centos7:centos7"
             },
             "name": "10.3",
             "referencePolicy": {
@@ -36358,7 +36845,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mariadb-105-centos7:latest"
+              "name": "quay.io/centos7/mariadb-105-centos7:centos7"
             },
             "name": "10.5",
             "referencePolicy": {
@@ -36407,7 +36894,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mongodb-26-centos7:latest"
+              "name": "quay.io/centos7/mongodb-26-centos7:centos7"
             },
             "name": "2.7",
             "referencePolicy": {
@@ -36425,7 +36912,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mongodb-32-centos7:latest"
+              "name": "quay.io/centos7/mongodb-32-centos7:centos7"
             },
             "name": "3.2",
             "referencePolicy": {
@@ -36443,7 +36930,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mongodb-34-centos7:latest"
+              "name": "quay.io/centos7/mongodb-34-centos7:centos7"
             },
             "name": "3.4",
             "referencePolicy": {
@@ -36492,7 +36979,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/mysql-80-centos7:latest"
+              "name": "quay.io/centos7/mysql-80-centos7:centos7"
             },
             "name": "8",
             "referencePolicy": {
@@ -36526,7 +37013,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/nginx-114-centos7:latest"
+              "name": "quay.io/centos7/nginx-114-centos7:centos7"
             },
             "name": "1.14",
             "referencePolicy": {
@@ -36546,7 +37033,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/nginx-116-centos7:latest"
+              "name": "quay.io/centos7/nginx-116-centos7:centos7"
             },
             "name": "1.16",
             "referencePolicy": {
@@ -36617,7 +37104,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/nodejs-10-centos7:latest"
+              "name": "quay.io/centos7/nodejs-10-centos7:centos7"
             },
             "name": "10",
             "referencePolicy": {
@@ -36636,7 +37123,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/nodejs-12-centos7:latest"
+              "name": "quay.io/centos7/nodejs-12-centos7:centos7"
             },
             "name": "12",
             "referencePolicy": {
@@ -36699,20 +37186,20 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             }
           },
           {
-            "name": "5.30-el7",
+            "name": "5.32-el8",
             "annotations": {
-              "description": "Build and run Perl 5.30 applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/s2i-perl-container/blob/master/5.30/README.md.",
+              "description": "Build and run Perl 5.32 applications on CentOS 8. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/s2i-perl-container/blob/master/5.30/README.md.",
               "iconClass": "icon-perl",
-              "openshift.io/display-name": "Perl 5.30 (CentOS 7)",
+              "openshift.io/display-name": "Perl 5.32 (CentOS 8)",
               "openshift.io/provider-display-name": "Red Hat, Inc.",
               "sampleRepo": "https://github.com/sclorg/dancer-ex.git",
-              "supports": "perl:5.30,perl",
+              "supports": "perl:5.32,perl",
               "tags": "builder,perl",
-              "version": "5.30"
+              "version": "5.32"
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/perl-530-centos7:latest"
+              "name": "registry.redhat.io/ubi8/perl-532:latest"
             },
             "generation": null,
             "importPolicy": {},
@@ -36766,7 +37253,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/php-70-centos7:latest"
+              "name": "quay.io/centos7/php-70-centos7:centos7"
             },
             "name": "7.0",
             "referencePolicy": {
@@ -36786,7 +37273,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/php-71-centos7:latest"
+              "name": "quay.io/centos7/php-71-centos7:centos7"
             },
             "name": "7.1",
             "referencePolicy": {
@@ -36835,7 +37322,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/postgresql-95-centos7:latest"
+              "name": "quay.io/centos7/postgresql-95-centos7:centos7"
             },
             "name": "9.5",
             "referencePolicy": {
@@ -36853,7 +37340,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/postgresql-96-centos7:latest"
+              "name": "quay.io/centos7/postgresql-96-centos7:centos7"
             },
             "name": "9.6",
             "referencePolicy": {
@@ -36906,7 +37393,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/python-27-centos7:latest"
+              "name": "quay.io/centos7/python-27-centos7:centos7"
             },
             "name": "2.7",
             "referencePolicy": {
@@ -36926,7 +37413,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/python-36-centos7:latest"
+              "name": "quay.io/centos7/python-36-centos7:centos7"
             },
             "name": "3.6",
             "referencePolicy": {
@@ -36975,7 +37462,7 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             },
             "from": {
               "kind": "DockerImage",
-              "name": "quay.io/centos7/redis-5-centos7:latest"
+              "name": "quay.io/centos7/redis-5-centos7:centos7"
             },
             "name": "5",
             "referencePolicy": {
@@ -36996,6 +37483,93 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
       },
       "spec": {
         "tags": [
+          {
+            "name": "latest",
+            "annotations": {
+              "description": "Build and run Ruby applications on UBI. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/s2i-ruby-container/tree/master/3.0/README.md.\n\nWARNING: By selecting this tag, your application will automatically update to use the latest version of Ruby available on OpenShift, including major version updates.",
+              "iconClass": "icon-ruby",
+              "openshift.io/display-name": "Ruby (Latest)",
+              "openshift.io/provider-display-name": "Red Hat, Inc.",
+              "sampleRepo": "https://github.com/sclorg/ruby-ex.git",
+              "supports": "ruby",
+              "tags": "builder,ruby"
+            },
+            "from": {
+              "kind": "ImageStreamTag",
+              "name": "3.0-ubi8"
+            },
+            "generation": null,
+            "importPolicy": {},
+            "referencePolicy": {
+              "type": "Local"
+            }
+          },
+          {
+            "name": "3.0-ubi9",
+            "annotations": {
+              "description": "Build and run Ruby 3.0 applications on UBI 9. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/s2i-ruby-container/blob/master/3.0/README.md.",
+              "iconClass": "icon-ruby",
+              "openshift.io/display-name": "Ruby 3.0 (UBI 9)",
+              "openshift.io/provider-display-name": "Red Hat, Inc.",
+              "sampleRepo": "https://github.com/sclorg/ruby-ex.git",
+              "supports": "ruby:3.0,ruby",
+              "tags": "builder,ruby",
+              "version": "3.0"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "registry.access.redhat.com/ubi9/ruby-30:latest"
+            },
+            "generation": null,
+            "importPolicy": {},
+            "referencePolicy": {
+              "type": "Local"
+            }
+          },
+          {
+            "name": "3.0-ubi8",
+            "annotations": {
+              "description": "Build and run Ruby 3.0 applications on UBI 8. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/s2i-ruby-container/blob/master/3.0/README.md.",
+              "iconClass": "icon-ruby",
+              "openshift.io/display-name": "Ruby 3.0 (UBI 8)",
+              "openshift.io/provider-display-name": "Red Hat, Inc.",
+              "sampleRepo": "https://github.com/sclorg/ruby-ex.git",
+              "supports": "ruby:3.0,ruby",
+              "tags": "builder,ruby",
+              "version": "3.0"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "registry.access.redhat.com/ubi8/ruby-30:latest"
+            },
+            "generation": null,
+            "importPolicy": {},
+            "referencePolicy": {
+              "type": "Local"
+            }
+          },
+          {
+            "name": "3.0-ubi7",
+            "annotations": {
+              "description": "Build and run Ruby 3.0 applications on UBI 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/s2i-ruby-container/blob/master/3.0/README.md.",
+              "iconClass": "icon-ruby",
+              "openshift.io/display-name": "Ruby 3.0 (UBI 7)",
+              "openshift.io/provider-display-name": "Red Hat, Inc.",
+              "sampleRepo": "https://github.com/sclorg/ruby-ex.git",
+              "supports": "ruby:3.0,ruby",
+              "tags": "builder,ruby",
+              "version": "3.0"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "registry.access.redhat.com/ubi7/ruby-30:latest"
+            },
+            "generation": null,
+            "importPolicy": {},
+            "referencePolicy": {
+              "type": "Local"
+            }
+          },
           {
             "annotations": {
               "description": "Build and run Ruby applications on CentOS 7. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/s2i-ruby-container/blob/master/README.md.\n\nWARNING: By selecting this tag, your application will automatically update to use the latest version of Ruby available on OpenShift, including major versions updates.",
@@ -37724,12 +38298,12 @@ spec:
   tags:
   - from:
       kind: ImageStreamTag
-      name: "2.7"
+      name: "3.0"
     name: "latest"
   - from:
       kind: ImageStreamTag
-      name: ruby:2.7-ubi8
-    name: "2.7"
+      name: ruby:3.0-ubi8
+    name: "3.0"
 `)
 
 func testExtendedTestdataCmdTestCmdTestdataNewAppImagestreamRefYamlBytes() ([]byte, error) {
@@ -38411,6 +38985,33 @@ func testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithAppLabelJson() (*as
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-app-label.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithCrdNsYaml = []byte(`apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: template-with-crd
+  namespace: openshift
+objects:
+- kind: CustomResourceDefinition
+  apiVersion: apiextensions.k8s.io/v1
+  metadata:
+    name: template-with-crd-ns
+`)
+
+func testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithCrdNsYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithCrdNsYaml, nil
+}
+
+func testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithCrdNsYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithCrdNsYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-crd-ns.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -40049,7 +40650,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.43
+                image: registry.k8s.io/e2e-test-images/agnhost:2.47
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -41144,6 +41745,55 @@ func testExtendedTestdataCmdTestCmdTestdataTestDeploymentConfigYaml() (*asset, e
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/testdata/test-deployment-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataCmdTestCmdTestdataTestDeploymentYaml = []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: test-deployment
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: test-deployment
+    spec:
+      containers:
+      - image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
+        imagePullPolicy: IfNotPresent
+        name: ruby-helloworld
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 3Gi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      volumes:
+      - emptyDir: {}
+        name: vol1
+`)
+
+func testExtendedTestdataCmdTestCmdTestdataTestDeploymentYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataCmdTestCmdTestdataTestDeploymentYaml, nil
+}
+
+func testExtendedTestdataCmdTestCmdTestdataTestDeploymentYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataCmdTestCmdTestdataTestDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/cmd/test/cmd/testdata/test-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -42262,6 +42912,49 @@ func testExtendedTestdataDeploymentsDeploymentMinReadySecondsYaml() (*asset, err
 	return a, nil
 }
 
+var _testExtendedTestdataDeploymentsDeploymentSimpleSleepYaml = []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-simple-sleep
+spec:
+  replicas: 1
+  selector:
+    name: deployment-simple-sleep
+  strategy:
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        name: deployment-simple-sleep
+    spec:
+      containers:
+      - image: "image-registry.openshift-image-registry.svc:5000/openshift/tools:latest"
+        imagePullPolicy: IfNotPresent
+        command:
+          - /bin/sleep
+          - infinity
+        name: myapp
+        readinessProbe:
+          exec:
+            command:
+            - "true"
+`)
+
+func testExtendedTestdataDeploymentsDeploymentSimpleSleepYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataDeploymentsDeploymentSimpleSleepYaml, nil
+}
+
+func testExtendedTestdataDeploymentsDeploymentSimpleSleepYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataDeploymentsDeploymentSimpleSleepYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/deployments/deployment-simple-sleep.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataDeploymentsDeploymentSimpleYaml = []byte(`apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
 metadata:
@@ -42678,7 +43371,7 @@ spec:
         resources:
           limits:
             cpu: 100m
-            memory: 3Gi
+            memory: 1.4Gi
 `)
 
 func testExtendedTestdataDeploymentsTagImagesDeploymentYamlBytes() ([]byte, error) {
@@ -42837,6 +43530,46 @@ func testExtendedTestdataEgressFirewallOvnkEgressfirewallTestYaml() (*asset, err
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/egress-firewall/ovnk-egressfirewall-test.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYaml = []byte(`apiVersion: k8s.ovn.org/v1
+kind: EgressFirewall
+metadata:
+  name: default
+spec:
+  egress:
+  - type: Allow
+    to:
+      dnsName: docs.openshift.com
+  - type: Allow
+    to:
+      dnsName: "*.google.com"
+  - type: Allow
+    to:
+      cidrSelector: 8.8.8.8/32
+  - type: Allow
+    to:
+      nodeSelector:
+        matchLabels:
+          node-role.kubernetes.io/control-plane: ''
+  - type: Deny
+    to:
+      cidrSelector: 0.0.0.0/0
+`)
+
+func testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYaml, nil
+}
+
+func testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/egress-firewall/ovnk-egressfirewall-wildcard-test.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -44235,6 +44968,113 @@ func testExtendedTestdataHelloBuilderScriptsRun() (*asset, error) {
 	return a, nil
 }
 
+var _testExtendedTestdataIdlingEchoServerDeploymentYaml = []byte(`apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: idling-echo
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app: idling-echo
+        deployment: idling-echo
+    strategy:
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app: idling-echo
+          deployment: idling-echo
+      spec:
+        containers:
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.47
+          name: idling-echo-server
+          args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
+          ports:
+          - containerPort: 8675
+            protocol: TCP
+          - containerPort: 3090
+            protocol: UDP
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: idling-echo
+    labels:
+      app: idling-echo
+  spec:
+    selector:
+      app: idling-echo
+    ports:
+      - port: 8675
+        name: tcp-echo
+        protocol: TCP
+      - port: 3090
+        name: udp-echo
+        protocol: UDP
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: idling-echo
+  spec:
+    to:
+      kind: Service
+      name: idling-echo
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: idling-echo-reencrypt
+  spec:
+    tls:
+      termination: reencrypt
+      # the actual certificate here is not relevant, since we're not
+      # actually serving TLS
+      destinationCACertificate: |-
+        -----BEGIN CERTIFICATE-----
+        MIIDIjCCAgqgAwIBAgIBATANBgkqhkiG9w0BAQUFADCBoTELMAkGA1UEBhMCVVMx
+        CzAJBgNVBAgMAlNDMRUwEwYDVQQHDAxEZWZhdWx0IENpdHkxHDAaBgNVBAoME0Rl
+        ZmF1bHQgQ29tcGFueSBMdGQxEDAOBgNVBAsMB1Rlc3QgQ0ExGjAYBgNVBAMMEXd3
+        dy5leGFtcGxlY2EuY29tMSIwIAYJKoZIhvcNAQkBFhNleGFtcGxlQGV4YW1wbGUu
+        Y29tMB4XDTE1MDExMjE0MTk0MVoXDTE2MDExMjE0MTk0MVowfDEYMBYGA1UEAwwP
+        d3d3LmV4YW1wbGUuY29tMQswCQYDVQQIDAJTQzELMAkGA1UEBhMCVVMxIjAgBgkq
+        hkiG9w0BCQEWE2V4YW1wbGVAZXhhbXBsZS5jb20xEDAOBgNVBAoMB0V4YW1wbGUx
+        EDAOBgNVBAsMB0V4YW1wbGUwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMrv
+        gu6ZTTefNN7jjiZbS/xvQjyXjYMN7oVXv76jbX8gjMOmg9m0xoVZZFAE4XyQDuCm
+        47VRx5Qrf/YLXmB2VtCFvB0AhXr5zSeWzPwaAPrjA4ebG+LUo24ziS8KqNxrFs1M
+        mNrQUgZyQC6XIe1JHXc9t+JlL5UZyZQC1IfaJulDAgMBAAGjDTALMAkGA1UdEwQC
+        MAAwDQYJKoZIhvcNAQEFBQADggEBAFCi7ZlkMnESvzlZCvv82Pq6S46AAOTPXdFd
+        TMvrh12E1sdVALF1P1oYFJzG1EiZ5ezOx88fEDTW+Lxb9anw5/KJzwtWcfsupf1m
+        V7J0D3qKzw5C1wjzYHh9/Pz7B1D0KthQRATQCfNf8s6bbFLaw/dmiIUhHLtIH5Qc
+        yfrejTZbOSP77z8NOWir+BWWgIDDB2//3AkDIQvT20vmkZRhkqSdT7et4NmXOX/j
+        jhPti4b2Fie0LeuvgaOdKjCpQQNrYthZHXeVlOLRhMTSk3qUczenkKTOhvP7IS9q
+        +Dzv5hqgSfvMG392KWh5f8xXfJNs4W5KLbZyl901MeReiLrPH3w=
+        -----END CERTIFICATE-----
+    to:
+      kind: Service
+      name: idling-echo
+`)
+
+func testExtendedTestdataIdlingEchoServerDeploymentYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataIdlingEchoServerDeploymentYaml, nil
+}
+
+func testExtendedTestdataIdlingEchoServerDeploymentYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataIdlingEchoServerDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/idling-echo-server-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataIdlingEchoServerRcYaml = []byte(`apiVersion: v1
 kind: List
 items:
@@ -44254,7 +45094,7 @@ items:
           replicationcontroller: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.43
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.47
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675" ]
           ports:
@@ -44320,7 +45160,7 @@ items:
           deploymentconfig: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.43
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.47
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -44454,7 +45294,7 @@ var _testExtendedTestdataImageTestImageJson = []byte(`{
     "name": "test",
     "creationTimestamp": null
   },
-  "dockerImageReference": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8",
+  "dockerImageReference": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8",
   "dockerImageMetadata": {
     "kind": "DockerImage",
     "apiVersion": "1.0",
@@ -44899,6 +45739,98 @@ func testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson() (*asset, error) 
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml = []byte(`# Generated by Butane; do not edit
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker
+  name: 99-worker-north-south-ipsec-config
+spec:
+  config:
+    ignition:
+      version: 3.4.0
+    storage:
+      files:
+        - contents:
+            compression: gzip
+            source: data:;base64,H4sIAAAAAAAC/2TTOdOyTBYG4Jxf0bk1hbLKV/UETXeD7LSgiJkgsgrKqvz6qeedqgne70TnXMG5o1u95QCOY18m05gNDAAAPPoya+/N1709s38Agn+w6dJbY2VfA/8DRAUIAhBFoGhAJUDigLYF3BbIKtjugCIDEQFVBgoP9grQtN8FawApQOUAM0xJlaXjD3LBz+/zchimrP//+Z/fUYluuACRY2hoBoIh+aOMYxioWRGCl00OF0OFuaFBxxLLsl4wjU2ruxrFnLqQElulcMEhsR1Y63B3IvDjIIZuyXIoUtep6OJi8nFwvDqV8Yl+bf3LKug6dFgQjfGZUkwWEzM0RAgGxt9pqkohznPiQ4wQpB3Kc6JCWz5zgmLf9i/zZUu9Ng0e06W2jJ7U4NpqUxiPoHDVbjQ/Se5KL9aRlOBqzKckjyof8oeR3wgTOh7Ghxc/ycMd5Iw5wjBEKi73nmDC9CzOUSsUrz5R+gHziNWFaVsd+ZY97d96M73O3e7eyl894D/ivRW9lCFpI30FKWlziK0wtYU21RaDjaqUYvKYVmcO0Tftj81lz40J6zR2pMSD5WuG4M3CujCzOISXPI3Z72zvheHw7c+rv1HLUtE5rEfXemxxnZnBWKuFhOvn/nWBukj8HV2LOdBEZoo6ao8Unh7Xfgiu7ChNvugX8BJbu+PY4DLlC6c7VNe1ImMhitmtrHYX61wcxs3FMQhjrQTBhUAYQlfN63dRl7qybFVIBw1CD0FKYMCj4xi3hkJumlEM92yVbo9oTCr7WzLyK6yXB9tMLeeYmhn1yvzOY1UictwEbOFm3EtfuYYGdf/2Oy5v5G7SI0TWyOTuj55jnMSnKxt61uFITv3He505m8tR+j2929MpmqdFi6T3hEzp6UWpLV3fmRWd09o6fE/2/LkxfutFz85Udp4rjnKg17BLNnu+osfH54bM/BbuNPwR0rYPhvtVKfY6ir3vfSuYlygRWZcpnVnF7HojgpK/YT6J6vaYi893jJ3pPuxEEvd1mYutdq2uWrb3T5cmmj2MVDnlrF09M/qinHZKmMtbPbLmbCvZFuvcEZsi1xB4Pn/Rt32enIH3OaM1NzTdmElBdlqx/Pz8r6XExf/u6H8DAAD//zcw/5BQBAAA
+          mode: 256
+          overwrite: true
+          path: /etc/pki/certs/ca.pem
+        - contents:
+            compression: gzip
+            source: data:;base64,H4sIAAAAAAAC/4SVeTQUjrvGZ5ixb1kGWRpE1gxjGSYJyTJEyBplGURki5JlGusYZRtDY0/JEpKdlH3Jvu8M0SBbsi+55/e73/P93nvuvec+f7znvM/7vP9+HhiGCkgNw9DQS0bqRh4wA2mB2ZjLGBCWKQqG+V9s8BsYFpwJw4JJNIx/nZgYgFTZWDAShgUrw+z//gAzw8xg8H9WJpgYiI3/2oC+wETmLXW1fZjdXAuRipr+SiMVEApjoKH7zyAVPUyAhv5BpC4QTQ0CSoLYNLTCQMkddz+7CLZ43+HYKANhQQNdluDxHvtXxujHCUtZDmQXuTsquV5M/HPzACjwhWJTl8GzqK9Swc/KzvPc0IuqqVH5EqeWZkd56u1BGKfiAGl2/ird4ydFlOjDqqx+2YPYQx6ZxGrt6hKFQl6X7QeCyOraOmiDEyjvodZUwloac6X/p4MCxfBrjhtqWXe6Q1qvmG8hQ7IiryQtntQMd6AOBTe0qU0NZxkSWPiJ/S64TlH1SuxePl84o4diHIxP/5hLQ4r++a7cnxKhYdEtQR6rDKdTVeAaoU0IVDmZV1URejdfwe2Sm85oYluV23568VAPIGXT33GZt0yfdwvxPUXKlSSCqy6CpO857YToZqsZpIHT9CnXwlk4tKf9qMv0AnalJ5PtWhoDoKgIVbowUVeew2dhduR4tTvLvlnO++piCBeuSpB1oy43n+f7hautKznECYswL7kXboTGrV/PsASf7n7CLW9laQtLXG3PAqpCI0LSeeeiF+ejZMnsmxAiN7uphMPOCYu2h4XzAAQn1lRrEC+Xs6vftC2Vcy247fYswyeAaMf49K3X8DOsaCkk50dxkxBaB3mjcCvESjXG3DHztX0iu/q+6XwcOxSnm1FCVnn0O4nj3R7RsPt3CS3utUps+VypOKlJ1I7jEkBgxmJ01bY6SpnI3wKoUslpbSlp10lSaoEo6Ju357OS3lPxCoSihKpq0JaPQdZNqLs5cuFtm0+Ck2Rdr5hGYZu/0Sx1bTLOdoc+/LagfqPo4e9qVnTQNFAxzsRonIEQ9utCGpUrMdzwKN2rc+Wn67BgPSsFYsZn6SXSJ/ggnX0TxBub2PXiI2EDYoChFcLo4a0vq0GXr7Y5xnI27q4m7xvnzSYSP2fAm8lZvmvbYylCAwSUz8sabavej4cpM9xMENFu2KBss40ywCYp8zHSxXlO02/1m0lERVw7TlzGRfno+uI9MWAiyoQFT7Vc6f1MtytGV+syc41N7mjd3Bqebsn2Z8kaljRSyFcydD55VQS+jTa1OhcXsnWnq7HuoVuTOK+rN26+yM3U0QW4mKyZJfoDgjq7+IVDeuG5lZU4mzIbuDxaYNmdPvSTT3aGkc2pu3VqHP2CZktnlynNq5zZVR/mkGbherovlGeVct7RDHkMJ4dZwj+/Dm9M7dHrX5x4kJK7/jISobzc5jU125eBDM1MR50O5ZsQDD/JH9B/ZY12uhI9frfBRCXupZj28SzYP6Hs8HcSkV6j5VPm2Wiy21l5tucHQe+qxX6r/N3k0wyXwO4Nt3ztkw/M+zjh5+Rpnzv4mMdSOqyIMe0DeETyPCcN00j/9bMffIFjnU4SiG33Az690l6lmToVeftpgRAr1NKz+r15wawvwo0j7+/crzvVEvMKOpCoS5BWGlH9bDkXeqJEcq8nYmi0r5Am5HXJIeRc0CmLtLzQcad36FZPi1rp70oeteh1LRIY131btQn+qq2un2921Y1NgYVtUoOruqrN7l1qPDBNFWsb1Hm+/alA54cK6VHZ0EqvZ9SV6DpFxFJYndcKxC3TBanDS45KDGJZLd5ybBo/U+HVE6tV/vSL4ewsvoxZgZ+xj0X2dgS7+GRCtT5ku8bP7anZkxd0vAk44vRncqrtdwSxLEHmnU0z7pAoQIDd9fQpOW9ffCNe+3wgPNdUzgAm+jcp6TnleAQhgEcANMAZ4Ae4D/AFoAE+AP9/TZjIPzEuOQiIc/YdhrFW5jDiWsAk8nsnE7rk+eMjwL/1X+FNk435F+f/mwf8/1jNzK4j8m6xJYi+rymrPll66i9Ws/1frKYCsV3n2LdTPHc6ET0ZnIi9ODCVjQFhaaB3YmuHoLFOaSs51hYLstWhwLXaMOXXpYq66N0++dUgJ8536qUxO/BrI269SAfr3ZcZhmk3XxmYLhb8jNX8bjMmzEmr4QTpdaQkhn5xTzHEd2Z0Jxa9ZoW37UUOsa6/4YP/ScNacX8biP5cmd83RS4of7QUa/PxK6VH0RGmVbdfrN+JgCA7xNyq1o6HR7EvLtR4BLkmfT2W9qXvLKGEO6w0+vH1R5P4jd6bwdTg0gVFD/CmNZzBJwiuH/Nj6PZOf+p+jhxNVZEy9NuwX47qVhFgz97leJZt8lWhLZzmdaeZOez50Onm/Fi5EcisdD3gM+Xo+nLz+DE62KcogmNiPZAwPlqSgCe85TKhFTVapeXNGoFG83B77PsKt+Fk4w3yzroUcnOM5HV21OlYObg4PfhVDZASTeGxtjcKwzGOADM2r12EWUGkaud5WzbELH3omampoKiUKuU9HStLr+W9GbupfCGlsRs6CtCbXfoNM5vuMVReMiqvEU8XBfG7lLUxn74kjsm9N4vDIi/hSa3Ocdtvb+WKTuvEBfqWzUeLG7beX0qVfKwC6wiJIkmp2wmahLXRvzXr0g6fSBv3V6tQs354mHbZH54GiFqzFVgwtHz+5r6Me4V5obuTp/4HPgLvtJ9TxmthzFYK3dpM36ESNJ/tyET9Klsmd6HPQyiCKEncfCrCiyJ47Q0uuDxV0C06H+Q2bq8zh6LYiZZ6343xnBabm3FaphfWNX6ynef2oJmzXJlbn8TDj0uLnA5wkYYyybJHlYArzXuDaxvG/Caak86bRyUtCAmpbEMZ3T+JUqC5z3f9O8M1D3SGRe1RHReYcV2nrzyQhMMVWVNG2VRb5vUCuUAby7D8BrIvlNBBlEtoLEZK2TtJNhRqBmql3whftFCte3hMwp+iIJPsb1LY+Ge/xcSC5WVkTyFGkxw5zMcjZn+aKN3FJ82j8L0E6vbcldxej+NeNVdmuTKthNXQl7Uj5CalwRgmo5i0aVHGBmTgqjAR7n+pymwrlLGWd0HXrAGkZsjfY1tcrBem+hG93zso/spm4CTQDxd/b6ei2vNIzBh/EtYSuG2aAG+5sBMzqKsHHJj4MKrlKGm07Y8YYJW/zygp7KGBfOtJpadWXdq1mUMp39RpZr561WAWXOdn5+DWvZOopi8Af7dvf+nXUjWB2hG/xL5ZbZNOOuzMDe/7sXpbpzxe29nrMPKMUQRojDS+rWloUPlEXiH53ihG2X6xRxzk7ndUqje76BB0s6jeXOYqT3vS0AjyvTRu2GaNd4FoecnTiC/AdmSUE3cAfZHC/nKeIR/DV8OVCprLnzmKC8O0D1um9tsMohpR3ifsj+aF5gvIDYiUnhDfKK/Bpj6SniOwMfh3R6sXKdEm4RaX6PVYRpAKObjBh+zg9wFvUeBsLr2R56S6dthGt/J4spXa+GAaMXOYMK/BeSeGNOZ7b+7JEzwXfbJZu6+IxyhlS7OfPXMkuayksOFXhCE/YICecPvktBumPuAJ/cCQ0kMbpORz0zNhk+xqMG/fdbcVHm3eRFMh0VKh4X9J+XGIyuVRm5AHYRwlZ6OoP7rmS8GOa1z9AhwuXPU+dH14T3qpTSz3F3NKIOVm8/qfPi5QpqSJvDT0PdSbJzdx+2R5YBUXNnOzLFAnAgzvYkKv1V33nq8H7Yw+pOxcOPchPdJWOG0W/X5p98eTPWJD+e7212jlB2eC+oGsYhS8DLNYCLp6azeunPLt6UnN9fcB3yzvqef0JiY7YC+nNN54GhOFyB06619XEqdsyBeeVrEqXFqv1zBFAr7UItpSDryAqR7xhPMLX94VUTPsNlzbHtfPwMItA+5ldOfkfzywHwg4ftt9S6xXtQSfyTMZhWWUumGnr7xITqoS0Q9rxqtvPlWv6JMqFJjaNbt4seu3CckiTzn+U7Y3BmRz4rD0aIOCEt6smepdfK6dLijZMwZ7c4bUFJuYdNNhkRxc74qm9XUXkzDuE2IQTB3qYe3VhTQe5TJVVYA34NGe3Phh1v5fNYKHNqkKe/yq5DoOANdkck8yQsGMUyrSet+GeGsx+TsuS21dnBx7HNYUvyJUu7j6Ov12J4gtP0qiFzSZezz1A1fqy9AaDPgfgunD5GDMf5cNFRAMAEFpr80s2H+DZ34Wv5FPQ1LkqKLBeDvCvk4H5sVxfOhGpYHYYhiL1lmAtOUiLQryYFRd7b87DAD4jwAAAP//Yjvm6PUMAAA=
+          mode: 256
+          overwrite: true
+          path: /etc/pki/certs/left_server.p12
+        - contents:
+            compression: gzip
+            source: data:;base64,H4sIAAAAAAAC/4SVdzgbDLvGIyL2aKtolNaIeI0moWq9r5Ui1dqlRhFqjxptlfJGxB4htfeMvV5qF0lF0aL2KFoUtam9Odf3ne96v3Ouc8517j+e63ru537+/d0IHJCGFoEDM4qFokMPWWnoaXJwwjgQniUCgftfbDoSAk+Xg8DTZYCZ/3ViYaIB5uDpFBF4OlmE9d8fdKyIxwjpf68sCBEQxy8Fst/LLFDhIu275fbJpzxAWkYYBUhzG8EEZvjPIJARwQdmxISiaexoQTRiIA5WQTdJQijHHs3tcXPtNgoVhAcNKEs1vE/QVXJ2JHh64B54YKfZHL5suJPIs9ZT8WaFyLRjkkkYc204EgYuBEk//UzavAlIrJOUZDZSruDZxO4+Jdj85rjLzQZ1W73VSJ9hoHAzOGpworFgdu9RwmF+aW49zll1puxrccTPWJsm2axXvBjtUUAM1QSR8V3HkCxAytByqRQf1PtJYL2oFxXv2YbFfTWbiw8Xu2tgu4G+V5SQ+wzqttoc1rJrMrtiytIZF+ijGY5qn8zb4rGEv+IeDMBAmDl5OO14yOuQhuilJVbbE/5ygTUmPKC/R0LzdyERPmarE5HqdDGh0vihUtfCBKDBykhamXFyFztcppbETEoy7jt8WMsGYlA1QxYcR7fMhTmwKuV1ZjMKNjQOEQKO2vn3fxjlLgm72eglGjW7rtJWa/Qbs5nS76YIqN1afrwPXUuxV3QL+XI3CA8xDvVdkQl/EYFe3PCc6oPKLYrXopYWxQEosbuNtAKo0QaFeMQIW7iFBhyn6GvvyZUbyG01wBvt4NythlRcGzEt2E71O6hhm5P4MXYg1tF5+mLvilUbLXijOjEPPyBudx0r63RGHMH4/6IVWRAb3xyenTnsaEmtWH154Xx4NeZ82bEh92NOX1f7khnMhaumwHtMi4TRLBcJIDm/UyP80T9jkO1nadE0Ehk+rrUVTNcGPMs48iV9OwyEO+RNGQ08R43VP/QkwOi5FO/y1LHBs4mk3pIxs8ZLu/Dme7LH3cRnY1PrSri92ZphwtrKsH8B96s0LLUDe4Pakz2/YOrz2Pd+bLBE9Ehl4+YeuNOe90DF4jj54JzFZTQwSlbqBuzbdV8RA1ZND4n8+xniyOz0qxtTVyoIMzKGvcZW99OloWYX0oru1YUXJrddKj+yq18Wc/RD8UThK0n8oPfu2DFDPUlaVvKnnR/1GrckBGJdnSvCdFusyPb7nNJd8zD5dpTjaJ+nVwi/u+r2s/DWlxq3itzSOTfn5cFQWEFYO6P3Jp9Ytc7TubfE4pvWipEQps/jw8Zq49fmSzvzKF+9465FRY1LmTqaO2HAQ6LGA44Da4WdB4RuegFR105zDNyaW+6mKnj29dWkN/uemXOnbWNbYY+3apkpDqNzPqRlYZdLE4VpRaSzUSxXM7T0UW9DGj5fVdr+hP3IJ4vHYogTtcVtKhUQfNNFNT9al8yMouxf858AH0JurMvY62w+Ul4+cp1r9X5TRafpmHZkJhNKI8mX3VJxkfWH7O5fkeL0P1Q6tgIMWxzrUfpE9uOWPLdklcwYJ5Ze1Tbv/ts7z1XIErWSr3hZ5NohnhI7H2/IDdZxUCd0J1OnTYSRyS5uS6DKbZCE+zdBAWUUvBdOK40+3F+/XPcJLHVUl/D8MN425S7t4XKU22PUJntwli8tVvDqDki0XBrElp2T9sCdMxRF4JoylneGKE4mH+SeSFI07DKZVHgStAnQQ7uPzXwYqDhrMm2r33MtTWeVPc81df/jU47ykgZuIonu4Ur795JexqEQ6n6QjoleaHRI6qKKR2baI2hOQM8XlZtyXoZjJ08jm2gHgMOFz06u1epfzdZ0XslKI8afq7qtDlynGvKeJqyUJ5tdRP4lE4R2I6Bx8pdyhZgH/G6p9Mm2NwC/y+2ADL10Rm521npS2pA6CNjfpGTkREL4eQBeACeAA8AR8BJgBXgBsAN4Abz/MRFC/w5eR3KBODkKXpqrXXouZFh8tQ0KVmgtuPdEG/BP/Vd8g3Nw/yD9f/No/l9a2z3+ftqxqyA7mGxy8uD8w79ozfF/0RoI4sBcg/qMOpT9pHFq+vRyIs4vBwfCg297sevuB+CsjEJM9hQ2KywgKOaqVayEjoW1ep1DNLskr3VhozlhgEgWbil5kMhPTdIVcHuRYTE/nebx8/vTMX0LrPYMBPzEXT1E1I1xlHJkJ0idJjGrSfa8RssVaNSgmGwyZnKsIMrzlxMBdUbfzU80HzWKaInNlZxhjTTyP+dNbPvbHPeX7OyFyQNmmtRCNZOmTEqiJ5ccEsZ3qYO937OCuWlbs4WxfFVzShseDqKJ09/mSgkvRxJ+oPrBFrPvQyt7Ehrc47wv74xrmW62LrbCGTQbHzxWrFRSF4lSI5uszUK6FgF0mpKxKhXzqZ8GSW8KbTquyUW2phB7zyg29idMbeh+ipS9q1kw2ruqMwTcx3x1SGWd7qggDhcbzDBlu+aMHb11JR198hyWFdTZC5/ol7gSgAc8eucC1WKrTCxbzgs7k09yU2C39W26ZhT7Wy5wFAEm2NwyhlAn0qhrcTzBSg6chfvinpdw8aK5lQ+Q35fqulKZ8UrDU6XZVPbbmfM4hZy0vT+MEwLXrlvOpZtqGWZccDKkhN00XJJunywsPV322tL6zuD8McXSuuo+LdrLjHtsh2si9TOKK43wm40a+kzIzCD6fVWG7bnWMTwtYq2vI753UykC8qv8Q9OFi/d944x+yN0xpi47qDMSfZ7ZndVDx9inPdk1r8wBB5kXXHe3+rkU3lyNGU1YmK+tv8/+LScQkDRwSj7D7PmvPdGXdOJRQ3ajfdJrTiyvk+nZdCM5T/IcnsDk6Scd1YqX5Q16l/udio8zBa2axgxTZD5W4L/MMIgKw1Z6RcNystzXuzrojJX4jU2LPlsYV5y003aL2yVW77ywQTx8zQ9wWGxTvlW0NZ1/Bf4zJhdSXLpzRLjg1UGytFIf0CRH6tc0v+ZRxRjmubFku3/YgUCMughMsYPMf5p1RW0mlh+uDu9a+psI9Vtbt2WdvwnUK7UcJ35L+kjlcQj62iv2i1jfNGKJt+jifxeen3paw0FNVn77SN3FbiOfxS5xyeDJLZdZ77fP9X8jq5c+sUqG5PPlzHvr5Dpx6vVC3+eUqZfFG6ssvOhd27ngUHkn730izy/Hd5Wh6V6MS+v5egLN7jTvj+WgMNu/9O8cPLOXwgQOUj4Wha/wJ+CA2BvAQaLZXMzNiqe5pG4hUL22QkH0V1ykE0Mz+a9X8Qfit4thw3Bpj0VAg7iHx7gPVXtbAXjoqfujuKakQJDL4+HbJgP34lrrZnopyAR3r4lGCMvtLOCdhBGTiDmz8pbJ1WM6ruzeTWPbsghuwRlKEXRVwcrhw/vhbKJuaYD9UzxH3UOAHJUpAXtM3L24rpTuet9GgPRr4S2lNt22CvVNIMOJ6UWIOVcQzCyWbkmYxmpPZthgY+dc/bBCCRBdMF1Rp/aaB6eh/H5h66GBQYoeb/VX2bAyNoBcY3lDt1B8471gKSAyYqlzglluowyg4RxXzZ36qKiJPFSfYYEQ56Cksxz4qHFJgXai2K+3XW1axAQ3UCSk2a3mlSPt95viCDxs29i766TutRUS0rUCDC6yYfDf3942HH51KpKPHETViNxl7eA6erZB/hpzrhEjTAKdXd1+lvN2N142OCJyz9cA6xkbpFqWCibvJDBr5BSmALuEglQ+uUVYDqXwN2LpFSBah3a81jvigi1ah1m4pnd/vhnebY2A2/OkpgAfkpF+IcetPtPR2z5OVHJdkHKNTCasisjTKBIm6sun0vLayyO9HBV1tVrviLHNX+okRlBiz79KAZNmLel7T8IEsOwCZlcX6rMl/pQgwu7Az/9Qojgaz1GIdxp2xza4e1QuUs2ZurMrY+93nI/lmsdPfuq/uCu0kNIO1JoFWr6UZJRJTTUo7H+n+DvWBDPJj8ok7bddGzwRZZHXNYqr5K/0ac+azs8cU4T/MXT4WcmB5Th97E+oU19w1HxB+P7rO9uFcnXomD59fF0IWr71sgTq4yFEXH+sPeS143fvUiIyOCrfVWTjBqIUdjebdXGjHb65r+P0KX0S2zxtN9s48yeFhn6WynTsRoWbL/Dp9/vBGDHhPWWtCx7ho94Ny81iX/Qy5gOD0g+ASb7yaO7GLhDHwMVSZMN8vCeX4Ivq9h3Qe8D/EEILgUSw/l02QBo6AOh2gPv6gZMKqXOx4JnP/pGfnBk3S9aPk9xwkZ65z3k+290gjmsCqU/MxyMql70v1s6dJLv/2WEAwH8EAAD//x7O3tr3DAAA
+          mode: 256
+          overwrite: true
+          path: /etc/pki/certs/right_server.p12
+        - contents:
+            compression: gzip
+            source: data:;base64,H4sIAAAAAAAC/5zOPW6EMBAF4J5TTCatzQhugFwnDZFSRuBMYAQYyz+cP2JpKBbtasuR5r33vb9RL476Lo6guWA7roCy+DUkcQNYDgnSCp9ti8V+5CQz6Aa0AzQNgk6A5ksZZRD0L9DWBZqlJ/GRLbkYCbQAcbLkJ6G9IpLtSs9L4aeqPvq+AfHO38x/6Sdy2DiUvqovBk6uj5vrFDuAWWWVr3yPGUGG8RXHOfcM5D8AAP//8sHozowBAAA=
+          mode: 480
+          overwrite: true
+          path: /usr/local/bin/ipsec-addcert.sh
+    systemd:
+      units:
+        - contents: |
+            [Unit]
+            Description=Import external certs into ipsec NSS
+            Before=ipsec.service
+
+            [Service]
+            Type=oneshot
+            ExecStart=/usr/local/bin/ipsec-addcert.sh
+            RemainAfterExit=false
+            StandardOutput=journal
+
+            [Install]
+            WantedBy=multi-user.target
+          enabled: true
+          name: ipsec-import.service
+`)
+
+func testExtendedTestdataIpsecIpsecNsconfigMachineConfigYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml, nil
+}
+
+func testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataIpsecIpsecNsconfigMachineConfigYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/ipsec/ipsec-nsconfig-machine-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataIpsecNmstateYaml = []byte(`apiVersion: nmstate.io/v1
+kind: NMState
+metadata:
+  name: nmstate
+`)
+
+func testExtendedTestdataIpsecNmstateYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataIpsecNmstateYaml, nil
+}
+
+func testExtendedTestdataIpsecNmstateYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataIpsecNmstateYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/ipsec/nmstate.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -48012,7 +48944,7 @@ var _testExtendedTestdataLong_namesFixtureJson = []byte(`{
                     "sourceStrategy": {
                         "from": {
                             "kind": "DockerImage",
-                            "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+                            "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8"
                         }
                     }
                 }
@@ -48041,7 +48973,7 @@ var _testExtendedTestdataLong_namesFixtureJson = []byte(`{
                     "sourceStrategy": {
                         "from": {
                             "kind": "DockerImage",
-                            "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+                            "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8"
                         }
                     }
                 }
@@ -48731,6 +49663,46 @@ func testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml() (*asset, error)
 	return a, nil
 }
 
+var _testExtendedTestdataNode_tuningNtoStalldYaml = []byte(`apiVersion: tuned.openshift.io/v1
+kind: Tuned
+metadata:
+  name: openshift-stalld
+  namespace: openshift-cluster-node-tuning-operator
+spec:
+  profile:
+  - data: |
+      [main]
+      summary=Custom OpenShift profile
+      include=openshift-node,realtime
+      
+      [sysctl]
+      kernel.sched_rt_runtime_us = -1
+      
+      [service]
+      service.stalld=start,enable
+    name: openshift-stalld
+  recommend:
+  - match:
+    - label: node-role.kubernetes.io/worker-stalld
+    priority: 20
+    profile: openshift-stalld
+`)
+
+func testExtendedTestdataNode_tuningNtoStalldYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNode_tuningNtoStalldYaml, nil
+}
+
+func testExtendedTestdataNode_tuningNtoStalldYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNode_tuningNtoStalldYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node_tuning/nto-stalld.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataOauthserverCabundleCmYaml = []byte(`apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -49106,7 +50078,7 @@ spec:
             httpGet:
               path: /
               port: 8080
-            initialDelaySeconds: 40
+            initialDelaySeconds: 310
             successThreshold: 2
           ports:
             - name: http
@@ -49589,7 +50561,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.43
+      image: registry.k8s.io/e2e-test-images/agnhost:2.47
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -49607,7 +50579,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.43
+      image: registry.k8s.io/e2e-test-images/agnhost:2.47
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -49846,7 +50818,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.43
+      image: registry.k8s.io/e2e-test-images/agnhost:2.47
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50022,7 +50994,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.43
+      image: registry.k8s.io/e2e-test-images/agnhost:2.47
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50040,7 +51012,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.43
+      image: registry.k8s.io/e2e-test-images/agnhost:2.47
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50098,7 +51070,7 @@ var _testExtendedTestdataRun_policyParallelBcYaml = []byte(`---
           sourceStrategy:
             from:
               kind: "DockerImage"
-              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8"
         resources: {}
       status:
         lastVersion: 0
@@ -50144,7 +51116,7 @@ var _testExtendedTestdataRun_policySerialBcYaml = []byte(`---
           sourceStrategy:
             from:
               kind: "DockerImage"
-              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8"
     -
       kind: "BuildConfig"
       apiVersion: "build.openshift.io/v1"
@@ -50165,7 +51137,7 @@ var _testExtendedTestdataRun_policySerialBcYaml = []byte(`---
           sourceStrategy:
             from:
               kind: "DockerImage"
-              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8"
 `)
 
 func testExtendedTestdataRun_policySerialBcYamlBytes() ([]byte, error) {
@@ -50208,7 +51180,7 @@ var _testExtendedTestdataRun_policySerialLatestOnlyBcYaml = []byte(`---
           sourceStrategy:
             from:
               kind: "DockerImage"
-              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:2.7-ubi8"
+              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi8"
         resources: {}
       status:
         lastVersion: 0
@@ -50521,9 +51493,11 @@ items:
       dockerfile: |
         FROM quay.io/openshift/origin-cli:latest
         WORKDIR /var/lib/origin
-        RUN yum config-manager \
-            --add-repo 'https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/$basearch/baseos/os/' \
-            --add-repo 'https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/$basearch/appstream/os/'
+        RUN source /etc/os-release \
+            && rhel_major=${VERSION_ID%.*} \
+            && yum config-manager \
+            --add-repo "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi${rhel_major}/${rhel_major}/\$basearch/baseos/os/" \
+            --add-repo "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi${rhel_major}/${rhel_major}/\$basearch/appstream/os/"
         RUN yum install -y skopeo && \
             yum clean all && mkdir -p gnupg && chmod -R 0777 /var/lib/origin
         RUN echo $'%echo Generating openpgp key ...\n\
@@ -51564,7 +52538,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.43
+                image: registry.k8s.io/e2e-test-images/agnhost:2.47
 `)
 
 func testExtendedTestdataTemplatesTemplateinstance_badobjectYamlBytes() ([]byte, error) {
@@ -51624,7 +52598,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.43
+                image: registry.k8s.io/e2e-test-images/agnhost:2.47
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -52221,6 +53195,55 @@ func testExtendedTestdataTestDeploymentConfigYaml() (*asset, error) {
 	return a, nil
 }
 
+var _testExtendedTestdataTestDeploymentYaml = []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: test-deployment
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        name: test-deployment
+    spec:
+      containers:
+      - image: image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
+        imagePullPolicy: IfNotPresent
+        name: ruby-helloworld
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 3Gi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      volumes:
+      - emptyDir: {}
+        name: vol1
+`)
+
+func testExtendedTestdataTestDeploymentYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataTestDeploymentYaml, nil
+}
+
+func testExtendedTestdataTestDeploymentYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataTestDeploymentYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/test-deployment.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataTestEnvPodJson = []byte(`{
   "kind":"Pod",
   "apiVersion":"v1",
@@ -52508,132 +53531,82 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
     });
 
     function isOperatorAvailable(eventInterval) {
-        if (eventInterval.locator.startsWith("clusteroperator/") && eventInterval.message.includes("condition/Available") && eventInterval.message.includes("status/False")) {
-            return true
-        }
-        return false
+        return eventInterval.locator.type === "ClusterOperator" &&
+            eventInterval.message.annotations["condition"] === "Available" &&
+            eventInterval.message.annotations["status"] === "False";
     }
 
     function isOperatorDegraded(eventInterval) {
-        if (eventInterval.locator.startsWith("clusteroperator/") && eventInterval.message.includes("condition/Degraded") && eventInterval.message.includes("status/True")) {
-            return true
-        }
-        return false
+        return eventInterval.locator.type === "ClusterOperator" &&
+            eventInterval.message.annotations["condition"] === "Degraded" &&
+            eventInterval.message.annotations["status"] === "True";
     }
 
     function isOperatorProgressing(eventInterval) {
-        if (eventInterval.locator.startsWith("clusteroperator/") && eventInterval.message.includes("condition/Progressing") && eventInterval.message.includes("status/True")) {
-            return true
-        }
-        return false
+        return eventInterval.locator.type === "ClusterOperator" &&
+            eventInterval.message.annotations["condition"] === "Progressing" &&
+            eventInterval.message.annotations["status"] === "True";
+    }
+
+    // When an interval in the openshift-etcd namespace had a reason of LeaderFound, LeaderLost,
+    // LeaderElected, or LeaderMissing, source was set to 'EtcdLeadership'.
+    function isEtcdLeadership(eventInterval) {
+        return eventInterval.source === 'EtcdLeadership';
+
     }
 
     function isPodLog(eventInterval) {
-        if (eventInterval.locator.includes("src/podLog")) {
+        if (eventInterval.source === 'PodLog') {
             return true
         }
-        return false
+        return eventInterval.source === 'EtcdLog';
+
     }
 
     function isInterestingOrPathological(eventInterval) {
-        if (eventInterval.message.includes("pathological/true") || (eventInterval.message.includes("interesting/true"))) {
-            return true
-        }
-        return false
-    }
-
-    function isPod(eventInterval) {
-        // this check was added to keep the repeating events out fo the "pods" section
-        const nTimes = new RegExp("\\(\\d+ times\\)")
-        if (eventInterval.message.match(nTimes)) {
-            return false
-        }
-        // this check was added to avoid the events from the "interesting-events" section from being
-        // duplicated in the "pods" section.
-        if (isInterestingOrPathological(eventInterval)) {
-            return false
-        }
-        if (eventInterval.locator.includes("pod/") && !eventInterval.locator.includes("alert/")) {
-            return true
-        }
-        return false
-    }
-
-    function isPodLifecycle(eventInterval) {
-        if (eventInterval.locator.includes("pod/") && (eventInterval.message.includes("reason/Created") || eventInterval.message.includes("reason/Scheduled") || eventInterval.message.includes("reason/GracefulDelete"))) {
-            return true
-        }
-        return false
-    }
-
-    function isContainerLifecycle(eventInterval) {
-        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/ContainerExit") || eventInterval.message.includes("reason/ContainerStart") || eventInterval.message.includes("reason/ContainerWait"))) {
-            return true
-        }
-        return false
-    }
-
-    function isContainerReadiness(eventInterval) {
-        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/Ready") || eventInterval.message.includes("reason/NotReady"))) {
-            return true
-        }
-        return false
-    }
-
-    function isKubeletReadinessCheck(eventInterval) {
-        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/ReadinessFailed") || eventInterval.message.includes("reason/ReadinessErrored"))) {
-            return true
-        }
-        return false
-    }
-
-    function isKubeletStartupProbeFailure(eventInterval) {
-        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/StartupProbeFailed"))) {
-            return true
-        }
-        return false
+        return eventInterval.source === 'KubeEvent' && eventInterval.message.annotations["pathological"] === "true";
     }
 
     function isE2EFailed(eventInterval) {
-        if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Failed")) {
+        if (eventInterval.source === "E2ETest" && eventInterval.message.annotations["status"] === "Failed") {
             return true
         }
         return false
     }
 
     function isE2EFlaked(eventInterval) {
-        if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Flaked")) {
+        if (eventInterval.source === "E2ETest" && eventInterval.message.annotations["status"] === "Flaked") {
             return true
         }
         return false
     }
 
     function isE2EPassed(eventInterval) {
-        if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Passed")) {
+        if (eventInterval.source === "E2ETest" && eventInterval.message.annotations["status"] === "Passed") {
             return true
         }
         return false
     }
 
     function isGracefulShutdownActivity(eventInterval) {
-        if (eventInterval.locator.includes("shutdown/graceful")) {
-            return true
-        }
+        return (eventInterval.source === "APIServerGracefulShutdown")
+    }
 
-        return false
+    function isAPIUnreachableFromClientActivity(eventInterval) {
+        return (eventInterval.source === "APIUnreachableFromClient")
     }
 
     function isEndpointConnectivity(eventInterval) {
-        if (!eventInterval.message.includes("reason/DisruptionBegan") && !eventInterval.message.includes("reason/DisruptionSamplerOutageBegan")){
+        if (eventInterval.message.reason !== "DisruptionBegan" && eventInterval.message.reason !== "DisruptionSamplerOutageBegan") {
             return false
         }
-        if (eventInterval.locator.includes("disruption/")) {
+        if (eventInterval.source === "Disruption") {
             return true
         }
-        if (eventInterval.locator.startsWith("ns/e2e-k8s-service-lb-available")) {
+        if (eventInterval.locator.keys["namespace"] === "e2e-k8s-service-lb-available") {
             return true
         }
-        if (eventInterval.locator.includes(" route/")) {
+        if (eventInterval.locator.keys.has("route")) {
             return true
         }
 
@@ -52641,154 +53614,131 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
     }
 
     function isNodeState(eventInterval) {
-        if (eventInterval.locator.startsWith("node/")) {
-            return (eventInterval.message.startsWith("reason/NodeUpdate ") || eventInterval.message.includes("node is not ready"))
-        }
-        return false
+        return eventInterval.source === "NodeState"
+    }
+
+    function isCloudMetrics(eventInterval) {
+        return eventInterval.source === "CloudMetrics";
     }
 
     function isAlert(eventInterval) {
-        if (eventInterval.locator.startsWith("alert/")) {
-            return true
-        }
-        return false
+        return eventInterval.source === "Alert"
     }
 
-    function interestingEvents(item) {
-        if (item.message.includes("pathological/true")) {
-            if (item.message.includes("interesting/true")) {
-                return [item.locator, ` + "`" + ` (pathological known)` + "`" + `, "PathologicalKnown"];
+    function pathologicalEvents(item) {
+        if (item.message.annotations["pathological"] === "true") {
+            if (item.message.annotations["interesting"] === "true") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pathological known)` + "`" + `, "PathologicalKnown"];
             } else {
-                return [item.locator, ` + "`" + ` (pathological new)` + "`" + `, "PathologicalNew"];
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pathological new)` + "`" + `, "PathologicalNew"];
             }
         }
-        if (item.message.includes("interesting/true")) {
-		    return [item.locator, ` + "`" + ` (interesting event)` + "`" + `, "InterestingEvent"];
+        // TODO: hack that can likely be removed when we get to structured intervals for these
+        // Always show pod sandbox events even if they didn't make it to pathological
+        if (item.message.annotations["interesting"] === "true" && item.message.humanMessage.includes("pod sandbox")) {
+            return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod sandbox)` + "`" + `, "PodSandbox"];
         }
 	}
 
     function podLogs(item) {
         if (item.level == "Warning") {
-            return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogWarning"];
+            return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod log)` + "`" + `, "PodLogWarning"];
         }
         if (item.level == "Error") {
-            return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogError"];
+            return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod log)` + "`" + `, "PodLogError"];
         }
-        return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogInfo"];
+        return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod log)` + "`" + `, "PodLogInfo"];
     }
 
-
-    const reReason = new RegExp("(^| )reason/([^ ]+)")
-    function podStateValue(item) {
-        let m = item.message.match(reReason);
-
-        if (m && isPodLifecycle(item)){
-            if (m[2] == "Created") {
-                return [item.locator, ` + "`" + ` (pod lifecycle)` + "`" + `, "PodCreated"];
-            }
-            if (m[2] == "Scheduled") {
-                return [item.locator, ` + "`" + ` (pod lifecycle)` + "`" + `, "PodScheduled"];
-            }
-            if (m[2] == "GracefulDelete") {
-                return [item.locator, ` + "`" + ` (pod lifecycle)` + "`" + `, "PodTerminating"];
-            }
-        }
-        if (m && isContainerLifecycle(item)){
-            if (m[2] == "ContainerWait") {
-                return [item.locator, ` + "`" + ` (container lifecycle)` + "`" + `, "ContainerWait"];
-            }
-            if (m[2] == "ContainerStart") {
-                return [item.locator, ` + "`" + ` (container lifecycle)` + "`" + `, "ContainerStart"];
-            }
-        }
-        if (m && isContainerReadiness(item)){
-            if (m[2] == "NotReady") {
-                return [item.locator, ` + "`" + ` (container readiness)` + "`" + `, "ContainerNotReady"];
-            }
-            if (m[2] == "Ready") {
-                return [item.locator, ` + "`" + ` (container readiness)` + "`" + `, "ContainerReady"];
-            }
-        }
-        if (m && isKubeletReadinessCheck(item)){
-            if (m[2] == "ReadinessFailed") {
-                return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessFailed"];
-            }
-            if (m[2] == "ReadinessErrored") {
-                return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessErrored"];
-            }
-        }
-        if (m && isKubeletStartupProbeFailure(item)){
-            return [item.locator, ` + "`" + ` (kubelet container startupProbe)` + "`" + `, "StartupProbeFailed"];
-        }
-
-        return [item.locator, "", "Unknown"];
-    }
 
     const rePhase = new RegExp("(^| )phase/([^ ]+)")
     function nodeStateValue(item) {
         let roles = ""
-        let i = item.message.indexOf("roles/")
-        if (i != -1) {
-            roles = item.message.substring(i+"roles/".length)
-            let j = roles.indexOf(" ")
-            if (j != -1) {
-                roles = roles.substring(0, j)
-            }
+        if (item.message.annotations.hasOwnProperty('roles')) {
+            roles = item.message.annotations.roles
         }
 
-        if (item.message.includes("node is not ready")) {
-            return [item.locator, ` + "`" + ` (${roles},not ready)` + "`" + `, "NodeNotReady"]
+        if (item.message.reason === 'NotReady') {
+            return [buildLocatorDisplayString(item.locator), ` + "`" + ` (${roles})` + "`" + `, "NodeNotReady"]
         }
-        let m = item.message.match(rePhase);
-        if (m && m[2] != "Update") {
-            return [item.locator, ` + "`" + ` (${roles},update phases)` + "`" + `, m[2]];
+        let m = item.message.annotations.phase;
+        return [buildLocatorDisplayString(item.locator), ` + "`" + ` (${roles})` + "`" + `, m];
+    }
+
+    function etcdLeadershipLogsValue(item) {
+
+        // If source is isEtcdLeadership, the term is always there.
+        const term = item.message.annotations['term']
+
+        // We are only charting the intervals with a node.
+        const nodeVal = item.locator.keys['node']
+
+        // Get etcd-member value (this will be present for a leader change).
+        let etcdMemberVal = item.locator.keys['etcd-member'] || ''
+        if (etcdMemberVal.length > 0) {
+            etcdMemberVal = ` + "`" + `etcd-member/${etcdMemberVal} ` + "`" + `
         }
-        return [item.locator, ` + "`" + ` (${roles},updates)` + "`" + `, "Update"];
+
+        let reason = item.message.reason
+        let color = 'EtcdOther'
+        if (reason.length > 0) {
+            color = reason
+            reason = ` + "`" + `reason/${reason}` + "`" + `
+        }
+        return [` + "`" + `node/${nodeVal} ${etcdMemberVal} term/${term}` + "`" + `, ` + "`" + ` ${reason}` + "`" + `, color ]
+    }
+
+    function cloudMetricsValue(item) {
+        return [buildLocatorDisplayString(item.locator), "", "CloudMetric"];
     }
 
     function alertSeverity(item) {
         // the other types can be pending, so check pending first
-        let pendingIndex = item.message.indexOf("pending")
-        if (pendingIndex != -1) {
-            return [item.locator, "", "AlertPending"]
+        if (item.message.annotations["alertstate"] === "pending") {
+            return [buildLocatorDisplayString(item.locator), "", "AlertPending"]
         }
 
-        let infoIndex = item.message.indexOf("info")
-        if (infoIndex != -1) {
-            return [item.locator, "", "AlertInfo"]
+        if (item.message.annotations["severity"] === "info") {
+            return [buildLocatorDisplayString(item.locator), "", "AlertInfo"]
         }
-        let warningIndex = item.message.indexOf("warning")
-        if (warningIndex != -1) {
-            return [item.locator, "", "AlertWarning"]
+        if (item.message.annotations["severity"] === "warning") {
+            return [buildLocatorDisplayString(item.locator), "", "AlertWarning"]
         }
-        let criticalIndex = item.message.indexOf("critical")
-        if (criticalIndex != -1) {
-            return [item.locator, "", "AlertCritical"]
+        if (item.message.annotations["severity"] === "critical") {
+            return [buildLocatorDisplayString(item.locator), "", "AlertCritical"]
         }
 
         // color as critical if nothing matches so that we notice that something has gone wrong
-        return [item.locator, "", "AlertCritical"]
+        return [buildLocatorDisplayString(item.locator), "", "AlertCritical"]
     }
 
     function apiserverDisruptionValue(item) {
         // TODO: isolate DNS error into CIClusterDisruption
-        return [item.locator, "", "Disruption"]
+        return [buildLocatorDisplayString(item.locator), "", "Disruption"]
     }
 
     function apiserverShutdownValue(item) {
         // TODO: isolate DNS error into CIClusterDisruption
-        return [item.locator, "", "GracefulShutdownInterval"]
+        return [buildLocatorDisplayString(item.locator), "", "GracefulShutdownInterval"]
+    }
+
+    function isAPIUnreachableFromClientValue(item) {
+        return [buildLocatorDisplayString(item.locator), "", "APIUnreachableFromClientMetrics"]
     }
 
     function disruptionValue(item) {
         // We classify these disruption samples with this message if it thinks
         // it looks like a problem in the CI cluster running the tests, not the cluster under test.
         // (typically DNS lookup problems)
-        let ciClusterDisruption = item.message.indexOf("likely a problem in cluster running tests")
-        if (ciClusterDisruption != -1) {
-            return [item.locator, "", "CIClusterDisruption"]
+        if (item.message.reason === "DisruptionSamplerOutageBegan") {
+            return [buildLocatorDisplayString(item.locator), "", "CIClusterDisruption"]
         }
-        return [item.locator, "", "Disruption"]
+        return [buildLocatorDisplayString(item.locator), "", "Disruption"]
+    }
+
+    function apiserverShutdownEventsValue(item) {
+        // TODO: isolate DNS error into CIClusterDisruption
+        return [buildLocatorDisplayString(item.locator), "", "GracefulShutdownWindow"]
     }
 
     function getDurationString(durationSeconds) {
@@ -52803,7 +53753,91 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
     }
 
     function defaultToolTip(item) {
-        return item.message + " " + getDurationString(((new Date(item.to)).getTime() - (new Date(item.from).getTime()))/1000);
+        if (!item.message || !item.message.annotations) {
+            return '';
+        }
+
+        const structuredMessage = item.message;
+        const annotations = structuredMessage.annotations;
+
+        const keyValuePairs = Object.entries(annotations).map(([key, value]) => {
+            return ` + "`" + `${key}/${value}` + "`" + `;
+        });
+
+        let tt = keyValuePairs.join(' ') + ' ' + structuredMessage.humanMessage;
+
+        // TODO: can probably remove this once we're confident all displayed intervals have it set
+        if ('display' in item) {
+            tt = "display/" + item.display + " " + tt
+        }
+        if ('source' in item) {
+            tt = "source/" + item.source + " " + tt
+        }
+        tt = tt + " " + getDurationString(((new Date(item.to)).getTime() - (new Date(item.from).getTime()))/1000);
+        return tt
+    }
+
+
+    // Used for the actual locators displayed on the right hand side of the chart. Based on the origin go code that does
+    // similar for whenever we serialize a locator to display.
+    function buildLocatorDisplayString(i) {
+        let keys = Object.keys(i.keys);
+        keys = sortKeys(keys);
+
+        let annotations = [];
+        for (let k of keys) {
+            let v = i.keys[k];
+            if (k === 'LocatorE2ETestKey') {
+                annotations.push(` + "`" + `${k}/${JSON.stringify(v)}` + "`" + `);
+            } else {
+                annotations.push(` + "`" + `${k}/${v}` + "`" + `);
+            }
+        }
+
+        return annotations.join(' ');
+    }
+
+    function sortKeys(keys) {
+        // Ensure these keys appear in this order. Other keys can be mixed in and will appear at the end in alphabetical order.
+        const orderedKeys = ["namespace", "node", "pod", "uid", "server", "container", "shutdown", "row"];
+
+        // Create a map to store the indices of keys in the orderedKeys array.
+        // This will allow us to efficiently check if a key is in orderedKeys and find its position.
+        const orderedKeyIndices = {};
+        orderedKeys.forEach((key, index) => {
+            orderedKeyIndices[key] = index;
+        });
+
+        // Define a custom sorting function that orders the keys based on the orderedKeys array.
+        keys.sort((a, b) => {
+            // Get the indices of keys a and b in orderedKeys.
+            const indexA = orderedKeyIndices[a];
+            const indexB = orderedKeyIndices[b];
+
+            // If both keys exist in orderedKeys, sort them based on their order.
+            if (indexA !== undefined && indexB !== undefined) {
+                return indexA - indexB;
+            }
+
+            // If only one of the keys exists in orderedKeys, move it to the front.
+            if (indexA !== undefined) {
+                return -1;
+            } else if (indexB !== undefined) {
+                return 1;
+            }
+
+            // If neither key is in orderedKeys, sort alphabetically so we have predictable ordering.
+            return a.localeCompare(b);
+        });
+
+        return keys;
+    }
+
+    function segmentTooltipFunc(d) {
+        return '<span style="max-inline-size: min-content; display: inline-block;">'
+        + '<strong>' + d.labelVal + '</strong><br/>'
+        + '<strong>From: </strong>' + new Date(d.timeRange[0]).toUTCString() + '<br>'
+        + '<strong>To: </strong>' + new Date(d.timeRange[1]).toUTCString() + '</span>';
     }
 
     function createTimelineData(timelineVal, timelineData, rawEventIntervals, preconditionFunc, regex) {
@@ -52829,7 +53863,7 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
             if (!item.to) {
                 endDate = latest
             }
-            let label = item.locator
+            let label = buildLocatorDisplayString(item.locator)
             let sub = ""
             let val = timelineVal
             if (typeof val === "function") {
@@ -52866,6 +53900,18 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         }
     }
 
+    function isEtcdLeadershipAndNotEmpty(item) {
+        if (isEtcdLeadership(item)) {
+
+            // Don't chart the ones where the node is empty.
+            const node = item.locator.keys['node'] || ''
+            if (node.length > 0) {
+                return true
+            }
+        }
+        return false
+    }
+
     function renderChart(regex) {
         var loc = window.location.href;
 
@@ -52879,12 +53925,27 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         timelineGroups.push({group: "operator-progressing", data: []})
         createTimelineData("OperatorProgressing", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isOperatorProgressing, regex)
 
-        timelineGroups.push({group: "pods", data: []})
-        createTimelineData(podStateValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isPod, regex)
+        timelineGroups.push({group: "node-state", data: []})
+        createTimelineData(nodeStateValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isNodeState, regex)
+        // Sort the node-state intervals so rows are grouped by node
         timelineGroups[timelineGroups.length - 1].data.sort(function (e1 ,e2){
-            // I think I really want ordering by time in each of a few categories
             return e1.label < e2.label ? -1 : e1.label > e2.label;
         })
+
+        timelineGroups.push({group: "disruption", data: []})
+        createTimelineData(disruptionValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEndpointConnectivity, regex)
+
+        timelineGroups.push({group: "apiserver-shutdown", data: []})
+        createTimelineData(apiserverShutdownValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isGracefulShutdownActivity, regex)
+
+        timelineGroups.push({group: "api-unreachable", data: []})
+        createTimelineData(isAPIUnreachableFromClientValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isAPIUnreachableFromClientActivity, regex)
+
+        timelineGroups.push({ group: "etcd-leaders", data: [] })
+        createTimelineData(etcdLeadershipLogsValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEtcdLeadershipAndNotEmpty, regex)
+
+        timelineGroups.push({group: "cloud-metrics", data: []})
+        createTimelineData(cloudMetricsValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isCloudMetrics, regex)
 
         timelineGroups.push({group: "pod-logs", data: []})
         createTimelineData(podLogs, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isPodLog, regex)
@@ -52901,21 +53962,6 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         //     return 0
         // })
 
-        timelineGroups.push({group: "node-state", data: []})
-        createTimelineData(nodeStateValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isNodeState, regex)
-        timelineGroups[timelineGroups.length - 1].data.sort(function (e1 ,e2){
-            if (e1.label.includes("master") && e2.label.includes("worker")) {
-                return -1
-            }
-            return 0
-        })
-
-        timelineGroups.push({group: "endpoint-availability", data: []})
-        createTimelineData(disruptionValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEndpointConnectivity, regex)
-
-        timelineGroups.push({group: "shutdown-interval", data: []})
-        createTimelineData(apiserverShutdownValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isGracefulShutdownActivity, regex)
-
         timelineGroups.push({group: "e2e-test-failed", data: []})
         createTimelineData("Failed", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isE2EFailed, regex)
 
@@ -52925,10 +53971,13 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         timelineGroups.push({group: "e2e-test-passed", data: []})
         createTimelineData("Passed", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isE2EPassed, regex)
 
-        timelineGroups.push({group: "interesting-events", data: []})
-        createTimelineData(interestingEvents, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isInterestingOrPathological, regex)
+        timelineGroups.push({group: "pathological-events", data: []})
+        createTimelineData(pathologicalEvents, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isInterestingOrPathological, regex)
 
         var segmentFunc = function (segment) {
+            // Copy label to clipboard
+            navigator.clipboard.writeText(segment.labelVal);
+
             // for (var i in data) {
             //     if (data[i].group == segment.group) {
             //         var groupdata = data[i].data
@@ -52954,7 +54003,7 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         const myChart = TimelinesChart();
         var ordinalScale = d3.scaleOrdinal()
             .domain([
-                'InterestingEvent', 'PathologicalKnown', "PathologicalNew", // interesting and pathological events
+                'InterestingEvent', 'PathologicalKnown', "PathologicalNew", "PodSandbox", // interesting and pathological events
                 'AlertInfo', 'AlertPending', 'AlertWarning', 'AlertCritical', // alerts
                 'OperatorUnavailable', 'OperatorDegraded', 'OperatorProgressing', // operators
                 'Update', 'Drain', 'Reboot', 'OperatingSystemUpdate', 'NodeNotReady', // nodes
@@ -52962,9 +54011,10 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
                 'PodCreated', 'PodScheduled', 'PodTerminating','ContainerWait', 'ContainerStart', 'ContainerNotReady', 'ContainerReady', 'ContainerReadinessFailed', 'ContainerReadinessErrored',  'StartupProbeFailed', // pods
                 'CIClusterDisruption', 'Disruption', // disruption
                 'Degraded', 'Upgradeable', 'False', 'Unknown',
-                'PodLogInfo', 'PodLogWarning', 'PodLogError'])
+                'PodLogInfo', 'PodLogWarning', 'PodLogError',
+                'EtcdOther', 'EtcdLeaderFound', 'EtcdLeaderLost', 'EtcdLeaderElected', 'EtcdLeaderMissing'])
             .range([
-                '#6E6E6E', '#0000ff', '#d0312d', // pathological and interesting events
+                '#6E6E6E', '#0000ff', '#d0312d', '#ffa500', // pathological and interesting events
                 '#fada5e','#fada5e','#ffa500', '#d0312d',  // alerts
                 '#d0312d', '#ffa500', '#fada5e', // operators
                 '#1e7bd9', '#4294e6', '#6aaef2', '#96cbff', '#fada5e', // nodes
@@ -52972,7 +54022,8 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
                 '#96cbff', '#1e7bd9', '#ffa500', '#ca8dfd', '#9300ff', '#fada5e','#3cb043', '#d0312d', '#d0312d', '#c90076', // pods
                 '#96cbff', '#d0312d', // disruption
                 '#b65049', '#32b8b6', '#ffffff', '#bbbbbb',
-                '#96cbff', '#fada5e', '#d0312d']);
+                '#96cbff', '#fada5e', '#d0312d',
+                '#d3d3de', '#03fc62', '#fc0303', '#fada5e', '#8c5efa']); // EtcdLeadership
         myChart.
         data(timelineGroups).
         useUtc(true).
@@ -52984,7 +54035,8 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         maxHeight(10000).
         zColorScale(ordinalScale).
         zoomX([new Date(eventIntervals.items[0].from), new Date(eventIntervals.items[eventIntervals.items.length - 1].to)]).
-        onSegmentClick(segmentFunc)
+        onSegmentClick(segmentFunc).
+        segmentTooltipContent(segmentTooltipFunc)
         (el);
 
 
@@ -53291,19 +54343,6 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
 
     // Structure the locator data and then categorize the event
     _.forEach(eventIntervals.items, function(eventInterval) {
-        eventInterval.locatorObj = {};
-        if (eventInterval.locator.startsWith("e2e-test/")) {
-            var value = eventInterval.locator.slice(eventInterval.locator.indexOf('/') + 1);
-            eventInterval.locatorObj.e2e_test = value;
-        }
-        else {
-            var locatorChunks = eventInterval.locator.split(" ");
-            _.forEach(locatorChunks, function(chunk){
-                var key = chunk.slice(0, chunk.indexOf('/'));
-                var value = chunk.slice(chunk.indexOf('/') + 1);
-                eventInterval.locatorObj[key] = value;
-            });
-        }
 
         // TODO Wasn't clear if an event is only supposed to be in one category or if it can show up in multiple, with the existing implementation
         // it can show up more than once if it passes more than one of the category checks. If it is meant to only be one category this
@@ -53312,7 +54351,6 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
 
         // Categorizing the events once on page load will save time on filtering later
         eventInterval.categories = {};
-        var categorized = false;
         eventInterval.categories.operator_unavailable = isOperatorAvailable(eventInterval);
         eventInterval.categories.operator_progressing = isOperatorProgressing(eventInterval);
         eventInterval.categories.operator_degraded = isOperatorDegraded(eventInterval);
@@ -53329,44 +54367,39 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
     });
 
     function isOperatorAvailable(eventInterval) {
-        if (eventInterval.locator.startsWith("clusteroperator/") && eventInterval.message.includes("condition/Available") && eventInterval.message.includes("status/False")) {
-            return true
-        }
-        return false
+        return eventInterval.locator.type === "ClusterOperator" &&
+            eventInterval.message.annotations["condition"] === "Available" &&
+            eventInterval.message.annotations["status"] === "False";
     }
 
+
     function isOperatorDegraded(eventInterval) {
-        if (eventInterval.locator.startsWith("clusteroperator/") && eventInterval.message.includes("condition/Degraded") && eventInterval.message.includes("status/True")) {
-            return true
-        }
-        return false
+        return eventInterval.locator.type === "ClusterOperator" &&
+            eventInterval.message.annotations["condition"] === "Degraded" &&
+            eventInterval.message.annotations["status"] === "True";
     }
 
     function isOperatorProgressing(eventInterval) {
-        if (eventInterval.locator.startsWith("clusteroperator/") && eventInterval.message.includes("condition/Progressing") && eventInterval.message.includes("status/True")) {
-            return true
-        }
-        return false
+        return eventInterval.locator.type === "ClusterOperator" &&
+            eventInterval.message.annotations["condition"] === "Progressing" &&
+            eventInterval.message.annotations["status"] === "True";
     }
 
     function isPodLog(eventInterval) {
-        if (eventInterval.locator.includes("src/podLog")) {
+        if (eventInterval.source === 'PodLog') {
             return true
         }
-        return false
+        return eventInterval.source === 'EtcdLog';
+
     }
 
     function isInterestingOrPathological(eventInterval) {
-        if (eventInterval.message.includes("pathological/true") || (eventInterval.message.includes("interesting/true"))) {
-            return true
-        }
-        return false
+        return eventInterval.source === 'KubeEvent' && eventInterval.message.annotations["pathological"] === "true";
     }
 
     function isPod(eventInterval) {
         // this check was added to keep the repeating events out fo the "pods" section
-        const nTimes = new RegExp("\\(\\d+ times\\)")
-        if (eventInterval.message.match(nTimes)) {
+        if (eventInterval.message.annotations.hasOwnProperty("count")) {
             return false
         }
         // this check was added to avoid the events from the "interesting-events" section from being
@@ -53374,79 +54407,90 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         if (isInterestingOrPathological(eventInterval)) {
             return false
         }
-        if (eventInterval.locator.includes("pod/") && !eventInterval.locator.includes("alert/")) {
+        if (eventInterval.locator.keys.hasOwnProperty("pod") && !eventInterval.locator.keys.hasOwnProperty("alert")) {
             return true
         }
         return false
     }
 
     function isPodLifecycle(eventInterval) {
-        if (eventInterval.locator.includes("pod/") && (eventInterval.message.includes("reason/Created") || eventInterval.message.includes("reason/Scheduled") || eventInterval.message.includes("reason/GracefulDelete"))) {
+        if (eventInterval.locator.keys.hasOwnProperty("pod") &&
+            (eventInterval.message.reason === "Created" ||
+                eventInterval.message.reason === "Scheduled" ||
+                eventInterval.message.reason === "GracefulDelete")) {
             return true
         }
         return false
     }
 
     function isContainerLifecycle(eventInterval) {
-        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/ContainerExit") || eventInterval.message.includes("reason/ContainerStart") || eventInterval.message.includes("reason/ContainerWait"))) {
+        if (eventInterval.locator.keys.hasOwnProperty("container") &&
+            (eventInterval.message.reason === "ContainerExit" ||
+                eventInterval.message.reason === "ContainerStart" ||
+                eventInterval.message.reason === "ContainerWait")) {
             return true
         }
         return false
     }
 
     function isContainerReadiness(eventInterval) {
-        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/Ready") || eventInterval.message.includes("reason/NotReady"))) {
+        if (eventInterval.locator.keys.hasOwnProperty("container") &&
+            (eventInterval.message.reason === "Ready" ||
+                eventInterval.message.reason === "NotReady")) {
             return true
         }
         return false
     }
 
     function isKubeletReadinessCheck(eventInterval) {
-        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/ReadinessFailed") || eventInterval.message.includes("reason/ReadinessErrored"))) {
+        if (eventInterval.locator.keys.hasOwnProperty("container/") &&
+            (eventInterval.message.reason === "ReadinessFailed" ||
+                eventInterval.message.reason === "ReadinessErrored")) {
             return true
         }
         return false
     }
 
     function isKubeletStartupProbeFailure(eventInterval) {
-        if (eventInterval.locator.includes("container/") && (eventInterval.message.includes("reason/StartupProbeFailed"))) {
+        if (eventInterval.locator.keys.hasOwnProperty("container") &&
+            (eventInterval.message.reason === "StartupProbeFailed")) {
             return true
         }
         return false
     }
 
     function isE2EFailed(eventInterval) {
-        if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Failed")) {
+        if (eventInterval.source === "E2ETest" && eventInterval.message.annotations["status"] === "Failed") {
             return true
         }
         return false
     }
 
     function isE2EFlaked(eventInterval) {
-        if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Flaked")) {
+        if (eventInterval.source === "E2ETest" && eventInterval.message.annotations["status"] === "Flaked") {
             return true
         }
         return false
     }
 
     function isE2EPassed(eventInterval) {
-        if (eventInterval.locator.startsWith("e2e-test/") && eventInterval.message.includes("finished As \"Passed")) {
+        if (eventInterval.source === "E2ETest" && eventInterval.message.annotations["status"] === "Passed") {
             return true
         }
         return false
     }
 
     function isEndpointConnectivity(eventInterval) {
-        if (!eventInterval.message.includes("reason/DisruptionBegan") && !eventInterval.message.includes("reason/DisruptionSamplerOutageBegan")){
+        if (eventInterval.message.reason !== "DisruptionBegan" && eventInterval.message.reason !== "DisruptionSamplerOutageBegan") {
             return false
         }
-        if (eventInterval.locator.includes("disruption/")) {
+        if (eventInterval.source === "Disruption") {
             return true
         }
-        if (eventInterval.locator.startsWith("ns/e2e-k8s-service-lb-available")) {
+        if (eventInterval.locator.keys["namespace"] === "e2e-k8s-service-lb-available") {
             return true
         }
-        if (eventInterval.locator.includes(" route/")) {
+        if (eventInterval.locator.keys.hasOwnProperty("route")) {
             return true
         }
 
@@ -53454,144 +54498,144 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
     }
 
     function isNodeState(eventInterval) {
-        if (eventInterval.locator.startsWith("node/")) {
-            return (eventInterval.message.startsWith("reason/NodeUpdate ") || eventInterval.message.includes("node is not ready"))
-        }
-        return false
+        return eventInterval.source === "NodeState"
     }
 
     function isAlert(eventInterval) {
-        if (eventInterval.locator.startsWith("alert/")) {
-            return true
-        }
-        return false
+        return eventInterval.source === "Alert"
     }
 
     function interestingEvents(item) {
-        if (item.message.includes("pathological/true")) {
-            if (item.message.includes("interesting/true")) {
-                return [item.locator, ` + "`" + ` (pathological known)` + "`" + `, "PathologicalKnown"];
+        if (item.message.annotations["pathological"] === "true") {
+            if (item.message.annotations["interesting"] === "true") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pathological known)` + "`" + `, "PathologicalKnown"];
             } else {
-                return [item.locator, ` + "`" + ` (pathological new)` + "`" + `, "PathologicalNew"];
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pathological new)` + "`" + `, "PathologicalNew"];
             }
         }
-        if (item.message.includes("interesting/true")) {
-            return [item.locator, ` + "`" + ` (interesting event)` + "`" + `, "InterestingEvent"];
+        // TODO: hack that can likely be removed when we get to structured intervals for these
+        // Always show pod sandbox events even if they didn't make it to pathological
+        if (item.message.annotations["interesting"] === "true" && item.message.humanMessage.includes("pod sandbox")) {
+            return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod sandbox)` + "`" + `, "PodSandbox"];
         }
     }
 
     function podLogs(item) {
         if (item.level == "Warning") {
-            return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogWarning"];
+            return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod log)` + "`" + `, "PodLogWarning"];
         }
         if (item.level == "Error") {
-            return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogError"];
+            return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod log)` + "`" + `, "PodLogError"];
         }
-        return [item.locator, ` + "`" + ` (pod log)` + "`" + `, "PodLogInfo"];
+        return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod log)` + "`" + `, "PodLogInfo"];
     }
 
+    // Used for the actual locators displayed on the right hand side of the chart. Based on the origin go code that does
+    // similar for whenever we serialize a locator to display.
+    function buildLocatorDisplayString(i) {
+        let keys = Object.keys(i.keys);
+        keys = sortKeys(keys);
 
-    const reReason = new RegExp("(^| )reason/([^ ]+)")
+        let annotations = [];
+        for (let k of keys) {
+            let v = i.keys[k];
+            if (k === 'LocatorE2ETestKey') {
+                annotations.push(` + "`" + `${k}/${JSON.stringify(v)}` + "`" + `);
+            } else {
+                annotations.push(` + "`" + `${k}/${v}` + "`" + `);
+            }
+        }
+
+        return annotations.join(' ');
+    }
+
     function podStateValue(item) {
-        let m = item.message.match(reReason);
+        let reason = item.message.reason
+        if (isPodLifecycle(item)){
+            if (reason === "Created") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod lifecycle)` + "`" + `, "PodCreated"];
+            }
+            if (reason === "Scheduled") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod lifecycle)` + "`" + `, "PodScheduled"];
+            }
+            if (reason === "GracefulDelete") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (pod lifecycle)` + "`" + `, "PodTerminating"];
+            }
+        }
+        if (isContainerLifecycle(item)){
+            if (reason === "ContainerWait") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (container lifecycle)` + "`" + `, "ContainerWait"];
+            }
+            if (reason === "ContainerStart") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (container lifecycle)` + "`" + `, "ContainerStart"];
+            }
+        }
+        if (isContainerReadiness(item)){
+            if (reason === "NotReady") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (container readiness)` + "`" + `, "ContainerNotReady"];
+            }
+            if (reason === "Ready") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (container readiness)` + "`" + `, "ContainerReady"];
+            }
+        }
+        if (isKubeletReadinessCheck(item)){
+            if (reason === "ReadinessFailed") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessFailed"];
+            }
+            if (reason === "ReadinessErrored") {
+                return [buildLocatorDisplayString(item.locator), ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessErrored"];
+            }
+        }
+        if (isKubeletStartupProbeFailure(item)){
+            return [buildLocatorDisplayString(item.locator), ` + "`" + ` (kubelet container startupProbe)` + "`" + `, "StartupProbeFailed"];
+        }
 
-        if (m && isPodLifecycle(item)){
-            if (m[2] == "Created") {
-                return [item.locator, ` + "`" + ` (pod lifecycle)` + "`" + `, "PodCreated"];
-            }
-            if (m[2] == "Scheduled") {
-                return [item.locator, ` + "`" + ` (pod lifecycle)` + "`" + `, "PodScheduled"];
-            }
-            if (m[2] == "GracefulDelete") {
-                return [item.locator, ` + "`" + ` (pod lifecycle)` + "`" + `, "PodTerminating"];
-            }
-        }
-        if (m && isContainerLifecycle(item)){
-            if (m[2] == "ContainerWait") {
-                return [item.locator, ` + "`" + ` (container lifecycle)` + "`" + `, "ContainerWait"];
-            }
-            if (m[2] == "ContainerStart") {
-                return [item.locator, ` + "`" + ` (container lifecycle)` + "`" + `, "ContainerStart"];
-            }
-        }
-        if (m && isContainerReadiness(item)){
-            if (m[2] == "NotReady") {
-                return [item.locator, ` + "`" + ` (container readiness)` + "`" + `, "ContainerNotReady"];
-            }
-            if (m[2] == "Ready") {
-                return [item.locator, ` + "`" + ` (container readiness)` + "`" + `, "ContainerReady"];
-            }
-        }
-        if (m && isKubeletReadinessCheck(item)){
-            if (m[2] == "ReadinessFailed") {
-                return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessFailed"];
-            }
-            if (m[2] == "ReadinessErrored") {
-                return [item.locator, ` + "`" + ` (kubelet container readiness)` + "`" + `, "ContainerReadinessErrored"];
-            }
-        }
-        if (m && isKubeletStartupProbeFailure(item)){
-            return [item.locator, ` + "`" + ` (kubelet container startupProbe)` + "`" + `, "StartupProbeFailed"];
-        }
-
-        return [item.locator, "", "Unknown"];
+        return [buildLocatorDisplayString(item.locator), "", "Unknown"];
     }
 
     const rePhase = new RegExp("(^| )phase/([^ ]+)")
     function nodeStateValue(item) {
         let roles = ""
-        let i = item.message.indexOf("roles/")
-        if (i != -1) {
-            roles = item.message.substring(i+"roles/".length)
-            let j = roles.indexOf(" ")
-            if (j != -1) {
-                roles = roles.substring(0, j)
-            }
+        if (item.message.annotations.hasOwnProperty('roles')) {
+            roles = item.message.annotations.roles
         }
 
-        if (item.message.includes("node is not ready")) {
-            return [item.locator, ` + "`" + ` (${roles},not ready)` + "`" + `, "NodeNotReady"]
+        if (item.message.reason === 'NotReady') {
+            return [buildLocatorDisplayString(item.locator), ` + "`" + ` (${roles})` + "`" + `, "NodeNotReady"]
         }
-        let m = item.message.match(rePhase);
-        if (m && m[2] != "Update") {
-            return [item.locator, ` + "`" + ` (${roles},update phases)` + "`" + `, m[2]];
-        }
-        return [item.locator, ` + "`" + ` (${roles},updates)` + "`" + `, "Update"];
+        let m = item.message.annotations.phase;
+        return [buildLocatorDisplayString(item.locator), ` + "`" + ` (${roles})` + "`" + `, m];
     }
+
 
     function alertSeverity(item) {
         // the other types can be pending, so check pending first
-        let pendingIndex = item.message.indexOf("pending")
-        if (pendingIndex != -1) {
-            return [item.locator, "", "AlertPending"]
+        if (item.message.annotations["alertstate"] === "pending") {
+            return [buildLocatorDisplayString(item.locator), "", "AlertPending"]
         }
 
-        let infoIndex = item.message.indexOf("info")
-        if (infoIndex != -1) {
-            return [item.locator, "", "AlertInfo"]
+        if (item.message.annotations["severity"] === "info") {
+            return [buildLocatorDisplayString(item.locator), "", "AlertInfo"]
         }
-        let warningIndex = item.message.indexOf("warning")
-        if (warningIndex != -1) {
-            return [item.locator, "", "AlertWarning"]
+        if (item.message.annotations["severity"] === "warning") {
+            return [buildLocatorDisplayString(item.locator), "", "AlertWarning"]
         }
-        let criticalIndex = item.message.indexOf("critical")
-        if (criticalIndex != -1) {
-            return [item.locator, "", "AlertCritical"]
+        if (item.message.annotations["severity"] === "critical") {
+            return [buildLocatorDisplayString(item.locator), "", "AlertCritical"]
         }
 
         // color as critical if nothing matches so that we notice that something has gone wrong
-        return [item.locator, "", "AlertCritical"]
+        return [buildLocatorDisplayString(item.locator), "", "AlertCritical"]
     }
 
     function disruptionValue(item) {
         // We classify these disruption samples with this message if it thinks
         // it looks like a problem in the CI cluster running the tests, not the cluster under test.
         // (typically DNS lookup problems)
-        let ciClusterDisruption = item.message.indexOf("likely a problem in cluster running tests")
-        if (ciClusterDisruption != -1) {
-            return [item.locator, "", "CIClusterDisruption"]
+        if (item.message.reason === "DisruptionSamplerOutageBegan") {
+            return [buildLocatorDisplayString(item.locator), "", "CIClusterDisruption"]
         }
-        return [item.locator, "", "Disruption"]
+        return [buildLocatorDisplayString(item.locator), "", "Disruption"]
     }
 
     function getDurationString(durationSeconds) {
@@ -53606,7 +54650,71 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
     }
 
     function defaultToolTip(item) {
-        return item.message + " " + getDurationString(((new Date(item.to)).getTime() - (new Date(item.from).getTime()))/1000);
+        if (!item.message || !item.message.annotations) {
+            return '';
+        }
+
+        const structuredMessage = item.message;
+        const annotations = structuredMessage.annotations;
+
+        const keyValuePairs = Object.entries(annotations).map(([key, value]) => {
+            return ` + "`" + `${key}/${value}` + "`" + `;
+        });
+
+        let tt = keyValuePairs.join(' ') + ' ' + structuredMessage.humanMessage;
+
+        // TODO: can probably remove this once we're confident all displayed intervals have it set
+        if ('display' in item) {
+            tt = "display/" + item.display + " " + tt
+        }
+        if ('source' in item) {
+            tt = "source/" + item.source + " " + tt
+        }
+        tt = tt + " " + getDurationString(((new Date(item.to)).getTime() - (new Date(item.from).getTime()))/1000);
+        return tt
+    }
+
+    function sortKeys(keys) {
+        // Ensure these keys appear in this order. Other keys can be mixed in and will appear at the end in alphabetical order.
+        const orderedKeys = ["namespace", "node", "pod", "uid", "server", "container", "shutdown", "row"];
+
+        // Create a map to store the indices of keys in the orderedKeys array.
+        // This will allow us to efficiently check if a key is in orderedKeys and find its position.
+        const orderedKeyIndices = {};
+        orderedKeys.forEach((key, index) => {
+            orderedKeyIndices[key] = index;
+        });
+
+        // Define a custom sorting function that orders the keys based on the orderedKeys array.
+        keys.sort((a, b) => {
+            // Get the indices of keys a and b in orderedKeys.
+            const indexA = orderedKeyIndices[a];
+            const indexB = orderedKeyIndices[b];
+
+            // If both keys exist in orderedKeys, sort them based on their order.
+            if (indexA !== undefined && indexB !== undefined) {
+                return indexA - indexB;
+            }
+
+            // If only one of the keys exists in orderedKeys, move it to the front.
+            if (indexA !== undefined) {
+                return -1;
+            } else if (indexB !== undefined) {
+                return 1;
+            }
+
+            // If neither key is in orderedKeys, sort alphabetically so we have predictable ordering.
+            return a.localeCompare(b);
+        });
+
+        return keys;
+    }
+
+    function segmentTooltipFunc(d) {
+        return '<span style="max-inline-size: min-content; display: inline-block;">'
+        + '<strong>' + d.labelVal + '</strong><br/>'
+        + '<strong>From: </strong>' + new Date(d.timeRange[0]).toUTCString() + '<br>'
+        + '<strong>To: </strong>' + new Date(d.timeRange[1]).toUTCString() + '</span>';
     }
 
     function createTimelineData(timelineVal, timelineData, filteredEventIntervals, category) {
@@ -53632,7 +54740,7 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
             if (!item.to) {
                 endDate = latest
             }
-            let label = item.locator
+            let label = buildLocatorDisplayString(item.locator)
             let sub = ""
             let val = timelineVal
             if (typeof val === "function") {
@@ -53725,8 +54833,8 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
 
                 for (let [key, positiveSelectionRow] of positiveSelectionRows) {
                     if (positiveSelectionRow.isSet){
-                        matchRegex = positiveSelectionRow.regexStr.length == 0 || positiveSelectionRow.regex.test(eventInterval.locator)
-                        matchNS = positiveSelectionRow.namespace.length == 0 || eventInterval.locatorObj.ns && eventInterval.locatorObj.ns.includes(positiveSelectionRow.namespace)
+                        matchRegex = positiveSelectionRow.regexStr.length == 0 || positiveSelectionRow.regex.test(buildLocatorDisplayString(eventInterval.locator))
+                        matchNS = positiveSelectionRow.namespace.length == 0 || eventInterval.locator.keys.namespace && eventInterval.locator.namespace.includes(positiveSelectionRow.namespace)
                         matchCategory = positiveSelectionRow.category.length == 0 || eventInterval.categories[positiveSelectionRow.category]
                         matchLodash = true
                         if (positiveSelectionRow.lodash.length > 0){
@@ -53741,8 +54849,8 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
                             for (let [key, negativeSelectionRow] of negativeSelectionRows) {
                                 if (negativeSelectionRow.isSet){
                                     console.log("checking negative")
-                                    matchRegex = negativeSelectionRow.regexStr.length == 0 || negativeSelectionRow.regex.test(eventInterval.locator)
-                                    matchNS = negativeSelectionRow.namespace.length == 0 || eventInterval.locatorObj.ns && eventInterval.locatorObj.ns.includes(negativeSelectionRow.namespace)
+                                    matchRegex = negativeSelectionRow.regexStr.length == 0 || negativeSelectionRow.regex.test(buildLocatorDisplayString(eventInterval.locator))
+                                    matchNS = negativeSelectionRow.namespace.length == 0 || eventInterval.locator.keys.namespace && eventInterval.locator.keys.namespace.includes(negativeSelectionRow.namespace)
                                     matchCategory = negativeSelectionRow.category.length == 0 || eventInterval.categories[negativeSelectionRow.category]
                                     matchLodash = true
                                     if (negativeSelectionRow.lodash.length > 0){
@@ -53781,6 +54889,16 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         timelineGroups.push({group: "operator-progressing", data: []});
         createTimelineData("OperatorProgressing", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "operator_progressing");
 
+        timelineGroups.push({group: "node-state", data: []});
+        createTimelineData(nodeStateValue, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "node_state");
+        // Sort the node-state intervals so rows are grouped by node
+        timelineGroups[timelineGroups.length - 1].data.sort(function (e1 ,e2){
+            return e1.label < e2.label ? -1 : e1.label > e2.label;
+        })
+
+        timelineGroups.push({group: "disruption", data: []});
+        createTimelineData(disruptionValue, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "endpoint_availability");
+
         timelineGroups.push({group: "pods", data: []});
         createTimelineData(podStateValue, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "pods");
         timelineGroups[timelineGroups.length - 1].data.sort(function (e1 ,e2){
@@ -53803,18 +54921,6 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         //     return 0
         // })
 
-        timelineGroups.push({group: "node-state", data: []});
-        createTimelineData(nodeStateValue, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "node_state");
-        timelineGroups[timelineGroups.length - 1].data.sort(function (e1 ,e2){
-            if (e1.label.includes("master") && e2.label.includes("worker")) {
-                return -1
-            }
-            return 0
-        });
-
-        timelineGroups.push({group: "endpoint-availability", data: []});
-        createTimelineData(disruptionValue, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "endpoint_availability");
-
         timelineGroups.push({group: "e2e-test-failed", data: []});
         createTimelineData("Failed", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "e2e_test_failed");
 
@@ -53828,6 +54934,8 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         createTimelineData(interestingEvents, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "interesting_events");
 
         var segmentFunc = function (segment) {
+            // Copy label to clipboard
+            navigator.clipboard.writeText(segment.labelVal);
             // for (var i in data) {
             //     if (data[i].group == segment.group) {
             //         var groupdata = data[i].data
@@ -53883,7 +54991,8 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         maxHeight(10000).
         zColorScale(ordinalScale).
         zoomX([new Date(eventIntervals.items[0].from), new Date(eventIntervals.items[eventIntervals.items.length - 1].to)]).
-        onSegmentClick(segmentFunc)
+        onSegmentClick(segmentFunc).
+        segmentTooltipContent(segmentTooltipFunc)
         (el);
 
 
@@ -53919,7 +55028,7 @@ var _e2echartTestRiskAnalysisHtml = []byte(`<html lang="en">
     <meta name="description"
           content="Risk analysis is performed by Sippy to attempt to determine if the failures in this job are abnormal when compared to results for similar jobs over the past week, and amidst on-going incidents in the CI infrastructure. Risk analysis API will not catch everything and is a relatively simple implementation today, please reach out to the Technical Release Team if you spot abnormalities or have suggestions.">
 </head>
-<body onLoad="buildTestCaseTable('#test_case_results')">
+<body onLoad="buildTestCaseTable('#test_case_results'); buildDisruptionTable('#disruption_results')">
 <p>
     <a target="_blank" href="TEST_RISK_ANALYSIS_SIPPY_URL_GOES_HERE">Link to Sippy</a>
 </p>
@@ -53928,8 +55037,27 @@ var _e2echartTestRiskAnalysisHtml = []byte(`<html lang="en">
 </table>
 <p>&nbsp;</p>
 
+<h1>Disruption Analysis</h1>
+
+Disruption unit testing on individual job runs is relatively forgiving as it can generate a lot of noise.
+This table attempts to highlight
+risky results by color coding the observed disruption for this run against the percentiles over the past several
+weeks. Red indicates this job run exceeded the 99th percentile, yellow the 95th.<p/>
+
+If you're getting red results here, it might be a good idea to investigate the intervals chart for this job run,
+available in the spyglass panels on the prow job. This will show when the disruption occurred, the exact error
+messages returned, and what else was going on in the cluster at that time. Additional runs may help provide a clearer
+picture if the chart does not provide any insight. Feel free to reach out to TRT if you think you're seeing something
+alarming.<p/>
+
+
+<table id="disruption_results" border="1" width="100%">
+</table>
+<p>&nbsp;</p>
+
 <script>
     var testResult = TEST_RISK_ANALYSIS_JSON_GOES_HERE
+    var disruptionResult = TEST_DISRUPTION_ANALYSIS_JSON_GOES_HERE
     var testLinkPrefix = "https://sippy.dptools.openshift.org/sippy-ng/tests/"
     var testLinkSuffix = "/analysis?test="
 
@@ -53965,11 +55093,11 @@ var _e2echartTestRiskAnalysisHtml = []byte(`<html lang="en">
     function buildRiskLevel(level) {
         td$ = $('<td/>')
         if (level.Level >= 10) {
-            td$.css("background-color", "red");
+            td$.css("background-color", "pink");
         } else if (level.Level >= 5) {
-            td$.css("background-color", "yellow");
+            td$.css("background-color", "lightyellow");
         } else {
-            td$.css("background-color", "green");
+            td$.css("background-color", "lightgreen");
         }
         td$.append(level.Name)
         return td$
@@ -53977,6 +55105,10 @@ var _e2echartTestRiskAnalysisHtml = []byte(`<html lang="en">
 
     // Build Test Case Table
     function buildTestCaseTable(selector) {
+        if (!testResult.hasOwnProperty('OverallRisk')) {
+            return;
+        }
+
         // Add table headers
         addColumnHeaders(selector);
 
@@ -54010,6 +55142,42 @@ var _e2echartTestRiskAnalysisHtml = []byte(`<html lang="en">
         headerTr$.append($('<th/>').html("Open Bugs"));
 
         $(selector).append(headerTr$);
+    }
+
+    function buildDisruptionTable(selector) {
+        addDisruptionColumnHeaders(selector);
+
+        for (var i = 0; i < disruptionResult.Backends.length; i++) {
+            var row$ = $('<tr/>');
+
+            row$.css("background-color", disruptionResult.Backends[i].RiskColor);
+            row$.append(addSimpleCell(disruptionResult.Backends[i].BackendName))
+            row$.append(addSimpleCell(disruptionResult.Backends[i].ObservedDisruption))
+            row$.append(addSimpleCell(disruptionResult.Backends[i].P50.toFixed(2)))
+            row$.append(addSimpleCell(disruptionResult.Backends[i].P75.toFixed(2)))
+            row$.append(addSimpleCell(disruptionResult.Backends[i].P95.toFixed(2)))
+            row$.append(addSimpleCell(disruptionResult.Backends[i].P99.toFixed(2)))
+            row$.append(addSimpleCell(disruptionResult.Backends[i].JobRuns))
+            $(selector).append(row$);
+        }
+    }
+    function addDisruptionColumnHeaders(selector) {
+        var headerTr$ = $('<tr/>');
+        headerTr$.append($('<th/>').html("Backend Name"));
+        headerTr$.append($('<th/>').html("Observed Disruption"));
+        headerTr$.append($('<th/>').html("P50"));
+        headerTr$.append($('<th/>').html("P75"));
+        headerTr$.append($('<th/>').html("P95"));
+        headerTr$.append($('<th/>').html("P99"));
+        headerTr$.append($('<th/>').html("JobRuns"));
+
+        $(selector).append(headerTr$);
+    }
+
+    function addSimpleCell(v) {
+        td$ = $('<td/>')
+        td$.append(v)
+        return td$
     }
 
 </script>
@@ -54176,6 +55344,8 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/builds/docker-add/docker-add-env/Dockerfile":                                     testExtendedTestdataBuildsDockerAddDockerAddEnvDockerfile,
 	"test/extended/testdata/builds/docker-add/docker-add-env/foo":                                            testExtendedTestdataBuildsDockerAddDockerAddEnvFoo,
 	"test/extended/testdata/builds/incremental-auth-build.json":                                              testExtendedTestdataBuildsIncrementalAuthBuildJson,
+	"test/extended/testdata/builds/jenkins-pipeline/jenkins-ephemeral.json":                                  testExtendedTestdataBuildsJenkinsPipelineJenkinsEphemeralJson,
+	"test/extended/testdata/builds/jenkins-pipeline/jenkins-rhel.yaml":                                       testExtendedTestdataBuildsJenkinsPipelineJenkinsRhelYaml,
 	"test/extended/testdata/builds/pullsecret/linked-nodejs-bc.yaml":                                         testExtendedTestdataBuildsPullsecretLinkedNodejsBcYaml,
 	"test/extended/testdata/builds/pullsecret/pullsecret-nodejs-bc.yaml":                                     testExtendedTestdataBuildsPullsecretPullsecretNodejsBcYaml,
 	"test/extended/testdata/builds/s2i-environment-build-app/.s2i/environment":                               testExtendedTestdataBuildsS2iEnvironmentBuildAppS2iEnvironment,
@@ -54193,6 +55363,11 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/builds/statusfail-oomkilled.yaml":                                                testExtendedTestdataBuildsStatusfailOomkilledYaml,
 	"test/extended/testdata/builds/statusfail-postcommithook.yaml":                                           testExtendedTestdataBuildsStatusfailPostcommithookYaml,
 	"test/extended/testdata/builds/statusfail-pushtoregistry.yaml":                                           testExtendedTestdataBuildsStatusfailPushtoregistryYaml,
+	"test/extended/testdata/builds/subscription-content/build-imagestream.yaml":                              testExtendedTestdataBuildsSubscriptionContentBuildImagestreamYaml,
+	"test/extended/testdata/builds/subscription-content/buildconfig-subscription-content-rhel7.yaml":         testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel7Yaml,
+	"test/extended/testdata/builds/subscription-content/buildconfig-subscription-content-rhel8.yaml":         testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel8Yaml,
+	"test/extended/testdata/builds/subscription-content/buildconfig-subscription-content-rhel9.yaml":         testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel9Yaml,
+	"test/extended/testdata/builds/subscription-content/secret-template.txt":                                 testExtendedTestdataBuildsSubscriptionContentSecretTemplateTxt,
 	"test/extended/testdata/builds/test-auth-build.yaml":                                                     testExtendedTestdataBuildsTestAuthBuildYaml,
 	"test/extended/testdata/builds/test-bc-with-pr-ref.yaml":                                                 testExtendedTestdataBuildsTestBcWithPrRefYaml,
 	"test/extended/testdata/builds/test-build-app/Dockerfile":                                                testExtendedTestdataBuildsTestBuildAppDockerfile,
@@ -54300,10 +55475,12 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/cmd/test/cmd/setbuildsecret.sh":                                                  testExtendedTestdataCmdTestCmdSetbuildsecretSh,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-custombuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-dockerbuild.json":                     testExtendedTestdataCmdTestCmdTestdataApplicationTemplateDockerbuildJson,
+	"test/extended/testdata/cmd/test/cmd/testdata/application-template-mix.json":                             testExtendedTestdataCmdTestCmdTestdataApplicationTemplateMixJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/application-template-stibuild.json":                        testExtendedTestdataCmdTestCmdTestdataApplicationTemplateStibuildJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/external-service.yaml":                                     testExtendedTestdataCmdTestCmdTestdataExternalServiceYaml,
 	"test/extended/testdata/cmd/test/cmd/testdata/hello-openshift/hello-pod.json":                            testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/idling-dc.yaml":                                            testExtendedTestdataCmdTestCmdTestdataIdlingDcYaml,
+	"test/extended/testdata/cmd/test/cmd/testdata/idling-deployment.yaml":                                    testExtendedTestdataCmdTestCmdTestdataIdlingDeploymentYaml,
 	"test/extended/testdata/cmd/test/cmd/testdata/idling-svc-route.yaml":                                     testExtendedTestdataCmdTestCmdTestdataIdlingSvcRouteYaml,
 	"test/extended/testdata/cmd/test/cmd/testdata/image-streams/image-streams-centos7.json":                  testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json,
 	"test/extended/testdata/cmd/test/cmd/testdata/jenkins/jenkins-ephemeral-template.json":                   testExtendedTestdataCmdTestCmdTestdataJenkinsJenkinsEphemeralTemplateJson,
@@ -54319,6 +55496,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/cmd/test/cmd/testdata/new-app/invalid.json":                                      testExtendedTestdataCmdTestCmdTestdataNewAppInvalidJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/new-app/template-minimal-expose.json":                      testExtendedTestdataCmdTestCmdTestdataNewAppTemplateMinimalExposeJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-app-label.json":                      testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithAppLabelJson,
+	"test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-crd-ns.yaml":                         testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithCrdNsYaml,
 	"test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-crd.yaml":                            testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithCrdYaml,
 	"test/extended/testdata/cmd/test/cmd/testdata/new-app/template-with-namespaces.json":                     testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithNamespacesJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/new-app/template-without-app-label.json":                   testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithoutAppLabelJson,
@@ -54349,6 +55527,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/cmd/test/cmd/testdata/test-bc.yaml":                                              testExtendedTestdataCmdTestCmdTestdataTestBcYaml,
 	"test/extended/testdata/cmd/test/cmd/testdata/test-buildcli.json":                                        testExtendedTestdataCmdTestCmdTestdataTestBuildcliJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/test-deployment-config.yaml":                               testExtendedTestdataCmdTestCmdTestdataTestDeploymentConfigYaml,
+	"test/extended/testdata/cmd/test/cmd/testdata/test-deployment.yaml":                                      testExtendedTestdataCmdTestCmdTestdataTestDeploymentYaml,
 	"test/extended/testdata/cmd/test/cmd/testdata/test-docker-build.json":                                    testExtendedTestdataCmdTestCmdTestdataTestDockerBuildJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/test-image-stream.json":                                    testExtendedTestdataCmdTestCmdTestdataTestImageStreamJson,
 	"test/extended/testdata/cmd/test/cmd/testdata/test-image.json":                                           testExtendedTestdataCmdTestCmdTestdataTestImageJson,
@@ -54369,6 +55548,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/deployments/deployment-image-resolution-is.yaml":                                 testExtendedTestdataDeploymentsDeploymentImageResolutionIsYaml,
 	"test/extended/testdata/deployments/deployment-image-resolution.yaml":                                    testExtendedTestdataDeploymentsDeploymentImageResolutionYaml,
 	"test/extended/testdata/deployments/deployment-min-ready-seconds.yaml":                                   testExtendedTestdataDeploymentsDeploymentMinReadySecondsYaml,
+	"test/extended/testdata/deployments/deployment-simple-sleep.yaml":                                        testExtendedTestdataDeploymentsDeploymentSimpleSleepYaml,
 	"test/extended/testdata/deployments/deployment-simple.yaml":                                              testExtendedTestdataDeploymentsDeploymentSimpleYaml,
 	"test/extended/testdata/deployments/deployment-trigger.yaml":                                             testExtendedTestdataDeploymentsDeploymentTriggerYaml,
 	"test/extended/testdata/deployments/deployment-with-ref-env.yaml":                                        testExtendedTestdataDeploymentsDeploymentWithRefEnvYaml,
@@ -54381,6 +55561,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/deployments/test-deployment-broken.yaml":                                         testExtendedTestdataDeploymentsTestDeploymentBrokenYaml,
 	"test/extended/testdata/deployments/test-deployment-test.yaml":                                           testExtendedTestdataDeploymentsTestDeploymentTestYaml,
 	"test/extended/testdata/egress-firewall/ovnk-egressfirewall-test.yaml":                                   testExtendedTestdataEgressFirewallOvnkEgressfirewallTestYaml,
+	"test/extended/testdata/egress-firewall/ovnk-egressfirewall-wildcard-test.yaml":                          testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYaml,
 	"test/extended/testdata/egress-firewall/sdn-egressnetworkpolicy-test.yaml":                               testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYaml,
 	"test/extended/testdata/egress-router-cni/egress-router-cni-v4-cr.yaml":                                  testExtendedTestdataEgressRouterCniEgressRouterCniV4CrYaml,
 	"test/extended/testdata/egress-router-cni/egress-router-cni-v6-cr.yaml":                                  testExtendedTestdataEgressRouterCniEgressRouterCniV6CrYaml,
@@ -54409,6 +55590,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/hello-builder/Dockerfile":                                                        testExtendedTestdataHelloBuilderDockerfile,
 	"test/extended/testdata/hello-builder/scripts/assemble":                                                  testExtendedTestdataHelloBuilderScriptsAssemble,
 	"test/extended/testdata/hello-builder/scripts/run":                                                       testExtendedTestdataHelloBuilderScriptsRun,
+	"test/extended/testdata/idling-echo-server-deployment.yaml":                                              testExtendedTestdataIdlingEchoServerDeploymentYaml,
 	"test/extended/testdata/idling-echo-server-rc.yaml":                                                      testExtendedTestdataIdlingEchoServerRcYaml,
 	"test/extended/testdata/idling-echo-server.yaml":                                                         testExtendedTestdataIdlingEchoServerYaml,
 	"test/extended/testdata/image/deployment-with-annotation-trigger.yaml":                                   testExtendedTestdataImageDeploymentWithAnnotationTriggerYaml,
@@ -54421,6 +55603,8 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl":                                         testExtendedTestdataImage_ecosystemPerlHotdeployIndexPl,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm":                                   testExtendedTestdataImage_ecosystemPerlHotdeployLibMyTestPm,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json":                                        testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson,
+	"test/extended/testdata/ipsec/ipsec-nsconfig-machine-config.yaml":                                        testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml,
+	"test/extended/testdata/ipsec/nmstate.yaml":                                                              testExtendedTestdataIpsecNmstateYaml,
 	"test/extended/testdata/kernel/rt-tests-environment.yaml":                                                testExtendedTestdataKernelRtTestsEnvironmentYaml,
 	"test/extended/testdata/kernel/rt-tests-pod.yaml":                                                        testExtendedTestdataKernelRtTestsPodYaml,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt":                                            testExtendedTestdataLdapGroupsyncAdBlacklist_ldapTxt,
@@ -54503,6 +55687,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/net-attach-defs/whereabouts-nad.yml":                                             testExtendedTestdataNetAttachDefsWhereaboutsNadYml,
 	"test/extended/testdata/net-attach-defs/whereabouts-race-awake.yml":                                      testExtendedTestdataNetAttachDefsWhereaboutsRaceAwakeYml,
 	"test/extended/testdata/net-attach-defs/whereabouts-race-sleepy.yml":                                     testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml,
+	"test/extended/testdata/node_tuning/nto-stalld.yaml":                                                     testExtendedTestdataNode_tuningNtoStalldYaml,
 	"test/extended/testdata/oauthserver/cabundle-cm.yaml":                                                    testExtendedTestdataOauthserverCabundleCmYaml,
 	"test/extended/testdata/oauthserver/oauth-network.yaml":                                                  testExtendedTestdataOauthserverOauthNetworkYaml,
 	"test/extended/testdata/oauthserver/oauth-pod.yaml":                                                      testExtendedTestdataOauthserverOauthPodYaml,
@@ -54551,6 +55736,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/test-buildcli.json":                                                              testExtendedTestdataTestBuildcliJson,
 	"test/extended/testdata/test-cli-debug.yaml":                                                             testExtendedTestdataTestCliDebugYaml,
 	"test/extended/testdata/test-deployment-config.yaml":                                                     testExtendedTestdataTestDeploymentConfigYaml,
+	"test/extended/testdata/test-deployment.yaml":                                                            testExtendedTestdataTestDeploymentYaml,
 	"test/extended/testdata/test-env-pod.json":                                                               testExtendedTestdataTestEnvPodJson,
 	"test/extended/testdata/test-replication-controller.yaml":                                                testExtendedTestdataTestReplicationControllerYaml,
 	"test/extended/testdata/test-secret.json":                                                                testExtendedTestdataTestSecretJson,
@@ -54756,6 +55942,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						}},
 					}},
 					"incremental-auth-build.json": {testExtendedTestdataBuildsIncrementalAuthBuildJson, map[string]*bintree{}},
+					"jenkins-pipeline": {nil, map[string]*bintree{
+						"jenkins-ephemeral.json": {testExtendedTestdataBuildsJenkinsPipelineJenkinsEphemeralJson, map[string]*bintree{}},
+						"jenkins-rhel.yaml":      {testExtendedTestdataBuildsJenkinsPipelineJenkinsRhelYaml, map[string]*bintree{}},
+					}},
 					"pullsecret": {nil, map[string]*bintree{
 						"linked-nodejs-bc.yaml":     {testExtendedTestdataBuildsPullsecretLinkedNodejsBcYaml, map[string]*bintree{}},
 						"pullsecret-nodejs-bc.yaml": {testExtendedTestdataBuildsPullsecretPullsecretNodejsBcYaml, map[string]*bintree{}},
@@ -54785,8 +55975,15 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"statusfail-oomkilled.yaml":               {testExtendedTestdataBuildsStatusfailOomkilledYaml, map[string]*bintree{}},
 					"statusfail-postcommithook.yaml":          {testExtendedTestdataBuildsStatusfailPostcommithookYaml, map[string]*bintree{}},
 					"statusfail-pushtoregistry.yaml":          {testExtendedTestdataBuildsStatusfailPushtoregistryYaml, map[string]*bintree{}},
-					"test-auth-build.yaml":                    {testExtendedTestdataBuildsTestAuthBuildYaml, map[string]*bintree{}},
-					"test-bc-with-pr-ref.yaml":                {testExtendedTestdataBuildsTestBcWithPrRefYaml, map[string]*bintree{}},
+					"subscription-content": {nil, map[string]*bintree{
+						"build-imagestream.yaml":                      {testExtendedTestdataBuildsSubscriptionContentBuildImagestreamYaml, map[string]*bintree{}},
+						"buildconfig-subscription-content-rhel7.yaml": {testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel7Yaml, map[string]*bintree{}},
+						"buildconfig-subscription-content-rhel8.yaml": {testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel8Yaml, map[string]*bintree{}},
+						"buildconfig-subscription-content-rhel9.yaml": {testExtendedTestdataBuildsSubscriptionContentBuildconfigSubscriptionContentRhel9Yaml, map[string]*bintree{}},
+						"secret-template.txt":                         {testExtendedTestdataBuildsSubscriptionContentSecretTemplateTxt, map[string]*bintree{}},
+					}},
+					"test-auth-build.yaml":     {testExtendedTestdataBuildsTestAuthBuildYaml, map[string]*bintree{}},
+					"test-bc-with-pr-ref.yaml": {testExtendedTestdataBuildsTestBcWithPrRefYaml, map[string]*bintree{}},
 					"test-build-app": {nil, map[string]*bintree{
 						"Dockerfile": {testExtendedTestdataBuildsTestBuildAppDockerfile, map[string]*bintree{}},
 						"Gemfile":    {testExtendedTestdataBuildsTestBuildAppGemfile, map[string]*bintree{}},
@@ -54939,13 +56136,15 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"testdata": {nil, map[string]*bintree{
 								"application-template-custombuild.json": {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateCustombuildJson, map[string]*bintree{}},
 								"application-template-dockerbuild.json": {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateDockerbuildJson, map[string]*bintree{}},
+								"application-template-mix.json":         {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateMixJson, map[string]*bintree{}},
 								"application-template-stibuild.json":    {testExtendedTestdataCmdTestCmdTestdataApplicationTemplateStibuildJson, map[string]*bintree{}},
 								"external-service.yaml":                 {testExtendedTestdataCmdTestCmdTestdataExternalServiceYaml, map[string]*bintree{}},
 								"hello-openshift": {nil, map[string]*bintree{
 									"hello-pod.json": {testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson, map[string]*bintree{}},
 								}},
-								"idling-dc.yaml":        {testExtendedTestdataCmdTestCmdTestdataIdlingDcYaml, map[string]*bintree{}},
-								"idling-svc-route.yaml": {testExtendedTestdataCmdTestCmdTestdataIdlingSvcRouteYaml, map[string]*bintree{}},
+								"idling-dc.yaml":         {testExtendedTestdataCmdTestCmdTestdataIdlingDcYaml, map[string]*bintree{}},
+								"idling-deployment.yaml": {testExtendedTestdataCmdTestCmdTestdataIdlingDeploymentYaml, map[string]*bintree{}},
+								"idling-svc-route.yaml":  {testExtendedTestdataCmdTestCmdTestdataIdlingSvcRouteYaml, map[string]*bintree{}},
 								"image-streams": {nil, map[string]*bintree{
 									"image-streams-centos7.json": {testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json, map[string]*bintree{}},
 								}},
@@ -54967,6 +56166,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 									"invalid.json":                        {testExtendedTestdataCmdTestCmdTestdataNewAppInvalidJson, map[string]*bintree{}},
 									"template-minimal-expose.json":        {testExtendedTestdataCmdTestCmdTestdataNewAppTemplateMinimalExposeJson, map[string]*bintree{}},
 									"template-with-app-label.json":        {testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithAppLabelJson, map[string]*bintree{}},
+									"template-with-crd-ns.yaml":           {testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithCrdNsYaml, map[string]*bintree{}},
 									"template-with-crd.yaml":              {testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithCrdYaml, map[string]*bintree{}},
 									"template-with-namespaces.json":       {testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithNamespacesJson, map[string]*bintree{}},
 									"template-without-app-label.json":     {testExtendedTestdataCmdTestCmdTestdataNewAppTemplateWithoutAppLabelJson, map[string]*bintree{}},
@@ -55004,6 +56204,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 								"test-bc.yaml":                     {testExtendedTestdataCmdTestCmdTestdataTestBcYaml, map[string]*bintree{}},
 								"test-buildcli.json":               {testExtendedTestdataCmdTestCmdTestdataTestBuildcliJson, map[string]*bintree{}},
 								"test-deployment-config.yaml":      {testExtendedTestdataCmdTestCmdTestdataTestDeploymentConfigYaml, map[string]*bintree{}},
+								"test-deployment.yaml":             {testExtendedTestdataCmdTestCmdTestdataTestDeploymentYaml, map[string]*bintree{}},
 								"test-docker-build.json":           {testExtendedTestdataCmdTestCmdTestdataTestDockerBuildJson, map[string]*bintree{}},
 								"test-image-stream.json":           {testExtendedTestdataCmdTestCmdTestdataTestImageStreamJson, map[string]*bintree{}},
 								"test-image.json":                  {testExtendedTestdataCmdTestCmdTestdataTestImageJson, map[string]*bintree{}},
@@ -55031,6 +56232,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"deployment-image-resolution-is.yaml": {testExtendedTestdataDeploymentsDeploymentImageResolutionIsYaml, map[string]*bintree{}},
 					"deployment-image-resolution.yaml":    {testExtendedTestdataDeploymentsDeploymentImageResolutionYaml, map[string]*bintree{}},
 					"deployment-min-ready-seconds.yaml":   {testExtendedTestdataDeploymentsDeploymentMinReadySecondsYaml, map[string]*bintree{}},
+					"deployment-simple-sleep.yaml":        {testExtendedTestdataDeploymentsDeploymentSimpleSleepYaml, map[string]*bintree{}},
 					"deployment-simple.yaml":              {testExtendedTestdataDeploymentsDeploymentSimpleYaml, map[string]*bintree{}},
 					"deployment-trigger.yaml":             {testExtendedTestdataDeploymentsDeploymentTriggerYaml, map[string]*bintree{}},
 					"deployment-with-ref-env.yaml":        {testExtendedTestdataDeploymentsDeploymentWithRefEnvYaml, map[string]*bintree{}},
@@ -55044,8 +56246,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"test-deployment-test.yaml":           {testExtendedTestdataDeploymentsTestDeploymentTestYaml, map[string]*bintree{}},
 				}},
 				"egress-firewall": {nil, map[string]*bintree{
-					"ovnk-egressfirewall-test.yaml":     {testExtendedTestdataEgressFirewallOvnkEgressfirewallTestYaml, map[string]*bintree{}},
-					"sdn-egressnetworkpolicy-test.yaml": {testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYaml, map[string]*bintree{}},
+					"ovnk-egressfirewall-test.yaml":          {testExtendedTestdataEgressFirewallOvnkEgressfirewallTestYaml, map[string]*bintree{}},
+					"ovnk-egressfirewall-wildcard-test.yaml": {testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYaml, map[string]*bintree{}},
+					"sdn-egressnetworkpolicy-test.yaml":      {testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYaml, map[string]*bintree{}},
 				}},
 				"egress-router-cni": {nil, map[string]*bintree{
 					"egress-router-cni-v4-cr.yaml": {testExtendedTestdataEgressRouterCniEgressRouterCniV4CrYaml, map[string]*bintree{}},
@@ -55104,8 +56307,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"run":      {testExtendedTestdataHelloBuilderScriptsRun, map[string]*bintree{}},
 					}},
 				}},
-				"idling-echo-server-rc.yaml": {testExtendedTestdataIdlingEchoServerRcYaml, map[string]*bintree{}},
-				"idling-echo-server.yaml":    {testExtendedTestdataIdlingEchoServerYaml, map[string]*bintree{}},
+				"idling-echo-server-deployment.yaml": {testExtendedTestdataIdlingEchoServerDeploymentYaml, map[string]*bintree{}},
+				"idling-echo-server-rc.yaml":         {testExtendedTestdataIdlingEchoServerRcYaml, map[string]*bintree{}},
+				"idling-echo-server.yaml":            {testExtendedTestdataIdlingEchoServerYaml, map[string]*bintree{}},
 				"image": {nil, map[string]*bintree{
 					"deployment-with-annotation-trigger.yaml": {testExtendedTestdataImageDeploymentWithAnnotationTriggerYaml, map[string]*bintree{}},
 					"test-image.json":                         {testExtendedTestdataImageTestImageJson, map[string]*bintree{}},
@@ -55127,6 +56331,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						}},
 						"perl.json": {testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson, map[string]*bintree{}},
 					}},
+				}},
+				"ipsec": {nil, map[string]*bintree{
+					"ipsec-nsconfig-machine-config.yaml": {testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml, map[string]*bintree{}},
+					"nmstate.yaml":                       {testExtendedTestdataIpsecNmstateYaml, map[string]*bintree{}},
 				}},
 				"kernel": {nil, map[string]*bintree{
 					"rt-tests-environment.yaml": {testExtendedTestdataKernelRtTestsEnvironmentYaml, map[string]*bintree{}},
@@ -55234,6 +56442,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"whereabouts-race-awake.yml":  {testExtendedTestdataNetAttachDefsWhereaboutsRaceAwakeYml, map[string]*bintree{}},
 					"whereabouts-race-sleepy.yml": {testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml, map[string]*bintree{}},
 				}},
+				"node_tuning": {nil, map[string]*bintree{
+					"nto-stalld.yaml": {testExtendedTestdataNode_tuningNtoStalldYaml, map[string]*bintree{}},
+				}},
 				"oauthserver": {nil, map[string]*bintree{
 					"cabundle-cm.yaml":   {testExtendedTestdataOauthserverCabundleCmYaml, map[string]*bintree{}},
 					"oauth-network.yaml": {testExtendedTestdataOauthserverOauthNetworkYaml, map[string]*bintree{}},
@@ -55314,6 +56525,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 				"test-buildcli.json":                   {testExtendedTestdataTestBuildcliJson, map[string]*bintree{}},
 				"test-cli-debug.yaml":                  {testExtendedTestdataTestCliDebugYaml, map[string]*bintree{}},
 				"test-deployment-config.yaml":          {testExtendedTestdataTestDeploymentConfigYaml, map[string]*bintree{}},
+				"test-deployment.yaml":                 {testExtendedTestdataTestDeploymentYaml, map[string]*bintree{}},
 				"test-env-pod.json":                    {testExtendedTestdataTestEnvPodJson, map[string]*bintree{}},
 				"test-replication-controller.yaml":     {testExtendedTestdataTestReplicationControllerYaml, map[string]*bintree{}},
 				"test-secret.json":                     {testExtendedTestdataTestSecretJson, map[string]*bintree{}},

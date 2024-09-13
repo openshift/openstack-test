@@ -26,7 +26,6 @@ import (
 	prometheusv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/openshift/api/annotations"
 	kubeauthorizationv1 "k8s.io/api/authorization/v1"
 	certificatesv1 "k8s.io/api/certificates/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -55,6 +54,8 @@ import (
 	e2edebug "k8s.io/kubernetes/test/e2e/framework/debug"
 	admissionapi "k8s.io/pod-security-admission/api"
 
+	"github.com/openshift/api/annotations"
+	configv1 "github.com/openshift/api/config/v1"
 	oauthv1 "github.com/openshift/api/oauth/v1"
 	projectv1 "github.com/openshift/api/project/v1"
 	userv1 "github.com/openshift/api/user/v1"
@@ -63,6 +64,7 @@ import (
 	buildv1client "github.com/openshift/client-go/build/clientset/versioned"
 	configv1client "github.com/openshift/client-go/config/clientset/versioned"
 	imagev1client "github.com/openshift/client-go/image/clientset/versioned"
+	mcv1client "github.com/openshift/client-go/machineconfiguration/clientset/versioned"
 	oauthv1client "github.com/openshift/client-go/oauth/clientset/versioned"
 	operatorv1client "github.com/openshift/client-go/operator/clientset/versioned"
 	projectv1client "github.com/openshift/client-go/project/clientset/versioned"
@@ -131,7 +133,7 @@ func NewCLIWithFramework(kubeFramework *framework.Framework) *CLI {
 // but the given pod security level is applied to the created e2e test namespace.
 func NewCLIWithPodSecurityLevel(project string, level admissionapi.Level) *CLI {
 	cli := NewCLI(project)
-	cli.kubeFramework.NamespacePodSecurityEnforceLevel = level
+	cli.kubeFramework.NamespacePodSecurityLevel = level
 	return cli
 }
 
@@ -176,6 +178,32 @@ func NewCLIWithoutNamespace(project string) *CLI {
 	// in case where this method fails, framework cleans up the entire namespace so we should be
 	// safe on that front, still.
 	g.AfterEach(cli.TeardownProject)
+	return cli
+}
+
+// NewCLIForMonitorTest initializes the CLI and Kube framework helpers
+// without a namespace. Should be called outside of a Ginkgo .It()
+// function.
+func NewCLIForMonitorTest(project string) *CLI {
+	cli := &CLI{
+		kubeFramework: &framework.Framework{
+			SkipNamespaceCreation: true,
+			BaseName:              project,
+			Options: framework.Options{
+				ClientQPS:   20,
+				ClientBurst: 50,
+			},
+			Timeouts: framework.NewTimeoutContext(),
+		},
+		username:                "admin",
+		execPath:                "oc",
+		adminConfigPath:         KubeConfigPath(),
+		staticConfigManifestDir: StaticConfigManifestDir(),
+		withoutNamespace:        true,
+	}
+
+	// Called only once (assumed the objects will never get modified)
+	cli.setupStaticConfigsFromManifests()
 	return cli
 }
 
@@ -325,8 +353,15 @@ func (c *CLI) setupProject() string {
 	// TODO: some of them not even using the constants
 	DefaultServiceAccounts := []string{
 		"default",
-		"deployer",
 		"builder",
+	}
+	defaultRoleBindings := []string{"system:image-pullers", "system:image-builders"}
+	dcEnabled, err := IsCapabilityEnabled(c, configv1.ClusterVersionCapabilityDeploymentConfig)
+	o.Expect(err).NotTo(o.HaveOccurred())
+	if dcEnabled {
+		framework.Logf("%v capability is enabled, adding 'deployer' SA to the list of default SAs", configv1.ClusterVersionCapabilityDeploymentConfig)
+		DefaultServiceAccounts = append(DefaultServiceAccounts, "deployer")
+		defaultRoleBindings = append(defaultRoleBindings, "system:deployers")
 	}
 	for _, sa := range DefaultServiceAccounts {
 		framework.Logf("Waiting for ServiceAccount %q to be provisioned...", sa)
@@ -338,7 +373,7 @@ func (c *CLI) setupProject() string {
 	cancel := func() {}
 	defer func() { cancel() }()
 	// Wait for default role bindings for those SAs
-	for _, name := range []string{"system:image-pullers", "system:image-builders", "system:deployers"} {
+	for _, name := range defaultRoleBindings {
 		framework.Logf("Waiting for RoleBinding %q to be provisioned...", name)
 
 		ctx, cancel = watchtools.ContextWithOptionalTimeout(context.Background(), 3*time.Minute)
@@ -557,17 +592,17 @@ func (c *CLI) setupNamespacePodSecurity(ns string) error {
 			return err
 		}
 
-		if len(c.kubeFramework.NamespacePodSecurityEnforceLevel) == 0 {
-			c.kubeFramework.NamespacePodSecurityEnforceLevel = admissionapi.LevelRestricted
+		if len(c.kubeFramework.NamespacePodSecurityLevel) == 0 {
+			c.kubeFramework.NamespacePodSecurityLevel = admissionapi.LevelRestricted
 		}
 		if ns.Labels == nil {
 			ns.Labels = make(map[string]string)
 		}
-		ns.Labels[admissionapi.EnforceLevelLabel] = string(c.kubeFramework.NamespacePodSecurityEnforceLevel)
+		ns.Labels[admissionapi.EnforceLevelLabel] = string(c.kubeFramework.NamespacePodSecurityLevel)
 		// In contrast to upstream, OpenShift sets a global default on warn and audit pod security levels.
 		// Since this would cause unwanted audit log and warning entries, we are setting the same level as for enforcement.
-		ns.Labels[admissionapi.WarnLevelLabel] = string(c.kubeFramework.NamespacePodSecurityEnforceLevel)
-		ns.Labels[admissionapi.AuditLevelLabel] = string(c.kubeFramework.NamespacePodSecurityEnforceLevel)
+		ns.Labels[admissionapi.WarnLevelLabel] = string(c.kubeFramework.NamespacePodSecurityLevel)
+		ns.Labels[admissionapi.AuditLevelLabel] = string(c.kubeFramework.NamespacePodSecurityLevel)
 		ns.Labels["security.openshift.io/scc.podSecurityLabelSync"] = "false"
 
 		_, err = c.AdminKubeClient().CoreV1().Namespaces().Update(context.Background(), ns, metav1.UpdateOptions{})
@@ -701,6 +736,10 @@ func (c *CLI) AdminTemplateClient() templatev1client.Interface {
 	return templatev1client.NewForConfigOrDie(c.AdminConfig())
 }
 
+func (c *CLI) MachineConfigurationClient() mcv1client.Interface {
+	return mcv1client.NewForConfigOrDie(c.AdminConfig())
+}
+
 // KubeClient provides a Kubernetes client for the current namespace
 func (c *CLI) KubeClient() kubernetes.Interface {
 	return kubernetes.NewForConfigOrDie(c.UserConfig())
@@ -723,16 +762,34 @@ func (c *CLI) NewPrometheusClient(ctx context.Context) prometheusv1.API {
 	// TODO update library-go and use the client helpers
 	kubeClient, err := kubernetes.NewForConfig(c.AdminConfig())
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to create Kubernetes client: %w", err))
 	}
+
 	routeClient, err := routev1client.NewForConfig(c.AdminConfig())
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to create Route client: %w", err))
 	}
-	prometheusClient, err := metrics.NewPrometheusClient(ctx, kubeClient, routeClient)
+
+	var (
+		lastErr          error
+		prometheusClient prometheusv1.API
+	)
+	err = wait.PollUntilContextTimeout(ctx, time.Second, 10*time.Second, true, func(ctx context.Context) (bool, error) {
+		prometheusClient, err = metrics.NewPrometheusClient(ctx, kubeClient, routeClient)
+		if err != nil {
+			if ctx.Err() == nil {
+				lastErr = err
+			}
+
+			return false, nil
+		}
+
+		return true, nil
+	})
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to create Prometheus client: %w: %w", err, lastErr))
 	}
+
 	return prometheusClient
 }
 
@@ -790,6 +847,22 @@ func (c *CLI) Run(commands ...string) *CLI {
 	}
 	if !c.withoutNamespace {
 		nc.globalArgs = append([]string{fmt.Sprintf("--namespace=%s", c.Namespace())}, nc.globalArgs...)
+	}
+	nc.stdin, nc.stdout, nc.stderr = in, out, errout
+	return nc.setOutput(c.stdout)
+}
+
+// Executes with the kubeconfig specified from the environment
+func (c *CLI) RunInMonitorTest(commands ...string) *CLI {
+	in, out, errout := &bytes.Buffer{}, &bytes.Buffer{}, &bytes.Buffer{}
+	nc := &CLI{
+		execPath:        c.execPath,
+		verb:            commands[0],
+		kubeFramework:   c.KubeFramework(),
+		adminConfigPath: c.adminConfigPath,
+		configPath:      c.configPath,
+		username:        c.username,
+		globalArgs:      commands,
 	}
 	nc.stdin, nc.stdout, nc.stderr = in, out, errout
 	return nc.setOutput(c.stdout)

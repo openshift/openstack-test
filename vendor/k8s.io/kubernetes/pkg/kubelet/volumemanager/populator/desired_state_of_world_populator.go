@@ -34,10 +34,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/component-helpers/storage/ephemeral"
-	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/config"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/kubelet/volumemanager/cache"
@@ -213,7 +211,9 @@ func (dswp *desiredStateOfWorldPopulator) findAndAddNewPods() {
 // Iterate through all pods in desired state of world, and remove if they no
 // longer exist
 func (dswp *desiredStateOfWorldPopulator) findAndRemoveDeletedPods() {
+	podsFromCache := make(map[volumetypes.UniquePodName]struct{})
 	for _, volumeToMount := range dswp.desiredStateOfWorld.GetVolumesToMount() {
+		podsFromCache[volumetypes.UniquePodName(volumeToMount.Pod.UID)] = struct{}{}
 		pod, podExists := dswp.podManager.GetPodByUID(volumeToMount.Pod.UID)
 		if podExists {
 
@@ -262,6 +262,23 @@ func (dswp *desiredStateOfWorldPopulator) findAndRemoveDeletedPods() {
 		dswp.deleteProcessedPod(volumeToMount.PodName)
 	}
 
+	// Cleanup orphanded entries from processedPods
+	dswp.pods.Lock()
+	orphanedPods := make([]volumetypes.UniquePodName, 0, len(dswp.pods.processedPods))
+	for k := range dswp.pods.processedPods {
+		if _, ok := podsFromCache[k]; !ok {
+			orphanedPods = append(orphanedPods, k)
+		}
+	}
+	dswp.pods.Unlock()
+	for _, orphanedPod := range orphanedPods {
+		uid := types.UID(orphanedPod)
+		_, podExists := dswp.podManager.GetPodByUID(uid)
+		if !podExists && dswp.podStateProvider.ShouldPodRuntimeBeRemoved(uid) {
+			dswp.deleteProcessedPod(orphanedPod)
+		}
+	}
+
 	podsWithError := dswp.desiredStateOfWorld.GetPodsWithErrors()
 	for _, podName := range podsWithError {
 		if _, podExists := dswp.podManager.GetPodByUID(types.UID(podName)); !podExists {
@@ -305,7 +322,7 @@ func (dswp *desiredStateOfWorldPopulator) processPodVolumes(
 		}
 
 		// Add volume to desired state of world
-		uniqueVolumeName, err := dswp.desiredStateOfWorld.AddPodToVolume(
+		_, err = dswp.desiredStateOfWorld.AddPodToVolume(
 			uniquePodName, pod, volumeSpec, podVolume.Name, volumeGidValue, seLinuxContainerContexts[podVolume.Name])
 		if err != nil {
 			klog.ErrorS(err, "Failed to add volume to desiredStateOfWorld", "pod", klog.KObj(pod), "volumeName", podVolume.Name, "volumeSpecName", volumeSpec.Name())
@@ -313,12 +330,6 @@ func (dswp *desiredStateOfWorldPopulator) processPodVolumes(
 			allVolumesAdded = false
 		} else {
 			klog.V(4).InfoS("Added volume to desired state", "pod", klog.KObj(pod), "volumeName", podVolume.Name, "volumeSpecName", volumeSpec.Name())
-		}
-		if !utilfeature.DefaultFeatureGate.Enabled(features.NewVolumeManagerReconstruction) {
-			// sync reconstructed volume. This is necessary only when the old-style reconstruction is still used.
-			// With reconstruct_new.go, AWS.MarkVolumeAsMounted will update the outer spec name of previously
-			// uncertain volumes.
-			dswp.actualStateOfWorld.SyncReconstructedVolume(uniqueVolumeName, uniquePodName, podVolume.Name)
 		}
 
 		dswp.checkVolumeFSResize(pod, podVolume, pvc, volumeSpec, uniquePodName, mountedVolumesForPod)
@@ -503,17 +514,11 @@ func (dswp *desiredStateOfWorldPopulator) createVolumeSpec(
 			}
 		}
 
-		// TODO: replace this with util.GetVolumeMode() when features.BlockVolume is removed.
-		// The function will return the right value then.
-		volumeMode := v1.PersistentVolumeFilesystem
-		if volumeSpec.PersistentVolume != nil && volumeSpec.PersistentVolume.Spec.VolumeMode != nil {
-			volumeMode = *volumeSpec.PersistentVolume.Spec.VolumeMode
+		volumeMode, err := util.GetVolumeMode(volumeSpec)
+		if err != nil {
+			return nil, nil, "", err
 		}
-
-		// TODO: remove features.BlockVolume checks / comments after no longer needed
 		// Error if a container has volumeMounts but the volumeMode of PVC isn't Filesystem.
-		// Do not check feature gate here to make sure even when the feature is disabled in kubelet,
-		// because controller-manager / API server can already contain block PVs / PVCs.
 		if mounts.Has(podVolume.Name) && volumeMode != v1.PersistentVolumeFilesystem {
 			return nil, nil, "", fmt.Errorf(
 				"volume %s has volumeMode %s, but is specified in volumeMounts",

@@ -18,11 +18,11 @@ package checkpoint
 
 import (
 	"encoding/json"
+	"fmt"
 	"hash/fnv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-
+	"k8s.io/apimachinery/pkg/util/dump"
 	"k8s.io/klog/v2"
 	"k8s.io/kubernetes/pkg/kubelet/checkpointmanager/checksum"
 	"k8s.io/kubernetes/pkg/kubelet/checkpointmanager/errors"
@@ -48,18 +48,11 @@ type checkpointDataV1 struct {
 // We need this special code path to be able to correctly validate the checksum k8s 1.19 wrote.
 // credits to https://github.com/kubernetes/kubernetes/pull/102717/commits/353f93895118d2ffa2d59a29a1fbc225160ea1d6
 func (cp checkpointDataV1) checksum() checksum.Checksum {
-	printer := spew.ConfigState{
-		Indent:         " ",
-		SortKeys:       true,
-		DisableMethods: true,
-		SpewKeys:       true,
-	}
-
-	object := printer.Sprintf("%#v", cp)
+	object := dump.ForHash(cp)
 	object = strings.Replace(object, "checkpointDataV1", "checkpointData", 1)
 	object = strings.Replace(object, "PodDevicesEntryV1", "PodDevicesEntry", -1)
 	hash := fnv.New32a()
-	printer.Fprintf(hash, "%v", object)
+	fmt.Fprintf(hash, "%v", object)
 	return checksum.Checksum(hash.Sum32())
 }
 
@@ -70,7 +63,7 @@ type DataV1 struct {
 }
 
 // NewV1 returns an instance of Checkpoint, in V1 (k8s <= 1.19) format.
-// Users should avoid creating checkpoints in formats different than the most recent one,
+// Users should avoid creating checkpoints in formats different from the most recent one,
 // use the old formats only to validate existing checkpoint and convert them to most recent
 // format. The only exception should be test code.
 func NewV1(devEntries []PodDevicesEntryV1,

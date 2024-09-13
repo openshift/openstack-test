@@ -18,17 +18,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openshift/origin/pkg/monitor/monitorapi"
-	monitorserialization "github.com/openshift/origin/pkg/monitor/serialization"
-	"github.com/openshift/origin/pkg/riskanalysis"
-	"github.com/openshift/origin/pkg/test"
-	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
-
 	g "github.com/onsi/ginkgo/v2"
+
 	"k8s.io/kubernetes/test/e2e/chaosmonkey"
 	"k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/kubernetes/test/e2e/upgrades"
 	admissionapi "k8s.io/pod-security-admission/api"
+
+	"github.com/openshift/origin/pkg/riskanalysis"
+	"github.com/openshift/origin/pkg/test"
+	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
 )
 
 const (
@@ -62,19 +61,6 @@ type flakeSummary string
 func (s flakeSummary) PrintHumanReadable() string { return string(s) }
 func (s flakeSummary) SummaryKind() string        { return "Flake" }
 func (s flakeSummary) PrintJSON() string          { return `{"type":"Flake"}` }
-
-// additionalEvents is a test summary type that allows tests to add additional
-// events to the summary
-type additionalEvents struct {
-	Events monitorapi.Intervals
-}
-
-func (s additionalEvents) PrintHumanReadable() string { return strings.Join(s.Events.Strings(), "\n") }
-func (s additionalEvents) SummaryKind() string        { return "AdditionalEvents" }
-func (s additionalEvents) PrintJSON() string {
-	data, _ := monitorserialization.EventsIntervalsToJSON(s.Events)
-	return string(data)
-}
 
 // TestData is passed to the invariant tests executed during the upgrade. The default UpgradeType
 // is MasterUpgrade.
@@ -158,7 +144,7 @@ func runChaosmonkey(
 				return
 			}
 			defer f.Close()
-			out, err := xml.Marshal(testSuite)
+			out, err := xml.MarshalIndent(testSuite, "", "    ")
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error: Failed to marshal junit: %v\n", err)
 				return
@@ -172,7 +158,7 @@ func runChaosmonkey(
 			// we don't currently need this field set for RiskAnalysis.  We could change this logic to either
 			// parse the events for the NodeUpdated interval or read the ClusterData.json from storage
 			// and pass it in if needed.
-			if err := riskanalysis.WriteJobRunTestFailureSummary(framework.TestContext.ReportDir, timeSuffix, testSuite, ""); err != nil {
+			if err := riskanalysis.WriteJobRunTestFailureSummary(framework.TestContext.ReportDir, timeSuffix, testSuite, "", ""); err != nil {
 				fmt.Fprintf(os.Stderr, "error: Failed to write file %v: %v\n", fname, err)
 				return
 			}
@@ -324,9 +310,6 @@ func createTestFrameworks(tests []upgrades.Test) map[string]*framework.Framework
 		if isGoModulePath(reflect.ValueOf(t).Elem().Type().PkgPath(), "k8s.io/kubernetes", "test/e2e") {
 			ns = "e2e-k8s-" + ns
 		}
-		if mayRequireKube, ok := t.(RequiresKubeNamespace); ok && mayRequireKube.RequiresKubeNamespace() {
-			ns = "e2e-k8s-" + ns
-		}
 
 		testFrameworks[t.Name()] = &framework.Framework{
 			BaseName: ns,
@@ -337,50 +320,16 @@ func createTestFrameworks(tests []upgrades.Test) map[string]*framework.Framework
 			Timeouts: framework.NewTimeoutContext(),
 			// This is similar to https://github.com/kubernetes/kubernetes/blob/f33ca2306548719e5116b53fccfc278bffb809a8/test/e2e/upgrades/upgrade_suite.go#L106,
 			// where centrally all upgrade tests are being instantiated.
-			NamespacePodSecurityEnforceLevel: admissionapi.LevelPrivileged,
+			NamespacePodSecurityLevel: admissionapi.LevelPrivileged,
 		}
 	}
 	return testFrameworks
-}
-
-// ExpectNoDisruptionForDuration fails if the sum of the duration of all events exceeds allowedDisruption, reports a
-// disruption flake if any disruption occurs, and uses reason to prefix the message.
-func ExpectNoDisruptionForDuration(f *framework.Framework, testName string, allowedDisruption *time.Duration, total time.Duration, events monitorapi.Intervals, reason string) {
-	// This step records the test summaries data we need to result in AdditionalEvents json files in
-	// the openshift-e2e-test artifacts.
-	FrameworkEventIntervals(f, events)
-	describe := events.Strings()
-
-	// Indicates there is no entry in the query_results.json data file, nor a valid fallback,
-	// we do not wish to run the test. (this likely implies we do not have the required number of
-	// runs in 3 weeks to do a reliable P99)
-	if allowedDisruption == nil {
-		framework.Logf(fmt.Sprintf("Skipping: %s: No historical data to calculate allowedDisruption", testName))
-		return
-	}
-
-	errorEvents := events.Filter(monitorapi.IsErrorEvent)
-	disruptionDuration := errorEvents.Duration(1 * time.Second)
-	roundedAllowedDisruption := allowedDisruption.Round(time.Second)
-	if allowedDisruption.Milliseconds() == DefaultAllowedDisruption {
-		// don't round if we're using the default value so we can find this.
-		roundedAllowedDisruption = *allowedDisruption
-	}
-	roundedDisruptionDuration := disruptionDuration.Round(time.Second)
-	if roundedDisruptionDuration > roundedAllowedDisruption {
-		framework.Failf("%s for at least %s of %s (maxAllowed=%s):\n\n%s", reason, roundedDisruptionDuration, total.Round(time.Second), roundedAllowedDisruption, strings.Join(describe, "\n"))
-	}
 }
 
 // FrameworkFlakef records a flake on the current framework.
 func FrameworkFlakef(f *framework.Framework, format string, options ...interface{}) {
 	framework.Logf(format, options...)
 	f.TestSummaries = append(f.TestSummaries, flakeSummary(fmt.Sprintf(format, options...)))
-}
-
-// FrameworkFlakef records a flake on the current framework.
-func FrameworkEventIntervals(f *framework.Framework, events monitorapi.Intervals) {
-	f.TestSummaries = append(f.TestSummaries, additionalEvents{Events: events})
 }
 
 // hasFrameworkFlake returns true if the framework recorded a flake message generated by

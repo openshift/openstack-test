@@ -10,7 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/openshift/origin/pkg/monitor/monitorapi"
+	"github.com/openshift/origin/pkg/monitortests/network/disruptioningress"
+
+	"github.com/openshift/origin/pkg/monitortestlibrary/platformidentification"
+
 	g "github.com/onsi/ginkgo/v2"
+	o "github.com/onsi/gomega"
 	configv1 "github.com/openshift/api/config/v1"
 	configv1client "github.com/openshift/client-go/config/clientset/versioned"
 	"github.com/pborman/uuid"
@@ -32,16 +38,11 @@ import (
 	"k8s.io/kubernetes/test/e2e/upgrades/apps"
 	"k8s.io/kubernetes/test/e2e/upgrades/node"
 
-	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
 	"github.com/openshift/origin/test/e2e/upgrade/adminack"
-	"github.com/openshift/origin/test/e2e/upgrade/alert"
 	"github.com/openshift/origin/test/e2e/upgrade/dns"
 	"github.com/openshift/origin/test/e2e/upgrade/manifestdelete"
-	"github.com/openshift/origin/test/e2e/upgrade/service"
 	"github.com/openshift/origin/test/extended/prometheus"
 	"github.com/openshift/origin/test/extended/util/disruption"
-	"github.com/openshift/origin/test/extended/util/disruption/frontends"
-	"github.com/openshift/origin/test/extended/util/disruption/imageregistry"
 	"github.com/openshift/origin/test/extended/util/operator"
 )
 
@@ -55,15 +56,6 @@ func AllTests() []upgrades.Test {
 	return []upgrades.Test{
 		&adminack.UpgradeTest{},
 		&manifestdelete.UpgradeTest{},
-		&alert.UpgradeTest{},
-
-		// These two tests require complex setup and thus are a poor fit for our current invariant/synthetic
-		// disruption tests, so they remain separate. They output AdditionalEvents json files as artifacts which
-		// are merged into our main e2e-events.
-		service.NewServiceLoadBalancerWithNewConnectionsTest(),
-		service.NewServiceLoadBalancerWithReusedConnectionsTest(),
-		imageregistry.NewImageRegistryAvailableWithNewConnectionsTest(),
-		imageregistry.NewImageRegistryAvailableWithReusedConnectionsTest(),
 
 		&node.SecretUpgradeTest{},
 		&apps.ReplicaSetUpgradeTest{},
@@ -151,6 +143,30 @@ var _ = g.Describe("[sig-arch][Feature:ClusterUpgrade]", func() {
 		framework.ExpectNoError(err)
 	})
 
+	g.It("All nodes should be in ready state [Early][Suite:upgrade]", func() {
+		config, err := framework.LoadConfig()
+		framework.ExpectNoError(err)
+		client := kubernetes.NewForConfigOrDie(config)
+		nodeList, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+		o.Expect(err).NotTo(o.HaveOccurred())
+
+		var errMsgs []string
+		for _, node := range nodeList.Items {
+			for _, condition := range node.Status.Conditions {
+				if condition.Type == v1.NodeReady && condition.Status != v1.ConditionTrue {
+					err := fmt.Errorf("node/%s ready state is not true, status: %v, reason: %s", node.Name, condition.Status, condition.Reason)
+					framework.Logf("Error: %v", err)
+					errMsgs = append(errMsgs, err.Error())
+				}
+			}
+		}
+
+		if len(errMsgs) > 0 {
+			combinedErr := fmt.Errorf(strings.Join(errMsgs, "; "))
+			o.Expect(combinedErr).NotTo(o.HaveOccurred())
+		}
+	})
+
 	g.It("Cluster should remain functional during upgrade [Disruptive]", func() {
 		config, err := framework.LoadConfig()
 		framework.ExpectNoError(err)
@@ -201,8 +217,9 @@ func latestCompleted(history []configv1.UpdateHistory) (*configv1.Update, bool) 
 	return nil, false
 }
 
-func checkUpgradeability(c configv1client.Interface) error {
-	cv, err := c.ConfigV1().ClusterVersions().Get(context.Background(), "version", metav1.GetOptions{})
+func checkUpgradeability(configClient configv1client.Interface) error {
+	ctx := context.TODO()
+	cv, err := configClient.ConfigV1().ClusterVersions().Get(ctx, "version", metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -216,15 +233,19 @@ func checkUpgradeability(c configv1client.Interface) error {
 		}
 	}
 	if c := findCondition(cv.Status.Conditions, configv1.OperatorDegraded); c != nil && c.Status == configv1.ConditionTrue {
+		framework.Logf("A clusteroperator is degraded %v:\n%v\n", c.Message, clusterOperatorsForRendering(ctx, configClient))
 		return fmt.Errorf("cluster is reporting a degraded condition: %v", c.Message)
 	}
 	if c := findCondition(cv.Status.Conditions, configv1.ClusterStatusConditionType("Failing")); c != nil && c.Status == configv1.ConditionTrue {
+		framework.Logf("A clusteroperator is failing %v:\n%v\n", c.Message, clusterOperatorsForRendering(ctx, configClient))
 		return fmt.Errorf("cluster is reporting a failing condition: %v", c.Message)
 	}
 	if c := findCondition(cv.Status.Conditions, configv1.OperatorProgressing); c == nil || c.Status != configv1.ConditionFalse {
+		framework.Logf("A clusteroperator is progressing %v:\n%v\n", c.Message, clusterOperatorsForRendering(ctx, configClient))
 		return fmt.Errorf("cluster must be reporting a progressing=false condition: %#v", c)
 	}
 	if c := findCondition(cv.Status.Conditions, configv1.OperatorAvailable); c == nil || c.Status != configv1.ConditionTrue {
+		framework.Logf("A clusteroperator is not available %v:\n%v\n", c.Message, clusterOperatorsForRendering(ctx, configClient))
 		return fmt.Errorf("cluster must be reporting an available=true condition: %#v", c)
 	}
 
@@ -293,37 +314,6 @@ func getUpgradeContext(c configv1client.Interface, upgradeImage string) (*upgrad
 
 var errControlledAbort = fmt.Errorf("beginning abort")
 
-// PreUpgradeResourceCounts stores a map of resource type to a count of the number of
-// resources of that type in the entire cluster, gathered prior to launching the upgrade.
-var PreUpgradeResourceCounts = map[string]int{}
-
-func GatherPreUpgradeResourceCounts() error {
-	config, err := framework.LoadConfig(true)
-	if err != nil {
-		return err
-	}
-	kubeClient := kubernetes.NewForConfigOrDie(config)
-	// Store resource counts we're interested in monitoring from before upgrade to after.
-	// Used to test for excessive resource growth during upgrade in the invariants.
-	ctx := context.Background()
-	secrets, err := kubeClient.CoreV1().Secrets("").List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return err
-	}
-	PreUpgradeResourceCounts["secrets"] = len(secrets.Items)
-	framework.Logf("found %d Secrets prior to upgrade at %s\n", len(secrets.Items),
-		time.Now().UTC().Format(time.RFC3339))
-
-	configMaps, err := kubeClient.CoreV1().ConfigMaps("").List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return err
-	}
-	PreUpgradeResourceCounts["configmaps"] = len(configMaps.Items)
-	framework.Logf("found %d ConfigMaps prior to upgrade at %s\n", len(configMaps.Items),
-		time.Now().UTC().Format(time.RFC3339))
-	return nil
-}
-
 func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynamic.Interface, config *rest.Config, version upgrades.VersionContext) error {
 	fmt.Fprintf(os.Stderr, "\n\n\n")
 	defer func() { fmt.Fprintf(os.Stderr, "\n\n\n") }()
@@ -334,7 +324,7 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 		"[bz-Routing] console is not available via ingress",
 		func() (error, bool) {
 			pollErr := wait.PollImmediateWithContext(context.TODO(), 1*time.Second, 10*time.Minute, func(ctx context.Context) (bool, error) {
-				consoleSampler := frontends.CreateConsoleRouteAvailableWithNewConnections()
+				consoleSampler := disruptioningress.CreateConsoleRouteAvailableWithNewConnections(config)
 				_, err := consoleSampler.CheckConnection(ctx)
 				if err == nil {
 					return true, nil
@@ -426,7 +416,7 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 	framework.Logf("Upgrade time limit set as %0.2f", upgradeDurationLimit.Minutes())
 
 	framework.Logf("Starting upgrade to version=%s image=%s attempt=%s", version.Version.String(), version.NodeImage, uid)
-	recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeStarted", fmt.Sprintf("version/%s image/%s", version.Version.String(), version.NodeImage), false)
+	recordClusterEvent(kubeClient, uid, "Upgrade", monitorapi.UpgradeStartedReason, fmt.Sprintf("version/%s image/%s", version.Version.String(), version.NodeImage), false)
 
 	// decide whether to abort at a percent
 	abortAt := upgradeAbortAt
@@ -527,7 +517,7 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 			framework.Logf("Cluster version operator failed to acknowledge upgrade request")
 			return fmt.Errorf("Cluster did not complete upgrade: operator failed to acknowledge upgrade request"), false
 		})
-		recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeFailed", fmt.Sprintf("failed to acknowledge version: %v", err), true)
+		recordClusterEvent(kubeClient, uid, "Upgrade", monitorapi.UpgradeFailedReason, fmt.Sprintf("failed to acknowledge version: %v", err), true)
 		return err
 	}
 
@@ -555,7 +545,7 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 					return false, err
 				}
 
-				if !aborted && monitor.ShouldUpgradeAbort(abortAt) {
+				if !aborted && monitor.ShouldUpgradeAbort(abortAt, desired) {
 					framework.Logf("Instructing the cluster to return to %s / %s", original.Status.Desired.Version, original.Status.Desired.Image)
 					desired = configv1.Update{
 						Image: original.Status.Desired.Image,
@@ -575,7 +565,7 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 					}); err != nil {
 						return false, err
 					}
-					recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeRollback", fmt.Sprintf("version/%s image/%s", original.Status.Desired.Version, original.Status.Desired.Version), false)
+					recordClusterEvent(kubeClient, uid, "Upgrade", monitorapi.UpgradeRollbackReason, fmt.Sprintf("version/%s image/%s", original.Status.Desired.Version, original.Status.Desired.Version), false)
 					aborted = true
 					action = "aborted upgrade"
 					return false, nil
@@ -591,7 +581,7 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 			}
 
 			framework.Logf("Completed %s to %s", action, versionString(desired))
-			recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeVersion", fmt.Sprintf("version/%s image/%s", updated.Status.Desired.Version, updated.Status.Desired.Version), false)
+			recordClusterEvent(kubeClient, uid, "Upgrade", monitorapi.UpgradeVersionReason, fmt.Sprintf("version/%s image/%s", updated.Status.Desired.Version, updated.Status.Desired.Version), false)
 
 			// record whether the cluster was fast or slow upgrading.  Don't fail the test, we still want signal on the actual tests themselves.
 			upgradeEnded := time.Now()
@@ -606,7 +596,7 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 			return nil, false
 		},
 	); err != nil {
-		recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeFailed", fmt.Sprintf("failed to reach cluster version: %v", err), true)
+		recordClusterEvent(kubeClient, uid, "Upgrade", monitorapi.UpgradeFailedReason, fmt.Sprintf("failed to reach cluster version: %v", err), true)
 		return err
 	}
 
@@ -646,12 +636,12 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 			return nil, false
 		},
 	); err != nil {
-		recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeFailed", fmt.Sprintf("failed to upgrade nodes: %v", err), true)
+		recordClusterEvent(kubeClient, uid, "Upgrade", monitorapi.UpgradeFailedReason, fmt.Sprintf("failed to upgrade nodes: %v", err), true)
 		return err
 	}
 
 	if errMasterUpdating != nil {
-		recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeFailed", fmt.Sprintf("master was updating after cluster version reached level: %v", errMasterUpdating), true)
+		recordClusterEvent(kubeClient, uid, "Upgrade", monitorapi.UpgradeFailedReason, fmt.Sprintf("master was updating after cluster version reached level: %v", errMasterUpdating), true)
 		return errMasterUpdating
 	}
 
@@ -665,17 +655,17 @@ func clusterUpgrade(f *framework.Framework, c configv1client.Interface, dc dynam
 			return nil, false
 		},
 	); err != nil {
-		recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeFailed", fmt.Sprintf("failed to settle operators: %v", err), true)
+		recordClusterEvent(kubeClient, uid, "Upgrade", monitorapi.UpgradeFailedReason, fmt.Sprintf("failed to settle operators: %v", err), true)
 		return err
 	}
 
-	recordClusterEvent(kubeClient, uid, "Upgrade", "UpgradeComplete", fmt.Sprintf("version/%s image/%s", updated.Status.Desired.Version, updated.Status.Desired.Image), false)
+	recordClusterEvent(kubeClient, uid, "Upgrade", monitorapi.UpgradeCompleteReason, fmt.Sprintf("version/%s image/%s", updated.Status.Desired.Version, updated.Status.Desired.Image), false)
 	return nil
 }
 
 // recordClusterEvent attempts to record an event to the cluster to indicate actions taken during an
 // upgrade for timeline review.
-func recordClusterEvent(client kubernetes.Interface, uid, action, reason, note string, warning bool) {
+func recordClusterEvent(client kubernetes.Interface, uid, action string, reason monitorapi.IntervalReason, note string, warning bool) {
 	currentTime := metav1.MicroTime{Time: time.Now()}
 	t := v1.EventTypeNormal
 	if warning {
@@ -690,7 +680,7 @@ func recordClusterEvent(client kubernetes.Interface, uid, action, reason, note s
 		},
 		Regarding:           v1.ObjectReference{Kind: "ClusterVersion", Name: "cluster", Namespace: ns, APIVersion: configv1.GroupVersion.String()},
 		Action:              action,
-		Reason:              reason,
+		Reason:              reason.String(),
 		Note:                note,
 		Type:                t,
 		EventTime:           currentTime,

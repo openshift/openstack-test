@@ -5,16 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
+	allowedalerts2 "github.com/openshift/origin/pkg/monitortestlibrary/allowedalerts"
+	"github.com/openshift/origin/pkg/monitortestlibrary/platformidentification"
+
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
-	"github.com/openshift/origin/pkg/alerts"
-	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
@@ -23,6 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
 	clientset "k8s.io/client-go/kubernetes"
 	kapi "k8s.io/kubernetes/pkg/apis/core"
 	"k8s.io/kubernetes/test/e2e/framework"
@@ -34,7 +34,6 @@ import (
 
 	configv1 "github.com/openshift/api/config/v1"
 
-	"github.com/openshift/origin/pkg/synthetictests/allowedalerts"
 	testresult "github.com/openshift/origin/pkg/test/ginkgo/result"
 	"github.com/openshift/origin/test/extended/networking"
 	exutil "github.com/openshift/origin/test/extended/util"
@@ -54,46 +53,191 @@ type TelemeterClientConfig struct {
 var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigroup:image.openshift.io]", func() {
 	defer g.GinkgoRecover()
 
-	// These alerts are known to be missing the summary and/or description
-	// annotations.  Bugzillas have been filed, and are linked here.  These
-	// should be fixed one-by-one and removed from this list.
-	descriptionExceptions := sets.NewString(
-		// Repo: openshift/machine-config-operator
-		// https://issues.redhat.com/browse/OCPBUGS-14185
-		"KubeletHealthState",
-		"MCCDrainError",
-		"MCDPivotError",
+	criticalAlertsMissingRunbookURLExceptions := sets.NewString(
+		// Repository: https://github.com/openshift/cluster-network-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14062
+		"OVNKubernetesNorthboundDatabaseClusterIDError",
+		"OVNKubernetesSouthboundDatabaseClusterIDError",
+		"OVNKubernetesNorthboundDatabaseLeaderError",
+		"OVNKubernetesSouthboundDatabaseLeaderError",
+		"OVNKubernetesNorthboundDatabaseMultipleLeadersError",
+		"OVNKubernetesSouthboundDatabaseMultipleLeadersError",
+		"OVNKubernetesNorthdInactive",
+
+		// Repository: https://github.com/openshift/machine-api-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14055
+		"MachineAPIOperatorMetricsCollectionFailing",
+
+		// Repository: https://github.com/openshift/machine-config-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14056
 		"MCDRebootError",
-		"SystemMemoryExceedsReservation",
+		"ExtremelyHighIndividualControlPlaneMemory",
+
+		// Repository: https://github.com/openshift/cluster-ingress-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14057
+		"HAProxyDown",
+
+		// Repository: https://github.com/openshift/cluster-version-operator
+		// Issue: https://issues.redhat.com/browse/OCPBUGS-14246
+		"ClusterOperatorDown",
+		"ClusterVersionOperatorDown",
+
+		// Repository: https://github.com/openshift/managed-cluster-config
+		// Issue: https://issues.redhat.com/browse/OSD-21709
+		"AlertmanagerClusterCrashlooping",
+		"AlertmanagerClusterDown",
+		"AlertmanagerClusterFailedToSendAlerts",
+		"AlertmanagerConfigInconsistent",
+		"AlertmanagerFailedReload",
+		"AlertmanagerMembersInconsistent",
+		"CannotRetrieveUpdatesSRE",
+		"CloudIngressOperatorOfflineSRE",
+		"ClusterMonitoringErrorBudgetBurnSRE",
+		"ConfigureAlertmanagerOperatorOfflineSRE",
+		"ControlPlaneNodeFileDescriptorLimitSRE",
+		"ControlPlaneNodeFilesystemAlmostOutOfFiles",
+		"ControlPlaneNodeFilesystemSpaceFillingUp",
+		"ControlPlaneNodeUnschedulableSRE",
+		"ControlPlaneNodesNeedResizingSRE",
+		"CustomerWorkloadPreventingDrainSRE",
+		"EbsVolumeBurstBalanceLT20PctSRE",
+		"EbsVolumeStuckAttaching10MinSRE",
+		"EbsVolumeStuckDetaching10MinSRE",
+		"ExcessiveContainerMemoryCriticalSRE",
+		"HAProxyDownSRE",
+		"InfraNodesNeedResizingSRE",
+		"InsightsOperatorDownSRE",
+		"KubeControllerManagerCrashloopingSRE",
+		"KubeControllerManagerMissingOnNode60Minutes",
+		"KubePersistentVolumeUsageCriticalCustomer",
+		"KubePersistentVolumeUsageCriticalLayeredProduct",
+		"MetricsClientSendFailingSRE",
+		"MultipleVersionsOfEFSCSIDriverInstalled",
+		"OCMAgentResponseFailureServiceLogsSRE",
+		"ObservabilityOperatorBacklogNotDrained",
+		"PrometheusBadConfig",
+		"PrometheusErrorSendingAlertsToAnyAlertmanager",
+		"PrometheusRemoteStorageFailures",
+		"PrometheusRemoteWriteBehind",
+		"PrometheusRuleFailures",
+		"PrometheusTargetSyncFailure",
+		"PruningCronjobErrorSRE",
+		"RouterAvailabilityLT30PctSRE",
+		"RunawaySDNPreventingContainerCreationSRE",
+		"SLAUptimeSRE",
+		"UpgradeConfigSyncFailureOver4HrSRE",
+		"UpgradeConfigValidationFailedSRE",
+		"UpgradeControlPlaneUpgradeTimeoutSRE",
+		"UpgradeNodeDrainFailedSRE",
+		"UpgradeNodeUpgradeTimeoutSRE",
+		"WorkerNodeFileDescriptorLimitSRE",
+		"WorkerNodeFilesystemAlmostOutOfFiles",
+		"WorkerNodeFilesystemSpaceFillingUp",
+		"api-ErrorBudgetBurn",
+		"console-ErrorBudgetBurn",
+	)
+
+	alertsMissingValidSeverityLevel := sets.NewString(
+		// Repository: https://github.com/openshift/managed-cluster-config
+		// Issue: https://issues.redhat.com/browse/OSD-21709
+		"AdditionalTrustBundleCAExpiredNotificationSRE",
+		"AdditionalTrustBundleCAExpiringNotificationSRE",
+		"AdditionalTrustBundleCAInvalidNotificationSRE",
+		"ClusterProxyNetworkDegradedNotificationSRE",
+		"ElasticsearchClusterNotHealthyNotificationSRE",
+		"ElasticsearchDiskSpaceRunningLowNotificationSRE",
+		"ElasticsearchNodeDiskWatermarkReachedNotificationSRE",
+		"KubeNodeUnschedulableSRE",
+		"KubePersistentVolumeFillingUpSRE",
+		"LoggingVolumeFillingUpNotificationSRE",
+		"MultipleDefaultStorageClassesNotificationSRE",
+		"NonSystemChangeValidatingWebhookConfigurationsNotificationSRE",
+	)
+
+	alertsMissingValidSummaryOrDescription := sets.NewString(
+		// Repository: https://github.com/openshift/managed-cluster-config
+		// Issue: https://issues.redhat.com/browse/OSD-21709
+		"EbsVolumeStuckAttaching10MinSRE",
+		"EbsVolumeStuckAttaching5MinSRE",
+		"EbsVolumeStuckDetaching10MinSRE",
+		"EbsVolumeStuckDetaching5MinSRE",
+		"ElasticsearchClusterNotHealthyNotificationSRE",
+		"ElasticsearchDiskSpaceRunningLowNotificationSRE",
+		"ElasticsearchJobFailedSRE",
+		"ElasticsearchNodeDiskWatermarkReachedNotificationSRE",
+		"ElevatingClusterAdminRHMISRE",
+		"ElevatingClusterAdminRHOAMSRE",
+		"ExcessiveContainerMemoryCriticalSRE",
+		"ExcessiveContainerMemoryWarningSRE",
+		"HAProxyReloadFailSRE",
+		"InfraNodesNeedResizingSRE",
+		"KubeAPIServerMissingOnNode60Minutes",
+		"KubeControllerManagerCrashloopingSRE",
+		"KubeControllerManagerMissingOnNode60Minutes",
+		"KubeNodeStuckWithCreatingAndTerminatingPodsSRE",
+		"KubeNodeUnschedulableSRE",
+		"KubePersistentVolumeFillingUpSRE",
+		"KubePersistentVolumeFullInFourDaysCustomer",
+		"KubePersistentVolumeFullInFourDaysLayeredProduct",
+		"KubePersistentVolumeUsageCriticalCustomer",
+		"KubePersistentVolumeUsageCriticalLayeredProduct",
+		"KubeQuotaExceededSRE",
+		"KubeSchedulerMissingOnNode60Minutes",
+		"LoggingVolumeFillingUpNotificationSRE",
+		"MNMOTooManyReconcileErrors15MinSRE",
+		"MetricsClientSendFailingSRE",
+		"MultipleDefaultStorageClassesNotificationSRE",
+		"MultipleVersionsOfEFSCSIDriverInstalled",
+		"NonSystemChangeValidatingWebhookConfigurationsNotificationSRE",
+		"OCMAgentOperatorPullSecretInvalidSRE",
+		"OCMAgentPullSecretInvalidSRE",
+		"OCMAgentResponseFailureServiceLogsSRE",
+		"PruningCronjobErrorSRE",
+		"RouterAvailabilityLT30PctSRE",
+		"RouterAvailabilityLT50PctSRE",
+		"RunawaySDNPreventingContainerCreationSRE",
+		"SLAUptimeSRE",
+		"VeleroDailyFullBackupMissed",
+		"VeleroHourlyObjectBackupsMissedConsecutively",
+		"VeleroWeeklyFullBackupMissed",
+		"WorkerNodeFileDescriptorLimitSRE",
+		"WorkerNodeFilesystemAlmostOutOfFiles",
+		"WorkerNodeFilesystemSpaceFillingUp",
+		"api-ErrorBudgetBurn",
+		"console-ErrorBudgetBurn",
+		"cpu-InfraNodesExcessiveResourceConsumptionSRE",
+		"cpu-InfraNodesExcessiveResourceConsumptionSRE1h",
+		"memory-InfraNodesExcessiveResourceConsumptionSRE",
 	)
 
 	var alertingRules map[string][]promv1.AlertingRule
 	oc := exutil.NewCLIWithoutNamespace("prometheus")
 
-	g.BeforeEach(func() {
-
+	g.BeforeEach(func(ctx context.Context) {
 		err := exutil.WaitForAnImageStream(
 			oc.AdminImageClient().ImageV1().ImageStreams("openshift"), "tools",
 			exutil.CheckImageStreamLatestTagPopulated, exutil.CheckImageStreamTagNotFound)
 		o.Expect(err).NotTo(o.HaveOccurred())
 
-		url, _, bearerToken, ok := helper.LocatePrometheusUsingRoutes(oc)
-		if !ok {
-			e2e.Failf("Prometheus could not be located on this cluster, failing prometheus test")
-		}
+		_, err = helper.PrometheusServiceURL(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Verify prometheus service exists")
 
 		if alertingRules == nil {
-			var err error
-
-			alertingRules, err = helper.FetchAlertingRules(url, bearerToken)
-			if err != nil {
-				e2e.Failf("Failed to fetch alerting rules: %v", err)
-			}
+			url, err := helper.PrometheusRouteURL(ctx, oc)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Get public url of prometheus")
+			token, err := helper.RequestPrometheusServiceAccountAPIToken(ctx, oc)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Request prometheus service account API token")
+			alertingRules, err = helper.FetchAlertingRules(url, token)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Fetching alerting rules")
 		}
 	})
 
 	g.It("should have a valid severity label", func() {
 		err := helper.ForEachAlertingRule(alertingRules, func(alert promv1.AlertingRule) sets.String {
+			if alertsMissingValidSeverityLevel.Has(alert.Name) {
+				framework.Logf("Alerting rule %q is known to have invalid severity", alert.Name)
+				return nil
+			}
 			severityRe := regexp.MustCompile("^critical|warning|info$")
 
 			severity, found := alert.Labels["severity"]
@@ -111,7 +255,6 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 
 			return nil
 		})
-
 		if err != nil {
 			e2e.Failf(err.Error())
 		}
@@ -119,11 +262,10 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 
 	g.It("should have description and summary annotations", func() {
 		err := helper.ForEachAlertingRule(alertingRules, func(alert promv1.AlertingRule) sets.String {
-			if descriptionExceptions.Has(alert.Name) {
-				framework.Logf("Alerting rule %q is known to have missing annotations.", alert.Name)
+			if alertsMissingValidSummaryOrDescription.Has(alert.Name) {
+				framework.Logf("Alerting rule %q is known to have invalid summary or description", alert.Name)
 				return nil
 			}
-
 			violations := sets.NewString()
 
 			if _, found := alert.Annotations["description"]; !found {
@@ -143,7 +285,6 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 
 			return violations
 		})
-
 		if err != nil {
 			e2e.Failf(err.Error())
 		}
@@ -151,6 +292,10 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 
 	g.It("should have a runbook_url annotation if the alert is critical", func() {
 		err := helper.ForEachAlertingRule(alertingRules, func(alert promv1.AlertingRule) sets.String {
+			if criticalAlertsMissingRunbookURLExceptions.Has(alert.Name) {
+				framework.Logf("Critical alerting rule %q is known to have missing runbook_url.", alert.Name)
+				return nil
+			}
 			violations := sets.NewString()
 			severity := string(alert.Labels["severity"])
 			runbook := string(alert.Annotations["runbook_url"])
@@ -159,23 +304,56 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 				violations.Insert(
 					fmt.Sprintf("WARNING: Alert %q is critical and has no 'runbook_url' annotation", alert.Name),
 				)
-			} else if runbook != "" {
-				// If there's a 'runbook_url' annotation, make sure it's a
-				// valid URL and that we can fetch the contents.
-				if err := helper.ValidateURL(runbook, 10*time.Second); err != nil {
+			}
+
+			return violations
+		})
+		if err != nil {
+			e2e.Failf(err.Error())
+		}
+	})
+
+	g.It("should link to an HTTP(S) location if the runbook_url annotation is defined", func() {
+		err := helper.ForEachAlertingRule(alertingRules, func(alert promv1.AlertingRule) sets.String {
+			violations := sets.NewString()
+			runbook_url := string(alert.Annotations["runbook_url"])
+
+			if runbook_url != "" {
+				// If there's a 'runbook_url' annotation, make sure that it is a valid URL
+				if err := helper.ValidateURL(runbook_url); err != nil {
 					violations.Insert(
-						fmt.Sprintf("WARNING: Alert %q has an invalid 'runbook_url' annotation: %v",
-							alert.Name, err),
+						fmt.Sprintf("has an 'runbook_url' annotation which is not valid: %v", err),
 					)
 				}
 			}
 
 			return violations
 		})
-
 		if err != nil {
-			// We are still gathering data on how many alerts need to
-			// be fixed, so this is marked as a flake for now.
+			e2e.Failf(err.Error())
+		}
+	})
+
+	g.It("should link to a valid URL if the runbook_url annotation is defined", func() {
+		err := helper.ForEachAlertingRule(alertingRules, func(alert promv1.AlertingRule) sets.String {
+			violations := sets.NewString()
+			runbook_url := string(alert.Annotations["runbook_url"])
+
+			if runbook_url == "" {
+				return nil
+			}
+			// If there's a 'runbook_url' annotation, make sure that we can fetch the contents.
+			if err := helper.QueryURL(runbook_url, 10*time.Second); err != nil {
+				violations.Insert(
+					fmt.Sprintf("has a runbook URL which cannot be fetched: %v", err),
+				)
+			}
+
+			return violations
+		})
+		if err != nil {
+			// We can't fail the test because the runbook URLs might be temporarily unavailable.
+			// At least we can manually check the CI logs to identify buggy URLs.
 			testresult.Flakef(err.Error())
 		}
 	})
@@ -184,14 +362,16 @@ var _ = g.Describe("[sig-instrumentation][Late] OpenShift alerting rules [apigro
 var _ = g.Describe("[sig-instrumentation][Late] Alerts", func() {
 	defer g.GinkgoRecover()
 	ctx := context.TODO()
-	var (
-		oc = exutil.NewCLIWithoutNamespace("prometheus")
-	)
+	oc := exutil.NewCLIWithoutNamespace("prometheus")
 
-	g.It("shouldn't report any unexpected alerts in firing or pending state", func() {
-		// we only consider samples since the beginning of the test
-		testDuration := exutil.DurationSinceStartInSeconds()
-		alerts.CheckAlerts(alerts.AllowedAlertsDuringConformance, oc.AdminConfig(), oc.NewPrometheusClient(context.TODO()), oc.AdminConfigClient(), testDuration, nil)
+	g.BeforeEach(func() {
+		kubeClient, err := kubernetes.NewForConfig(oc.AdminConfig())
+		o.Expect(err).NotTo(o.HaveOccurred())
+		nsExist, err := exutil.IsNamespaceExist(kubeClient, "openshift-monitoring")
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if !nsExist {
+			g.Skip("openshift-monitoring namespace does not exist, skipping")
+		}
 	})
 
 	g.It("shouldn't exceed the series limit of total series sent via telemetry from each cluster", func() {
@@ -207,7 +387,7 @@ var _ = g.Describe("[sig-instrumentation][Late] Alerts", func() {
 		tests := map[string]bool{
 			// We want to limit the number of total series sent, the cluster:telemetry_selected_series:count
 			// rule contains the count of the all the series that are sent via telemetry. It is permissible
-			// for some scenarios to generate more series than 750, we just want the basic state to be below
+			// for some scenarios to generate more series than 760, we just want the basic state to be below
 			// a threshold.
 			//
 			// The following query can be executed against the telemetry server
@@ -222,7 +402,7 @@ var _ = g.Describe("[sig-instrumentation][Late] Alerts", func() {
 			//     )[30m:1m]
 			//   )
 			// )
-			fmt.Sprintf(`avg_over_time(cluster:telemetry_selected_series:count[%s]) >= 750`, testDuration):  false,
+			fmt.Sprintf(`avg_over_time(cluster:telemetry_selected_series:count[%s]) >= 760`, testDuration):  false,
 			fmt.Sprintf(`max_over_time(cluster:telemetry_selected_series:count[%s]) >= 1200`, testDuration): false,
 		}
 		err := helper.RunQueries(context.TODO(), oc.NewPrometheusClient(context.TODO()), tests, oc)
@@ -241,25 +421,26 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 		queryURL, prometheusURL, querySvcURL, prometheusSvcURL, bearerToken string
 	)
 
-	g.BeforeEach(func() {
+	g.BeforeEach(func(ctx g.SpecContext) {
 		err := exutil.WaitForAnImageStream(
 			oc.AdminImageClient().ImageV1().ImageStreams("openshift"), "tools",
 			exutil.CheckImageStreamLatestTagPopulated, exutil.CheckImageStreamTagNotFound)
 		o.Expect(err).NotTo(o.HaveOccurred())
 
-		var ok bool
-		querySvcURL, prometheusSvcURL, bearerToken, ok = helper.LocatePrometheus(oc)
-		if !ok {
-			e2e.Failf("Prometheus URLs through services could not be located on this cluster, failing prometheus test")
-		}
-		queryURL, prometheusURL, _, ok = helper.LocatePrometheusUsingRoutes(oc)
-		if !ok {
-			e2e.Failf("Prometheus URLs through routes could not be located on this cluster, failing prometheus test")
-		}
+		queryURL, err = helper.ThanosQuerierRouteURL(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Get public url of thanos querier")
+		prometheusURL, err = helper.PrometheusRouteURL(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Get public url of prometheus")
+		querySvcURL, err = helper.ThanosQuerierServiceURL(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Get url of thanos querier service")
+		prometheusSvcURL, err = helper.PrometheusServiceURL(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Get url of prometheus service")
+		bearerToken, err = helper.RequestPrometheusServiceAccountAPIToken(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Request prometheus service account API token")
 	})
 
 	g.Describe("when installed on the cluster", func() {
-		g.It("should report telemetry [Late]", func() {
+		g.It("should report telemetry [Serial] [Late]", func() {
 			if enabledErr, err := telemetryIsEnabled(ctx, oc.AdminKubeClient()); err != nil {
 				e2e.Failf("could not determine if Telemetry is enabled: %v", err)
 			} else if enabledErr != nil {
@@ -287,6 +468,11 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			e2e.Logf("Telemetry is enabled: %s", bearerToken)
+
+			if err != nil {
+				// Making the test flaky until monitoring team fixes the rate limit issue.
+				testresult.Flakef(err.Error())
+			}
 		})
 
 		g.It("should start and expose a secured proxy and unsecured metrics [apigroup:config.openshift.io]", func() {
@@ -298,7 +484,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 
 			g.By("checking the prometheus metrics path")
 			var metrics map[string]*dto.MetricFamily
-			o.Expect(wait.PollImmediate(10*time.Second, 2*time.Minute, func() (bool, error) {
+			o.Expect(wait.PollUntilContextTimeout(context.Background(), 10*time.Second, 2*time.Minute, true, func(context.Context) (bool, error) {
 				results, err := getBearerTokenURLViaPod(ns, execPod.Name, fmt.Sprintf("%s/metrics", prometheusSvcURL), bearerToken)
 				if err != nil {
 					e2e.Logf("unable to get metrics: %v", err)
@@ -331,14 +517,14 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("verifying a service account token is able to authenticate")
-			err = expectBearerTokenURLStatusCodeExec(fmt.Sprintf("%s/api/v1/targets", queryURL), bearerToken, 200)
+			err = helper.ExpectHTTPStatusCode(helper.MustJoinUrlPath(queryURL, "api/v1/targets"), bearerToken, 200)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("verifying a service account token is able to access the Prometheus API")
 			// expect all endpoints within 60 seconds
 			var lastErrs []error
-			o.Expect(wait.PollImmediate(10*time.Second, 2*time.Minute, func() (bool, error) {
-				contents, err := getBearerTokenURL(fmt.Sprintf("%s/api/v1/targets", prometheusURL), bearerToken)
+			o.Expect(wait.PollUntilContextTimeout(context.Background(), 10*time.Second, 2*time.Minute, true, func(context.Context) (bool, error) {
+				contents, err := helper.GetURLWithToken(helper.MustJoinUrlPath(prometheusURL, "api/v1/targets"), bearerToken)
 				o.Expect(err).NotTo(o.HaveOccurred())
 
 				targets := &prometheusTargets{}
@@ -358,8 +544,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 						targets.Expect(labels{"job": "controller-manager"}, "up", "^https://.*/metrics$"),
 
 						// The kube control plane
-						// TODO restore this after etcd operator lands
-						//targets.Expect(labels{"job": "etcd"}, "up", "^https://.*/metrics$"),
+						targets.Expect(labels{"job": "etcd"}, "up", "^https://.*/metrics$"),
 						targets.Expect(labels{"job": "apiserver"}, "up", "^https://.*/metrics$"),
 						targets.Expect(labels{"job": "kube-controller-manager"}, "up", "^https://.*/metrics$"),
 						targets.Expect(labels{"job": "scheduler"}, "up", "^https://.*/metrics$"),
@@ -377,7 +562,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 					targets.Expect(labels{"job": "node-exporter"}, "up", "^https://.*/metrics$"),
 					targets.Expect(labels{"job": "prometheus-operator"}, "up", "^https://.*/metrics$"),
 					targets.Expect(labels{"job": "alertmanager-main"}, "up", "^https://.*/metrics$"),
-					targets.Expect(labels{"job": "crio"}, "up", "^http://.*/metrics$"),
+					targets.Expect(labels{"job": "crio"}, "up", "^http(s)?://.*/metrics$"),
 				)...)
 				if len(lastErrs) > 0 {
 					e2e.Logf("missing some targets: %v", lastErrs)
@@ -388,7 +573,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 
 			g.By("verifying all targets are exposing metrics over secure channel")
 			var insecureTargets []error
-			contents, err := getBearerTokenURL(fmt.Sprintf("%s/api/v1/targets", prometheusURL), bearerToken)
+			contents, err := helper.GetURLWithToken(helper.MustJoinUrlPath(prometheusURL, "api/v1/targets"), bearerToken)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			targets := &prometheusTargets{}
@@ -473,7 +658,7 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 		networking.InOpenShiftSDNContext(func() {
 			g.It("should be able to get the sdn ovs flows", func() {
 				tests := map[string]bool{
-					//something
+					// something
 					`openshift_sdn_ovs_flows >= 1`: true,
 				}
 				err := helper.RunQueries(context.TODO(), oc.NewPrometheusClient(context.TODO()), tests, oc)
@@ -482,28 +667,26 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 		})
 
 		g.It("shouldn't report any alerts in firing state apart from Watchdog and AlertmanagerReceiversNotConfigured [Early][apigroup:config.openshift.io]", func() {
-			// Checking Watchdog alert state is done in "should have a Watchdog alert in firing state".
-			allowedAlertNames := []string{
-				"Watchdog",
-				"AlertmanagerReceiversNotConfigured",
-				"PrometheusRemoteWriteDesiredShards",
-				"KubeJobFailed", // this is a result of bug https://bugzilla.redhat.com/show_bug.cgi?id=2054426 .  We should catch these in the late test above.
-			}
+			// Copy so we can expand:
+			allowedAlertNames := make([]string, len(allowedalerts2.AllowedAlertNames))
+			copy(allowedAlertNames, allowedalerts2.AllowedAlertNames)
 
+			// Checking Watchdog alert state is done in "should have a Watchdog alert in firing state".
 			// we exclude alerts that have their own separate tests.
-			for _, alertTest := range allowedalerts.AllAlertTests(&platformidentification.JobType{}, allowedalerts.DefaultAllowances) {
+			for _, alertTest := range allowedalerts2.AllAlertTests(&platformidentification.JobType{}, nil, allowedalerts2.DefaultAllowances) {
 				allowedAlertNames = append(allowedAlertNames, alertTest.AlertName())
 			}
 
-			if exutil.IsTechPreviewNoUpgrade(oc) {
-				// On a TechPreviewNoUpgrade cluster we must ignore the TechPreviewNoUpgrade and ClusterNotUpgradeable alerts generated by the CVO.
+			if exutil.IsNoUpgradeFeatureSet(oc) {
+				// On a TechPreviewNoUpgrade or CustomNoUpgrade cluster we must ignore the TechPreviewNoUpgrade and ClusterNotUpgradeable alerts generated by the CVO.
 				// These two alerts are expected in this case when a cluster is configured to enable Tech Preview features,
 				// as they were intended to be "gentle reminders" to the cluster admins of the ramifications of enabling Tech Preview
 				allowedAlertNames = append(allowedAlertNames, "TechPreviewNoUpgrade", "ClusterNotUpgradeable")
 			}
 
 			tests := map[string]bool{
-				fmt.Sprintf(`ALERTS{alertname!~"%s",alertstate="firing",severity!="info"} >= 1`, strings.Join(allowedAlertNames, "|")): false,
+				// openshift-e2e-loki alerts should never fail this test, we've seen this happen on daemon set rollout stuck when CI loki was down.
+				fmt.Sprintf(`ALERTS{alertname!~"%s",alertstate="firing",severity!="info",namespace!="openshift-e2e-loki"} >= 1`, strings.Join(allowedAlertNames, "|")): false,
 			}
 			err := helper.RunQueries(context.TODO(), oc.NewPrometheusClient(context.TODO()), tests, oc)
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -511,8 +694,8 @@ var _ = g.Describe("[sig-instrumentation] Prometheus [apigroup:image.openshift.i
 
 		g.It("should provide ingress metrics", func() {
 			var lastErrs []error
-			o.Expect(wait.PollImmediate(10*time.Second, 4*time.Minute, func() (bool, error) {
-				contents, err := getBearerTokenURL(fmt.Sprintf("%s/api/v1/targets", prometheusURL), bearerToken)
+			o.Expect(wait.PollUntilContextTimeout(context.Background(), 10*time.Second, 4*time.Minute, true, func(ctx context.Context) (bool, error) {
+				contents, err := helper.GetURLWithToken(helper.MustJoinUrlPath(prometheusURL, "api/v1/targets"), bearerToken)
 				o.Expect(err).NotTo(o.HaveOccurred())
 
 				targets := &prometheusTargets{}
@@ -688,27 +871,6 @@ func findMetricLabels(f *dto.MetricFamily, labels map[string]string, match strin
 		}
 	}
 	return result
-}
-
-func expectBearerTokenURLStatusCodeExec(url, bearer string, statusCode int) error {
-	cmd := fmt.Sprintf("curl -k -s -H 'Authorization: Bearer %s' -o /dev/null -w '%%{http_code}' %q", bearer, url)
-	output, err := exec.Command("bash", "-e", "-c", cmd).Output()
-	if err != nil {
-		return fmt.Errorf("host command failed: %v\n%s", err, output)
-	}
-	if string(output) != strconv.Itoa(statusCode) {
-		return fmt.Errorf("last response from server was not %d: %s", statusCode, output)
-	}
-	return nil
-}
-
-func getBearerTokenURL(url, bearer string) (string, error) {
-	cmd := fmt.Sprintf("curl -s -k -H 'Authorization: Bearer %s' %q", bearer, url)
-	output, err := exec.Command("bash", "-e", "-c", cmd).Output()
-	if err != nil {
-		return "", fmt.Errorf("host command failed: %v\n%s", err, output)
-	}
-	return string(output), nil
 }
 
 func getBearerTokenURLViaPod(ns, execPodName, url, bearer string) (string, error) {
