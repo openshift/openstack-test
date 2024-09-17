@@ -413,7 +413,9 @@ github.com/googleapis/gax-go/v2/internal
 ## explicit; go 1.22
 github.com/gophercloud/gophercloud/v2
 github.com/gophercloud/gophercloud/v2/openstack
+github.com/gophercloud/gophercloud/v2/openstack/blockstorage/v3/availabilityzones
 github.com/gophercloud/gophercloud/v2/openstack/blockstorage/v3/volumes
+github.com/gophercloud/gophercloud/v2/openstack/compute/v2/availabilityzones
 github.com/gophercloud/gophercloud/v2/openstack/compute/v2/flavors
 github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servergroups
 github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servers
