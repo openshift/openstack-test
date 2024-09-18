@@ -141,7 +141,7 @@ func CreatePVC(ctx context.Context, clientSet *kubernetes.Clientset, baseName st
 		Spec: v1.PersistentVolumeClaimSpec{
 			AccessModes:      []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce},
 			StorageClassName: &storageClassName,
-			Resources: v1.ResourceRequirements{
+			Resources: v1.VolumeResourceRequirements{
 				Requests: v1.ResourceList{
 					v1.ResourceStorage: resource.MustParse(pvcSize),
 				},

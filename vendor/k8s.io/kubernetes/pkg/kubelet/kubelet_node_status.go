@@ -31,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	utilnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/sets"
 	cloudprovider "k8s.io/cloud-provider"
 	cloudproviderapi "k8s.io/cloud-provider/api"
@@ -42,6 +43,7 @@ import (
 	"k8s.io/kubernetes/pkg/kubelet/events"
 	"k8s.io/kubernetes/pkg/kubelet/managed"
 	"k8s.io/kubernetes/pkg/kubelet/nodestatus"
+	"k8s.io/kubernetes/pkg/kubelet/sharedcpus"
 	"k8s.io/kubernetes/pkg/kubelet/util"
 	taintutil "k8s.io/kubernetes/pkg/util/taints"
 	volutil "k8s.io/kubernetes/pkg/volume/util"
@@ -54,6 +56,9 @@ func (kl *Kubelet) registerWithAPIServer() {
 	if kl.registrationCompleted {
 		return
 	}
+
+	kl.nodeStartupLatencyTracker.RecordAttemptRegisterNode()
+
 	step := 100 * time.Millisecond
 
 	for {
@@ -87,6 +92,7 @@ func (kl *Kubelet) registerWithAPIServer() {
 func (kl *Kubelet) tryRegisterWithAPIServer(node *v1.Node) bool {
 	_, err := kl.kubeClient.CoreV1().Nodes().Create(context.TODO(), node, metav1.CreateOptions{})
 	if err == nil {
+		kl.nodeStartupLatencyTracker.RecordRegisteredNewNode()
 		return true
 	}
 
@@ -119,6 +125,7 @@ func (kl *Kubelet) tryRegisterWithAPIServer(node *v1.Node) bool {
 	if managed.IsEnabled() {
 		requiresUpdate = kl.addManagementNodeCapacity(node, existingNode) || requiresUpdate
 	}
+	requiresUpdate = kl.reconcileSharedCPUsNodeCapacity(node, existingNode) || requiresUpdate
 	if requiresUpdate {
 		if _, _, err := nodeutil.PatchNodeStatus(kl.kubeClient.CoreV1(), types.NodeName(kl.nodeName), originalNode, existingNode); err != nil {
 			klog.ErrorS(err, "Unable to reconcile node with API server,error updating node", "node", klog.KObj(node))
@@ -145,6 +152,25 @@ func (kl *Kubelet) addManagementNodeCapacity(initialNode, existingNode *v1.Node)
 		return false
 	}
 	existingNode.Status.Capacity[managedResourceName] = *newCPURequest
+	return true
+}
+
+func (kl *Kubelet) reconcileSharedCPUsNodeCapacity(initialNode, existingNode *v1.Node) bool {
+	updateDefaultResources(initialNode, existingNode)
+	sharedCPUsResourceName := sharedcpus.GetResourceName()
+	// delete resources in case they exist and feature has been disabled
+	if !sharedcpus.IsEnabled() {
+		if _, ok := existingNode.Status.Capacity[sharedCPUsResourceName]; ok {
+			delete(existingNode.Status.Capacity, sharedCPUsResourceName)
+			return true
+		}
+		return false
+	}
+	q := resource.NewQuantity(sharedcpus.GetConfig().ContainersLimit, resource.DecimalSI)
+	if existingCapacity, ok := existingNode.Status.Capacity[sharedCPUsResourceName]; ok && existingCapacity.Equal(*q) {
+		return false
+	}
+	existingNode.Status.Capacity[sharedCPUsResourceName] = *q
 	return true
 }
 
@@ -450,6 +476,7 @@ func (kl *Kubelet) initialNode(ctx context.Context) (*v1.Node, error) {
 	if managed.IsEnabled() {
 		kl.addManagementNodeCapacity(node, node)
 	}
+	kl.reconcileSharedCPUsNodeCapacity(node, node)
 
 	kl.setNodeStatus(ctx, node)
 
@@ -660,6 +687,12 @@ func (kl *Kubelet) patchNodeStatus(originalNode, node *v1.Node) (*v1.Node, error
 	}
 	kl.lastStatusReportTime = kl.clock.Now()
 	kl.setLastObservedNodeAddresses(updatedNode.Status.Addresses)
+
+	readyIdx, readyCondition := nodeutil.GetNodeCondition(&updatedNode.Status, v1.NodeReady)
+	if readyIdx >= 0 && readyCondition.Status == v1.ConditionTrue {
+		kl.nodeStartupLatencyTracker.RecordNodeReady()
+	}
+
 	return updatedNode, nil
 }
 
@@ -749,19 +782,16 @@ func (kl *Kubelet) defaultNodeStatusFuncs() []func(context.Context, *v1.Node) er
 	if kl.cloud != nil {
 		nodeAddressesFunc = kl.cloudResourceSyncManager.NodeAddresses
 	}
-	var validateHostFunc func() error
-	if kl.appArmorValidator != nil {
-		validateHostFunc = kl.appArmorValidator.ValidateHost
-	}
 	var setters []func(ctx context.Context, n *v1.Node) error
 	setters = append(setters,
-		nodestatus.NodeAddress(kl.nodeIPs, kl.nodeIPValidator, kl.hostname, kl.hostnameOverridden, kl.externalCloudProvider, kl.cloud, nodeAddressesFunc),
+		nodestatus.NodeAddress(kl.nodeIPs, kl.nodeIPValidator, kl.hostname, kl.hostnameOverridden, kl.externalCloudProvider, kl.cloud, nodeAddressesFunc, utilnet.ResolveBindAddress),
 		nodestatus.MachineInfo(string(kl.nodeName), kl.maxPods, kl.podsPerCore, kl.GetCachedMachineInfo, kl.containerManager.GetCapacity,
 			kl.containerManager.GetDevicePluginResourceCapacity, kl.containerManager.GetNodeAllocatableReservation, kl.recordEvent, kl.supportLocalStorageCapacityIsolation()),
 		nodestatus.VersionInfo(kl.cadvisor.VersionInfo, kl.containerRuntime.Type, kl.containerRuntime.Version),
 		nodestatus.DaemonEndpoints(kl.daemonEndpoints),
 		nodestatus.Images(kl.nodeStatusMaxImages, kl.imageManager.GetImageList),
 		nodestatus.GoRuntime(),
+		nodestatus.RuntimeHandlers(kl.runtimeState.runtimeHandlers),
 	)
 	// Volume limits
 	setters = append(setters, nodestatus.VolumeLimits(kl.volumePluginMgr.ListVolumePluginWithLimits))
@@ -771,7 +801,7 @@ func (kl *Kubelet) defaultNodeStatusFuncs() []func(context.Context, *v1.Node) er
 		nodestatus.DiskPressureCondition(kl.clock.Now, kl.evictionManager.IsUnderDiskPressure, kl.recordNodeStatusEvent),
 		nodestatus.PIDPressureCondition(kl.clock.Now, kl.evictionManager.IsUnderPIDPressure, kl.recordNodeStatusEvent),
 		nodestatus.ReadyCondition(kl.clock.Now, kl.runtimeState.runtimeErrors, kl.runtimeState.networkErrors, kl.runtimeState.storageErrors,
-			validateHostFunc, kl.containerManager.Status, kl.shutdownManager.ShutdownStatus, kl.recordNodeStatusEvent, kl.supportLocalStorageCapacityIsolation()),
+			kl.containerManager.Status, kl.shutdownManager.ShutdownStatus, kl.recordNodeStatusEvent, kl.supportLocalStorageCapacityIsolation()),
 		nodestatus.VolumesInUse(kl.volumeManager.ReconcilerStatesHasBeenSynced, kl.volumeManager.GetVolumesInUse),
 		// TODO(mtaufen): I decided not to move this setter for now, since all it does is send an event
 		// and record state back to the Kubelet runtime object. In the future, I'd like to isolate

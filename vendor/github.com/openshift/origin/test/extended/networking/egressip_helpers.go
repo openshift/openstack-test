@@ -18,13 +18,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	configv1 "github.com/openshift/api/config/v1"
-	networkv1 "github.com/openshift/api/network/v1"
-	routev1 "github.com/openshift/api/route/v1"
-	cloudnetwork "github.com/openshift/client-go/cloudnetwork/clientset/versioned"
-	networkclient "github.com/openshift/client-go/network/clientset/versioned/typed/network/v1"
-	"github.com/openshift/origin/test/extended/util"
-	exutil "github.com/openshift/origin/test/extended/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -39,6 +32,13 @@ import (
 	"k8s.io/client-go/util/retry"
 	"k8s.io/kubernetes/test/e2e/framework"
 	frameworkpod "k8s.io/kubernetes/test/e2e/framework/pod"
+
+	configv1 "github.com/openshift/api/config/v1"
+	networkv1 "github.com/openshift/api/network/v1"
+	routev1 "github.com/openshift/api/route/v1"
+	cloudnetwork "github.com/openshift/client-go/cloudnetwork/clientset/versioned"
+	networkclient "github.com/openshift/client-go/network/clientset/versioned/typed/network/v1"
+	exutil "github.com/openshift/origin/test/extended/util"
 
 	imageutils "k8s.io/kubernetes/test/utils/image"
 )
@@ -157,7 +157,7 @@ func getWorkerNodesOrdered(clientset kubernetes.Interface) ([]corev1.Node, error
 	nodes, err := clientset.CoreV1().Nodes().List(
 		context.TODO(),
 		metav1.ListOptions{
-			LabelSelector: "node-role.kubernetes.io/worker=",
+			LabelSelector: nodeLabelSelectorWorker,
 		})
 	if err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ func findPacketSnifferInterface(oc *exutil.CLI, networkPlugin string, egressIPNo
 
 // findPacketSnifferInterfaceOnNode finds the interface that shall be used for packet capturing on this node.
 func findPacketSnifferInterfaceOnNode(oc *exutil.CLI, networkPlugin, nodeName string) (string, error) {
-	if networkPlugin == openshiftSDNPluginName {
+	if networkPlugin == OpenshiftSDNPluginName {
 		return findDefaultInterfaceForOpenShiftSDN(oc, nodeName)
 	}
 	if networkPlugin == OVNKubernetesPluginName {
@@ -283,14 +283,33 @@ func findBridgePhysicalInterface(oc *exutil.CLI, nodeName, bridgeName string) (s
 	if podName == "" {
 		return "", fmt.Errorf("Could not find a valid ovnkube-node pod on node '%s'", nodeName)
 	}
-	out, err = adminExecInPod(oc, "openshift-ovn-kubernetes", podName, "ovnkube-node", fmt.Sprintf("ovs-vsctl list-ports %s", bridgeName))
+
+	ovnkubePod, err := oc.AdminKubeClient().CoreV1().Pods("openshift-ovn-kubernetes").Get(context.Background(),
+		podName, metav1.GetOptions{})
+	if err != nil {
+		return "", fmt.Errorf("couldn't get %s pod in openshift-ovn-kubernetes namespace: %v", podName, err)
+	}
+
+	ovnkubeContainerName := ""
+	for _, container := range ovnkubePod.Spec.Containers {
+		if container.Name == "ovnkube-node" {
+			ovnkubeContainerName = container.Name
+		} else if container.Name == "ovnkube-controller" {
+			ovnkubeContainerName = container.Name
+		}
+	}
+	if ovnkubeContainerName == "" {
+		return "", fmt.Errorf("didn't find ovnkube-node or ovnkube-controller container in %s pod", podName)
+	}
+
+	out, err = adminExecInPod(oc, "openshift-ovn-kubernetes", podName, ovnkubeContainerName, fmt.Sprintf("ovs-vsctl list-ports %s", bridgeName))
 	if err != nil {
 		return "", fmt.Errorf("failed to get list of ports on bridge %s:, error: %v",
 			bridgeName, err)
 	}
 	for _, port := range strings.Split(out, "\n") {
 		out, err = adminExecInPod(
-			oc, "openshift-ovn-kubernetes", podName, "ovnkube-node",
+			oc, "openshift-ovn-kubernetes", podName, ovnkubeContainerName,
 			fmt.Sprintf("ovs-vsctl get Port %s Interfaces", port))
 		if err != nil {
 			return "", fmt.Errorf("failed to get port %s on bridge %s: error: %v",
@@ -301,7 +320,7 @@ func findBridgePhysicalInterface(oc *exutil.CLI, nodeName, bridgeName string) (s
 		ifaces := strings.TrimPrefix(strings.TrimSuffix(out, "]"), "[")
 		for _, iface := range strings.Split(ifaces, ",") {
 			out, err = adminExecInPod(
-				oc, "openshift-ovn-kubernetes", podName, "ovnkube-node",
+				oc, "openshift-ovn-kubernetes", podName, ovnkubeContainerName,
 				fmt.Sprintf("ovs-vsctl get Interface %s Type", strings.TrimSpace(iface)))
 			if err != nil {
 				return "", fmt.Errorf("failed to get Interface %q Type on bridge %q:, error: %v",
@@ -334,7 +353,7 @@ func createPacketSnifferDaemonSet(oc *exutil.CLI, namespace string, scheduleOnHo
 	f := oc.KubeFramework()
 	clientset := f.ClientSet
 
-	tcpdumpImage, err := util.DetermineImageFromRelease(oc, "network-tools")
+	tcpdumpImage, err := exutil.GetDockerImageReference(oc.ImageClient().ImageV1().ImageStreams("openshift"), "network-tools", "latest")
 	if err != nil {
 		return nil, err
 	}

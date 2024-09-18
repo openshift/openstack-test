@@ -9,29 +9,34 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func LocatePod(pod *corev1.Pod) string {
-	return fmt.Sprintf("ns/%s pod/%s node/%s uid/%s", pod.Namespace, pod.Name, pod.Spec.NodeName, pod.UID)
-}
-
-func LocatePodContainer(pod *corev1.Pod, containerName string) string {
-	return fmt.Sprintf("ns/%s pod/%s node/%s uid/%s container/%s", pod.Namespace, pod.Name, pod.Spec.NodeName, pod.UID, containerName)
+func LocatePod(pod *corev1.Pod) Locator {
+	return Locator{
+		Type: LocatorTypePod,
+		Keys: map[LocatorKey]string{
+			LocatorNamespaceKey: pod.Namespace,
+			LocatorPodKey:       pod.Name,
+			LocatorNodeKey:      pod.Spec.NodeName,
+			LocatorUIDKey:       string(pod.UID),
+		},
+	}
 }
 
 // NonUniquePodLocatorFrom produces an inexact locator based on namespace and name.  This is useful when dealing with events
 // that are produced that do not contain UIDs.  Ultimately, we should use UIDs everywhere, but this is will keep some our
 // matching working until then.
-func NonUniquePodLocatorFrom(locator string) string {
-	parts := LocatorParts(locator)
-	namespace := NamespaceFrom(parts)
-	return fmt.Sprintf("ns/%s pod/%s", namespace, parts["pod"])
+func NonUniquePodLocatorFrom(locator Locator) string {
+	namespace := locator.Keys[LocatorNamespaceKey]
+	pod := locator.Keys[LocatorPodKey]
+	return fmt.Sprintf("ns/%s pod/%s", namespace, pod)
 }
 
-func PodFrom(locator string) PodReference {
-	parts := LocatorParts(locator)
-	namespace := NamespaceFrom(parts)
-	name := parts["pod"]
-	uid := parts["uid"]
-	if len(namespace) == 0 || len(name) == 0 || len(uid) == 0 {
+// PodFrom is used to strip down a locator to just a pod. (as it may contain additional keys like container or node)
+// that we do not want for some uses.
+func PodFrom(locator Locator) PodReference {
+	namespace := locator.Keys[LocatorNamespaceKey]
+	name := locator.Keys[LocatorPodKey]
+	uid := locator.Keys[LocatorUIDKey]
+	if len(namespace) == 0 || len(name) == 0 {
 		return PodReference{}
 	}
 	return PodReference{
@@ -43,10 +48,9 @@ func PodFrom(locator string) PodReference {
 	}
 }
 
-func ContainerFrom(locator string) ContainerReference {
+func ContainerFrom(locator Locator) ContainerReference {
 	pod := PodFrom(locator)
-	parts := LocatorParts(locator)
-	name := parts["container"]
+	name := locator.Keys[LocatorContainerKey]
 	if len(name) == 0 || len(pod.UID) == 0 {
 		return ContainerReference{}
 	}
@@ -56,12 +60,13 @@ func ContainerFrom(locator string) ContainerReference {
 	}
 }
 
+// TODO: delete all these
 type PodReference struct {
 	NamespacedReference
 }
 
-func (r PodReference) ToLocator() string {
-	return fmt.Sprintf("ns/%s pod/%s uid/%s", r.Namespace, r.Name, r.UID)
+func (r PodReference) ToLocator() Locator {
+	return NewLocator().PodFromNames(r.Namespace, r.Name, r.UID)
 }
 
 type ContainerReference struct {
@@ -69,8 +74,8 @@ type ContainerReference struct {
 	ContainerName string
 }
 
-func (r ContainerReference) ToLocator() string {
-	return fmt.Sprintf("ns/%s pod/%s uid/%s container/%s", r.Pod.Namespace, r.Pod.Name, r.Pod.UID, r.ContainerName)
+func (r ContainerReference) ToLocator() Locator {
+	return NewLocator().ContainerFromNames(r.Pod.Namespace, r.Pod.Name, r.Pod.UID, r.ContainerName)
 }
 
 func AnnotationsFromMessage(message string) map[AnnotationKey]string {
@@ -101,135 +106,14 @@ func ReasonFrom(message string) IntervalReason {
 	return IntervalReason(annotations[AnnotationReason])
 }
 
+func ConstructionOwnerFrom(message string) IntervalReason {
+	annotations := AnnotationsFromMessage(message)
+	return IntervalReason(annotations[AnnotationConstructed])
+}
+
 func PhaseFrom(message string) string {
 	annotations := AnnotationsFromMessage(message)
-	return annotations[AnnotationPodPhase]
-}
-
-type IntervalReason string
-
-const (
-	IPTablesNotPermitted IntervalReason = "iptables-operation-not-permitted"
-
-	DisruptionBeganEventReason              IntervalReason = "DisruptionBegan"
-	DisruptionEndedEventReason              IntervalReason = "DisruptionEnded"
-	DisruptionSamplerOutageBeganEventReason IntervalReason = "DisruptionSamplerOutageBegan"
-
-	HttpClientConnectionLost IntervalReason = "HttpClientConnectionLost"
-
-	PodReasonCreated               IntervalReason = "Created"
-	PodReasonGracefulDeleteStarted IntervalReason = "GracefulDelete"
-	PodReasonForceDelete           IntervalReason = "ForceDelete"
-	PodReasonDeleted               IntervalReason = "Deleted"
-	PodReasonScheduled             IntervalReason = "Scheduled"
-
-	ContainerReasonContainerExit      IntervalReason = "ContainerExit"
-	ContainerReasonContainerStart     IntervalReason = "ContainerStart"
-	ContainerReasonContainerWait      IntervalReason = "ContainerWait"
-	ContainerReasonReadinessFailed    IntervalReason = "ReadinessFailed"
-	ContainerReasonReadinessErrored   IntervalReason = "ReadinessErrored"
-	ContainerReasonStartupProbeFailed IntervalReason = "StartupProbeFailed"
-	ContainerReasonReady              IntervalReason = "Ready"
-	ContainerReasonNotReady           IntervalReason = "NotReady"
-
-	PodReasonDeletedBeforeScheduling IntervalReason = "DeletedBeforeScheduling"
-	PodReasonDeletedAfterCompletion  IntervalReason = "DeletedAfterCompletion"
-)
-
-type AnnotationKey string
-
-const (
-	AnnotationReason            AnnotationKey = "reason"
-	AnnotationContainerExitCode AnnotationKey = "code"
-	AnnotationCause             AnnotationKey = "cause"
-	AnnotationNode              AnnotationKey = "node"
-	AnnotationConstructed       AnnotationKey = "constructed"
-	AnnotationPodPhase          AnnotationKey = "phase"
-	AnnotationIsStaticPod       AnnotationKey = "mirrored"
-	// TODO this looks wrong. seems like it ought to be set in the to/from
-	AnnotationDuration AnnotationKey = "duration"
-)
-
-type MessageBuilder struct {
-	annotations     map[AnnotationKey]string
-	originalMessage string
-}
-
-func Message() *MessageBuilder {
-	return &MessageBuilder{
-		annotations: map[AnnotationKey]string{},
-	}
-}
-
-func ExpandMessage(prevMessage string) *MessageBuilder {
-	prevAnnotations := AnnotationsFromMessage(prevMessage)
-	prevNonAnnotationMessage := NonAnnotationMessage(prevMessage)
-	return &MessageBuilder{
-		annotations:     prevAnnotations,
-		originalMessage: prevNonAnnotationMessage,
-	}
-}
-
-func (m *MessageBuilder) Reason(reason IntervalReason) *MessageBuilder {
-	return m.WithAnnotation(AnnotationReason, string(reason))
-}
-
-func (m *MessageBuilder) Cause(cause string) *MessageBuilder {
-	return m.WithAnnotation(AnnotationCause, cause)
-}
-
-func (m *MessageBuilder) Node(node string) *MessageBuilder {
-	return m.WithAnnotation(AnnotationNode, node)
-}
-
-func (m *MessageBuilder) Constructed() *MessageBuilder {
-	return m.WithAnnotation(AnnotationConstructed, "true")
-}
-
-func (m *MessageBuilder) WithAnnotation(name AnnotationKey, value string) *MessageBuilder {
-	m.annotations[name] = value
-	return m
-}
-
-func (m *MessageBuilder) WithAnnotations(annotations map[AnnotationKey]string) *MessageBuilder {
-	for k, v := range annotations {
-		m.annotations[k] = v
-	}
-	return m
-}
-
-func (m *MessageBuilder) NoDetails() string {
-	keys := sets.NewString()
-	for k := range m.annotations {
-		keys.Insert(string(k))
-	}
-
-	annotations := []string{}
-	for _, k := range keys.List() {
-		v := m.annotations[AnnotationKey(k)]
-		annotations = append(annotations, fmt.Sprintf("%v/%v", k, v))
-	}
-	annotationString := strings.Join(annotations, " ")
-	return m.appendPreviousMessage(annotationString)
-}
-
-func (m *MessageBuilder) Messagef(messageFormat string, args ...interface{}) string {
-	return m.Message(fmt.Sprintf(messageFormat, args...))
-}
-
-func (m *MessageBuilder) Message(message string) string {
-	if len(message) == 0 {
-		return m.NoDetails()
-	}
-	annotationString := m.NoDetails()
-	return m.appendPreviousMessage(fmt.Sprintf("%v %v", annotationString, message))
-}
-
-func (m *MessageBuilder) appendPreviousMessage(newMessage string) string {
-	if len(m.originalMessage) == 0 {
-		return newMessage
-	}
-	return fmt.Sprintf("%v %v", m.originalMessage, newMessage)
+	return annotations[AnnotationPhase]
 }
 
 const (
@@ -278,11 +162,11 @@ var (
 	)
 )
 
-type ByTimeWithNamespacedPods []EventInterval
+type ByTimeWithNamespacedPods []Interval
 
 func (intervals ByTimeWithNamespacedPods) Less(i, j int) bool {
-	lhsIsPodConstructed := strings.Contains(intervals[i].Message, "constructed") && strings.Contains(intervals[i].Locator, "pod/")
-	rhsIsPodConstructed := strings.Contains(intervals[j].Message, "constructed") && strings.Contains(intervals[j].Locator, "pod/")
+	lhsIsPodConstructed := len(intervals[i].Message.Annotations[AnnotationConstructed]) > 0 && len(intervals[i].Locator.Keys[LocatorPodKey]) > 0
+	rhsIsPodConstructed := len(intervals[j].Message.Annotations[AnnotationConstructed]) > 0 && len(intervals[j].Locator.Keys[LocatorPodKey]) > 0
 	switch {
 	case lhsIsPodConstructed && rhsIsPodConstructed:
 		lhsNamespace := NamespaceFromLocator(intervals[i].Locator)
@@ -314,7 +198,7 @@ func (intervals ByTimeWithNamespacedPods) Less(i, j int) bool {
 	case d > 0:
 		return false
 	}
-	return intervals[i].Message < intervals[j].Message
+	return intervals[i].Message.HumanMessage < intervals[j].Message.HumanMessage
 }
 
 func (intervals ByTimeWithNamespacedPods) Len() int { return len(intervals) }

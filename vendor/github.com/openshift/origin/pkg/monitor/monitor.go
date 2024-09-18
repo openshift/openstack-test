@@ -2,362 +2,243 @@ package monitor
 
 import (
 	"context"
+	"encoding/xml"
 	"fmt"
-	"sort"
-	"strconv"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
+	"github.com/openshift/origin/pkg/riskanalysis"
+
+	"github.com/openshift/origin/pkg/monitortestframework"
+
+	"k8s.io/apimachinery/pkg/util/sets"
+
+	monitorserialization "github.com/openshift/origin/pkg/monitor/serialization"
+
+	"github.com/openshift/origin/pkg/test"
+	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
+
 	"github.com/openshift/origin/pkg/monitor/monitorapi"
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
 )
 
-// Monitor records events that have occurred in memory and can also periodically
-// sample results.
 type Monitor struct {
-	interval time.Duration
-	samplers []SamplerFunc
+	adminKubeConfig     *rest.Config
+	monitorTestRegistry monitortestframework.MonitorTestRegistry
+	storageDir          string
 
-	lock           sync.Mutex
-	events         monitorapi.Intervals
-	unsortedEvents monitorapi.Intervals
-	samples        []*sample
+	recorder monitorapi.Recorder
+	junits   []*junitapi.JUnitTestCase
 
-	recordedResourceLock sync.Mutex
-	recordedResources    monitorapi.ResourcesMap
+	lock      sync.Mutex
+	stopFn    context.CancelFunc
+	startTime time.Time
+	stopTime  time.Time
 }
 
 // NewMonitor creates a monitor with the default sampling interval.
-func NewMonitor() *Monitor {
-	return NewMonitorWithInterval(15 * time.Second)
-}
-
-// NewMonitorWithInterval creates a monitor that samples at the provided
-// interval.
-func NewMonitorWithInterval(interval time.Duration) *Monitor {
+func NewMonitor(
+	recorder monitorapi.Recorder,
+	adminKubeConfig *rest.Config,
+	storageDir string,
+	monitorTestRegistry monitortestframework.MonitorTestRegistry) Interface {
 	return &Monitor{
-		interval:          interval,
-		recordedResources: monitorapi.ResourcesMap{},
+		adminKubeConfig:     adminKubeConfig,
+		recorder:            recorder,
+		monitorTestRegistry: monitorTestRegistry,
+		storageDir:          storageDir,
 	}
 }
 
 var _ Interface = &Monitor{}
 
-// StartSampling starts sampling every interval until the provided context is done.
-// A sample is captured when the context is closed.
-func (m *Monitor) StartSampling(ctx context.Context) {
-	if m.interval == 0 {
-		return
-	}
-	go func() {
-		ticker := time.NewTicker(m.interval)
-		defer ticker.Stop()
-		hasConditions := false
-		for {
-			select {
-			case <-ticker.C:
-			case <-ctx.Done():
-				hasConditions = m.sample(hasConditions)
-				return
-			}
-			hasConditions = m.sample(hasConditions)
-		}
-	}()
-}
-
-// AddSampler adds a sampler function to the list of samplers to run every interval.
-// Conditions discovered this way are recorded with a start and end time if they persist
-// across multiple sampling intervals.
-func (m *Monitor) AddSampler(fn SamplerFunc) {
+// Start begins monitoring the cluster referenced by the default kube configuration until context is finished.
+func (m *Monitor) Start(ctx context.Context) error {
 	m.lock.Lock()
 	defer m.lock.Unlock()
-	m.samplers = append(m.samplers, fn)
-}
-
-func (m *Monitor) CurrentResourceState() monitorapi.ResourcesMap {
-	m.recordedResourceLock.Lock()
-	defer m.recordedResourceLock.Unlock()
-
-	ret := monitorapi.ResourcesMap{}
-	for resourceType, instanceResourceMap := range m.recordedResources {
-		retInstance := monitorapi.InstanceMap{}
-		for instanceKey, obj := range instanceResourceMap {
-			retInstance[instanceKey] = obj.DeepCopyObject()
-		}
-		ret[resourceType] = retInstance
+	if m.stopFn != nil {
+		return fmt.Errorf("monitor already started")
 	}
+	ctx, m.stopFn = context.WithCancel(ctx)
+	m.startTime = time.Now()
 
-	return ret
-}
-
-func (m *Monitor) RecordResource(resourceType string, obj runtime.Object) {
-	m.recordedResourceLock.Lock()
-	defer m.recordedResourceLock.Unlock()
-
-	recordedResource, ok := m.recordedResources[resourceType]
-	if !ok {
-		recordedResource = monitorapi.InstanceMap{}
-		m.recordedResources[resourceType] = recordedResource
-	}
-
-	newMetadata, err := meta.Accessor(obj)
+	localJunits, err := m.monitorTestRegistry.StartCollection(ctx, m.adminKubeConfig, m.recorder)
 	if err != nil {
-		// coding error
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Error starting data collection, continuing, junit will reflect this. %v\n", err)
 	}
-	key := monitorapi.InstanceKey{
-		Namespace: newMetadata.GetNamespace(),
-		Name:      newMetadata.GetName(),
-		UID:       fmt.Sprintf("%v", newMetadata.GetUID()),
-	}
+	m.junits = append(m.junits, localJunits...)
+	fmt.Printf("All monitor tests started.\n")
 
-	toStore := obj.DeepCopyObject()
-	// without metadata, just stomp in the new value, we can't add annotations
-	if newMetadata == nil {
-		recordedResource[key] = toStore
-		return
-	}
-
-	newAnnotations := newMetadata.GetAnnotations()
-	if newAnnotations == nil {
-		newAnnotations = map[string]string{}
-	}
-	existingResource, ok := recordedResource[key]
-	if !ok {
-		if newMetadata != nil {
-			newAnnotations[monitorapi.ObservedUpdateCountAnnotation] = "1"
-			newAnnotations[monitorapi.ObservedRecreationCountAnnotation] = "0"
-			newMetadata.SetAnnotations(newAnnotations)
-		}
-		recordedResource[key] = toStore
-		return
-	}
-
-	existingMetadata, _ := meta.Accessor(existingResource)
-	// without metadata, just stomp in the new value, we can't add annotations
-	if existingMetadata == nil {
-		recordedResource[key] = toStore
-		return
-	}
-
-	existingAnnotations := existingMetadata.GetAnnotations()
-	if existingAnnotations == nil {
-		existingAnnotations = map[string]string{}
-	}
-	existingUpdateCountStr := existingAnnotations[monitorapi.ObservedUpdateCountAnnotation]
-	if existingUpdateCount, err := strconv.ParseInt(existingUpdateCountStr, 10, 32); err != nil {
-		newAnnotations[monitorapi.ObservedUpdateCountAnnotation] = "1"
-	} else {
-		newAnnotations[monitorapi.ObservedUpdateCountAnnotation] = fmt.Sprintf("%d", existingUpdateCount+1)
-	}
-
-	// set the recreate count. increment if the UIDs don't match
-	existingRecreateCountStr := existingAnnotations[monitorapi.ObservedUpdateCountAnnotation]
-	if existingMetadata.GetUID() != newMetadata.GetUID() {
-		if existingRecreateCount, err := strconv.ParseInt(existingRecreateCountStr, 10, 32); err != nil {
-			newAnnotations[monitorapi.ObservedRecreationCountAnnotation] = existingRecreateCountStr
-		} else {
-			newAnnotations[monitorapi.ObservedRecreationCountAnnotation] = fmt.Sprintf("%d", existingRecreateCount+1)
-		}
-	} else {
-		newAnnotations[monitorapi.ObservedRecreationCountAnnotation] = existingRecreateCountStr
-	}
-
-	newMetadata.SetAnnotations(newAnnotations)
-	recordedResource[key] = toStore
-	return
+	return nil
 }
 
-// Record captures one or more conditions at the current time. All conditions are recorded
-// in monotonic order as EventInterval objects.
-func (m *Monitor) Record(conditions ...monitorapi.Condition) {
-	if len(conditions) == 0 {
-		return
-	}
-	m.lock.Lock()
-	defer m.lock.Unlock()
-	t := time.Now().UTC()
-	for _, condition := range conditions {
-		m.events = append(m.events, monitorapi.EventInterval{
-			Condition: condition,
-			From:      t,
-			To:        t,
-		})
-	}
-}
-
-// AddIntervals provides a mechanism to directly inject eventIntervals
-func (m *Monitor) AddIntervals(eventIntervals ...monitorapi.EventInterval) {
-	m.lock.Lock()
-	defer m.lock.Unlock()
-	m.events = append(m.events, eventIntervals...)
-}
-
-// StartInterval inserts a record at time t with the provided condition and returns an opaque
-// locator to the interval. The caller may close the sample at any point by invoking EndInterval().
-func (m *Monitor) StartInterval(t time.Time, condition monitorapi.Condition) int {
-	m.lock.Lock()
-	defer m.lock.Unlock()
-	m.unsortedEvents = append(m.unsortedEvents, monitorapi.EventInterval{
-		Condition: condition,
-		From:      t,
-	})
-	return len(m.unsortedEvents) - 1
-}
-
-// EndInterval updates the To of the interval started by StartInterval if t is greater than
-// the from.
-func (m *Monitor) EndInterval(startedInterval int, t time.Time) {
-	m.lock.Lock()
-	defer m.lock.Unlock()
-	if startedInterval < len(m.unsortedEvents) {
-		if m.unsortedEvents[startedInterval].From.Before(t) {
-			m.unsortedEvents[startedInterval].To = t
-		}
-	}
-}
-
-// RecordAt captures one or more conditions at the provided time. All conditions are recorded
-// as EventInterval objects.
-func (m *Monitor) RecordAt(t time.Time, conditions ...monitorapi.Condition) {
-	if len(conditions) == 0 {
-		return
-	}
-	m.lock.Lock()
-	defer m.lock.Unlock()
-	for _, condition := range conditions {
-		m.unsortedEvents = append(m.unsortedEvents, monitorapi.EventInterval{
-			Condition: condition,
-			From:      t,
-			To:        t,
-		})
-	}
-}
-
-func (m *Monitor) sample(hasPrevious bool) bool {
-	m.lock.Lock()
-	samplers := m.samplers
-	m.lock.Unlock()
-
-	now := time.Now().UTC()
-	var conditions []*monitorapi.Condition
-	for _, fn := range samplers {
-		conditions = append(conditions, fn(now)...)
-	}
-	if len(conditions) == 0 {
-		if !hasPrevious {
-			return false
-		}
-	}
+func (m *Monitor) Stop(ctx context.Context) (ResultState, error) {
+	fmt.Fprintf(os.Stderr, "Shutting down the monitor\n")
 
 	m.lock.Lock()
 	defer m.lock.Unlock()
-	m.samples = append(m.samples, &sample{
-		at:         now,
-		conditions: conditions,
-	})
-	return len(conditions) > 0
+	if m.stopFn == nil {
+		return Failed, fmt.Errorf("monitor not started")
+	}
+	m.stopFn()
+	m.stopFn = nil
+
+	preStopTime := time.Now()
+
+	fmt.Fprintf(os.Stderr, "Collecting data.\n")
+	collectedIntervals, collectionJunits, err := m.monitorTestRegistry.CollectData(ctx, m.storageDir, m.startTime, preStopTime)
+	if err != nil {
+		// these errors are represented as junit, always continue to the next step
+		fmt.Fprintf(os.Stderr, "Error collecting data, continuing, junit will reflect this. %v\n", err)
+	}
+	m.recorder.AddIntervals(collectedIntervals...)
+	m.junits = append(m.junits, collectionJunits...)
+
+	// set the stop time for after we finished.
+	m.stopTime = time.Now()
+
+	fmt.Fprintf(os.Stderr, "Computing intervals.\n")
+	computedIntervals, computedJunit, err := m.monitorTestRegistry.ConstructComputedIntervals(
+		ctx,
+		m.recorder.Intervals(time.Time{}, time.Time{}), // compute intervals based on *all* the intervals.
+		m.recorder.CurrentResourceState(),
+		m.startTime, // still allow computation to understand the beginning and end for bounding.
+		m.stopTime)  // still allow computation to understand the beginning and end for bounding.
+	if err != nil {
+		// these errors are represented as junit, always continue to the next step
+		fmt.Fprintf(os.Stderr, "Error computing intervals, continuing, junit will reflect this. %v\n", err)
+	}
+	m.recorder.AddIntervals(computedIntervals...)
+	m.junits = append(m.junits, computedJunit...)
+
+	fmt.Fprintf(os.Stderr, "Evaluating tests.\n")
+	// compute intervals based on *all* the intervals.  Individual monitortests can choose how to restrict themselves.
+	finalEvents := m.recorder.Intervals(time.Time{}, time.Time{})
+	filename := fmt.Sprintf("events_used_for_junits_%s.json", m.startTime.UTC().Format("20060102-150405"))
+	if err := monitorserialization.EventsToFile(filepath.Join(m.storageDir, filename), finalEvents); err != nil {
+		fmt.Fprintf(os.Stderr, "error: Failed to junit event info: %v\n", err)
+	}
+	monitorTestJunits, err := m.monitorTestRegistry.EvaluateTestsFromConstructedIntervals(
+		ctx,
+		finalEvents, // evaluate the tests on the intervals during our active time.
+	)
+	if err != nil {
+		// these errors are represented as junit, always continue to the next step
+		fmt.Fprintf(os.Stderr, "Error evaluating tests, continuing, junit will reflect this. %v\n", err)
+	}
+	m.junits = append(m.junits, monitorTestJunits...)
+
+	fmt.Fprintf(os.Stderr, "Cleaning up.\n")
+	cleanupJunits, err := m.monitorTestRegistry.Cleanup(ctx)
+	if err != nil {
+		// these errors are represented as junit, always continue to the next step
+		fmt.Fprintf(os.Stderr, "Error cleaning up, continuing, junit will reflect this. %v\n", err)
+	}
+	m.junits = append(m.junits, cleanupJunits...)
+
+	successfulTestNames := sets.NewString()
+	failedTestNames := sets.NewString()
+	resultState := Succeeded
+	for _, junit := range m.junits {
+		if junit.FailureOutput != nil {
+			failedTestNames.Insert(junit.Name)
+			continue
+		}
+		successfulTestNames.Insert(junit.Name)
+	}
+	onlyFailingTests := failedTestNames.Difference(successfulTestNames)
+	if len(onlyFailingTests) > 0 {
+		resultState = Failed
+	}
+
+	return resultState, nil
 }
 
-func (m *Monitor) snapshot() ([]*sample, monitorapi.Intervals, monitorapi.Intervals) {
+func (m *Monitor) SerializeResults(ctx context.Context, junitSuiteName, timeSuffix string) error {
+	fmt.Fprintf(os.Stderr, "Serializing results.\n")
 	m.lock.Lock()
 	defer m.lock.Unlock()
-	return m.samples, m.events, m.unsortedEvents
+
+	// We bound the intervals by the monitor stop/start time to limit the scope to when
+	// the monitors run (e.g., during upgrade phase and during e2e phase post upgrade).
+	// The tests will not be able to discover intervals outside of the current phase (e.g.,
+	// tests that check intervals for the e2e phase will not see intervals during upgrade
+	// phase and vice versa).  If it turns out visibility throughout the entire run yields
+	// useful testing, we can comeback and tweak this accordingly.
+	finalIntervals := m.recorder.Intervals(m.startTime, m.stopTime)
+
+	finalResources := m.recorder.CurrentResourceState()
+	// TODO stop taking timesuffix as an arg and make this authoritative.
+	// timeSuffix := fmt.Sprintf("_%s", time.Now().UTC().Format("20060102-150405"))
+
+	eventDir := filepath.Join(m.storageDir, monitorapi.EventDir)
+	if err := os.MkdirAll(eventDir, os.ModePerm); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to create monitor-events directory, err: %v\n", err)
+		return err
+	}
+
+	fmt.Fprintf(os.Stderr, "Writing to storage.\n")
+	fmt.Fprintf(os.Stderr, "  m.startTime = %s\n", m.startTime)
+	fmt.Fprintf(os.Stderr, "  m.stopTime  = %s\n", m.stopTime)
+
+	monitorTestJunits, err := m.monitorTestRegistry.WriteContentToStorage(
+		ctx,
+		m.storageDir,
+		timeSuffix,
+		finalIntervals,
+		finalResources,
+	)
+	if err != nil {
+		// these errors are represented as junit, always continue to the next step
+		fmt.Fprintf(os.Stderr, "Error writing to storage, continuing, junit will reflect this. %v\n", err)
+	}
+	m.junits = append(m.junits, monitorTestJunits...)
+
+	fmt.Fprintf(os.Stderr, "Writing junits.\n")
+	var junitSuite *junitapi.JUnitTestSuite
+	if junitSuite, err = m.serializeJunit(ctx, m.storageDir, junitSuiteName, timeSuffix); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to write junit xml, err: %v\n", err)
+		return err
+	}
+
+	if err := riskanalysis.WriteJobRunTestFailureSummary(m.storageDir, timeSuffix, junitSuite, "", "_monitor"); err != nil {
+		fmt.Fprintf(os.Stderr, "error: Unable to write e2e job run failures summary: %v", err)
+	}
+
+	return nil
 }
 
-// Conditions returns all conditions that were sampled in the interval
-// between from and to. If that does not include a sample interval, no
-// results will be returned. Intervals are returned in order of
-// their first sampling. A condition that was only sampled once is
-// returned with from == to. No duplicate conditions are returned
-// unless a sampling interval did not report that value.
-func (m *Monitor) Conditions(from, to time.Time) monitorapi.Intervals {
-	samples, _, _ := m.snapshot()
-	return filterSamples(samples, from, to)
-}
-
-// Intervals returns all events that occur between from and to, including
-// any sampled conditions that were encountered during that period.
-// Intervals are returned in order of their occurrence. The returned slice
-// is a copy of the monitor's state and is safe to update.
-func (m *Monitor) Intervals(from, to time.Time) monitorapi.Intervals {
-	samples, sortedEvents, unsortedEvents := m.snapshot()
-
-	intervals := mergeIntervals(sortedEvents.Slice(from, to), unsortedEvents.CopyAndSort(from, to), filterSamples(samples, from, to))
-
-	return intervals
-}
-
-// filterSamples converts the sorted samples that are within [from,to) to a set of
-// intervals.
-// TODO: simplify this by having the monitor samplers produce intervals themselves
-//
-//	and make the streaming print logic simply show transitions.
-func filterSamples(samples []*sample, from, to time.Time) monitorapi.Intervals {
-	if len(samples) == 0 {
-		return nil
+func (m *Monitor) serializeJunit(ctx context.Context, storageDir, junitSuiteName, fileSuffix string) (*junitapi.JUnitTestSuite, error) {
+	junitSuite := junitapi.JUnitTestSuite{
+		Name:       junitSuiteName,
+		NumTests:   0,
+		NumSkipped: 0,
+		NumFailed:  0,
+		Duration:   0,
+		Properties: nil,
+		TestCases:  nil,
+		Children:   nil,
 	}
+	for i := range m.junits {
+		currJunit := m.junits[i]
 
-	if !from.IsZero() {
-		first := sort.Search(len(samples), func(i int) bool {
-			return samples[i].at.After(from)
-		})
-		if first == -1 {
-			return nil
+		junitSuite.NumTests++
+		if currJunit.FailureOutput != nil {
+			junitSuite.NumFailed++
+		} else if currJunit.SkipMessage != nil {
+			junitSuite.NumSkipped++
 		}
-		samples = samples[first:]
+		junitSuite.TestCases = append(junitSuite.TestCases, currJunit)
 	}
 
-	if !to.IsZero() {
-		for i, sample := range samples {
-			if sample.at.After(to) {
-				samples = samples[:i]
-				break
-			}
-		}
+	out, err := xml.MarshalIndent(junitSuite, "", "    ")
+	if err != nil {
+		return nil, err
 	}
-	if len(samples) == 0 {
-		return nil
-	}
-
-	intervals := make(monitorapi.Intervals, 0, len(samples)*2)
-	last, next := make(map[monitorapi.Condition]*monitorapi.EventInterval), make(map[monitorapi.Condition]*monitorapi.EventInterval)
-	for _, sample := range samples {
-		for _, condition := range sample.conditions {
-			interval, ok := last[*condition]
-			if ok {
-				interval.To = sample.at
-				next[*condition] = interval
-				continue
-			}
-			intervals = append(intervals, monitorapi.EventInterval{
-				Condition: *condition,
-				From:      sample.at,
-				To:        sample.at.Add(time.Second),
-			})
-			next[*condition] = &intervals[len(intervals)-1]
-		}
-		for k := range last {
-			delete(last, k)
-		}
-		last, next = next, last
-	}
-	return intervals
-}
-
-// mergeEvents returns a sorted list of all events provided as sources. This could be
-// more efficient by requiring all sources to be sorted and then performing a zipper
-// merge.
-func mergeIntervals(sets ...monitorapi.Intervals) monitorapi.Intervals {
-	total := 0
-	for _, set := range sets {
-		total += len(set)
-	}
-	merged := make(monitorapi.Intervals, 0, total)
-	for _, set := range sets {
-		merged = append(merged, set...)
-	}
-	sort.Sort(merged)
-	return merged
+	filePrefix := "e2e-monitor-tests"
+	path := filepath.Join(storageDir, fmt.Sprintf("%s_%s.xml", filePrefix, fileSuffix))
+	fmt.Fprintf(os.Stderr, "Writing JUnit report to %s\n", path)
+	return &junitSuite, os.WriteFile(path, test.StripANSI(out), 0640)
 }

@@ -24,10 +24,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/types"
-	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
-	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/volumemanager/cache"
 	"k8s.io/kubernetes/pkg/util/goroutinemap/exponentialbackoff"
 	volumepkg "k8s.io/kubernetes/pkg/volume"
@@ -104,24 +102,24 @@ func NewReconciler(
 	volumePluginMgr *volumepkg.VolumePluginMgr,
 	kubeletPodsDir string) Reconciler {
 	return &reconciler{
-		kubeClient:                    kubeClient,
-		controllerAttachDetachEnabled: controllerAttachDetachEnabled,
-		loopSleepDuration:             loopSleepDuration,
-		waitForAttachTimeout:          waitForAttachTimeout,
-		nodeName:                      nodeName,
-		desiredStateOfWorld:           desiredStateOfWorld,
-		actualStateOfWorld:            actualStateOfWorld,
-		populatorHasAddedPods:         populatorHasAddedPods,
-		operationExecutor:             operationExecutor,
-		mounter:                       mounter,
-		hostutil:                      hostutil,
-		skippedDuringReconstruction:   map[v1.UniqueVolumeName]*globalVolumeInfo{},
-		volumePluginMgr:               volumePluginMgr,
-		kubeletPodsDir:                kubeletPodsDir,
-		timeOfLastSync:                time.Time{},
-		volumesFailedReconstruction:   make([]podVolume, 0),
-		volumesNeedDevicePath:         make([]v1.UniqueVolumeName, 0),
-		volumesNeedReportedInUse:      make([]v1.UniqueVolumeName, 0),
+		kubeClient:                      kubeClient,
+		controllerAttachDetachEnabled:   controllerAttachDetachEnabled,
+		loopSleepDuration:               loopSleepDuration,
+		waitForAttachTimeout:            waitForAttachTimeout,
+		nodeName:                        nodeName,
+		desiredStateOfWorld:             desiredStateOfWorld,
+		actualStateOfWorld:              actualStateOfWorld,
+		populatorHasAddedPods:           populatorHasAddedPods,
+		operationExecutor:               operationExecutor,
+		mounter:                         mounter,
+		hostutil:                        hostutil,
+		skippedDuringReconstruction:     map[v1.UniqueVolumeName]*globalVolumeInfo{},
+		volumePluginMgr:                 volumePluginMgr,
+		kubeletPodsDir:                  kubeletPodsDir,
+		timeOfLastSync:                  time.Time{},
+		volumesFailedReconstruction:     make([]podVolume, 0),
+		volumesNeedUpdateFromNodeStatus: make([]v1.UniqueVolumeName, 0),
+		volumesNeedReportedInUse:        make([]v1.UniqueVolumeName, 0),
 	}
 }
 
@@ -141,20 +139,11 @@ type reconciler struct {
 	skippedDuringReconstruction   map[v1.UniqueVolumeName]*globalVolumeInfo
 	kubeletPodsDir                string
 	// lock protects timeOfLastSync for updating and checking
-	timeOfLastSyncLock          sync.Mutex
-	timeOfLastSync              time.Time
-	volumesFailedReconstruction []podVolume
-	volumesNeedDevicePath       []v1.UniqueVolumeName
-	volumesNeedReportedInUse    []v1.UniqueVolumeName
-}
-
-func (rc *reconciler) Run(stopCh <-chan struct{}) {
-	if utilfeature.DefaultFeatureGate.Enabled(features.NewVolumeManagerReconstruction) {
-		rc.runNew(stopCh)
-		return
-	}
-
-	rc.runOld(stopCh)
+	timeOfLastSyncLock              sync.Mutex
+	timeOfLastSync                  time.Time
+	volumesFailedReconstruction     []podVolume
+	volumesNeedUpdateFromNodeStatus []v1.UniqueVolumeName
+	volumesNeedReportedInUse        []v1.UniqueVolumeName
 }
 
 func (rc *reconciler) unmountVolumes() {
@@ -178,7 +167,7 @@ func (rc *reconciler) unmountVolumes() {
 func (rc *reconciler) mountOrAttachVolumes() {
 	// Ensure volumes that should be attached/mounted are attached/mounted.
 	for _, volumeToMount := range rc.desiredStateOfWorld.GetVolumesToMount() {
-		volMounted, devicePath, err := rc.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName, volumeToMount.PersistentVolumeSize, volumeToMount.SELinuxLabel)
+		volMounted, devicePath, err := rc.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName, volumeToMount.DesiredPersistentVolumeSize, volumeToMount.SELinuxLabel)
 		volumeToMount.DevicePath = devicePath
 		if cache.IsSELinuxMountMismatchError(err) {
 			// The volume is mounted, but with an unexpected SELinux context.

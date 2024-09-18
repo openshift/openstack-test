@@ -97,24 +97,25 @@ func NewHollowKubelet(
 	runtimeService internalapi.RuntimeService,
 	containerManager cm.ContainerManager) *HollowKubelet {
 	d := &kubelet.Dependencies{
-		KubeClient:               client,
-		HeartbeatClient:          heartbeatClient,
-		ProbeManager:             probetest.FakeManager{},
-		RemoteRuntimeService:     runtimeService,
-		RemoteImageService:       imageService,
-		CAdvisorInterface:        cadvisorInterface,
-		Cloud:                    nil,
-		OSInterface:              &containertest.FakeOS{},
-		ContainerManager:         containerManager,
-		VolumePlugins:            volumePlugins(),
-		TLSOptions:               nil,
-		OOMAdjuster:              oom.NewFakeOOMAdjuster(),
-		Mounter:                  &mount.FakeMounter{},
-		Subpather:                &subpath.FakeSubpath{},
-		HostUtil:                 hostutil.NewFakeHostUtil(nil),
-		PodStartupLatencyTracker: kubeletutil.NewPodStartupLatencyTracker(),
-		TracerProvider:           trace.NewNoopTracerProvider(),
-		Recorder:                 &record.FakeRecorder{}, // With real recorder we attempt to read /dev/kmsg.
+		KubeClient:                client,
+		HeartbeatClient:           heartbeatClient,
+		ProbeManager:              probetest.FakeManager{},
+		RemoteRuntimeService:      runtimeService,
+		RemoteImageService:        imageService,
+		CAdvisorInterface:         cadvisorInterface,
+		Cloud:                     nil,
+		OSInterface:               &containertest.FakeOS{},
+		ContainerManager:          containerManager,
+		VolumePlugins:             volumePlugins(),
+		TLSOptions:                nil,
+		OOMAdjuster:               oom.NewFakeOOMAdjuster(),
+		Mounter:                   &mount.FakeMounter{},
+		Subpather:                 &subpath.FakeSubpath{},
+		HostUtil:                  hostutil.NewFakeHostUtil(nil),
+		PodStartupLatencyTracker:  kubeletutil.NewPodStartupLatencyTracker(),
+		NodeStartupLatencyTracker: kubeletutil.NewNodeStartupLatencyTracker(),
+		TracerProvider:            trace.NewNoopTracerProvider(),
+		Recorder:                  &record.FakeRecorder{}, // With real recorder we attempt to read /dev/kmsg.
 	}
 
 	return &HollowKubelet{
@@ -151,6 +152,7 @@ type HollowKubeletOptions struct {
 func GetHollowKubeletConfig(opt *HollowKubeletOptions) (*options.KubeletFlags, *kubeletconfig.KubeletConfiguration) {
 	testRootDir := utils.MakeTempDirOrDie("hollow-kubelet.", "")
 	podFilePath := utils.MakeTempDirOrDie("static-pods", testRootDir)
+	podLogsPath := utils.MakeTempDirOrDie("pod-logs", testRootDir)
 	klog.Infof("Using %s as root dir for hollow-kubelet", testRootDir)
 
 	// Flags struct
@@ -209,6 +211,7 @@ func GetHollowKubeletConfig(opt *HollowKubeletOptions) (*options.KubeletFlags, *
 	c.RegisterWithTaints = opt.RegisterWithTaints
 	c.RegisterNode = true
 	c.LocalStorageCapacityIsolation = true
+	c.PodLogsDir = podLogsPath
 
 	return f, c
 }
