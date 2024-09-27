@@ -180,10 +180,17 @@ spec:
 		g.By("Checking that the allowed_addresses_pairs are properly updated for the workers in the Openstack before failover")
 		checkAllowedAddressesPairs(networkClient, primaryWorker, secondaryWorker, egressIPAddrStr, machineNetworkID)
 
-		g.By("Creating a FIP in Openstack")
-		var fip *floatingips.FloatingIP
-		externalNetworkId, err := GetFloatingNetworkID(networkClient)
+		g.By("Fetching an external network for the cluster")
+		cloudProviderConfig, err := getConfig(ctx,
+			oc.AdminKubeClient(),
+			"openshift-cloud-controller-manager",
+			"cloud-conf",
+			"cloud.conf")
 		o.Expect(err).NotTo(o.HaveOccurred())
+		var fip *floatingips.FloatingIP
+		externalNetworkId, err := GetFloatingNetworkID(networkClient, cloudProviderConfig)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		g.By("Creating a FIP in Openstack")
 		fip, err = floatingips.Create(networkClient, floatingips.CreateOpts{FloatingNetworkID: externalNetworkId}).Extract()
 		o.Expect(err).NotTo(o.HaveOccurred(), "Error creating FIP using discovered floatingNetwork ID '%s'", externalNetworkId)
 		e2e.Logf("The FIP '%s' has been created in Openstack", fip.FloatingIP)
