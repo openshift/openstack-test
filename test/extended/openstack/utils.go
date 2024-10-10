@@ -375,6 +375,25 @@ func getPropertyValue(sectionName string, propertyName string, cfg *ini.File) (s
 	}
 }
 
+// retun a value of a specific key which is not a section
+func getConfigValue(ctx context.Context, kubeClient kubernetes.Interface, namespace string, cmName string,
+	key string) string {
+	cmClient := kubeClient.CoreV1().ConfigMaps(namespace)
+	config, err := cmClient.Get(ctx, cmName, metav1.GetOptions{})
+	if errors.IsNotFound(err) {
+		return ""
+	} else {
+
+		val, ok := config.Data[key]
+		if ok {
+			return val
+		} else {
+			return ""
+		}
+	}
+
+}
+
 func getNetworkType(ctx context.Context, oc *exutil.CLI) (string, error) {
 	networks, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
 	if err != nil {

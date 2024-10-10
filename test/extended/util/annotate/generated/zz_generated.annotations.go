@@ -25,6 +25,8 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack] MachineSet replica number corresponds to the number of Machines": "",
 
+	"[sig-installer][Suite:openshift/openstack] The OpenShift cluster enables topology aware scheduling when compute and volume AZs are identical": "",
+
 	"[sig-installer][Suite:openshift/openstack] The OpenShift cluster runs with etcd on ephemeral local block device": "",
 
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes in a server group": "",
