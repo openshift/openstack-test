@@ -75,6 +75,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 	for _, i := range availableLbProvidersUnderTests {
 		lbProviderUnderTest := i
 		protocolUnderTest := v1.Protocol("TCP")
+		var pods *v1.PodList = &v1.PodList{}
+
 		for _, ipFamiliesList := range ipFamilies {
 			g.It(fmt.Sprintf("should create a %s %s LoadBalancer when a %s svc with type:LoadBalancer and IP family policy %s and IP families %s is created on Openshift", protocolUnderTest, lbProviderUnderTest, protocolUnderTest, ipFamilyPolicy, ipFamiliesList), func(ctx g.SpecContext) {
 				fmt.Fprintf(g.GinkgoWriter, "Some log text: %v\n", lbProviderUnderTest)
@@ -131,12 +133,19 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				results := make(map[string]int)
 				for i := 0; i < 100; i++ {
 					// https://github.com/kubernetes/kubernetes/blob/master/test/images/agnhost/README.md#netexec
-					_, err := getPodNameThroughLb(svcIp, fmt.Sprintf("%d", svcPort), protocolUnderTest, "hostname")
+					podName, err := getPodNameThroughLb(svcIp, fmt.Sprintf("%d", svcPort), protocolUnderTest, "hostname")
 					if err != nil {
 						e2e.Logf("Error detected while accessing the LoadBalancer service on try %d: %q", i, err)
+					} else {
+						results[podName]++
 					}
 				}
 				e2e.Logf("Pods accessed after 100 requests:\n%v\n", results)
+				pods, err = oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(ctx, metav1.ListOptions{})
+				o.Expect(err).NotTo(o.HaveOccurred())
+				e2e.Logf("Results: %v", results)
+				lbMethod, err := GetClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
+				o.Expect(isLbMethodApplied(lbMethod, results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
 			})
 		}
 	}
