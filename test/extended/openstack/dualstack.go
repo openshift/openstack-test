@@ -35,6 +35,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 	availableLbProvidersUnderTests := [...]string{"Amphora", "OVN"}
 	ipFamilyPolicy := "PreferDualStack"
 	ipFamilies := [][]v1.IPFamily{{v1.IPv4Protocol, v1.IPv6Protocol}, {v1.IPv6Protocol, v1.IPv4Protocol}}
+	lbMethodsWithETPGlobal := map[string]string{
+		"OVN":     "source_ip_port",
+		"Amphora": "round_robin",
+	}
 
 	g.BeforeEach(func() {
 		ctx = context.Background()
@@ -78,7 +82,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 	for _, i := range availableLbProvidersUnderTests {
 		lbProviderUnderTest := i
 		protocolUnderTest := v1.Protocol("TCP")
-		var pods *v1.PodList = &v1.PodList{}
 
 		for _, ipFamiliesList := range ipFamilies {
 			g.It(fmt.Sprintf("should create a %s %s LoadBalancer when a %s svc with type:LoadBalancer and IP family policy %s and IP families %s is created on Openshift", protocolUnderTest, lbProviderUnderTest, protocolUnderTest, ipFamilyPolicy, ipFamiliesList), func() {
@@ -144,11 +147,14 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 					}
 				}
 				e2e.Logf("Pods accessed after 100 requests:\n%v\n", results)
-				pods, err = oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(ctx, metav1.ListOptions{})
+				pods, err := oc.KubeClient().CoreV1().Pods(oc.Namespace()).List(ctx, metav1.ListOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred())
-				e2e.Logf("Results: %v", results)
 				lbMethod, err := GetClusterLoadBalancerSetting("lb-method", cloudProviderConfig)
-				o.Expect(isLbMethodApplied(lbMethod, results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
+				o.Expect(err).NotTo(o.HaveOccurred())
+
+				// ETP:Local not configured so the defined lbMethod is not applied, but the one on 'lbMethodsWithETPGlobal' var.
+				// https://issues.redhat.com/browse/OCPBUGS-2350
+				o.Expect(isLbMethodApplied(lbMethodsWithETPGlobal[lbProviderUnderTest], results, pods)).Should(o.BeTrue(), "%q lb-method not applied after 100 queries:\n%v\n", lbMethod, results)
 			})
 		}
 	}
