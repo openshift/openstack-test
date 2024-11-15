@@ -29,7 +29,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 		namespace string
 		name      string
 		key       string
-		skip      []string //Slice of properties that are not expected to be present in the internal configMaps
+		// Slice of sections that are not expected to be present in the internal configMaps.
+		skipSections []string
+		// Slice of properties that are not expected to be present in the internal configMaps.
+		// Technically these are all namespaced by section, but there's no duplicates that
+		// we're aware of so we gloss over that.
+		skipKeys []string
 	}
 
 	g.BeforeEach(func(ctx g.SpecContext) {
@@ -47,30 +52,35 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 		g.It("should haul the user config to the expected config maps", func(ctx g.SpecContext) {
 
 			userConfigMap := configParams{
-				namespace: "openshift-config",
-				name:      "cloud-provider-config",
-				key:       "config",
-				skip:      nil,
+				namespace:    "openshift-config",
+				name:         "cloud-provider-config",
+				key:          "config",
+				skipSections: nil,
+				skipKeys:     nil,
 			}
 
 			internalConfigMaps := []configParams{
 				{
-					namespace: "openshift-config-managed",
-					name:      "kube-cloud-config",
-					key:       "cloud.conf",
-					skip:      []string{"use-octavia"},
+					namespace:    "openshift-config-managed",
+					name:         "kube-cloud-config",
+					key:          "cloud.conf",
+					skipSections: []string{"DEFAULT"},
+					skipKeys:     []string{"use-octavia"},
 				},
 				{
-					namespace: "openshift-cloud-controller-manager",
-					name:      "cloud-conf",
-					key:       "cloud.conf",
-					skip:      []string{"secret-name", "secret-namespace", "use-octavia"},
+					namespace:    "openshift-cloud-controller-manager",
+					name:         "cloud-conf",
+					key:          "cloud.conf",
+					skipSections: []string{"DEFAULT"},
+					skipKeys:     []string{"secret-name", "secret-namespace", "use-octavia"},
 				},
 				{
 					namespace: "openshift-cluster-csi-drivers",
 					name:      "cloud-conf",
 					key:       "cloud.conf",
-					skip:      []string{"secret-name", "secret-namespace", "use-octavia"},
+					// cinder-csi-driver generates config from scratch, so there's nothing to copy
+					skipSections: []string{"DEFAULT", "Global", "LoadBalancer", "Metadata", "Networking"},
+					skipKeys:     []string{"secret-name", "secret-namespace", "use-octavia"},
 				},
 			}
 
@@ -91,15 +101,15 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 
 				g.By(fmt.Sprintf("Checking configmap: %q for namespace: %q",
 					internalConfigMap.name, internalConfigMap.namespace))
-				//Iterate over sections, skipping DEFAULT and the sections not present in the user config
-				for _, sectionName := range difference(intCfg.SectionStrings(), []string{"DEFAULT"}) {
+				// Iterate over sections, skipping the ones not expected on the internal config
+				for _, sectionName := range difference(intCfg.SectionStrings(), internalConfigMap.skipSections) {
 					if !ElementExists(userCfg.SectionStrings(), sectionName) {
 						continue
 					}
 					usrSection, _ := userCfg.GetSection(sectionName)
 					intSection, _ := intCfg.GetSection(sectionName)
-					//Iterate over properties, skipping the ones not expected on the internal config
-					for _, propertyName := range difference(usrSection.KeyStrings(), internalConfigMap.skip) {
+					// Iterate over properties, skipping the ones not expected on the internal config
+					for _, propertyName := range difference(usrSection.KeyStrings(), internalConfigMap.skipKeys) {
 						o.Expect(intSection.KeyStrings()).To(o.ContainElement(propertyName),
 							"Expected property %q not found on section %q of configMap %q in namespace %q",
 							propertyName, sectionName, internalConfigMap.name, internalConfigMap.namespace)
@@ -122,7 +132,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 				namespace: "openshift-cloud-controller-manager",
 				name:      "cloud-conf",
 				key:       "cloud.conf",
-				skip:      nil,
+				skipKeys:  nil,
 			}
 
 			sectionName := "LoadBalancer"
