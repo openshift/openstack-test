@@ -425,6 +425,24 @@ func isDualStackCluster(clusterNetwork []configv1.ClusterNetworkEntry) (bool, er
 	return (ipv4Found && ipv6Found), nil
 }
 
+func isSingleStackIpv6Cluster(ctx context.Context, oc *exutil.CLI) (bool, error) {
+
+	networks, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+	if len(networks.Status.ClusterNetwork) == 1 {
+		ip, _, err := net.ParseCIDR(networks.Status.ClusterNetwork[0].CIDR)
+		if err != nil {
+			return false, err
+		}
+		if isIpv6(ip.String()) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // Check if it is a dualstack cluster and the first cluster network technology. Returns true if it is ipv6.
 func isIpv6primaryDualStackCluster(ctx context.Context, oc *exutil.CLI) (bool, error) {
 
