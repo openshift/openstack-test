@@ -75,6 +75,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 			e2eskipper.Skipf("Test not applicable for '%s' NetworkType (only valid for '%s')", networkType, NetworkTypeOVNKubernetes)
 		}
 
+		singleStackIpv6, err := isSingleStackIpv6Cluster(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		if singleStackIpv6 { //This test is covering and scenario that has no sense with ipv6 as there is no FIP/VIP association.
+			e2eskipper.Skipf("Test not applicable for singleStack IPv6 environments")
+		}
+
 		// Skip based on number of required worker nodes
 		minWorkerNum := 2
 		g.By(fmt.Sprintf("Check the number of worker nodes (should be %d at least)", minWorkerNum))
@@ -207,14 +213,17 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 	})
 
 	// https://issues.redhat.com/browse/OCPBUGS-27222
-	g.It("with IPv6 format should be created on dualstack cluster with OVN-Kubernetes NetworkType and dhcpv6-stateful mode", func(ctx g.SpecContext) {
+	g.It("with IPv6 format should be created on dualstack or ssipv6 cluster with OVN-Kubernetes NetworkType and dhcpv6-stateful mode", func(ctx g.SpecContext) {
 
 		networks, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 		dualstack, err := isDualStackCluster(networks.Status.ClusterNetwork)
 		o.Expect(err).NotTo(o.HaveOccurred())
-		if !dualstack {
-			e2eskipper.Skipf("Test only applicable for dualstack clusters")
+		ssipv6, err := isSingleStackIpv6Cluster(ctx, oc)
+		o.Expect(err).NotTo(o.HaveOccurred())
+
+		if !(dualstack || ssipv6) {
+			e2eskipper.Skipf("Test only applicable for dualstack or SingleStack IPv6 clusters")
 		}
 
 		g.By("Getting the network type")
