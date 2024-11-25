@@ -45,6 +45,8 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack][egressip] An egressIP attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType": "",
 
+	"[sig-installer][Suite:openshift/openstack][egressip] An egressIP with IPv6 format should be created on dualstack cluster with OVN-Kubernetes NetworkType and dhcpv6-stateful mode": "",
+
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on TCP Amphora LoadBalancer when a TCP svc with monitors and ETP:Local is created on Openshift": "",
 
 	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on TCP OVN LoadBalancer when a TCP svc with monitors and ETP:Local is created on Openshift": "",

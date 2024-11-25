@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net"
 	"reflect"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/external"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
+	configv1 "github.com/openshift/api/config/v1"
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
@@ -216,6 +218,54 @@ func getNetworkType(ctx context.Context, oc *exutil.CLI) (string, error) {
 	return networkType, nil
 }
 
+// Check the cluster networks and returns true if it finds one ipv4 and one ipv6 network there.
+func isDualStackCluster(clusterNetwork []configv1.ClusterNetworkEntry) (bool, error) {
+	ipv4Found := false
+	ipv6Found := false
+
+	for _, network := range clusterNetwork {
+		ip, _, err := net.ParseCIDR(network.CIDR)
+		if err != nil {
+			return false, err
+		}
+		e2e.Logf("Detected cluster network: %q", ip.String())
+		if !ipv4Found {
+			ipv4Found = isIpv4(ip.String())
+		}
+		if !ipv6Found {
+			ipv6Found = isIpv6(ip.String())
+		}
+	}
+	return (ipv4Found && ipv6Found), nil
+}
+
+// Check if it is a dualstack cluster and the first cluster network technology. Returns true if it is ipv6.
+func isIpv6primaryDualStackCluster(ctx context.Context, oc *exutil.CLI) (bool, error) {
+
+	networks, err := oc.AdminConfigClient().ConfigV1().Networks().Get(ctx, "cluster", metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+	dualstack, err := isDualStackCluster(networks.Status.ClusterNetwork)
+	if err != nil {
+		return false, err
+	}
+	if dualstack {
+		if err != nil {
+			return false, err
+		}
+		primaryNetwork := networks.Status.ClusterNetwork[0]
+		ip, _, err := net.ParseCIDR(primaryNetwork.CIDR)
+		if err != nil {
+			return false, err
+		}
+		if isIpv6(ip.String()) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func getMaxOctaviaAPIVersion(client *gophercloud.ServiceClient) (*semver.Version, error) {
 	allPages, err := apiversions.List(client).AllPages()
 	if err != nil {
@@ -355,4 +405,26 @@ func GetClusterLoadBalancerSetting(setting string, config *ini.File) (string, er
 		e2e.Logf("%q is not set on LoadBalancer section in cloud-provider-config, considering default value %q", setting, result)
 	}
 	return strings.ToLower(result), nil
+}
+
+// isIpv6 returns true if the ip is ipv6
+func isIpv6(ip string) bool {
+	ipv6 := false
+
+	netIP := net.ParseIP(ip)
+	if netIP != nil && netIP.To4() == nil {
+		ipv6 = true
+	}
+	return ipv6
+}
+
+// isIpv4 returns true if the ip is ipv4
+func isIpv4(ip string) bool {
+	ipv4 := false
+
+	netIP := net.ParseIP(ip)
+	if netIP != nil && netIP.To4() != nil {
+		ipv4 = true
+	}
+	return ipv4
 }
