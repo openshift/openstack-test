@@ -492,6 +492,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			if dualstackIpv6Primary { //This test is covering and scenario that has no sense with ipv6 as there is no FIP/VIP association.
 				e2eskipper.Skipf("Test not applicable for ipv6primary dualstack environments")
 			}
+			singleStackIpv6, err := isSingleStackIpv6Cluster(ctx, oc)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			if singleStackIpv6 { //This test is covering and scenario that has no sense with ipv6 as there is no FIP/VIP association.
+				e2eskipper.Skipf("Test not applicable for singleStack IPv6 environments")
+			}
 
 			g.By("Create FIP to be used on the subsequent LoadBalancer Service")
 			var fip *floatingips.FloatingIP
@@ -634,7 +639,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			allowed_sourcerange := "9.9.9.9/32"
 			ipv6PrimaryDualStack, err := isIpv6primaryDualStackCluster(ctx, oc)
 			o.Expect(err).NotTo(o.HaveOccurred())
-			if ipv6PrimaryDualStack {
+			singleStackIpv6, err := isSingleStackIpv6Cluster(ctx, oc)
+			o.Expect(err).NotTo(o.HaveOccurred())
+			if ipv6PrimaryDualStack || singleStackIpv6 {
 				allowed_sourcerange = "2001:db8:2222:5555::/64"
 			}
 
