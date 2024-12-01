@@ -18,6 +18,7 @@ import (
 	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/networks"
 	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/subnets"
 	"github.com/gophercloud/gophercloud/v2/openstack/sharedfilesystems/v2/shares"
+	"github.com/gophercloud/gophercloud/v2/openstack/sharedfilesystems/v2/sharetypes"
 	configv1 "github.com/openshift/api/config/v1"
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	operatorv1 "github.com/openshift/api/operator/v1"
@@ -195,6 +196,28 @@ func GetSharesFromName(ctx context.Context, client *gophercloud.ServiceClient, s
 		return emptyShare, err
 	}
 	return shares, nil
+}
+
+// return sharetype from openstack with specific name
+func GetShareTypesFromName(ctx context.Context, client *gophercloud.ServiceClient, shareTypeName string) ([]sharetypes.ShareType, error) {
+	var emptyShareTypes []sharetypes.ShareType
+	var allShareTypes []sharetypes.ShareType
+	var shareTypes []sharetypes.ShareType
+
+	allPages, err := sharetypes.List(client, sharetypes.ListOpts{}).AllPages(ctx)
+	if err != nil {
+		return emptyShareTypes, err
+	}
+	allShareTypes, err = sharetypes.ExtractShareTypes(allPages)
+	if err != nil {
+		return emptyShareTypes, err
+	}
+	for _, shareType := range allShareTypes {
+		if shareType.Name == shareTypeName {
+			shareTypes = append(shareTypes, shareType)
+		}
+	}
+	return shareTypes, nil
 }
 
 // return storageClass with specific provisioner. If seek_default is true, it will look also for the default annotation.
