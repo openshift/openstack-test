@@ -576,6 +576,7 @@ github.com/gophercloud/gophercloud/v2/openstack/networking/v2/networks
 github.com/gophercloud/gophercloud/v2/openstack/networking/v2/ports
 github.com/gophercloud/gophercloud/v2/openstack/networking/v2/subnets
 github.com/gophercloud/gophercloud/v2/openstack/sharedfilesystems/v2/shares
+github.com/gophercloud/gophercloud/v2/openstack/sharedfilesystems/v2/sharetypes
 github.com/gophercloud/gophercloud/v2/openstack/utils
 github.com/gophercloud/gophercloud/v2/pagination
 # github.com/gorilla/websocket v1.5.0
