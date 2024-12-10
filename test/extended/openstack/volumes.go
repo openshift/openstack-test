@@ -185,10 +185,14 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 
 		g.It("should create a manila share when using manila storage class", func(ctx g.SpecContext) {
 			var err error
-			manilaSc := FindStorageClassByProvider(oc, "manila.csi.openstack.org", false)
 			shareClient, err := client.GetServiceClient(ctx, openstack.NewSharedFileSystemV2)
-			o.Expect(err).NotTo(o.HaveOccurred())
+			if err != nil {
+				if _, ok := err.(*gophercloud.ErrEndpointNotFound); ok {
+					e2eskipper.Skipf("%v", err)
+				}
+			}
 
+			manilaSc := FindStorageClassByProvider(oc, "manila.csi.openstack.org", false)
 			// Skip if Manila Storage class is not defined
 			// Skip if driver_handles_share_servers = true, Ref:https://issues.redhat.com/browse/OCPBUGS-45320
 			if manilaSc == nil {
