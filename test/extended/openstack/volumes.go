@@ -186,20 +186,20 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 		g.It("should create a manila share when using manila storage class", func(ctx g.SpecContext) {
 			var err error
 			manilaSc := FindStorageClassByProvider(oc, "manila.csi.openstack.org", false)
+			// Skip if Manila Storage class is not defined
+			if manilaSc == nil {
+				e2eskipper.Skipf("No StorageClass with manila.csi.openstack.org provisioner")
+			}
+			// Manila endpoint must exist
 			shareClient, err := client.GetServiceClient(ctx, openstack.NewSharedFileSystemV2)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			// Skip if Manila Storage class is not defined
 			// Skip if driver_handles_share_servers = true, Ref:https://issues.redhat.com/browse/OCPBUGS-45320
-			if manilaSc == nil {
-				e2eskipper.Skipf("No StorageClass with manila.csi.openstack.org provisioner")
-			} else {
-				manilaShareTypes, err := GetShareTypesFromName(ctx, shareClient, "default")
-				o.Expect(err).NotTo(o.HaveOccurred())
-				o.Expect(len(manilaShareTypes)).To(o.Equal(1))
-				if manilaShareTypes[0].ExtraSpecs["driver_handles_share_servers"] == "True" {
-					e2eskipper.Skipf("driver_handles_share_servers should be set to False in order for the test to run")
-				}
+			manilaShareTypes, err := GetShareTypesFromName(ctx, shareClient, "default")
+			o.Expect(err).NotTo(o.HaveOccurred())
+			o.Expect(len(manilaShareTypes)).To(o.Equal(1))
+			if manilaShareTypes[0].ExtraSpecs["driver_handles_share_servers"] == "True" {
+				e2eskipper.Skipf("driver_handles_share_servers should be set to False in order for the test to run")
 			}
 
 			ns := oc.Namespace()
