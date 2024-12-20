@@ -10,6 +10,7 @@ import (
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/blockstorage/v3/volumes"
 	"github.com/gophercloud/gophercloud/openstack/sharedfilesystems/v2/shares"
+	"github.com/gophercloud/gophercloud/openstack/sharedfilesystems/v2/sharetypes"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 	exutil "github.com/openshift/origin/test/extended/util"
@@ -195,12 +196,22 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 				e2eskipper.Skipf("No StorageClass with manila.csi.openstack.org provisioner")
 			}
 
+			shareClient, err = client("sharev2")
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			// Skip if driver_handles_share_servers = true, Ref:https://issues.redhat.com/browse/OCPBUGS-45320
+			manilaShareTypes, err := GetShareTypesFromName(ctx, shareClient, "default")
+			o.Expect(err).NotTo(o.HaveOccurred())
+
+			o.Expect(len(manilaShareTypes)).To(o.Equal(1))
+			if manilaShareTypes[0].ExtraSpecs["driver_handles_share_servers"] == "True" {
+				e2eskipper.Skipf("driver_handles_share_servers should be set to False in order for the test to run")
+			}
+
 			ns := oc.Namespace()
 			pvc := CreatePVC(ctx, clientSet, "manila-pvc", ns, manilaSc.Name, "1Gi")
 			fileContent := "hello"
 
-			shareClient, err = client("sharev2")
-			o.Expect(err).NotTo(o.HaveOccurred())
 			// Make sure a Manila share was created with the same name as the PVC
 			pvcVolumeName, err := waitPvcVolume(ctx, clientSet, pvc.Name, ns)
 			o.Expect(err).NotTo(o.HaveOccurred())
@@ -314,4 +325,25 @@ func isPersistentStorageEnabledOnPrometheusK8s(ctx context.Context, kubeClient k
 
 	_, found := configData["prometheusK8s"]["volumeClaimTemplate"]
 	return found
+}
+
+func GetShareTypesFromName(ctx context.Context, client *gophercloud.ServiceClient, shareTypeName string) ([]sharetypes.ShareType, error) {
+	var emptyShareTypes []sharetypes.ShareType
+	var allShareTypes []sharetypes.ShareType
+	var shareTypes []sharetypes.ShareType
+
+	allPages, err := sharetypes.List(client, sharetypes.ListOpts{}).AllPages()
+	if err != nil {
+		return emptyShareTypes, err
+	}
+	allShareTypes, err = sharetypes.ExtractShareTypes(allPages)
+	if err != nil {
+		return emptyShareTypes, err
+	}
+	for _, shareType := range allShareTypes {
+		if shareType.Name == shareTypeName {
+			shareTypes = append(shareTypes, shareType)
+		}
+	}
+	return shareTypes, nil
 }
