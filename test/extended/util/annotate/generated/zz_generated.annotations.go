@@ -11,6 +11,8 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2073398: [Serial] MachineSet scale-in does not leak OpenStack ports": "",
 
+	"[sig-installer][Suite:openshift/openstack] Bugfix ocpbug_1765: [Serial] noAllowedAddressPairs on one port should not affect other ports": "",
+
 	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet ProviderSpec template is correctly applied to Machines": "",
 
 	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet has role master": "",
