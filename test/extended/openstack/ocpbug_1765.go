@@ -4,7 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/networks"
+	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/ports"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
 
@@ -13,31 +18,29 @@ import (
 	machinev1 "github.com/openshift/api/machine/v1beta1"
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
 	"github.com/openshift/openstack-test/test/extended/openstack/client"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/openshift/openstack-test/test/extended/openstack/machines"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/gophercloud/gophercloud/v2"
-	"github.com/gophercloud/gophercloud/v2/openstack"
-	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/ports"
-	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/subnets"
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 	defer g.GinkgoRecover()
 
 	var dc dynamic.Interface
+	var cfg *rest.Config
 	var clientSet *kubernetes.Clientset
 	var networkClient *gophercloud.ServiceClient
 
 	g.BeforeEach(func(ctx g.SpecContext) {
+		var err error
 		g.By("preparing openshift dynamic client")
-		cfg, err := e2e.LoadConfig()
+		cfg, err = e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
 		dc, err = dynamic.NewForConfig(cfg)
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -51,10 +54,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
 	})
 
-	g.Context("bz_2073398:", func() {
-		g.It("[Serial] MachineSet scale-in does not leak OpenStack ports", func(ctx g.SpecContext) {
-			// Check the scenario at https://bugzilla.redhat.com/show_bug.cgi?id=2073398
-
+	g.Context("ocpbug_1765:", func() {
+		// Automation for https://issues.redhat.com/browse/OCPBUGS-1765
+		g.It("[Serial] noAllowedAddressPairs on one port should not affect other ports", func(ctx g.SpecContext) {
 			g.By("Fetching worker machineSets")
 			var rawBytes []byte
 			var newProviderSpec machinev1alpha1.OpenstackProviderSpec
@@ -67,80 +69,85 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 				e2eskipper.Skipf("Expects at least one worker machineset. Found none.")
 			}
 
-			cfg, err := e2e.LoadConfig()
-			o.Expect(err).NotTo(o.HaveOccurred(), "Error getting cluster config")
-
 			rclient, err = runtimeclient.New(cfg, runtimeclient.Options{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error creating a runtime client")
 
+			g.By("Create an additional OpenStack Network")
+			extraNetworkName := fmt.Sprintf("%v-%v", "foonet", RandomSuffix())
+			networkCreateOpts := networks.CreateOpts{Name: extraNetworkName}
+			extraNetwork, err := networks.Create(ctx, networkClient, networkCreateOpts).Extract()
+			o.Expect(err).NotTo(o.HaveOccurred(), "Error creating network")
+			g.By(fmt.Sprintf("Network %v was created", extraNetwork.Name))
+			defer networks.Delete(ctx, networkClient, extraNetwork.ID)
+
+			g.By("Create a new machineSet with an additional network with NoAllowedAddressPairs set to true")
+			// Create a machineset and add the extra network to a new machineset
 			err = machinev1.AddToScheme(scheme.Scheme)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to add Machine to scheme")
 			err = configv1.AddToScheme(scheme.Scheme)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to add Config to scheme")
-
 			newMachinesetParams := framework.BuildMachineSetParams(ctx, rclient, 1)
 			rawBytes, err = json.Marshal(newMachinesetParams.ProviderSpec.Value)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error marshaling new MachineSet Provider Spec")
-
 			err = json.Unmarshal(rawBytes, &newProviderSpec)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error unmarshaling new MachineSet Provider Spec")
-
-			newProviderSpec.ServerGroupName = ""
-			newProviderSpec.ServerGroupID = "boo"
-			newMachinesetParams.Name = fmt.Sprintf("%v-%v", "bogus", RandomSuffix())
+			newMachinesetParams.Name = fmt.Sprintf("%v-%v", "extra-network", RandomSuffix())
 			newProviderSpecJson, err := json.Marshal(newProviderSpec)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to marshal new Machineset provider spec")
 			newMachinesetParams.ProviderSpec.Value.Raw = newProviderSpecJson
 
-			g.By("Create a new machineSet with bogus server group ID")
+			// Set NoAlloedAddressPairs for the additional network to true
+			var extraNetworkParam machinev1alpha1.NetworkParam
+			extraNetworkParam.NoAllowedAddressPairs = true
+			extraNetworkParam.Filter.ID = extraNetwork.ID
+			newProviderSpec.Networks = append(newProviderSpec.Networks, extraNetworkParam)
 			ms, err := framework.CreateMachineSet(rclient, newMachinesetParams)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to create a Machineset")
 			defer DeleteMachinesetsDefer(rclient, ms)
-
 			err = GetMachinesetRetry(ctx, rclient, ms, true)
-
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get the new Machineset")
 			err = waitUntilNMachinesPrefix(ctx, dc, ms.Name, 1)
 
-			o.Expect(err).NotTo(o.HaveOccurred())
+			newMachines, err := machines.List(ctx, dc, machines.ByMachineSet(ms.Labels["machine.openshift.io/cluster-api-machineset"]))
+			o.Expect(err).NotTo(o.HaveOccurred(), "Error fetching machines for MachineSet %q", ms.Name)
 
+			var machineNetworks []string
+			for _, machine := range newMachines {
+				for _, net := range objects(machine.Get("spec.providerSpec.value.networks")) {
+					machineNetworks = append(machineNetworks, net.Get("filter.id").String())
+				}
+			}
+			g.By("Verify value of ports AllowedAddressPairs for all the Machines")
+			for _, net := range machineNetworks {
+				portListOpts := ports.ListOpts{
+					NetworkID: net,
+				}
+				allPages, err := ports.List(networkClient, portListOpts).AllPages(ctx)
+				o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get ports")
+				allPorts, err := ports.ExtractPorts(allPages)
+				o.Expect(err).NotTo(o.HaveOccurred(), "Failed to extract ports")
+				for _, port := range allPorts {
+					if strings.Contains(port.Name, newMachinesetParams.Name) {
+						if net == extraNetwork.ID {
+							// There should be a port in the additional network with
+							// an empty AllowedAddressPairs
+							o.Expect(len(port.AllowedAddressPairs)).To(o.Equal(0))
+						} else {
+							// For other ports AllowedAddressPairs shoudn't be empty
+							o.Expect(len(port.AllowedAddressPairs)).To(o.Not(o.Equal(0)))
+						}
+					}
+				}
+			}
+			time.Sleep(10 * time.Second)
 			g.By("Deleting the new machineset")
 			framework.DeleteMachineSets(rclient, ms)
 			err = GetMachinesetRetry(ctx, rclient, ms, false)
 			o.Expect(errors.IsNotFound(err)).To(o.BeTrue(), "Machineset %v was not deleted", ms.Name)
 
-			var config machinev1alpha1.OpenstackProviderSpec
-			err = yaml.Unmarshal(newProviderSpecJson, &config)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to Unmarshal the new Machineset")
-
-			subnetListOpts := subnets.ListOpts{ID: config.PrimarySubnet}
-			subnetAllPages, err := subnets.List(networkClient, subnetListOpts).AllPages(ctx)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get subnets")
-			allSubnets, err := subnets.ExtractSubnets(subnetAllPages)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to extract subnets")
-			networkID := allSubnets[0].NetworkID
-			e2e.Logf("Subnet Name: %v", allSubnets[0].Name)
-			e2e.Logf("Network ID: %v", networkID)
-			portListOpts := ports.ListOpts{
-				NetworkID: networkID,
-			}
-
-			g.By("Checking if an orphaned port related to the delete machineset exists")
-			allPages, err := ports.List(networkClient, portListOpts).AllPages(ctx)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get ports")
-
-			allPorts, err := ports.ExtractPorts(allPages)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to extract ports")
-
-			portID := ""
-			for _, port := range allPorts {
-				if strings.Contains(port.Name, newMachinesetParams.Name) {
-					portID = port.ID
-				}
-			}
-			o.Expect(portID).To(o.Equal(""))
-			err = waitUntilNMachinesPrefix(ctx, dc, ms.Name, 0)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Machines from machineset %v were not deleted", ms.Name)
+			waitUntilNMachinesPrefix(ctx, dc, ms.Name, 0)
+			g.By(fmt.Sprintf("Deleting network %v", extraNetworkName))
+			networks.Delete(ctx, networkClient, extraNetwork.ID)
 		})
 	})
 })
