@@ -7,8 +7,6 @@ import (
 )
 
 var Annotations = map[string]string{
-	"[sig-installer][Suite:openshift/openstack] Creating ScrapeConfig in rhoso should trigger prometheus to add the rhoso target": "",
-
 	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2022627: Machine should report all openstack instance addresses": "",
 
 	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2073398: [Serial] MachineSet scale-in does not leak OpenStack ports": "",
@@ -20,6 +18,8 @@ var Annotations = map[string]string{
 	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet has role master": "",
 
 	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet replica number corresponds to the number of Machines": "",
+
+	"[sig-installer][Suite:openshift/openstack] Creating ScrapeConfig in rhoso should trigger prometheus to add the rhoso target": "",
 
 	"[sig-installer][Suite:openshift/openstack] Machine ProviderSpec is correctly applied to OpenStack instances": "",
 
