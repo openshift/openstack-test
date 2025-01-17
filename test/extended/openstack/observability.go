@@ -20,13 +20,17 @@ import (
 )
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeConfig in rhoso", func() {
-	//	defer g.GinkgoRecover()
+	defer g.GinkgoRecover()
+	rhosoKubeConfig := os.Getenv("RHOSO_KUBECONFIG")
 
 	//	var dcShiftstack dynamic.Interface
 	//	var machineResourcesShiftstack []objx.Map
 	oc := exutil.NewCLI("openstack")
 
 	g.BeforeEach(func(ctx g.SpecContext) {
+		if rhosoKubeConfig == "" {
+			e2eskipper.Skipf("RHOSO_KUBECONFIG must be set for this test to run")
+		}
 	})
 
 	g.It("should trigger prometheus to add the rhoso target", func(ctx g.SpecContext) {
@@ -57,10 +61,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		token, err := oc.AsAdmin().Run("whoami").Args("-t").Output()
 		o.Expect(err).NotTo(o.HaveOccurred())
 		e2e.Logf("Token:%v", token)
-		rhosoKubeConfig := os.Getenv("RHOSO_KUBECONFIG")
-		if rhosoKubeConfig == "" {
-			e2eskipper.Skipf("RHOSO_KUBECONFIG must be set for this test to run")
-		}
+
 		e2e.TestContext.KubeConfig = rhosoKubeConfig
 		SetTestContextHostFromKubeconfig(rhosoKubeConfig)
 		rhosoCfg, err := e2e.LoadConfig()
