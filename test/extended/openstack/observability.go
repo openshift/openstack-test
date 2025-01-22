@@ -2,6 +2,7 @@ package openstack
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -22,9 +23,6 @@ import (
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeConfig in rhoso", func() {
 	defer g.GinkgoRecover()
 	rhosoKubeConfig := os.Getenv("RHOSO_KUBECONFIG")
-
-	//	var dcShiftstack dynamic.Interface
-	//	var machineResourcesShiftstack []objx.Map
 	oc := exutil.NewCLI("openstack")
 
 	g.BeforeEach(func(ctx g.SpecContext) {
@@ -40,34 +38,24 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		shiftstacKubeConfig := os.Getenv("KUBECONFIG")
 		e2e.TestContext.KubeConfig = shiftstacKubeConfig
 		SetTestContextHostFromKubeconfig(shiftstacKubeConfig)
-		//shiftstackCfg, err := e2e.LoadConfig()
-		//o.Expect(err).NotTo(o.HaveOccurred())
-		//dcShiftstack, err := dynamic.NewForConfig(shiftstackCfg)
-		//o.Expect(err).NotTo(o.HaveOccurred())
-
 		route, err := oc.AdminRouteClient().RouteV1().Routes("openshift-monitoring").Get(ctx, "prometheus-k8s-federate", metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
-		//Get route for federate in shiftstack openshift-monitoring
 		routeHost := route.Status.Ingress[0].Host
 		e2e.Logf("Route Host: %v", route.Status.Ingress[0].Host)
 
-		//out, err := oc.Run("whoami").Args("-t").Output()
-		//o.Expect(err).NotTo(o.HaveOccurred())
-		//Create token on shiftstack
-
-		//token := strings.TrimSpace(out)
-		///////////// Try static one/////
-		//token := "sometoken"
-		token, err := oc.AsAdmin().Run("whoami").Args("-t").Output()
+		pass, err := ioutil.ReadFile(os.Getenv("SHIFTSTACK_PASS_FILE"))
+		o.Expect(err).NotTo(o.HaveOccurred())
+		_, err = oc.Run("login").Args("-u", "kubeadmin").InputString(string(pass) + "\n").Output()
+		o.Expect(err).NotTo(o.HaveOccurred())
+		token, err := oc.Run("whoami").Args("-t").Output()
 		o.Expect(err).NotTo(o.HaveOccurred())
 		e2e.Logf("Token:%v", token)
 
+		g.By("Creating a secret with token on rhoso openstack namespace")
 		e2e.TestContext.KubeConfig = rhosoKubeConfig
 		SetTestContextHostFromKubeconfig(rhosoKubeConfig)
 		rhosoCfg, err := e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
-
-		g.By("Creating a secret with token on rhoso openstack namespace")
 		clientSet, err := e2e.LoadClientset()
 		o.Expect(err).NotTo(o.HaveOccurred())
 
@@ -140,7 +128,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		defer resourceClient.Delete(ctx, scrapeCfgName, metav1.DeleteOptions{})
-		time.Sleep(time.Minute * 20)
+		time.Sleep(time.Minute * 60)
 	})
 })
 
