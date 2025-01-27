@@ -32,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	e2edeployment "k8s.io/kubernetes/test/e2e/framework/deployment"
@@ -654,4 +655,22 @@ func GetClusterLoadBalancerSetting(setting string, config *ini.File) (string, er
 		e2e.Logf("%q is not set on LoadBalancer section in cloud-provider-config, considering default value %q", setting, result)
 	}
 	return strings.ToLower(result), nil
+}
+
+// Wait until N machines with a specific prefix exist
+func waitUntilNMachinesPrefix(ctx context.Context, dc dynamic.Interface, prefix string, numMachines int) error {
+	err := wait.PollUntilContextTimeout(ctx, 10*time.Second, 2*time.Minute, false, func(ctx context.Context) (bool, error) {
+
+		machinesList, err := getMachinesByPrefix(prefix, ctx, dc)
+		if err != nil {
+			return false, err
+		} else {
+			if len(machinesList) == numMachines {
+				return true, nil
+			}
+		}
+		return false, nil
+
+	})
+	return err
 }
