@@ -19,7 +19,9 @@ import (
 	framework "github.com/openshift/cluster-api-actuator-pkg/pkg/framework"
 	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	"github.com/openshift/openstack-test/test/extended/openstack/machines"
+	exutil "github.com/openshift/origin/test/extended/util"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -36,9 +38,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 	var cfg *rest.Config
 	var clientSet *kubernetes.Clientset
 	var networkClient *gophercloud.ServiceClient
+	oc := exutil.NewCLI("openstack")
 
 	g.BeforeEach(func(ctx g.SpecContext) {
 		var err error
+
 		g.By("preparing openshift dynamic client")
 		cfg, err = e2e.LoadConfig()
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -67,6 +71,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 
 			if len(machineSets) == 0 {
 				e2eskipper.Skipf("Expects at least one worker machineset. Found none.")
+			}
+
+			clusterInfra, err := oc.AdminConfigClient().ConfigV1().Infrastructures().Get(ctx, "cluster", metav1.GetOptions{})
+			o.Expect(err).NotTo(o.HaveOccurred(), "Error creating an Admin config client")
+
+			if clusterInfra.Status.PlatformStatus.OpenStack.LoadBalancer != nil && clusterInfra.Status.PlatformStatus.OpenStack.LoadBalancer.Type == configv1.LoadBalancerTypeUserManaged {
+				e2eskipper.Skipf("Test no applicable when using external LoadBalancer. No allowed address is set when using that feature.")
 			}
 
 			rclient, err = runtimeclient.New(cfg, runtimeclient.Options{})
