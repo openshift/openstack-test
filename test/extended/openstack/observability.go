@@ -6,10 +6,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/gophercloud/gophercloud/v2"
+	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servers"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
-
+	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	exutil "github.com/openshift/origin/test/extended/util"
+
 	v1core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -22,28 +26,44 @@ import (
 
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeConfig in rhoso", func() {
 	defer g.GinkgoRecover()
-	rhosoKubeConfig := os.Getenv("RHOSO_KUBECONFIG")
+
 	oc := exutil.NewCLI("openstack")
+	shiftstackKubeConfigEnvVarName := "KUBECONFIG"
+	shiftstackPassFileEnvVarName := "SHIFTSTACK_PASS_FILE"
+	rhosoKubeConfigEnvVarName := "RHOSO_KUBECONFIG"
+	shiftstackKubeConfig := os.Getenv(shiftstackKubeConfigEnvVarName)
+	rhosoKubeConfig := os.Getenv(rhosoKubeConfigEnvVarName)
+	shiftstackPassFile := os.Getenv(shiftstackPassFileEnvVarName)
+	var computeClient *gophercloud.ServiceClient
+	var err error
 
 	g.BeforeEach(func(ctx g.SpecContext) {
-		if rhosoKubeConfig == "" {
-			e2eskipper.Skipf("RHOSO_KUBECONFIG must be set for this test to run")
+		g.By(fmt.Sprintf("Checking the %s, %s and %s env vars are being set", shiftstackKubeConfigEnvVarName, shiftstackPassFileEnvVarName, rhosoKubeConfigEnvVarName))
+		if shiftstackKubeConfig == "" || shiftstackPassFile == "" || rhosoKubeConfig == "" {
+			e2eskipper.Skipf("%s, %s and %s env vars must be set for this test to run", shiftstackKubeConfigEnvVarName, shiftstackPassFileEnvVarName, rhosoKubeConfigEnvVarName)
 		}
+
+		g.By("Getting the Openstack compute client")
+		computeClient, err = client.GetServiceClient(ctx, openstack.NewComputeV2)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get the OpenStack compute client")
 	})
 
 	g.It("should trigger prometheus to add the rhoso target", func(ctx g.SpecContext) {
+		shiftstackPrometheusFederateRouteName := "prometheus-k8s-federate"
+		monitoringNamespaceName := "openshift-monitoring"
 		scrapeCfgName := "sos-federated"
 
-		g.By("Get route from shiftstack cluster")
-		shiftstacKubeConfig := os.Getenv("KUBECONFIG")
-		e2e.TestContext.KubeConfig = shiftstacKubeConfig
-		SetTestContextHostFromKubeconfig(shiftstacKubeConfig)
-		route, err := oc.AdminRouteClient().RouteV1().Routes("openshift-monitoring").Get(ctx, "prometheus-k8s-federate", metav1.GetOptions{})
+		// Get the shiftstack prometheus federate endpoint (in order to scrape metrics from it)
+		g.By(fmt.Sprintf("Getting the '%s' route host from shiftstack cluster", shiftstackPrometheusFederateRouteName))
+		e2e.TestContext.KubeConfig = shiftstackKubeConfig
+		SetTestContextHostFromKubeconfig(shiftstackKubeConfig)
+		route, err := oc.AdminRouteClient().RouteV1().Routes(monitoringNamespaceName).Get(ctx, shiftstackPrometheusFederateRouteName, metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 		routeHost := route.Status.Ingress[0].Host
-		e2e.Logf("Route Host: %v", route.Status.Ingress[0].Host)
+		o.Expect(routeHost).NotTo(o.BeEmpty(), "Empty %s route host found", shiftstackPrometheusFederateRouteName)
+		e2e.Logf("Route Host: %v", routeHost)
 
-		pass, err := ioutil.ReadFile(os.Getenv("SHIFTSTACK_PASS_FILE"))
+		pass, err := ioutil.ReadFile(shiftstackPassFile)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		_, err = oc.Run("login").Args("-u", "kubeadmin").InputString(string(pass) + "\n").Output()
 		o.Expect(err).NotTo(o.HaveOccurred())
@@ -120,7 +140,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 				},
 			},
 		}
-		g.By("Creating ScrapeConfig....")
+		g.By("Creating ScrapeConfig")
 		resourceClient := dcRhoso.Resource(gvr).Namespace("openstack")
 		_, err = resourceClient.Create(ctx, &unstructured.Unstructured{
 			Object: scrapeConfig,
@@ -128,7 +148,23 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		defer resourceClient.Delete(ctx, scrapeCfgName, metav1.DeleteOptions{})
+
+		// Get Openstack servers (needed to contrast the kube_node_info metric content) and store the names and ids in a map
+		g.By("Getting the Openstack servers")
+		allPages, err := servers.List(computeClient, nil).AllPages(ctx)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		allServers, err := servers.ExtractServers(allPages)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		openstackServerMap := make(map[string]string)
+		for _, server := range allServers {
+			//OS_CLOUD=default is needed in order to get servers' Host (TODO: remove this comment)
+			e2e.Logf("Server found (ID: %v, Name: %v, Status: %v)", server.ID, server.Name, server.Status)
+			openstackServerMap[server.Name] = server.ID
+		}
+		e2e.Logf("Openstack servers map: %v)", openstackServerMap)
+
 		time.Sleep(time.Minute * 60)
+
 	})
 })
 
