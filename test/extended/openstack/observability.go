@@ -1,9 +1,15 @@
 package openstack
 
 import (
+	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gophercloud/gophercloud/v2"
@@ -162,7 +168,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 			openstackServerMap[server.Name] = server.ID
 		}
 		e2e.Logf("Openstack servers map: %v)", openstackServerMap)
-
+		//time.Sleep(time.Minute * 3)
+		e2e.Logf("Nodes from metrics: %v", getMetrics())
 		time.Sleep(time.Minute * 60)
 
 	})
@@ -190,4 +197,90 @@ func SetTestContextHostFromKubeconfig(kubeConfigPath string) error {
 
 	e2e.TestContext.Host = cluster.Server
 	return nil
+}
+
+func makeGETRequest(baseURL string) (string, error) {
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+	defer client.CloseIdleConnections()
+
+	params := url.Values{}
+	params.Set("query", "group by (node, provider_id) (kube_node_info)")
+	fullURL := baseURL + "?" + params.Encode()
+	req, err := http.NewRequest("GET", fullURL, nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return "", err
+	}
+
+	req.Header.Add("Accept", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return string(body), nil
+}
+
+func getMetrics() map[string]string {
+	// GET request example
+	getURL := "https://metric-storage-prometheus-openstack.apps.ocp.openstack.lab/api/v1/query"
+
+	body, err := makeGETRequest(getURL)
+	if err != nil {
+		fmt.Printf("GET request failed: %v\n", err)
+		return nil
+	}
+
+	type Metric struct {
+		Node       string `json:"node"`
+		ProviderID string `json:"provider_id"`
+	}
+
+	type Result struct {
+		Metric Metric         `json:"metric"`
+		Value  [2]interface{} `json:"value"`
+	}
+
+	type Data struct {
+		ResultType string   `json:"resultType"`
+		Result     []Result `json:"result"`
+	}
+
+	type Response struct {
+		Status string `json:"status"`
+		Data   Data   `json:"data"`
+	}
+
+	var r Response
+
+	if err := json.Unmarshal([]byte(body), &r); err != nil {
+		fmt.Println(err)
+	}
+	//fmt.Println(r)
+
+	nodes := make(map[string]string)
+
+	for _, f := range r.Data.Result {
+		instanceID := strings.TrimLeft(f.Metric.ProviderID, "openstack:///")
+		nodes[f.Metric.Node] = instanceID
+
+	}
+	//fmt.Println(nodes)
+	return nodes
 }
