@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/gophercloud/gophercloud/v2"
 	"github.com/gophercloud/gophercloud/v2/openstack"
@@ -103,17 +102,20 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 			err = json.Unmarshal(rawBytes, &newProviderSpec)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error unmarshaling new MachineSet Provider Spec")
 			newMachinesetParams.Name = fmt.Sprintf("%v-%v", "extra-network", RandomSuffix())
-			newProviderSpecJson, err := json.Marshal(newProviderSpec)
-			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to marshal new Machineset provider spec")
-			newMachinesetParams.ProviderSpec.Value.Raw = newProviderSpecJson
 
 			// Set NoAlloedAddressPairs for the additional network to true
 			var extraNetworkParam machinev1alpha1.NetworkParam
 			extraNetworkParam.NoAllowedAddressPairs = true
-			extraNetworkParam.Filter.ID = extraNetwork.ID
+			extraNetworkParam.UUID = extraNetwork.ID
 			newProviderSpec.Networks = append(newProviderSpec.Networks, extraNetworkParam)
+
+			newProviderSpecJson, err := json.Marshal(newProviderSpec)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to marshal new Machineset provider spec")
+			newMachinesetParams.ProviderSpec.Value.Raw = newProviderSpecJson
+
 			ms, err := framework.CreateMachineSet(rclient, newMachinesetParams)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to create a Machineset")
+
 			defer DeleteMachinesetsDefer(rclient, ms)
 			err = GetMachinesetRetry(ctx, rclient, ms, true)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get the new Machineset")
@@ -121,14 +123,15 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 
 			newMachines, err := machines.List(ctx, dc, machines.ByMachineSet(ms.Labels["machine.openshift.io/cluster-api-machineset"]))
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error fetching machines for MachineSet %q", ms.Name)
+			machineNetworks := make(map[string]string)
 
-			var machineNetworks []string
 			for _, machine := range newMachines {
 				for _, net := range objects(machine.Get("spec.providerSpec.value.networks")) {
-					machineNetworks = append(machineNetworks, net.Get("filter.id").String())
+					machineNetworks[net.Get("uuid").String()] = net.Get("noAllowedAddressPairs").String()
 				}
 			}
 			g.By("Verify value of ports AllowedAddressPairs for all the Machines")
+
 			for _, net := range machineNetworks {
 				portListOpts := ports.ListOpts{
 					NetworkID: net,
@@ -137,20 +140,21 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 				o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get ports")
 				allPorts, err := ports.ExtractPorts(allPages)
 				o.Expect(err).NotTo(o.HaveOccurred(), "Failed to extract ports")
+
 				for _, port := range allPorts {
 					if strings.Contains(port.Name, newMachinesetParams.Name) {
-						if net == extraNetwork.ID {
+						if value, exists := machineNetworks[port.NetworkID]; exists && value == "true" {
 							// There should be a port in the additional network with
 							// an empty AllowedAddressPairs
 							o.Expect(len(port.AllowedAddressPairs)).To(o.Equal(0))
 						} else {
-							// For other ports AllowedAddressPairs shoudn't be empty
+
+							// For other ports AllowedAddressPairs shouldn't be empty
 							o.Expect(len(port.AllowedAddressPairs)).To(o.Not(o.Equal(0)))
 						}
 					}
 				}
 			}
-			time.Sleep(10 * time.Second)
 			g.By("Deleting the new machineset")
 			framework.DeleteMachineSets(rclient, ms)
 			err = GetMachinesetRetry(ctx, rclient, ms, false)
