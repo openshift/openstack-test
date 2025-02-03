@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/gophercloud/gophercloud/v2"
 	"github.com/gophercloud/gophercloud/v2/openstack"
@@ -33,15 +32,17 @@ import (
 var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeConfig in rhoso", func() {
 	defer g.GinkgoRecover()
 
-	oc := exutil.NewCLI("openstack")
 	shiftstackKubeConfigEnvVarName := "KUBECONFIG"
 	shiftstackPassFileEnvVarName := "SHIFTSTACK_PASS_FILE"
 	rhosoKubeConfigEnvVarName := "RHOSO_KUBECONFIG"
 	shiftstackKubeConfig := os.Getenv(shiftstackKubeConfigEnvVarName)
 	rhosoKubeConfig := os.Getenv(rhosoKubeConfigEnvVarName)
 	shiftstackPassFile := os.Getenv(shiftstackPassFileEnvVarName)
+	openstackNamespaceName := "openstack"
 	var computeClient *gophercloud.ServiceClient
 	var err error
+
+	oc := exutil.NewCLI(openstackNamespaceName)
 
 	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By(fmt.Sprintf("Checking the %s, %s and %s env vars are being set", shiftstackKubeConfigEnvVarName, shiftstackPassFileEnvVarName, rhosoKubeConfigEnvVarName))
@@ -57,51 +58,71 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 	g.It("should trigger prometheus to add the rhoso target", func(ctx g.SpecContext) {
 		shiftstackPrometheusFederateRouteName := "prometheus-k8s-federate"
 		monitoringNamespaceName := "openshift-monitoring"
-		scrapeCfgName := "sos-federated"
+		//metricStoragePrometheusRouteName := "metric-storage-prometheus"
+		secretName := "ocp-federated"
+		scrapeConfigName := "sos-federated"
 
 		// Get the shiftstack prometheus federate endpoint (in order to scrape metrics from it)
-		g.By(fmt.Sprintf("Getting the '%s' route host from shiftstack cluster", shiftstackPrometheusFederateRouteName))
-		e2e.TestContext.KubeConfig = shiftstackKubeConfig
+		g.By(fmt.Sprintf("Getting the '%s' route host from the shiftstack cluster", shiftstackPrometheusFederateRouteName))
+		//e2e.TestContext.KubeConfig = shiftstackKubeConfig
 		SetTestContextHostFromKubeconfig(shiftstackKubeConfig)
 		route, err := oc.AdminRouteClient().RouteV1().Routes(monitoringNamespaceName).Get(ctx, shiftstackPrometheusFederateRouteName, metav1.GetOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
-		routeHost := route.Status.Ingress[0].Host
-		o.Expect(routeHost).NotTo(o.BeEmpty(), "Empty %s route host found", shiftstackPrometheusFederateRouteName)
-		e2e.Logf("Route Host: %v", routeHost)
+		shiftstackFederateRouteHost := route.Status.Ingress[0].Host
+		o.Expect(shiftstackFederateRouteHost).NotTo(o.BeEmpty(), "Empty %s route host found", shiftstackPrometheusFederateRouteName)
+		e2e.Logf("Shiftstack federate route host: '%v'", shiftstackFederateRouteHost)
 
+		// Create a token
+		g.By("Creating a token in the shiftstack cluster")
 		pass, err := ioutil.ReadFile(shiftstackPassFile)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		_, err = oc.Run("login").Args("-u", "kubeadmin").InputString(string(pass) + "\n").Output()
 		o.Expect(err).NotTo(o.HaveOccurred())
-		token, err := oc.Run("whoami").Args("-t").Output()
+		shiftstackToken, err := oc.Run("whoami").Args("-t").Output()
 		o.Expect(err).NotTo(o.HaveOccurred())
-		e2e.Logf("Token:%v", token)
+		e2e.Logf("Token: '%v'", shiftstackToken)
 
-		g.By("Creating a secret with token on rhoso openstack namespace")
-		e2e.TestContext.KubeConfig = rhosoKubeConfig
+		// Create a secret
+		g.By(fmt.Sprintf("Creating the '%s' secret in Openstack with the shiftstack token", secretName))
+		//e2e.TestContext.KubeConfig = rhosoKubeConfig
 		SetTestContextHostFromKubeconfig(rhosoKubeConfig)
-		rhosoCfg, err := e2e.LoadConfig()
-		o.Expect(err).NotTo(o.HaveOccurred())
-		clientSet, err := e2e.LoadClientset()
-		o.Expect(err).NotTo(o.HaveOccurred())
 
-		secretData := map[string][]byte{
-			"token": []byte(token),
-		}
 		secretDef := &v1core.Secret{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "ocp-federated",
+				Name:      secretName,
+				Namespace: openstackNamespaceName,
 			},
-			Data: secretData,
+			Data: map[string][]byte{
+				"token": []byte(shiftstackToken),
+			},
 		}
-		client := clientSet.CoreV1().Secrets("openstack")
+
+		clientSet, err := e2e.LoadClientset()
+		o.Expect(err).NotTo(o.HaveOccurred())
+		_, err = clientSet.ServerVersion()
+		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Kubernetes API Access Error: %v", err))
+		client := clientSet.CoreV1().Secrets(openstackNamespaceName)
 		_, err = client.Create(ctx, secretDef, metav1.CreateOptions{})
-		o.Expect(err).NotTo(o.HaveOccurred())
-		defer client.Delete(ctx, "ocp-federated", metav1.DeleteOptions{})
+		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Error creating the '%s' secret in Openstack: %v", secretName, err))
+		defer client.Delete(ctx, secretName, metav1.DeleteOptions{})
 
-		dcRhoso, err := dynamic.NewForConfig(rhosoCfg)
-		o.Expect(err).NotTo(o.HaveOccurred())
+		// TODO: need to change the oc api in order to run oc commands in RHOSO OCP
+		// // Get the Openstack Prometheus metric storage route
+		// g.By(fmt.Sprintf("Getting the '%s'", scrapeConfigName))
+		// metricStorageRoute, err := oc.AdminRouteClient().RouteV1().Routes(openstackNamespaceName).Get(ctx, metricStoragePrometheusRouteName, metav1.GetOptions{})
+		// o.Expect(err).NotTo(o.HaveOccurred())
+		// metricStorageRouteHost := metricStorageRoute.Status.Ingress[0].Host
+		// e2e.Logf("Openstack metric storage route host: '%v'", metricStorageRouteHost)
+		metricStorageRouteHost := "metric-storage-prometheus-openstack.apps.ocp.openstack.lab"
 
+		// Wait until the monitoring target is down (from any previous test)
+		metricStorageURL := fmt.Sprintf("https://%s/api/v1/query", metricStorageRouteHost)
+		prometheusTarget := fmt.Sprintf("scrapeConfig/openstack/%s", scrapeConfigName)
+		g.By(fmt.Sprintf("Waiting until '%s' monitoring target is down (from any previous test) in Openstack Prometheus", prometheusTarget))
+		o.Expect(waitUntilTargetStatus(metricStorageURL, prometheusTarget, "down")).NotTo(o.HaveOccurred(), "Error waiting for monitoring target status")
+
+		// Create a scrapeconfig in Openstack (will scrape metrics from shiftstack cluster)
+		g.By(fmt.Sprintf("Creating the '%s' scrapeconfig in Openstack", scrapeConfigName))
 		gvr := schema.GroupVersionResource{
 			Group:    "monitoring.rhobs",
 			Version:  "v1alpha1",
@@ -112,8 +133,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 			"apiVersion": "monitoring.rhobs/v1alpha1",
 			"kind":       "ScrapeConfig",
 			"metadata": map[string]interface{}{
-				"name":      scrapeCfgName,
-				"namespace": "openstack",
+				"name":      scrapeConfigName,
+				"namespace": openstackNamespaceName,
 				"labels": map[string]interface{}{
 					"service": "metricStorage",
 				},
@@ -130,7 +151,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 				"authorization": map[string]interface{}{
 					"type": "Bearer",
 					"credentials": map[string]interface{}{
-						"name": "ocp-federated",
+						"name": secretName,
 						"key":  "token",
 					},
 				},
@@ -140,20 +161,27 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 				"staticConfigs": []interface{}{
 					map[string]interface{}{
 						"targets": []string{
-							routeHost,
+							shiftstackFederateRouteHost,
 						},
 					},
 				},
 			},
 		}
-		g.By("Creating ScrapeConfig")
-		resourceClient := dcRhoso.Resource(gvr).Namespace("openstack")
+
+		rhosoCfg, err := e2e.LoadConfig()
+		o.Expect(err).NotTo(o.HaveOccurred())
+		dcRhoso, err := dynamic.NewForConfig(rhosoCfg)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		resourceClient := dcRhoso.Resource(gvr).Namespace(openstackNamespaceName)
 		_, err = resourceClient.Create(ctx, &unstructured.Unstructured{
 			Object: scrapeConfig,
 		}, metav1.CreateOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
+		defer resourceClient.Delete(ctx, scrapeConfigName, metav1.DeleteOptions{})
 
-		defer resourceClient.Delete(ctx, scrapeCfgName, metav1.DeleteOptions{})
+		// Wait until the monitoring target is up
+		g.By(fmt.Sprintf("Waiting until '%s' monitoring target is up in Openstack Prometheus", prometheusTarget))
+		o.Expect(waitUntilTargetStatus(metricStorageURL, prometheusTarget, "up")).NotTo(o.HaveOccurred(), "Error waiting for monitoring target status")
 
 		// Get Openstack servers (needed to contrast the kube_node_info metric content) and store the names and ids in a map
 		g.By("Getting the Openstack servers")
@@ -167,18 +195,23 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 			e2e.Logf("Server found (ID: %v, Name: %v, Status: %v)", server.ID, server.Name, server.Status)
 			openstackServerMap[server.Name] = server.ID
 		}
-		e2e.Logf("Openstack servers map: %v)", openstackServerMap)
-		//time.Sleep(time.Minute * 3)
-		e2e.Logf("Nodes from metrics: %v", getMetrics())
-		time.Sleep(time.Minute * 60)
+		e2e.Logf("Openstack servers map: '%v'", openstackServerMap)
 
+		// Get metrics
+		metricsServerMap := getMetrics(metricStorageURL, "group by (node, provider_id) (kube_node_info)")
+		e2e.Logf("Nodes from metrics: '%v'", metricsServerMap)
+
+		// Check the obtained metrics info match with the servers info from Openstack
+		o.Expect(metricsServerMap).To(o.Equal(openstackServerMap), "Expected %v but got %v", openstackServerMap, metricsServerMap)
 	})
 })
 
 // Set the TestContextHost based on the Kubeconfig
 func SetTestContextHostFromKubeconfig(kubeConfigPath string) error {
+
 	e2e.TestContext.KubeConfig = kubeConfigPath
 
+	e2e.Logf("Loading kubeconfig from '%v'", kubeConfigPath)
 	kubeConfig, err := clientcmd.LoadFromFile(kubeConfigPath)
 	if err != nil {
 		return fmt.Errorf("failed to load kubeconfig: %w", err)
@@ -196,10 +229,12 @@ func SetTestContextHostFromKubeconfig(kubeConfigPath string) error {
 	}
 
 	e2e.TestContext.Host = cluster.Server
+	e2e.Logf("TestContext Host: '%v'", e2e.TestContext.Host)
+
 	return nil
 }
 
-func makeGETRequest(baseURL string) (string, error) {
+func makeGETRequest(baseURL string, promQLQuery string) (string, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -208,8 +243,9 @@ func makeGETRequest(baseURL string) (string, error) {
 	defer client.CloseIdleConnections()
 
 	params := url.Values{}
-	params.Set("query", "group by (node, provider_id) (kube_node_info)")
+	params.Set("query", promQLQuery)
 	fullURL := baseURL + "?" + params.Encode()
+	e2e.Logf("Request: '%s'", fullURL)
 	req, err := http.NewRequest("GET", fullURL, nil)
 	if err != nil {
 		fmt.Println("Error creating request:", err)
@@ -234,14 +270,15 @@ func makeGETRequest(baseURL string) (string, error) {
 		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
+	e2e.Logf("Response: '%v' - '%v'", resp.Status, string(body))
+
 	return string(body), nil
 }
 
-func getMetrics() map[string]string {
-	// GET request example
-	getURL := "https://metric-storage-prometheus-openstack.apps.ocp.openstack.lab/api/v1/query"
+func getMetrics(baseURL string, query string) map[string]string {
+	e2e.Logf("Getting metrics (query: '%v') from '%v'", query, baseURL)
 
-	body, err := makeGETRequest(getURL)
+	body, err := makeGETRequest(baseURL, query)
 	if err != nil {
 		fmt.Printf("GET request failed: %v\n", err)
 		return nil
@@ -273,6 +310,7 @@ func getMetrics() map[string]string {
 		fmt.Println(err)
 	}
 	//fmt.Println(r)
+	e2e.Logf("Metrics query response: '%v'", r)
 
 	nodes := make(map[string]string)
 
@@ -283,4 +321,62 @@ func getMetrics() map[string]string {
 	}
 	//fmt.Println(nodes)
 	return nodes
+}
+
+// Active wait until a given monitoring target is in desired status (can be "up or "down")
+func waitUntilTargetStatus(baseURL string, target string, targetStatus string) error {
+	var err error
+
+	expectedUpMetricValue := "0"
+	if targetStatus == "up" {
+		expectedUpMetricValue = "1"
+	}
+
+	upQuery := fmt.Sprintf("up{job=\"%s\"}", target)
+	e2e.Logf("baseURL: '%v'", baseURL)
+	e2e.Logf("PromQL query: '%v'", upQuery)
+
+	type Response struct {
+		Status string `json:"status"`
+		Data   struct {
+			ResultType string `json:"resultType"`
+			Result     []struct {
+				Metric map[string]string `json:"metric"`
+				Value  []interface{}     `json:"value"`
+			} `json:"result"`
+		} `json:"data"`
+	}
+
+	o.Eventually(func() string {
+		var resp Response
+		body, err := makeGETRequest(baseURL, upQuery)
+		if err != nil {
+			e2e.Logf("GET request failed: %v, trying next iteration\n", err)
+			return ""
+		}
+
+		err = json.Unmarshal([]byte(body), &resp)
+		if err != nil {
+			e2e.Logf("Error parsing JSON: %v, trying next iteration\n", err)
+			return ""
+		}
+
+		// Extract the Up metric value (second element in the "value" array)
+		if len(resp.Data.Result) > 0 && len(resp.Data.Result[0].Value) > 1 {
+			metricValue, ok := resp.Data.Result[0].Value[1].(string) // Ensure it's a string
+			if ok {
+				e2e.Logf("Up metric value: '%v'", metricValue)
+				return metricValue
+			} else {
+				e2e.Logf("Unexpected Up metric value type: '%v'", metricValue)
+			}
+		} else {
+			e2e.Logf("Up metric value is missing or empty")
+			return "0"
+		}
+
+		return ""
+	}, "300s", "30s").Should(o.Equal(expectedUpMetricValue), "Timed out waiting the Up metric to be '%v'", expectedUpMetricValue)
+
+	return err
 }
