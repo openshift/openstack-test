@@ -16,6 +16,7 @@ import (
 	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servers"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
+	routev1 "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1"
 	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	exutil "github.com/openshift/origin/test/extended/util"
 
@@ -58,22 +59,26 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 	g.It("should trigger prometheus to add the rhoso target", func(ctx g.SpecContext) {
 		shiftstackPrometheusFederateRouteName := "prometheus-k8s-federate"
 		monitoringNamespaceName := "openshift-monitoring"
-		//metricStoragePrometheusRouteName := "metric-storage-prometheus"
+		metricStoragePrometheusRouteName := "metric-storage-prometheus"
 		secretName := "ocp-federated"
 		scrapeConfigName := "sos-federated"
+		kubeNodeInfoQuery := "group by (node, provider_id) (kube_node_info)"
 
 		// Get the shiftstack prometheus federate endpoint (in order to scrape metrics from it)
 		g.By(fmt.Sprintf("Getting the '%s' route host from the shiftstack cluster", shiftstackPrometheusFederateRouteName))
-		//e2e.TestContext.KubeConfig = shiftstackKubeConfig
-		SetTestContextHostFromKubeconfig(shiftstackKubeConfig)
-		route, err := oc.AdminRouteClient().RouteV1().Routes(monitoringNamespaceName).Get(ctx, shiftstackPrometheusFederateRouteName, metav1.GetOptions{})
+		shiftstackConfig, err := clientcmd.BuildConfigFromFlags("", shiftstackKubeConfig)
 		o.Expect(err).NotTo(o.HaveOccurred())
-		shiftstackFederateRouteHost := route.Status.Ingress[0].Host
-		o.Expect(shiftstackFederateRouteHost).NotTo(o.BeEmpty(), "Empty %s route host found", shiftstackPrometheusFederateRouteName)
+		shiftstackRouteClient, err := routev1.NewForConfig(shiftstackConfig)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		shiftstackFederateRoute, err := shiftstackRouteClient.Routes(monitoringNamespaceName).Get(ctx, shiftstackPrometheusFederateRouteName, metav1.GetOptions{})
+		o.Expect(err).NotTo(o.HaveOccurred())
+		shiftstackFederateRouteHost := shiftstackFederateRoute.Status.Ingress[0].Host
+		o.Expect(shiftstackFederateRouteHost).NotTo(o.BeEmpty(), "Empty '%s' route host found", shiftstackPrometheusFederateRouteName)
 		e2e.Logf("Shiftstack federate route host: '%v'", shiftstackFederateRouteHost)
 
-		// Create a token
+		// Create a token in the shiftstack cluster
 		g.By("Creating a token in the shiftstack cluster")
+		SetTestContextHostFromKubeconfig(shiftstackKubeConfig)
 		pass, err := ioutil.ReadFile(shiftstackPassFile)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		_, err = oc.Run("login").Args("-u", "kubeadmin").InputString(string(pass) + "\n").Output()
@@ -82,9 +87,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		o.Expect(err).NotTo(o.HaveOccurred())
 		e2e.Logf("Token: '%v'", shiftstackToken)
 
-		// Create a secret
+		// Create a secret in Openstack with the shiftstack token
 		g.By(fmt.Sprintf("Creating the '%s' secret in Openstack with the shiftstack token", secretName))
-		//e2e.TestContext.KubeConfig = rhosoKubeConfig
 		SetTestContextHostFromKubeconfig(rhosoKubeConfig)
 
 		secretDef := &v1core.Secret{
@@ -106,14 +110,17 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Error creating the '%s' secret in Openstack: %v", secretName, err))
 		defer client.Delete(ctx, secretName, metav1.DeleteOptions{})
 
-		// TODO: need to change the oc api in order to run oc commands in RHOSO OCP
-		// // Get the Openstack Prometheus metric storage route
-		// g.By(fmt.Sprintf("Getting the '%s'", scrapeConfigName))
-		// metricStorageRoute, err := oc.AdminRouteClient().RouteV1().Routes(openstackNamespaceName).Get(ctx, metricStoragePrometheusRouteName, metav1.GetOptions{})
-		// o.Expect(err).NotTo(o.HaveOccurred())
-		// metricStorageRouteHost := metricStorageRoute.Status.Ingress[0].Host
-		// e2e.Logf("Openstack metric storage route host: '%v'", metricStorageRouteHost)
-		metricStorageRouteHost := "metric-storage-prometheus-openstack.apps.ocp.openstack.lab"
+		// Get the Openstack Prometheus metric storage route
+		g.By(fmt.Sprintf("Getting the '%s' route host from Openstack", metricStoragePrometheusRouteName))
+		rhosoConfig, err := clientcmd.BuildConfigFromFlags("", rhosoKubeConfig)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		rhosoRouteClient, err := routev1.NewForConfig(rhosoConfig)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		metricStorageRoute, err := rhosoRouteClient.Routes(openstackNamespaceName).Get(ctx, metricStoragePrometheusRouteName, metav1.GetOptions{})
+		o.Expect(err).NotTo(o.HaveOccurred())
+		metricStorageRouteHost := metricStorageRoute.Status.Ingress[0].Host
+		o.Expect(metricStorageRouteHost).NotTo(o.BeEmpty(), "Empty '%s' route host found", metricStoragePrometheusRouteName)
+		e2e.Logf("Openstack metric storage route host: '%v'", metricStorageRouteHost)
 
 		// Wait until the monitoring target is down (from any previous test)
 		metricStorageURL := fmt.Sprintf("https://%s/api/v1/query", metricStorageRouteHost)
@@ -197,8 +204,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		}
 		e2e.Logf("Openstack servers map: '%v'", openstackServerMap)
 
-		// Get metrics
-		metricsServerMap := getMetrics(metricStorageURL, "group by (node, provider_id) (kube_node_info)")
+		// Get kube_node_info metrics
+		metricsServerMap := getMetrics(metricStorageURL, kubeNodeInfoQuery)
 		e2e.Logf("Nodes from metrics: '%v'", metricsServerMap)
 
 		// Check the obtained metrics info match with the servers info from Openstack
