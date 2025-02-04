@@ -202,7 +202,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		e2e.Logf("Nodes from metrics: '%v'", metricsServerMap)
 
 		// Check the obtained metrics info match with the servers info from Openstack
+		g.By("Checking the obtained metrics info match with the servers info from Openstack")
 		o.Expect(metricsServerMap).To(o.Equal(openstackServerMap), "Expected %v but got %v", openstackServerMap, metricsServerMap)
+		e2e.Logf("Obtained metrics info match with the servers info from Openstack!")
 	})
 })
 
@@ -305,21 +307,17 @@ func getMetrics(baseURL string, query string) map[string]string {
 	}
 
 	var r Response
-
 	if err := json.Unmarshal([]byte(body), &r); err != nil {
 		fmt.Println(err)
 	}
-	//fmt.Println(r)
 	e2e.Logf("Metrics query response: '%v'", r)
 
 	nodes := make(map[string]string)
-
 	for _, f := range r.Data.Result {
-		instanceID := strings.TrimLeft(f.Metric.ProviderID, "openstack:///")
+		instanceID := strings.TrimPrefix(f.Metric.ProviderID, "openstack:///")
 		nodes[f.Metric.Node] = instanceID
-
 	}
-	//fmt.Println(nodes)
+
 	return nodes
 }
 
