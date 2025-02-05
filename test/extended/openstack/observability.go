@@ -10,9 +10,11 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gophercloud/gophercloud/v2"
 	"github.com/gophercloud/gophercloud/v2/openstack"
+	"github.com/gophercloud/gophercloud/v2/openstack/blockstorage/v3/volumes"
 	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servers"
 	g "github.com/onsi/ginkgo/v2"
 	o "github.com/onsi/gomega"
@@ -20,13 +22,14 @@ import (
 	"github.com/openshift/openstack-test/test/extended/openstack/client"
 	exutil "github.com/openshift/origin/test/extended/util"
 
-	v1core "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/clientcmd"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
+	e2edeployment "k8s.io/kubernetes/test/e2e/framework/deployment"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
@@ -40,7 +43,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 	rhosoKubeConfig := os.Getenv(rhosoKubeConfigEnvVarName)
 	shiftstackPassFile := os.Getenv(shiftstackPassFileEnvVarName)
 	openstackNamespaceName := "openstack"
+	scrapeInterval := "30s"
 	var computeClient *gophercloud.ServiceClient
+	var volumeClient *gophercloud.ServiceClient
 	var err error
 
 	oc := exutil.NewCLI(openstackNamespaceName)
@@ -51,9 +56,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 			e2eskipper.Skipf("%s, %s and %s env vars must be set for this test to run", shiftstackKubeConfigEnvVarName, shiftstackPassFileEnvVarName, rhosoKubeConfigEnvVarName)
 		}
 
-		g.By("Getting the Openstack compute client")
+		g.By("Getting the Openstack clients")
 		computeClient, err = client.GetServiceClient(ctx, openstack.NewComputeV2)
 		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get the OpenStack compute client")
+		volumeClient, err = client.GetServiceClient(ctx, openstack.NewBlockStorageV3)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get the OpenStack block storage client")
 	})
 
 	g.It("should trigger prometheus to add the rhoso target", func(ctx g.SpecContext) {
@@ -63,6 +70,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		secretName := "ocp-federated"
 		scrapeConfigName := "sos-federated"
 		kubeNodeInfoQuery := "group by (node, provider_id) (kube_node_info)"
+		kubePersistentVolumeInfoQuery := "group by (csi_volume_handle, persistentvolume) (kube_persistentvolume_info)"
 
 		// Get the shiftstack prometheus federate endpoint (in order to scrape metrics from it)
 		g.By(fmt.Sprintf("Getting the '%s' route host from the shiftstack cluster", shiftstackPrometheusFederateRouteName))
@@ -91,7 +99,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		g.By(fmt.Sprintf("Creating the '%s' secret in Openstack with the shiftstack token", secretName))
 		SetTestContextHostFromKubeconfig(rhosoKubeConfig)
 
-		secretDef := &v1core.Secret{
+		secretDef := &v1.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      secretName,
 				Namespace: openstackNamespaceName,
@@ -101,11 +109,12 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 			},
 		}
 
-		clientSet, err := e2e.LoadClientset()
+		// Load Kubernetes client for RHOSO OCP cluster
+		rhosoClientSet, err := e2e.LoadClientset()
 		o.Expect(err).NotTo(o.HaveOccurred())
-		_, err = clientSet.ServerVersion()
+		_, err = rhosoClientSet.ServerVersion()
 		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Kubernetes API Access Error: %v", err))
-		client := clientSet.CoreV1().Secrets(openstackNamespaceName)
+		client := rhosoClientSet.CoreV1().Secrets(openstackNamespaceName)
 		_, err = client.Create(ctx, secretDef, metav1.CreateOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Error creating the '%s' secret in Openstack: %v", secretName, err))
 		defer client.Delete(ctx, secretName, metav1.DeleteOptions{})
@@ -149,7 +158,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 			"spec": map[string]interface{}{
 				"scheme":         "HTTPS",
 				"metricsPath":    "federate",
-				"scrapeInterval": "30s",
+				"scrapeInterval": scrapeInterval,
 				"params": map[string]interface{}{
 					"match[]": []string{
 						`{__name__=~"kube_node_info|kube_persistentvolume_info"}`,
@@ -190,28 +199,106 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		g.By(fmt.Sprintf("Waiting until '%s' monitoring target is up in Openstack Prometheus", prometheusTarget))
 		o.Expect(waitUntilTargetStatus(metricStorageURL, prometheusTarget, "up")).NotTo(o.HaveOccurred(), "Error waiting for monitoring target status")
 
-		// Get Openstack servers (needed to contrast the kube_node_info metric content) and store the names and ids in a map
+		// Get Openstack servers (needed to contrast the kube_node_info metrics content) and store the names and ids in a map
 		g.By("Getting the Openstack servers")
-		allPages, err := servers.List(computeClient, nil).AllPages(ctx)
+		serversAllPages, err := servers.List(computeClient, nil).AllPages(ctx)
 		o.Expect(err).NotTo(o.HaveOccurred())
-		allServers, err := servers.ExtractServers(allPages)
+		allServers, err := servers.ExtractServers(serversAllPages)
 		o.Expect(err).NotTo(o.HaveOccurred())
 		openstackServerMap := make(map[string]string)
 		for _, server := range allServers {
-			//OS_CLOUD=default is needed in order to get servers' Host (TODO: remove this comment)
 			e2e.Logf("Server found (ID: %v, Name: %v, Status: %v)", server.ID, server.Name, server.Status)
 			openstackServerMap[server.Name] = server.ID
 		}
 		e2e.Logf("Openstack servers map: '%v'", openstackServerMap)
 
+		// Sleep scrapeInterval before retrieving the kube_node_info metrics to allow time to scrape them
+		g.By(fmt.Sprintf("Sleeping the scrapeInterval '%s' before retrieving the kube_node_info metrics", scrapeInterval))
+		scrapeIntervalDuration, err := time.ParseDuration(scrapeInterval)
+		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Error parsing scrapeInterval duration '%v'", scrapeInterval))
+		time.Sleep(scrapeIntervalDuration)
+
 		// Get kube_node_info metrics
-		metricsServerMap := getMetrics(metricStorageURL, kubeNodeInfoQuery)
-		e2e.Logf("Nodes from metrics: '%v'", metricsServerMap)
+		nodesServerMap := getKubeNodeInfoMetricInMap(metricStorageURL, kubeNodeInfoQuery)
+		e2e.Logf("Nodes from metrics: '%v'", nodesServerMap)
 
 		// Check the obtained metrics info match with the servers info from Openstack
 		g.By("Checking the obtained metrics info match with the servers info from Openstack")
-		o.Expect(metricsServerMap).To(o.Equal(openstackServerMap), "Expected %v but got %v", openstackServerMap, metricsServerMap)
+		o.Expect(nodesServerMap).To(o.Equal(openstackServerMap), "Expected %v but got %v", openstackServerMap, nodesServerMap)
 		e2e.Logf("Obtained metrics info match with the servers info from Openstack!")
+
+		// Set context host for shiftstack cluster
+		SetTestContextHostFromKubeconfig(shiftstackKubeConfig)
+
+		// Load Kubernetes client for shiftstack cluster
+		shiftstackClientSet, err := e2e.LoadClientset()
+		o.Expect(err).NotTo(o.HaveOccurred())
+		_, err = shiftstackClientSet.ServerVersion()
+		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Kubernetes API Access Error: '%v'", err))
+
+		// Create a cinder PVC in shiftstack cluster
+		ns := oc.Namespace()
+		g.By(fmt.Sprintf("Creating a PVC for a cinder volume in '%v' namespace in the shiftstack cluster", ns))
+		cinderSc := FindStorageClassByProvider(oc, "cinder.csi.openstack.org", true)
+		o.Expect(cinderSc).NotTo(o.BeNil(), "default cinder-csi storageClass not found.")
+		pvc := CreatePVC(ctx, shiftstackClientSet, "cinder-pvc", ns, cinderSc.Name, "1Gi")
+
+		// Create a deployment with the volume attached
+		g.By(fmt.Sprintf("Creating Openshift deployment with 1 replica and cinder volume '%v' attached", pvc.Name))
+		labels := map[string]string{"app": "cinder-test-dep"}
+		testDeployment := createTestDeployment(deploymentOpts{
+			Name:     "cinder-test-dep",
+			Labels:   labels,
+			Replicas: 1,
+			Protocol: v1.ProtocolTCP,
+			Port:     8080,
+			Volumes: []volumeOption{{
+				Name:      "data-volume",
+				PvcName:   pvc.Name,
+				MountPath: "data",
+			}},
+		})
+
+		deployment, err := shiftstackClientSet.AppsV1().Deployments(ns).Create(ctx, testDeployment, metav1.CreateOptions{})
+		o.Expect(err).NotTo(o.HaveOccurred())
+		err = e2edeployment.WaitForDeploymentComplete(shiftstackClientSet, deployment)
+		o.Expect(err).NotTo(o.HaveOccurred())
+
+		// Get volume info in Openstack
+		g.By("Getting the Openstack volume")
+		pvcVolumeName, err := waitPvcVolume(ctx, shiftstackClientSet, pvc.Name, ns)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		cinderVolumes, err := getVolumesFromName(ctx, volumeClient, pvcVolumeName)
+		o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack volume info for PVC '%s'", pvc.Name)
+		o.Expect(cinderVolumes).To(o.HaveLen(1), "Unexpected number of volumes for PVC '%s'", pvc.Name)
+		volumeID := cinderVolumes[0].ID
+		e2e.Logf("Volume ID '%v' for volume name '%v' found in Openstack for PVC '%s'", volumeID, pvcVolumeName, pvc.Name)
+
+		// Get Openstack volumes (needed to contrast the kube_persistentvolume_info metrics content) and store the names and ids in a map
+		g.By("Getting the Openstack volumes")
+		volumesAllPages, err := volumes.List(volumeClient, nil).AllPages(ctx)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		allVolumes, err := volumes.ExtractVolumes(volumesAllPages)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		openstackVolumeMap := make(map[string]string)
+		for _, volume := range allVolumes {
+			e2e.Logf("Volume found (ID: %v, Name: %v, Status: %v)", volume.ID, volume.Name, volume.Status)
+			openstackVolumeMap[volume.Name] = volume.ID
+		}
+		e2e.Logf("Openstack volumes map: '%v'", openstackVolumeMap)
+
+		// Sleep scrapeInterval before retrieving the kube_persistentvolume_info metrics to allow time to scrape them
+		g.By(fmt.Sprintf("Sleeping the scrapeInterval '%s' before retrieving the kube_persistentvolume_info metrics", scrapeInterval))
+		time.Sleep(scrapeIntervalDuration)
+
+		// Get kube_persistentvolume_info metrics
+		volumesServerMap := getKubePersistentvolumeInfoMetricInMap(metricStorageURL, kubePersistentVolumeInfoQuery)
+		e2e.Logf("Volumes from metrics: '%v'", volumesServerMap)
+
+		// Check the obtained metrics info match with the volumes info from Openstack
+		g.By("Checking the obtained metrics info match with the volumes info from Openstack")
+		o.Expect(volumesServerMap).To(o.Equal(openstackVolumeMap), "Expected %v but got %v", openstackVolumeMap, volumesServerMap)
+		e2e.Logf("Obtained metrics info match with the volumes info from Openstack!")
 	})
 })
 
@@ -284,7 +371,8 @@ func makeGETRequest(baseURL string, promQLQuery string) (string, error) {
 	return string(body), nil
 }
 
-func getMetrics(baseURL string, query string) map[string]string {
+// Get kube_node_info metrics node and provider_id fields in a map
+func getKubeNodeInfoMetricInMap(baseURL string, query string) map[string]string {
 	e2e.Logf("Getting metrics (query: '%v') from '%v'", query, baseURL)
 
 	body, err := makeGETRequest(baseURL, query)
@@ -326,6 +414,50 @@ func getMetrics(baseURL string, query string) map[string]string {
 	}
 
 	return nodes
+}
+
+// Get kube_persistentvolume_info metrics csi_volume_handle and persistentvolume fields in a map
+func getKubePersistentvolumeInfoMetricInMap(baseURL string, query string) map[string]string {
+	e2e.Logf("Getting metrics (query: '%v') from '%v'", query, baseURL)
+
+	body, err := makeGETRequest(baseURL, query)
+	if err != nil {
+		fmt.Printf("GET request failed: %v\n", err)
+		return nil
+	}
+
+	type Metric struct {
+		CSIVolumeHandle string `json:"csi_volume_handle"`
+		PersistenVolume string `json:"persistentvolume"`
+	}
+
+	type Result struct {
+		Metric Metric         `json:"metric"`
+		Value  [2]interface{} `json:"value"`
+	}
+
+	type Data struct {
+		ResultType string   `json:"resultType"`
+		Result     []Result `json:"result"`
+	}
+
+	type Response struct {
+		Status string `json:"status"`
+		Data   Data   `json:"data"`
+	}
+
+	var r Response
+	if err := json.Unmarshal([]byte(body), &r); err != nil {
+		fmt.Println(err)
+	}
+	e2e.Logf("Metrics query response: '%v'", r)
+
+	volumes := make(map[string]string)
+	for _, f := range r.Data.Result {
+		volumes[f.Metric.PersistenVolume] = f.Metric.CSIVolumeHandle
+	}
+
+	return volumes
 }
 
 // Active wait until a given monitoring target is in desired status (can be "up or "down")
@@ -381,7 +513,7 @@ func waitUntilTargetStatus(baseURL string, target string, targetStatus string) e
 		}
 
 		return ""
-	}, "300s", "30s").Should(o.Equal(expectedUpMetricValue), "Timed out waiting the Up metric to be '%v'", expectedUpMetricValue)
+	}, "360s", "30s").Should(o.Equal(expectedUpMetricValue), "Timed out waiting the Up metric to be '%v'", expectedUpMetricValue)
 
 	return err
 }
