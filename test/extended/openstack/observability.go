@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gophercloud/gophercloud/v2"
 	"github.com/gophercloud/gophercloud/v2/openstack"
@@ -71,6 +71,17 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		scrapeConfigName := "sos-federated"
 		kubeNodeInfoQuery := "group by (node, provider_id) (kube_node_info)"
 		kubePersistentVolumeInfoQuery := "group by (csi_volume_handle, persistentvolume) (kube_persistentvolume_info)"
+		correlatedQuery := `sum by (vm_instance) (
+			group by (vm_instance, resource) (ceilometer_cpu)
+			  / on (resource) group_right(vm_instance) (
+				group by (node, resource) (
+				  label_replace(kube_node_info, "resource", "$1", "system_uuid", "(.+)")
+				)
+			  / on (node) group_left group by (node) (
+				cluster:master_nodes
+			  )
+			)
+		  )`
 
 		// Get the shiftstack prometheus federate endpoint (in order to scrape metrics from it)
 		g.By(fmt.Sprintf("Getting the '%s' route host from the shiftstack cluster", shiftstackPrometheusFederateRouteName))
@@ -131,10 +142,10 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		o.Expect(metricStorageRouteHost).NotTo(o.BeEmpty(), "Empty '%s' route host found", metricStoragePrometheusRouteName)
 		e2e.Logf("Openstack metric storage route host: '%v'", metricStorageRouteHost)
 
-		// Wait until the monitoring target is down (could be still up if same test ran before)
+		// Wait until the monitoring target is down (could be still up if the same test ran before)
 		metricStorageURL := fmt.Sprintf("https://%s/api/v1/query", metricStorageRouteHost)
 		prometheusTarget := fmt.Sprintf("scrapeConfig/openstack/%s", scrapeConfigName)
-		g.By(fmt.Sprintf("Waiting until '%s' monitoring target is down (from any previous test) in Openstack Prometheus", prometheusTarget))
+		g.By(fmt.Sprintf("Waiting until '%s' monitoring target is down (could be still up if the same test ran before) in Openstack Prometheus", prometheusTarget))
 		o.Expect(waitUntilTargetStatus(metricStorageURL, prometheusTarget, "down")).NotTo(o.HaveOccurred(), "Error waiting for monitoring target status")
 
 		// Create a scrapeconfig in Openstack (will scrape metrics from shiftstack cluster)
@@ -161,7 +172,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 				"scrapeInterval": scrapeInterval,
 				"params": map[string]interface{}{
 					"match[]": []string{
-						`{__name__=~"kube_node_info|kube_persistentvolume_info"}`,
+						`{__name__=~"kube_node_info|kube_persistentvolume_info|cluster:master_nodes"}`,
 					},
 				},
 				"authorization": map[string]interface{}{
@@ -199,19 +210,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		g.By(fmt.Sprintf("Waiting until '%s' monitoring target is up in Openstack Prometheus", prometheusTarget))
 		o.Expect(waitUntilTargetStatus(metricStorageURL, prometheusTarget, "up")).NotTo(o.HaveOccurred(), "Error waiting for monitoring target status")
 
-		// Get Openstack servers (needed to contrast the kube_node_info metrics content) and store the names and ids in a map
-		g.By("Getting the Openstack servers")
-		serversAllPages, err := servers.List(computeClient, nil).AllPages(ctx)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		allServers, err := servers.ExtractServers(serversAllPages)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		openstackServerMap := make(map[string]string)
-		for _, server := range allServers {
-			e2e.Logf("Server found (ID: %v, Name: %v, Status: %v)", server.ID, server.Name, server.Status)
-			openstackServerMap[server.Name] = server.ID
-		}
-		e2e.Logf("Openstack servers map: '%v'", openstackServerMap)
-
 		// Set context host for shiftstack cluster
 		SetTestContextHostFromKubeconfig(shiftstackKubeConfig)
 
@@ -221,25 +219,18 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		_, err = shiftstackClientSet.ServerVersion()
 		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Kubernetes API Access Error: '%v'", err))
 
-		// Sleep scrapeInterval + additional 10s before retrieving the kube_node_info metrics to allow time to scrape them
-		g.By(fmt.Sprintf("Sleeping the scrapeInterval '%s' + additional 10s before retrieving the kube_node_info metrics", scrapeInterval))
-		scrapeIntervalDuration, err := time.ParseDuration(scrapeInterval)
-		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Error parsing scrapeInterval duration '%v'", scrapeInterval))
-		time.Sleep(scrapeIntervalDuration + 10*time.Second)
-
-		// Get kube_node_info metrics
-		nodeMetricsMap := getKubeNodeInfoMetricInMap(metricStorageURL, kubeNodeInfoQuery)
-		e2e.Logf("Nodes from metrics: '%v'", nodeMetricsMap)
-
 		// Get shiftstack cluster nodes
 		nodeList, err := shiftstackClientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
 
-		// Check the shiftstack cluster node list and node map length are the same
-		g.By("Checking the shiftstack cluster node list and node map length are the same")
-		o.Expect(len(nodeList.Items)).To(o.Equal(len(nodeMetricsMap)),
-			"Shiftstack cluster node list '%v' and node map '%v' should have the same length", nodeList.Items, nodeMetricsMap)
-		e2e.Logf("Length of the shiftstack cluster node list and of the node map obtained from the metrics is the same ('%d')", len(nodeList.Items))
+		// Wait until kube_node_info metrics have nodeList number of elements
+		g.By(fmt.Sprintf("Waiting until kube_node_info metrics have cluster node number of elements ('%d')", len(nodeList.Items)))
+		waitUntilKubeNodeInfoMetricsLength(len(nodeList.Items), metricStorageURL, kubeNodeInfoQuery)
+		e2e.Logf("kube_node_info metrics length successfully checked")
+
+		// Get kube_node_info metrics
+		nodeMetricsMap := getKubeNodeInfoMetricsInMap(metricStorageURL, kubeNodeInfoQuery)
+		e2e.Logf("Nodes from metrics: '%v'", nodeMetricsMap)
 
 		// Check each shiftstack cluster node is in the node map obtained from the metrics
 		g.By("Checking each shiftstack cluster node is in the node map obtained from the metrics")
@@ -249,6 +240,19 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 			e2e.Logf("Node '%s' found in the node map obtained from the metrics", node.Name)
 		}
 
+		// Get Openstack servers (needed to contrast the kube_node_info metrics content) and store the names and ids in a map
+		g.By("Getting the Openstack servers")
+		serversAllPages, err := servers.List(computeClient, nil).AllPages(ctx)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		openstackServers, err := servers.ExtractServers(serversAllPages)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		openstackServerMap := make(map[string]string)
+		for _, server := range openstackServers {
+			e2e.Logf("Server found (ID: %v, Name: %v, Status: %v, HostID: %v)", server.ID, server.Name, server.Status, server.HostID)
+			openstackServerMap[server.Name] = server.ID
+		}
+		e2e.Logf("Openstack servers map: '%v'", openstackServerMap)
+
 		// Check every node obtained from metrics is in the servers info from Openstack
 		g.By("Checking every node obtained from metrics is in the servers info from Openstack")
 		for serverName, serverID := range nodeMetricsMap {
@@ -256,6 +260,47 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 				"Entry '%s: %s' should be present in the servers map obtained from Openstack '%v'", serverName, serverID, openstackServerMap)
 			e2e.Logf("'%s: %s' entry found in the servers map obtained from Openstack", serverName, serverID)
 		}
+
+		// Build a map of Openstack host to number of shiftstack masters on it (for the correlated query check)
+		g.By("Getting shiftstack number of master nodes per Openstack host")
+		var masterNodeUUIDs []string
+		for _, node := range nodeList.Items {
+			// Filter master nodes and get their SystemUUID (corresponds to Openstack servers ID)
+			if _, ok := node.Labels["node-role.kubernetes.io/master"]; ok {
+				masterNodeUUIDs = append(masterNodeUUIDs, node.Status.NodeInfo.SystemUUID)
+			}
+		}
+
+		hostToNumberOfMastersMap := make(map[string]int)
+		for _, masterUUID := range masterNodeUUIDs {
+			for _, server := range openstackServers {
+				if server.ID == masterUUID {
+					hostToNumberOfMastersMap[server.HostID]++
+				}
+			}
+		}
+		e2e.Logf("Openstack host to number of master nodes map: '%v'", hostToNumberOfMastersMap)
+
+		// Check the sum of number of masters per HostID matches with the number of masters
+		g.By("Checking the sum of number of masters per HostID matches with the number of masters")
+		totalSum := 0
+		for _, value := range hostToNumberOfMastersMap {
+			totalSum += value
+		}
+		o.Expect(totalSum).To(o.Equal(len(masterNodeUUIDs)),
+			"The sum of number of masters per HostID do not match with the number of masters")
+		e2e.Logf("The sum of number of masters per HostID and the number of masters match: '%d'", totalSum)
+
+		// Run the correlated query
+		g.By("Getting correlated query results")
+		correlatedMetricsMap := getCorrelatedMetricsInMap(metricStorageURL, correlatedQuery)
+		e2e.Logf("Correlated result: '%v'", correlatedMetricsMap)
+
+		// Check obtained results match with the map generated previously
+		g.By("Checking obtained metrics result match with the map generated with Openstack servers info")
+		o.Expect(correlatedMetricsMap).To(o.Equal(hostToNumberOfMastersMap),
+			"Correlated query results do not match with the map generated from Openstack servers info")
+		e2e.Logf("Correlated query results match with the map generated from Openstack servers info")
 
 		// Create a cinder PVC in shiftstack cluster
 		ns := oc.Namespace()
@@ -292,55 +337,13 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		cinderVolumes, err := getVolumesFromName(ctx, volumeClient, pvcVolumeName)
 		o.Expect(err).NotTo(o.HaveOccurred(), "Error gathering Openstack volume info for PVC '%s'", pvc.Name)
 		o.Expect(cinderVolumes).To(o.HaveLen(1), "Unexpected number of volumes for PVC '%s'", pvc.Name)
-		volumeID := cinderVolumes[0].ID
-		e2e.Logf("Volume ID '%v' for volume name '%v' found in Openstack for PVC '%s'", volumeID, pvcVolumeName, pvc.Name)
+		pvcVolumeID := cinderVolumes[0].ID
+		e2e.Logf("Volume ID '%v' for volume name '%v' found in Openstack for PVC '%s'", pvcVolumeID, pvcVolumeName, pvc.Name)
 
-		// Get Openstack volumes (needed to contrast the kube_persistentvolume_info metrics content) and store the names and ids in a map
-		g.By("Getting the Openstack volumes")
-		volumesAllPages, err := volumes.List(volumeClient, nil).AllPages(ctx)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		allVolumes, err := volumes.ExtractVolumes(volumesAllPages)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		openstackVolumeMap := make(map[string]string)
-		for _, volume := range allVolumes {
-			e2e.Logf("Volume found (ID: %v, Name: %v, Status: %v)", volume.ID, volume.Name, volume.Status)
-			openstackVolumeMap[volume.Name] = volume.ID
-		}
-		e2e.Logf("Openstack volume map: '%v'", openstackVolumeMap)
-
-		// Sleep scrapeInterval + additional 10s before retrieving the kube_persistentvolume_info metrics to allow time to scrape them
-		g.By(fmt.Sprintf("Sleeping the scrapeInterval '%s' + additional 10s before retrieving the kube_persistentvolume_info metrics", scrapeInterval))
-		time.Sleep(scrapeIntervalDuration + 10*time.Second)
-
-		// Get kube_persistentvolume_info metrics
-		volumeMetricsMap := getKubePersistentvolumeInfoMetricInMap(metricStorageURL, kubePersistentVolumeInfoQuery)
-		e2e.Logf("Volumes from metrics: '%v'", volumeMetricsMap)
-
-		// Get shiftstack cluster pvcs from all namespaces
-		pvcList, err := shiftstackClientSet.CoreV1().PersistentVolumeClaims("").List(ctx, metav1.ListOptions{})
-		o.Expect(err).NotTo(o.HaveOccurred())
-
-		// Check the shiftstack pvc list and the volume map length are the same
-		g.By("Checking the shiftstack pvc list and volume map length are the same")
-		o.Expect(len(pvcList.Items)).To(o.Equal(len(volumeMetricsMap)),
-			"Shiftstack pvc list '%v' and volume map '%v' should have the same length", pvcList.Items, volumeMetricsMap)
-		e2e.Logf("Length of the shiftstack pvc list and of the volume map obtained from the metrics is the same ('%d')", len(pvcList.Items))
-
-		// Check each shiftstack pvc is in the volume map obtained from the metrics
-		g.By("Checking each shiftstack pvc is in the volume map obtained from the metrics")
-		for _, pvc := range pvcList.Items {
-			o.Expect(volumeMetricsMap).To(o.HaveKey(pvc.Spec.VolumeName),
-				"PVC '%s' should be in the volume map obtained from the metrics '%v'", pvc.Spec.VolumeName, volumeMetricsMap)
-			e2e.Logf("PVC '%s' found in the volume map obtained from the metrics", pvc.Spec.VolumeName)
-		}
-
-		// Check every volume obtained from metrics is in the volumes info from Openstack
-		g.By("Checking every volume obtained from metrics is in the volumes info from Openstack")
-		for volumeName, volumeID := range volumeMetricsMap {
-			o.Expect(openstackVolumeMap).To(o.HaveKeyWithValue(volumeName, volumeID),
-				"Entry '%s: %s' should be present in the volume map obtained from Openstack '%v'", volumeName, volumeID, openstackVolumeMap)
-			e2e.Logf("'%s: %s' entry found in the volume map obtained from Openstack", volumeName, volumeID)
-		}
+		// Wait until the Openstack volume is obtained in kube_persistentvolume_info metric
+		g.By(fmt.Sprintf("Waiting until the Openstack volume '%s' with ID '%s' is obtained in in kube_persistentvolume_info metric", pvcVolumeName, pvcVolumeID))
+		waitUntilVolumeInMetric(cinderVolumes[0], metricStorageURL, kubePersistentVolumeInfoQuery)
+		e2e.Logf("Openstack volume '%s' successfully obtained in the kube_persistentvolume_info metric", pvcVolumeName)
 	})
 })
 
@@ -414,7 +417,7 @@ func makeGETRequest(baseURL string, promQLQuery string) (string, error) {
 }
 
 // Get kube_node_info metrics node and provider_id fields in a map
-func getKubeNodeInfoMetricInMap(baseURL string, query string) map[string]string {
+func getKubeNodeInfoMetricsInMap(baseURL string, query string) map[string]string {
 	e2e.Logf("Getting metrics (query: '%v') from '%v'", query, baseURL)
 
 	body, err := makeGETRequest(baseURL, query)
@@ -458,8 +461,8 @@ func getKubeNodeInfoMetricInMap(baseURL string, query string) map[string]string 
 	return nodes
 }
 
-// Get kube_persistentvolume_info metrics csi_volume_handle and persistentvolume fields in a map
-func getKubePersistentvolumeInfoMetricInMap(baseURL string, query string) map[string]string {
+// Get the correlated query metrics in a map
+func getCorrelatedMetricsInMap(baseURL string, query string) map[string]int {
 	e2e.Logf("Getting metrics (query: '%v') from '%v'", query, baseURL)
 
 	body, err := makeGETRequest(baseURL, query)
@@ -469,8 +472,63 @@ func getKubePersistentvolumeInfoMetricInMap(baseURL string, query string) map[st
 	}
 
 	type Metric struct {
-		CSIVolumeHandle string `json:"csi_volume_handle"`
-		PersistenVolume string `json:"persistentvolume"`
+		VMInstance string `json:"vm_instance"`
+	}
+
+	type Result struct {
+		Metric Metric         `json:"metric"`
+		Value  [2]interface{} `json:"value"`
+	}
+
+	type Data struct {
+		ResultType string   `json:"resultType"`
+		Result     []Result `json:"result"`
+	}
+
+	type Response struct {
+		Status string `json:"status"`
+		Data   Data   `json:"data"`
+	}
+
+	var r Response
+	if err := json.Unmarshal([]byte(body), &r); err != nil {
+		fmt.Println(err)
+	}
+	e2e.Logf("Metrics query response: '%v'", r)
+
+	hostToMasters := make(map[string]int)
+	for _, f := range r.Data.Result {
+		vmInstance := f.Metric.VMInstance
+		countStr, ok := f.Value[1].(string)
+		if !ok {
+			e2e.Logf("Value for vm_instance '%v' is not a string: '%v'", vmInstance, f.Value[1])
+			return nil
+		}
+
+		count, err := strconv.Atoi(countStr)
+		if err != nil {
+			e2e.Logf("Failed to convert '%v' to int: '%v'", countStr, err)
+		}
+
+		hostToMasters[vmInstance] = count
+	}
+
+	return hostToMasters
+}
+
+// Get kube_persistentvolume_info metrics csi_volume_handle and persistentvolume fields in a map
+func getKubePersistentvolumeInfoMetricsInMap(baseURL string, query string) map[string]string {
+	e2e.Logf("Getting metrics (query: '%v') from '%v'", query, baseURL)
+
+	body, err := makeGETRequest(baseURL, query)
+	if err != nil {
+		e2e.Logf("GET request failed: '%v'", err)
+		return nil
+	}
+
+	type Metric struct {
+		CSIVolumeHandle  string `json:"csi_volume_handle"`
+		PersistentVolume string `json:"persistentvolume"`
 	}
 
 	type Result struct {
@@ -496,13 +554,13 @@ func getKubePersistentvolumeInfoMetricInMap(baseURL string, query string) map[st
 
 	volumes := make(map[string]string)
 	for _, f := range r.Data.Result {
-		volumes[f.Metric.PersistenVolume] = f.Metric.CSIVolumeHandle
+		volumes[f.Metric.PersistentVolume] = f.Metric.CSIVolumeHandle
 	}
 
 	return volumes
 }
 
-// Active wait until a given monitoring target is in desired status (can be "up or "down")
+// Active wait until a given monitoring target is in desired status (can be "up" or "down")
 func waitUntilTargetStatus(baseURL string, target string, targetStatus string) error {
 	var err error
 
@@ -558,4 +616,38 @@ func waitUntilTargetStatus(baseURL string, target string, targetStatus string) e
 	}, "480s", "30s").Should(o.Equal(expectedUpMetricValue), "Timed out waiting the Up metric to be '%v'", expectedUpMetricValue)
 
 	return err
+}
+
+// Active wait until kube_node_info metrics has specific number of nodes
+func waitUntilKubeNodeInfoMetricsLength(nodeLength int, baseURL string, query string) {
+
+	o.Eventually(func() int {
+		nodeMetricsMap := getKubeNodeInfoMetricsInMap(baseURL, query)
+		e2e.Logf("kube_node_info metrics result: '%v', length: '%d'", nodeMetricsMap, len(nodeMetricsMap))
+
+		return len(nodeMetricsMap)
+	}, "90s", "10s").Should(o.Equal(nodeLength),
+		"Timed out waiting for the kube_node_info metrics to have a length of '%d'\n"+
+			"Please make sure Prometheus storage is not full", nodeLength)
+}
+
+// Active wait until a given Openstack volume is obtained in kube_persistentvolume_info metric
+func waitUntilVolumeInMetric(vol volumes.Volume, baseURL string, query string) {
+
+	o.Eventually(func() bool {
+		found := false
+		volumeMetricsMap := getKubePersistentvolumeInfoMetricsInMap(baseURL, query)
+		e2e.Logf("kube_persistentvolume_info metrics result: '%v'", volumeMetricsMap)
+
+		// Check if the key exists and matches the value
+		if val, exists := volumeMetricsMap[vol.Name]; exists && val == vol.ID {
+			e2e.Logf("Volume '%s' with ID '%s' found in kube_persistentvolume_info metrics result", vol.Name, vol.ID)
+			found = true
+		} else {
+			e2e.Logf("Volume '%s' with ID '%s' not found in kube_persistentvolume_info metrics result, retrying", vol.Name, vol.ID)
+		}
+
+		return found
+	}, "90s", "10s").Should(o.BeTrue(),
+		"Timed out waiting for the volume '%s' with ID '%s' in kube_persistentvolume_info metrics result", vol.Name, vol.ID)
 }
