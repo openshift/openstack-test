@@ -66,7 +66,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 	g.It("should trigger prometheus to add the rhoso target", func(ctx g.SpecContext) {
 		shiftstackPrometheusFederateRouteName := "prometheus-k8s-federate"
 		monitoringNamespaceName := "openshift-monitoring"
-		metricStoragePrometheusRouteName := "metric-storage-prometheus"
+		metricStoragePrometheusSvc := "metric-storage-prometheus.openstack.svc:9090"
 		secretName := "ocp-federated"
 		scrapeConfigName := "sos-federated"
 		kubeNodeInfoQuery := "group by (node, provider_id) (kube_node_info)"
@@ -130,20 +130,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Creating ScrapeCo
 		o.Expect(err).NotTo(o.HaveOccurred(), fmt.Sprintf("Error creating the '%s' secret in Openstack: %v", secretName, err))
 		defer client.Delete(ctx, secretName, metav1.DeleteOptions{})
 
-		// Get the Openstack Prometheus metric storage route
-		g.By(fmt.Sprintf("Getting the '%s' route host from Openstack", metricStoragePrometheusRouteName))
-		rhosoConfig, err := clientcmd.BuildConfigFromFlags("", rhosoKubeConfig)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		rhosoRouteClient, err := routev1.NewForConfig(rhosoConfig)
-		o.Expect(err).NotTo(o.HaveOccurred())
-		metricStorageRoute, err := rhosoRouteClient.Routes(openstackNamespaceName).Get(ctx, metricStoragePrometheusRouteName, metav1.GetOptions{})
-		o.Expect(err).NotTo(o.HaveOccurred())
-		metricStorageRouteHost := metricStorageRoute.Status.Ingress[0].Host
-		o.Expect(metricStorageRouteHost).NotTo(o.BeEmpty(), "Empty '%s' route host found", metricStoragePrometheusRouteName)
-		e2e.Logf("Openstack metric storage route host: '%v'", metricStorageRouteHost)
-
 		// Wait until the monitoring target is down (could be still up if the same test ran before)
-		metricStorageURL := fmt.Sprintf("https://%s/api/v1/query", metricStorageRouteHost)
+		metricStorageURL := fmt.Sprintf("https://%s/api/v1/query", metricStoragePrometheusSvc)
 		prometheusTarget := fmt.Sprintf("scrapeConfig/openstack/%s", scrapeConfigName)
 		g.By(fmt.Sprintf("Waiting until '%s' monitoring target is down (could be still up if the same test ran before) in Openstack Prometheus", prometheusTarget))
 		o.Expect(waitUntilTargetStatus(metricStorageURL, prometheusTarget, "down")).NotTo(o.HaveOccurred(), "Error waiting for monitoring target status")
