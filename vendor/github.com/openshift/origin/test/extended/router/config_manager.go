@@ -391,7 +391,7 @@ http {
 					Containers: []corev1.Container{
 						{
 							Name:  "test",
-							Image: image.LocationFor("registry.k8s.io/e2e-test-images/agnhost:2.52"),
+							Image: image.LocationFor("registry.k8s.io/e2e-test-images/agnhost:2.53"),
 							Args:  []string{"netexec"},
 							Ports: []corev1.ContainerPort{
 								{
@@ -567,6 +567,8 @@ http {
 })
 
 func waitForRouteToRespond(ns, execPodName, proto, host, abspath, ipaddr string, port int) error {
+	// bracket IPv6 IPs when used as URI
+	host = exutil.IPUrl(host)
 	if port == 0 {
 		switch proto {
 		case "http":
