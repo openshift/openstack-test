@@ -96,19 +96,18 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to add Machine to scheme")
 			err = configv1.AddToScheme(scheme.Scheme)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to add Config to scheme")
+			// BuildMachineSetParams builds a MachineSetParams object from the first worker MachineSet retrieved from the cluster.
 			newMachinesetParams := framework.BuildMachineSetParams(ctx, rclient, 1)
 			rawBytes, err = json.Marshal(newMachinesetParams.ProviderSpec.Value)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error marshaling new MachineSet Provider Spec")
 			err = json.Unmarshal(rawBytes, &newProviderSpec)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error unmarshaling new MachineSet Provider Spec")
 			newMachinesetParams.Name = fmt.Sprintf("%v-%v", "extra-network", RandomSuffix())
-
 			// Set NoAlloedAddressPairs for the additional network to true
 			var extraNetworkParam machinev1alpha1.NetworkParam
 			extraNetworkParam.NoAllowedAddressPairs = true
 			extraNetworkParam.UUID = extraNetwork.ID
 			newProviderSpec.Networks = append(newProviderSpec.Networks, extraNetworkParam)
-
 			newProviderSpecJson, err := json.Marshal(newProviderSpec)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to marshal new Machineset provider spec")
 			newMachinesetParams.ProviderSpec.Value.Raw = newProviderSpecJson
@@ -127,12 +126,24 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 
 			for _, machine := range newMachines {
 				for _, net := range objects(machine.Get("spec.providerSpec.value.networks")) {
-					machineNetworks[net.Get("uuid").String()] = net.Get("noAllowedAddressPairs").String()
+					// We either have a network id with the uuid key or with filter.id
+					netID := net.Get("uuid").String()
+					if netID != "" {
+						machineNetworks[net.Get("uuid").String()] = net.Get("noAllowedAddressPairs").String()
+					} else {
+						machineNetworks[net.Get("filter.id").String()] = net.Get("noAllowedAddressPairs").String()
+					}
 				}
 			}
-			g.By("Verify value of ports AllowedAddressPairs for all the Machines")
+			g.By("Verify the number of networks in the new machine is as expected")
+			o.Expect(len(machineNetworks)).To(o.Equal(len(newProviderSpec.Networks)))
+			g.By("Verify that the new machine has the extra network")
+			_, ok := machineNetworks[extraNetwork.ID]
+			o.Expect(ok).To(o.BeTrue())
 
-			for _, net := range machineNetworks {
+			g.By("Verify value of ports AllowedAddressPairs for all the Machines")
+			e2e.Logf("machineNetworks: %v", machineNetworks)
+			for net, allowedAddressPairs := range machineNetworks {
 				portListOpts := ports.ListOpts{
 					NetworkID: net,
 				}
@@ -140,15 +151,16 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 				o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get ports")
 				allPorts, err := ports.ExtractPorts(allPages)
 				o.Expect(err).NotTo(o.HaveOccurred(), "Failed to extract ports")
+				// Make sure we have at least one port per network
+				o.Expect(len(allPorts)).Should(o.BeNumerically(">=", 1))
 
 				for _, port := range allPorts {
 					if strings.Contains(port.Name, newMachinesetParams.Name) {
-						if value, exists := machineNetworks[port.NetworkID]; exists && value == "true" {
+						if allowedAddressPairs == "true" {
 							// There should be a port in the additional network with
 							// an empty AllowedAddressPairs
 							o.Expect(len(port.AllowedAddressPairs)).To(o.Equal(0))
 						} else {
-
 							// For other ports AllowedAddressPairs shouldn't be empty
 							o.Expect(len(port.AllowedAddressPairs)).To(o.Not(o.Equal(0)))
 						}
