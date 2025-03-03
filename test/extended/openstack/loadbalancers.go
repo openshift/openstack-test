@@ -452,7 +452,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(strings.ToLower(pool.LBMethod)).Should(o.Equal(lbMethod), "Unexpected LBMethod on Openstack Pool: %q", pool.LBMethod)
 
-				if monitor.Type == "UDP-CONNECT" {
+				if (monitor.Type == "UDP-CONNECT" && protocolUnderTest == v1.ProtocolUDP) || (monitor.Type == "TCP" && protocolUnderTest == v1.ProtocolTCP) {
 					o.Expect(waitUntilNmembersReady(ctx, loadBalancerClient, pool, int(replicas), "ONLINE")).NotTo(o.HaveOccurred(),
 						"Error waiting for %d members with ONLINE OperatingStatus", replicas)
 				} else if monitor.Type == "HTTP" {
@@ -460,6 +460,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 					// Therefore, the test cannot know when the the members are ready, so waiting 30 seconds for stability
 					e2e.Logf("monitor type is HTTP - Giving 30 seconds to let it calculate the ONLINE members")
 					time.Sleep(30 * time.Second)
+				} else {
+					e2e.Fail("Unexpected monitor type: " + monitor.Type)
 				}
 
 				g.By("accessing the service 100 times from outside and storing the name of the pods answering")
