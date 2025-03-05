@@ -19,6 +19,8 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet replica number corresponds to the number of Machines": "",
 
+	"[sig-installer][Suite:openshift/openstack] Creating ScrapeConfig in rhoso should trigger prometheus to add the rhoso target": "",
+
 	"[sig-installer][Suite:openshift/openstack] Machine ProviderSpec is correctly applied to OpenStack instances": "",
 
 	"[sig-installer][Suite:openshift/openstack] Machine are in phase Running": "",
