@@ -13,13 +13,17 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack] Bugfix ocpbug_1765: [Serial] noAllowedAddressPairs on one port should not affect other ports": "",
 
+	"[sig-installer][Suite:openshift/openstack] Check shift-on-stack correlated metric in RHOSO prometheus": "",
+
+	"[sig-installer][Suite:openshift/openstack] Check shift-on-stack kube_node_info metric in RHOSO prometheus": "",
+
+	"[sig-installer][Suite:openshift/openstack] Check shift-on-stack kube_persistentvolume_info metric in RHOSO prometheus": "",
+
 	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet ProviderSpec template is correctly applied to Machines": "",
 
 	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet has role master": "",
 
 	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet replica number corresponds to the number of Machines": "",
-
-	"[sig-installer][Suite:openshift/openstack] Creating ScrapeConfig in rhoso should trigger prometheus to add the rhoso target": "",
 
 	"[sig-installer][Suite:openshift/openstack] Machine ProviderSpec is correctly applied to OpenStack instances": "",
 
