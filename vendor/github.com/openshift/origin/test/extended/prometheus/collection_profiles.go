@@ -33,12 +33,12 @@ const (
 	operatorName              = "cluster-monitoring-operator"
 	operatorNamespaceName     = "openshift-monitoring"
 	operatorConfigurationName = "cluster-monitoring-config"
+
+	pollTimeout  = 15 * time.Minute
+	pollInterval = 5 * time.Second
 )
 
 var (
-	oc   = exutil.NewCLI(projectName)
-	tctx = context.Background()
-
 	collectionProfilesSupportedList = []string{
 		collectionProfileFull,
 		collectionProfileMinimal,
@@ -55,13 +55,12 @@ type runner struct {
 // NOTE: The nested `Context` containers inside the following `Describe` container are used to group certain tests based on the environments they demand.
 // NOTE: When adding a test-case, ensure that the test-case is placed in the appropriate `Context` container.
 // NOTE: The containers themselves are guaranteed to run in the order in which they appear.
-var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set", g.Ordered, func() {
+var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set", g.Ordered, func() {
 	defer g.GinkgoRecover()
 
-	o.SetDefaultEventuallyTimeout(15 * time.Minute)
-	o.SetDefaultEventuallyPollingInterval(5 * time.Second)
-
 	r := &runner{}
+	oc := exutil.NewCLI(projectName)
+	tctx := context.Background()
 
 	g.BeforeAll(func() {
 		if !exutil.IsTechPreviewNoUpgrade(tctx, oc.AdminConfigClient()) {
@@ -84,19 +83,20 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 			if err != nil {
 				if errors.IsNotFound(err) {
 					g.By("initially, creating a configuration for the operator as it did not exist")
-					err = r.makeCollectionProfileConfigurationFor(tctx, collectionProfileDefault)
+					operatorConfiguration = nil
+					return r.makeCollectionProfileConfigurationFor(tctx, collectionProfileDefault)
 				}
-				if err != nil {
-					return err
-				}
+
+				return err
 			}
 
 			return nil
-		}).Should(o.BeNil())
+		}, pollTimeout, pollInterval).Should(o.BeNil())
 		r.originalOperatorConfiguration = operatorConfiguration
 	})
 
 	g.AfterAll(func() {
+		shouldDeleteConfiguration := false
 		currentConfiguration, err := r.kclient.CoreV1().ConfigMaps(operatorNamespaceName).Get(tctx, operatorConfigurationName, metav1.GetOptions{})
 		o.Expect(err).To(o.BeNil())
 		if r.originalOperatorConfiguration != nil {
@@ -104,10 +104,23 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 			g.By("restoring the original configuration for the operator")
 			_, err = r.kclient.CoreV1().ConfigMaps(operatorNamespaceName).Update(tctx, currentConfiguration, metav1.UpdateOptions{})
 		} else {
+			shouldDeleteConfiguration = true
 			g.By("cleaning up the configuration for the operator as it did not exist pre-job")
 			err = r.kclient.CoreV1().ConfigMaps(operatorNamespaceName).Delete(tctx, operatorConfigurationName, metav1.DeleteOptions{})
 		}
 		o.Expect(err).To(o.BeNil())
+
+		o.Eventually(func() error {
+			if shouldDeleteConfiguration {
+				_, err := r.kclient.CoreV1().ConfigMaps(operatorNamespaceName).Get(tctx, operatorConfigurationName, metav1.GetOptions{})
+				if errors.IsNotFound(err) {
+					return nil
+				}
+				return fmt.Errorf("ConfigMap %q still exists after deletion attempt", operatorConfigurationName)
+			}
+
+			return nil
+		}, pollTimeout, pollInterval).Should(o.BeNil())
 	})
 
 	g.Context("initially, in a homogeneous default environment,", func() {
@@ -117,7 +130,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 			err := r.makeCollectionProfileConfigurationFor(tctx, profile)
 			o.Expect(err).To(o.BeNil())
 			o.Eventually(func() error {
-				enabled, err := r.isProfileEnabled(profile)
+				enabled, err := r.isProfileEnabled(tctx, profile)
 				if err != nil {
 					return err
 				}
@@ -126,7 +139,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 				}
 
 				return nil
-			}).Should(o.BeNil())
+			}, pollTimeout, pollInterval).Should(o.BeNil())
 		})
 
 		g.It("should expose default metrics", func() {
@@ -142,7 +155,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 				}
 
 				return nil
-			}).Should(o.BeNil())
+			}, pollTimeout, pollInterval).Should(o.BeNil())
 		})
 	})
 
@@ -163,7 +176,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 					}
 
 					return nil
-				}).Should(o.BeNil())
+				}, pollTimeout, pollInterval).Should(o.BeNil())
 			}
 		})
 		g.It("should have at least one implementation for each collection profile", func() {
@@ -172,7 +185,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 				o.Expect(err).To(o.BeNil())
 
 				o.Eventually(func() error {
-					monitors, err := r.fetchMonitorsFor([2]string{collectionProfileFeatureLabel, profile})
+					monitors, err := r.fetchMonitorsFor(tctx, [2]string{collectionProfileFeatureLabel, profile})
 					if err != nil {
 						return err
 					}
@@ -181,7 +194,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 					}
 
 					return nil
-				}).Should(o.BeNil())
+				}, pollTimeout, pollInterval).Should(o.BeNil())
 			}
 		})
 		g.It("should revert to default collection profile when an empty collection profile value is specified", func() {
@@ -189,7 +202,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 			o.Expect(err).To(o.BeNil())
 
 			o.Eventually(func() error {
-				enabled, err := r.isProfileEnabled(collectionProfileFull)
+				enabled, err := r.isProfileEnabled(tctx, collectionProfileFull)
 				if err != nil {
 					return err
 				}
@@ -198,7 +211,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 				}
 
 				return nil
-			}).Should(o.BeNil())
+			}, pollTimeout, pollInterval).Should(o.BeNil())
 		})
 	})
 
@@ -209,7 +222,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 			err := r.makeCollectionProfileConfigurationFor(tctx, profile)
 			o.Expect(err).To(o.BeNil())
 			o.Eventually(func() error {
-				enabled, err := r.isProfileEnabled(profile)
+				enabled, err := r.isProfileEnabled(tctx, profile)
 				if err != nil {
 					return err
 				}
@@ -218,7 +231,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 				}
 
 				return nil
-			}).Should(o.BeNil())
+			}, pollTimeout, pollInterval).Should(o.BeNil())
 		})
 
 		g.It("should hide default metrics", func() {
@@ -227,7 +240,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 
 			var kubeStateMetricsMonitor *prometheusoperatorv1.ServiceMonitor
 			o.Eventually(func() error {
-				monitors, err := r.fetchMonitorsFor([2]string{collectionProfileFeatureLabel, profile}, [2]string{appNameSelector, appName})
+				monitors, err := r.fetchMonitorsFor(tctx, [2]string{collectionProfileFeatureLabel, profile}, [2]string{appNameSelector, appName})
 				if err != nil {
 					return err
 				}
@@ -240,7 +253,7 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 				kubeStateMetricsMonitor = monitors.Items[0]
 
 				return nil
-			}).Should(o.BeNil())
+			}, pollTimeout, pollInterval).Should(o.BeNil())
 
 			var kubeStateMetricsMainMetrics []string
 			kubeStateMetricsMonitorSpec := kubeStateMetricsMonitor.Spec
@@ -297,14 +310,14 @@ var _ = g.Describe("[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfil
 				}
 
 				return nil
-			}).Should(o.BeNil())
+			}, pollTimeout, pollInterval).Should(o.BeNil())
 		})
 	})
 })
 
-func (r runner) isProfileEnabled(profile string) (bool, error) {
+func (r runner) isProfileEnabled(ctx context.Context, profile string) (bool, error) {
 	vectorExpression := "max(profile:cluster_monitoring_operator_collection_profile:max{profile=\"%s\"}) == 1"
-	queryResponse, err := helper.RunQuery(tctx, r.pclient, fmt.Sprintf(vectorExpression, profile))
+	queryResponse, err := helper.RunQuery(ctx, r.pclient, fmt.Sprintf(vectorExpression, profile))
 	if err != nil {
 		return false, err
 	}
@@ -315,14 +328,14 @@ func (r runner) isProfileEnabled(profile string) (bool, error) {
 	return true, nil
 }
 
-func (r runner) fetchMonitorsFor(selectors ...[2]string) (*prometheusoperatorv1.ServiceMonitorList, error) {
+func (r runner) fetchMonitorsFor(ctx context.Context, selectors ...[2]string) (*prometheusoperatorv1.ServiceMonitorList, error) {
 	managedMonitorsSelectors := []string{
 		fmt.Sprintf("%s=%s", "app.kubernetes.io/managed-by", operatorName),
 	}
 	for _, selector := range selectors {
 		managedMonitorsSelectors = append(managedMonitorsSelectors, fmt.Sprintf("%s=%s", selector[0], selector[1]))
 	}
-	return r.mclient.ServiceMonitors(operatorNamespaceName).List(tctx, metav1.ListOptions{
+	return r.mclient.ServiceMonitors(operatorNamespaceName).List(ctx, metav1.ListOptions{
 		LabelSelector: strings.Join(managedMonitorsSelectors, ","),
 	})
 }

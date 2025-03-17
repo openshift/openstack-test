@@ -15,6 +15,10 @@ var Annotations = map[string]string{
 
 	"[Conformance][sig-api-machinery][Feature:APIServer] kube-apiserver should be accessible via service network endpoint": " [Suite:openshift/conformance/parallel/minimal]",
 
+	"[Conformance][sig-api-machinery][Feature:APIServer] local kubeconfig \"check-endpoints.kubeconfig\" should be present in all kube-apiserver containers": " [Suite:openshift/conformance/parallel/minimal]",
+
+	"[Conformance][sig-api-machinery][Feature:APIServer] local kubeconfig \"control-plane-node.kubeconfig\" should be present in all kube-apiserver containers": " [Suite:openshift/conformance/parallel/minimal]",
+
 	"[Conformance][sig-api-machinery][Feature:APIServer] local kubeconfig \"lb-ext.kubeconfig\" should be present on all masters and work": " [Suite:openshift/conformance/parallel/minimal]",
 
 	"[Conformance][sig-api-machinery][Feature:APIServer] local kubeconfig \"lb-int.kubeconfig\" should be present on all masters and work": " [Suite:openshift/conformance/parallel/minimal]",
@@ -1263,6 +1267,12 @@ var Annotations = map[string]string{
 
 	"[sig-imageregistry][OCPFeatureGate:ChunkSizeMiB][Serial][apigroup:imageregistry.operator.openshift.io] Image Registry Config ChunkSizeMiB should set minimum valid ChunkSizeMiB value": " [Suite:openshift/conformance/serial]",
 
+	"[sig-imageregistry][OCPFeatureGate:ImageStreamImportMode][Serial] ImageStream API import mode should be Legacy if the import mode specified in image.config.openshift.io config is Legacy [apigroup:image.openshift.io]": " [Suite:openshift/conformance/serial]",
+
+	"[sig-imageregistry][OCPFeatureGate:ImageStreamImportMode][Serial] ImageStream API import mode should be PreserveOriginal if the import mode specified in image.config.openshift.io config is PreserveOriginal [apigroup:image.openshift.io]": " [Suite:openshift/conformance/serial]",
+
+	"[sig-imageregistry][OCPFeatureGate:ImageStreamImportMode][Serial] ImageStream API import mode should be PreserveOriginal or Legacy depending on desired.architecture field in the CV [apigroup:image.openshift.io]": " [Suite:openshift/conformance/serial]",
+
 	"[sig-imageregistry][Serial] Image signature workflow can push a signed image to openshift registry and verify it [apigroup:user.openshift.io][apigroup:image.openshift.io]": " [Skipped:Disconnected] [Suite:openshift/conformance/serial]",
 
 	"[sig-installer][Feature:baremetal] Baremetal platform should have baremetalhost resources": " [Suite:openshift/conformance/parallel]",
@@ -1311,15 +1321,15 @@ var Annotations = map[string]string{
 
 	"[sig-instrumentation][Late] OpenShift alerting rules [apigroup:image.openshift.io] should link to an HTTP(S) location if the runbook_url annotation is defined": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set in a heterogeneous environment, should expose information about the applied collection profile using meta-metrics": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set in a heterogeneous environment, should expose information about the applied collection profile using meta-metrics": " [Suite:openshift/conformance/serial]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set in a heterogeneous environment, should have at least one implementation for each collection profile": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set in a heterogeneous environment, should have at least one implementation for each collection profile": " [Suite:openshift/conformance/serial]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set in a heterogeneous environment, should revert to default collection profile when an empty collection profile value is specified": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set in a heterogeneous environment, should revert to default collection profile when an empty collection profile value is specified": " [Suite:openshift/conformance/serial]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set in a homogeneous minimal environment, should hide default metrics": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set in a homogeneous minimal environment, should hide default metrics": " [Suite:openshift/conformance/serial]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set initially, in a homogeneous default environment, should expose default metrics": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set initially, in a homogeneous default environment, should expose default metrics": " [Suite:openshift/conformance/serial]",
 
 	"[sig-instrumentation][sig-builds][Feature:Builds] Prometheus when installed on the cluster should start and expose a secured proxy and verify build metrics [apigroup:build.openshift.io]": " [Skipped:Disconnected] [Suite:openshift/conformance/parallel]",
 

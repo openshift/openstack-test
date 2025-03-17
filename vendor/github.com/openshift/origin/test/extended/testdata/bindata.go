@@ -36423,7 +36423,7 @@ var _testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson = []byte(`
     "containers": [
       {
         "name": "hello-openshift",
-        "image": "registry.k8s.io/e2e-test-images/agnhost:2.52",
+        "image": "registry.k8s.io/e2e-test-images/agnhost:2.53",
         "args": ["netexec"],
         "ports": [
           {
@@ -40641,7 +40641,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.52
+                image: registry.k8s.io/e2e-test-images/agnhost:2.53
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -44982,7 +44982,7 @@ items:
           deployment: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.52
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.53
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -45085,7 +45085,7 @@ items:
           replicationcontroller: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.52
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.53
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675" ]
           ports:
@@ -45151,7 +45151,7 @@ items:
           deploymentconfig: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.52
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.53
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -50706,7 +50706,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50724,7 +50724,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50800,6 +50800,7 @@ items:
       http {
         server {
             listen 8443;
+            listen [::]:8443 ipv6only=on;
             ssl    on;
             ssl_certificate     /etc/serving-cert/tls.crt;
             ssl_certificate_key    /etc/serving-cert/tls.key;
@@ -50963,7 +50964,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -51139,7 +51140,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -51157,7 +51158,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -52562,7 +52563,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.52
+                image: registry.k8s.io/e2e-test-images/agnhost:2.53
 `)
 
 func testExtendedTestdataTemplatesTemplateinstance_badobjectYamlBytes() ([]byte, error) {
@@ -52622,7 +52623,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.52
+                image: registry.k8s.io/e2e-test-images/agnhost:2.53
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -53604,6 +53605,10 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         return (eventInterval.source === "APIUnreachableFromClient")
     }
 
+    function isStaticPodInstallMonitorActivity(eventInterval) {
+        return (eventInterval.source === "StaticPodInstallMonitor")
+    }
+
     function isEndpointConnectivity(eventInterval) {
         if (eventInterval.message.reason !== "DisruptionBegan" && eventInterval.message.reason !== "DisruptionSamplerOutageBegan") {
             return false
@@ -53732,6 +53737,10 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
     function isAPIUnreachableFromClientValue(item) {
         return [buildLocatorDisplayString(item.locator), "", "APIUnreachableFromClientMetrics"]
+    }
+
+    function isStaticPodInstallMonitorValue(item) {
+        return [buildLocatorDisplayString(item.locator), "", item.message.reason]
     }
 
     function disruptionValue(item) {
@@ -53948,6 +53957,9 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
         timelineGroups.push({group: "api-unreachable", data: []})
         createTimelineData(isAPIUnreachableFromClientValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isAPIUnreachableFromClientActivity, regex)
+
+        timelineGroups.push({group: "staticpod-install", data: []})
+        createTimelineData(isStaticPodInstallMonitorValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isStaticPodInstallMonitorActivity, regex)
 
         timelineGroups.push({ group: "etcd-leaders", data: [] })
         createTimelineData(etcdLeadershipLogsValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEtcdLeadershipAndNotEmpty, regex)
