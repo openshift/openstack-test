@@ -111,7 +111,7 @@ func testStableSystemOperatorStateTransitions(events monitorapi.Intervals, clien
 			if operator == "etcd" {
 				return "https://issues.redhat.com/browse/OCPBUGS-38659", nil
 			}
-			if operator == "ingress" && condition.Reason == "IngressDegraded" {
+			if operator == "ingress" {
 				return "https://issues.redhat.com/browse/OCPBUGS-45921", nil
 			}
 			if operator == "kube-apiserver" {
@@ -138,8 +138,7 @@ func testStableSystemOperatorStateTransitions(events monitorapi.Intervals, clien
 			if operator == "cluster-autoscaler" {
 				return "https://issues.redhat.com/browse/OCPBUGS-42875", nil
 			}
-			// flake this to collect more exceptions
-			return "https://issues.redhat.com/browse/TRT-1575", nil
+			return "", nil
 		}
 		return "We are not worried about other operator condition blips for stable-system tests yet.", nil
 	}
@@ -284,13 +283,24 @@ func testUpgradeOperatorStateTransitions(events monitorapi.Intervals, clientConf
 				} else {
 					return "", nil
 				}
-			default:
-				// flake this to collect more exceptions
+			case "console":
 				if condition.Type == configv1.OperatorDegraded && condition.Status == configv1.ConditionTrue {
-					return "outside of upgrade window https://issues.redhat.com/browse/TRT-1575", nil
-				} else {
-					return "", nil
+					return "https://issues.redhat.com/browse/OCPBUGS-38676", nil
 				}
+			case "etcd":
+				if condition.Type == configv1.OperatorDegraded && condition.Status == configv1.ConditionTrue {
+					return "https://issues.redhat.com/browse/OCPBUGS-38659", nil
+				}
+			case "machine-config":
+				if condition.Type == configv1.OperatorDegraded && condition.Status == configv1.ConditionTrue {
+					return "https://issues.redhat.com/browse/MCO-1447", nil
+				}
+			case "kube-apiserver":
+				if condition.Type == configv1.OperatorDegraded && condition.Status == configv1.ConditionTrue {
+					return "https://issues.redhat.com/browse/OCPBUGS-38661", nil
+				}
+			default:
+				return "", nil
 			}
 		} else {
 			// SingleNode is expected to go Available=False and Degraded=True for most / all operators during upgrade
@@ -433,13 +443,7 @@ func testUpgradeOperatorStateTransitions(events monitorapi.Intervals, clientConf
 				return "https://issues.redhat.com/browse/OCPBUGS-38663", nil
 			}
 		}
-
-		// flake this to collect more exceptions
-		if condition.Type == configv1.OperatorDegraded && condition.Status == configv1.ConditionTrue {
-			return "https://issues.redhat.com/browse/TRT-1575", nil
-		} else {
-			return "", nil
-		}
+		return "", nil
 	}
 
 	return testOperatorStateTransitions(events, []configv1.ClusterStatusConditionType{configv1.OperatorAvailable, configv1.OperatorDegraded}, except, clientConfig)

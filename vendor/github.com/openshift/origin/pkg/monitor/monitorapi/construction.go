@@ -389,6 +389,13 @@ func (b *LocatorBuilder) WithAPIUnreachableFromClient(metric model.Metric, servi
 	return b.Build()
 }
 
+func (b *LocatorBuilder) WithEtcdDiskFsyncMetric(metric model.Metric) Locator {
+	pod := string(metric["pod"])
+	b.targetType = LocatorTypePod
+	b.withPodName(pod)
+	return b.Build()
+}
+
 // TODO decide whether we want to allow "random" locator keys.  deads2k is -1 on random locator keys and thinks we should enumerate every possible key we special case.
 func (b *LocatorBuilder) KubeEvent(event *corev1.Event) Locator {
 
@@ -420,6 +427,34 @@ func (b *LocatorBuilder) KubeEvent(event *corev1.Event) Locator {
 	if len(event.InvolvedObject.Namespace) > 0 {
 		b.annotations[LocatorNamespaceKey] = event.InvolvedObject.Namespace
 	}
+	return b.Build()
+}
+
+// KubeletSyncLoopProbe constructs a locator from a Kubelet SyncLoop
+// probe event, typically kubelet log prints the events as follows:
+// "SyncLoop (probe)" probe="readiness" status="ready" pod="openshift-etcd/etcd-ci-op-bzbjn2bk-206af-gfdsw-master-2"
+func (b *LocatorBuilder) KubeletSyncLoopProbe(node, ns, podName, probeType string) Locator {
+	b.targetType = LocatorTypeKubeletSyncLoopProbe
+	b.withNode(node).
+		withNamespace(ns).
+		withPodName(podName)
+	b.annotations[LocatorTypeKubeletSyncLoopProbeType] = probeType
+	return b.Build()
+}
+
+func (b *LocatorBuilder) KubeletSyncLoopPLEG(node, ns, podName, eventType string) Locator {
+	b.targetType = LocatorTypeKubeletSyncLoopPLEG
+	b.withNode(node).
+		withNamespace(ns).
+		withPodName(podName)
+	b.annotations[LocatorTypeKubeletSyncLoopPLEGType] = eventType
+	return b.Build()
+}
+
+func (b *LocatorBuilder) StaticPodInstall(node, podType string) Locator {
+	b.targetType = LocatorTypeStaticPodInstall
+	b.withNode(node)
+	b.annotations[LocatorStaticPodInstallType] = podType
 	return b.Build()
 }
 
