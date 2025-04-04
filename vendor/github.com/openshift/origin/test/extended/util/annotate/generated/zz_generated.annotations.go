@@ -15,6 +15,10 @@ var Annotations = map[string]string{
 
 	"[Conformance][sig-api-machinery][Feature:APIServer] kube-apiserver should be accessible via service network endpoint": " [Suite:openshift/conformance/parallel/minimal]",
 
+	"[Conformance][sig-api-machinery][Feature:APIServer] local kubeconfig \"check-endpoints.kubeconfig\" should be present in all kube-apiserver containers": " [Suite:openshift/conformance/parallel/minimal]",
+
+	"[Conformance][sig-api-machinery][Feature:APIServer] local kubeconfig \"control-plane-node.kubeconfig\" should be present in all kube-apiserver containers": " [Suite:openshift/conformance/parallel/minimal]",
+
 	"[Conformance][sig-api-machinery][Feature:APIServer] local kubeconfig \"lb-ext.kubeconfig\" should be present on all masters and work": " [Suite:openshift/conformance/parallel/minimal]",
 
 	"[Conformance][sig-api-machinery][Feature:APIServer] local kubeconfig \"lb-int.kubeconfig\" should be present on all masters and work": " [Suite:openshift/conformance/parallel/minimal]",
@@ -189,6 +193,12 @@ var Annotations = map[string]string{
 
 	"[sig-apps][Feature:OpenShiftControllerManager] TestTriggers_manual [apigroup:apps.openshift.io]": " [Suite:openshift/conformance/parallel]",
 
+	"[sig-apps][apigroup:apps.openshift.io] Deployments on HighlyAvailableArbiterMode topology should be created on arbiter nodes when arbiter node is selected": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-apps][apigroup:apps.openshift.io] Deployments on HighlyAvailableArbiterMode topology should be created on master nodes when no node selected": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-apps][apigroup:apps.openshift.io] Evaluate DaemonSet placement in HighlyAvailableArbiterMode topology should not create a DaemonSet on the Arbiter node": " [Suite:openshift/conformance/parallel]",
+
 	"[sig-arch] Cluster topology single node tests Verify that OpenShift components deploy one replica in SingleReplica topology mode": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-arch] ClusterOperators [apigroup:config.openshift.io] should define at least one namespace in their lists of related objects": " [Suite:openshift/conformance/parallel]",
@@ -234,8 +244,6 @@ var Annotations = map[string]string{
 	"[sig-arch] ocp payload should be based on existing source OLM version should contain the source commit id": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel]",
 
 	"[sig-arch][Early] APIs for openshift.io must have stable versions": " [Suite:openshift/conformance/parallel]",
-
-	"[sig-arch][Early] CRDs for openshift.io should have a status in the CRD schema": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-arch][Early] CRDs for openshift.io should have subresource.status": " [Suite:openshift/conformance/parallel]",
 
@@ -957,6 +965,8 @@ var Annotations = map[string]string{
 
 	"[sig-cli][Slow] can use rsync to upload files to pods [apigroup:template.openshift.io] using a watch should watch for changes and rsync them": "",
 
+	"[sig-cloud-provider][Feature:OpenShiftCloudControllerManager][Late] Cluster scoped load balancer healthcheck port and path should be 10256/healthz": " [Suite:openshift/conformance/parallel]",
+
 	"[sig-cloud-provider][Feature:OpenShiftCloudControllerManager][Late] Deploy an external cloud provider [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-cluster-lifecycle] CSRs from machines that are not recognized by the cloud provider are not approved": " [Suite:openshift/conformance/parallel]",
@@ -1159,6 +1169,8 @@ var Annotations = map[string]string{
 
 	"[sig-etcd][OCPFeatureGate:HardwareSpeed][Serial] etcd is able to set the hardware speed to \"\" [Timeout:30m][apigroup:machine.openshift.io]": " [Suite:openshift/conformance/serial]",
 
+	"[sig-etcd][apigroup:config.openshift.io] Ensure etcd health and quorum in HighlyAvailableArbiterMode should have all etcd pods running and quorum met": " [Suite:openshift/conformance/parallel]",
+
 	"[sig-imageregistry] Image registry [apigroup:route.openshift.io] should redirect on blob pull [apigroup:image.openshift.io]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel]",
 
 	"[sig-imageregistry][Feature:ImageAppend] Image append should create images by appending them [apigroup:image.openshift.io]": " [Skipped:Disconnected] [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel]",
@@ -1263,6 +1275,12 @@ var Annotations = map[string]string{
 
 	"[sig-imageregistry][OCPFeatureGate:ChunkSizeMiB][Serial][apigroup:imageregistry.operator.openshift.io] Image Registry Config ChunkSizeMiB should set minimum valid ChunkSizeMiB value": " [Suite:openshift/conformance/serial]",
 
+	"[sig-imageregistry][OCPFeatureGate:ImageStreamImportMode][Serial] ImageStream API import mode should be Legacy if the import mode specified in image.config.openshift.io config is Legacy [apigroup:image.openshift.io]": " [Suite:openshift/conformance/serial]",
+
+	"[sig-imageregistry][OCPFeatureGate:ImageStreamImportMode][Serial] ImageStream API import mode should be PreserveOriginal if the import mode specified in image.config.openshift.io config is PreserveOriginal [apigroup:image.openshift.io]": " [Suite:openshift/conformance/serial]",
+
+	"[sig-imageregistry][OCPFeatureGate:ImageStreamImportMode][Serial] ImageStream API import mode should be PreserveOriginal or Legacy depending on desired.architecture field in the CV [apigroup:image.openshift.io]": " [Suite:openshift/conformance/serial]",
+
 	"[sig-imageregistry][Serial] Image signature workflow can push a signed image to openshift registry and verify it [apigroup:user.openshift.io][apigroup:image.openshift.io]": " [Skipped:Disconnected] [Suite:openshift/conformance/serial]",
 
 	"[sig-installer][Feature:baremetal] Baremetal platform should have baremetalhost resources": " [Suite:openshift/conformance/parallel]",
@@ -1311,15 +1329,15 @@ var Annotations = map[string]string{
 
 	"[sig-instrumentation][Late] OpenShift alerting rules [apigroup:image.openshift.io] should link to an HTTP(S) location if the runbook_url annotation is defined": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set in a heterogeneous environment, should expose information about the applied collection profile using meta-metrics": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set in a heterogeneous environment, should expose information about the applied collection profile using meta-metrics": " [Suite:openshift/conformance/serial]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set in a heterogeneous environment, should have at least one implementation for each collection profile": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set in a heterogeneous environment, should have at least one implementation for each collection profile": " [Suite:openshift/conformance/serial]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set in a heterogeneous environment, should revert to default collection profile when an empty collection profile value is specified": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set in a heterogeneous environment, should revert to default collection profile when an empty collection profile value is specified": " [Suite:openshift/conformance/serial]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set in a homogeneous minimal environment, should hide default metrics": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set in a homogeneous minimal environment, should hide default metrics": " [Suite:openshift/conformance/serial]",
 
-	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles] The collection profiles feature-set initially, in a homogeneous default environment, should expose default metrics": " [Suite:openshift/conformance/parallel]",
+	"[sig-instrumentation][OCPFeatureGate:MetricsCollectionProfiles][Serial] The collection profiles feature-set initially, in a homogeneous default environment, should expose default metrics": " [Suite:openshift/conformance/serial]",
 
 	"[sig-instrumentation][sig-builds][Feature:Builds] Prometheus when installed on the cluster should start and expose a secured proxy and verify build metrics [apigroup:build.openshift.io]": " [Skipped:Disconnected] [Suite:openshift/conformance/parallel]",
 
@@ -1483,9 +1501,7 @@ var Annotations = map[string]string{
 
 	"[sig-network][Feature:EgressRouterCNI] when using openshift ovn-kubernetes should ensure ipv6 egressrouter cni resources are created [apigroup:operator.openshift.io]": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-network][Feature:IPsec] when using openshift ovn-kubernetes check traffic [apigroup:config.openshift.io] [Suite:openshift/network/ipsec] with IPsec in external mode": "",
-
-	"[sig-network][Feature:IPsec] when using openshift ovn-kubernetes check traffic [apigroup:config.openshift.io] [Suite:openshift/network/ipsec] with IPsec in full mode": "",
+	"[sig-network][Feature:IPsec] when using openshift ovn-kubernetes check traffic with IPsec [apigroup:config.openshift.io] [Suite:openshift/network/ipsec]": "",
 
 	"[sig-network][Feature:Layer2LiveMigration][OCPFeatureGate:NetworkSegmentation][Suite:openshift/network/virtualization] primary UDN smoke test when using openshift ovn-kubernetes assert the primary UDN feature works as expected": "",
 
@@ -1568,6 +1584,18 @@ var Annotations = map[string]string{
 	"[sig-network][Feature:vlan] should create pingable pods with vlan interface on an in-container master [apigroup:k8s.cni.cncf.io]": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-network][OCPFeatureGate:DNSNameResolver][Feature:EgressFirewall] when using openshift ovn-kubernetes should ensure egressfirewall with wildcard dns rules is created": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:GatewayAPI][Feature:Router][apigroup:gateway.networking.k8s.io] Verify Gateway API CRDs and ensure CRD of experimental group can not be created": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:GatewayAPI][Feature:Router][apigroup:gateway.networking.k8s.io] Verify Gateway API CRDs and ensure CRD of experimental group is not installed": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:GatewayAPI][Feature:Router][apigroup:gateway.networking.k8s.io] Verify Gateway API CRDs and ensure CRD of standard group can not be created": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:GatewayAPI][Feature:Router][apigroup:gateway.networking.k8s.io] Verify Gateway API CRDs and ensure existing CRDs can not be deleted": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:GatewayAPI][Feature:Router][apigroup:gateway.networking.k8s.io] Verify Gateway API CRDs and ensure existing CRDs can not be updated": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:GatewayAPI][Feature:Router][apigroup:gateway.networking.k8s.io] Verify Gateway API CRDs and ensure required CRDs should already be installed": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-network][OCPFeatureGate:NetworkDiagnosticsConfig][Serial] Should be enabled by default": " [Suite:openshift/conformance/serial]",
 
@@ -1697,6 +1725,44 @@ var Annotations = map[string]string{
 
 	"[sig-network][OCPFeatureGate:PersistentIPsForVirtualization][Feature:Layer2LiveMigration] Kubevirt Virtual Machines when using openshift ovn-kubernetes with user defined networks and persistent ips configured created using [OCPFeatureGate:NetworkSegmentation] UserDefinedNetwork [Suite:openshift/network/virtualization] should keep ip when the VMI attached to a secondary UDN is migrated between nodes": "",
 
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with invalid setup the router should not support external certificate if inline certificate is also present": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with invalid setup the router should not support external certificate if the route termination type is Passthrough": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with invalid setup the router should not support external certificate if the secret is in a different namespace": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with invalid setup the router should not support external certificate if the secret is not of type kubernetes.io/tls": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with invalid setup the router should not support external certificate without proper permissions": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and routes are reachable": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the route is updated to remove the external certificate and again re-add the same external certificate then also the route is reachable": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the route is updated to remove the external certificate then also the route is reachable and serves the default certificate": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the route is updated to use new external certificate then also the route is reachable": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the route is updated to use new external certificate, but RBAC permissions are not added route update is rejected": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the route is updated to use new external certificate, but secret does not exist route update is rejected": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the route is updated to use new external certificate, but secret is not of type kubernetes.io/tls route update is rejected": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the route is updated to use same external certificate then also the route is reachable": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the route is updated to use same external certificate, but RBAC permissions are dropped route update is rejected": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the secret is deleted and re-created again but RBAC permissions are dropped then routes are not reachable": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the secret is deleted and re-created again then routes are reachable": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the secret is deleted then routes are not reachable": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the secret is updated but RBAC permissions are dropped then routes are not reachable": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with valid setup the router should support external certificate and the secret is updated then also routes are reachable": " [Suite:openshift/conformance/parallel]",
+
 	"[sig-network][endpoints] admission [apigroup:config.openshift.io] blocks manual creation of EndpointSlices pointing to the cluster or service network": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-network][endpoints] admission [apigroup:config.openshift.io] blocks manual creation of Endpoints pointing to the cluster or service network": " [Suite:openshift/conformance/parallel]",
@@ -1744,6 +1810,10 @@ var Annotations = map[string]string{
 	"[sig-node][apigroup:config.openshift.io] CPU Partitioning cluster workloads with limits should have resources modified if CPUPartitioningMode = AllNodes": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-node][apigroup:config.openshift.io] CPU Partitioning node validation should have correct cpuset and cpushare set in crio containers": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-node][apigroup:config.openshift.io] expected Master and Arbiter node counts Should validate that there are Master and Arbiter nodes as specified in the cluster": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-node][apigroup:config.openshift.io] required pods on the Arbiter node Should verify that the correct number of pods are running on the Arbiter node": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-olmv1][OCPFeatureGate:NewOLM] OLMv1 CRDs should be installed": " [Suite:openshift/conformance/parallel]",
 

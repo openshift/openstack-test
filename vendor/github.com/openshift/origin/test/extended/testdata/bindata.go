@@ -345,8 +345,9 @@
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm
 // test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json
-// test/extended/testdata/ipsec/ipsec-nsconfig-machine-config.yaml
 // test/extended/testdata/ipsec/nmstate.yaml
+// test/extended/testdata/ipsec/nsconfig-machine-config.yaml
+// test/extended/testdata/ipsec/nsconfig-reboot-none-policy.yaml
 // test/extended/testdata/kernel/rt-tests-environment.yaml
 // test/extended/testdata/kernel/rt-tests-pod.yaml
 // test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt
@@ -419,6 +420,7 @@
 // test/extended/testdata/long_names/Dockerfile
 // test/extended/testdata/long_names/fixture.json
 // test/extended/testdata/machine_config/machineconfigurations/managedbootimages-all.yaml
+// test/extended/testdata/machine_config/machineconfigurations/managedbootimages-empty.yaml
 // test/extended/testdata/machine_config/machineconfigurations/managedbootimages-none.yaml
 // test/extended/testdata/machine_config/machineconfigurations/managedbootimages-partial.yaml
 // test/extended/testdata/marketplace/csc/02-csc.yaml
@@ -13330,7 +13332,7 @@ var _examplesJenkinsJenkinsEphemeralTemplateJson = []byte(`{
 			"tags": "instant-app,jenkins"
 		}
 	},
-	"message": "A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/master/examples/jenkins/README.md contains more information about using this template.",
+	"message": "A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/main/examples/jenkins/README.md contains more information about using this template.",
 	"objects": [
 		{
 			"apiVersion": "route.openshift.io/v1",
@@ -13707,7 +13709,7 @@ var _examplesJenkinsJenkinsPersistentTemplateJson = []byte(`{
 			"tags": "instant-app,jenkins"
 		}
 	},
-	"message": "A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/master/examples/jenkins/README.md contains more information about using this template.",
+	"message": "A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/main/examples/jenkins/README.md contains more information about using this template.",
 	"objects": [
 		{
 			"apiVersion": "route.openshift.io/v1",
@@ -18454,7 +18456,7 @@ var _testExtendedTestdataBuildsJenkinsPipelineJenkinsEphemeralJson = []byte(`{
       "openshift.io/support-url": "https://access.redhat.com"
     }
   },
-  "message": "A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/master/examples/jenkins/README.md contains more information about using this template.",
+  "message": "A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/main/examples/jenkins/README.md contains more information about using this template.",
   "labels": {
     "app": "jenkins-ephemeral",
     "template": "jenkins-ephemeral-template"
@@ -36423,7 +36425,7 @@ var _testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson = []byte(`
     "containers": [
       {
         "name": "hello-openshift",
-        "image": "registry.k8s.io/e2e-test-images/agnhost:2.52",
+        "image": "registry.k8s.io/e2e-test-images/agnhost:2.53",
         "args": ["netexec"],
         "ports": [
           {
@@ -37704,7 +37706,7 @@ var _testExtendedTestdataCmdTestCmdTestdataJenkinsJenkinsEphemeralTemplateJson =
         "app": "jenkins-ephemeral",
         "template": "jenkins-ephemeral-template"
     },
-    "message": "A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/master/examples/jenkins/README.md contains more information about using this template.",
+    "message": "A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/main/examples/jenkins/README.md contains more information about using this template.",
     "metadata": {
         "annotations": {
             "description": "Jenkins service, without persistent storage.\n\nWARNING: Any data stored will be lost upon pod destruction. Only use this template for testing.",
@@ -40641,7 +40643,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.52
+                image: registry.k8s.io/e2e-test-images/agnhost:2.53
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -43490,7 +43492,7 @@ spec:
   egress:
   - type: Allow
     to:
-      dnsName: docs.openshift.com
+      dnsName: redhat.com
   - type: Deny
     to:
       dnsName: www.google.com
@@ -43533,7 +43535,7 @@ spec:
   egress:
   - type: Allow
     to:
-      dnsName: docs.openshift.com
+      dnsName: redhat.com
   - type: Allow
     to:
       dnsName: "*.google.com"
@@ -43573,7 +43575,7 @@ spec:
   egress:
   - type: Allow
     to:
-      dnsName: docs.openshift.com
+      dnsName: redhat.com
   - type: Allow
     to:
       cidrSelector: 8.8.8.8/32
@@ -44982,7 +44984,7 @@ items:
           deployment: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.52
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.53
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -45085,7 +45087,7 @@ items:
           replicationcontroller: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.52
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.53
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675" ]
           ports:
@@ -45151,7 +45153,7 @@ items:
           deploymentconfig: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.52
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.53
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -45721,7 +45723,28 @@ func testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson() (*asset, error) 
 	return a, nil
 }
 
-var _testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml = []byte(`# Generated by Butane; do not edit
+var _testExtendedTestdataIpsecNmstateYaml = []byte(`apiVersion: nmstate.io/v1
+kind: NMState
+metadata:
+  name: nmstate
+`)
+
+func testExtendedTestdataIpsecNmstateYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataIpsecNmstateYaml, nil
+}
+
+func testExtendedTestdataIpsecNmstateYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataIpsecNmstateYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/ipsec/nmstate.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataIpsecNsconfigMachineConfigYaml = []byte(`# Generated by Butane; do not edit
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
@@ -45777,38 +45800,60 @@ spec:
           name: ipsec-import.service
 `)
 
-func testExtendedTestdataIpsecIpsecNsconfigMachineConfigYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml, nil
+func testExtendedTestdataIpsecNsconfigMachineConfigYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataIpsecNsconfigMachineConfigYaml, nil
 }
 
-func testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataIpsecIpsecNsconfigMachineConfigYamlBytes()
+func testExtendedTestdataIpsecNsconfigMachineConfigYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataIpsecNsconfigMachineConfigYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "test/extended/testdata/ipsec/ipsec-nsconfig-machine-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "test/extended/testdata/ipsec/nsconfig-machine-config.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _testExtendedTestdataIpsecNmstateYaml = []byte(`apiVersion: nmstate.io/v1
-kind: NMState
+var _testExtendedTestdataIpsecNsconfigRebootNonePolicyYaml = []byte(`apiVersion: operator.openshift.io/v1
+kind: MachineConfiguration
 metadata:
-  name: nmstate
+  name: cluster
+  namespace: openshift-machine-config-operator
+spec:
+  nodeDisruptionPolicy:
+    files:
+    - actions:
+      - type: None
+      path: /usr/local/bin/ipsec-addcert.sh
+    - actions:
+      - type: None
+      path: /etc/pki/certs/ca.pem
+    - actions:
+      - type: None
+      path: /etc/pki/certs/left_server.p12
+    - actions:
+      - type: None
+      path: /etc/pki/certs/right_server.p12
+    units:
+      - name: ipsec-import.service
+        actions:
+          - restart:
+              serviceName: ipsec-import.service
+            type: Restart
 `)
 
-func testExtendedTestdataIpsecNmstateYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataIpsecNmstateYaml, nil
+func testExtendedTestdataIpsecNsconfigRebootNonePolicyYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataIpsecNsconfigRebootNonePolicyYaml, nil
 }
 
-func testExtendedTestdataIpsecNmstateYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataIpsecNmstateYamlBytes()
+func testExtendedTestdataIpsecNsconfigRebootNonePolicyYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataIpsecNsconfigRebootNonePolicyYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "test/extended/testdata/ipsec/nmstate.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "test/extended/testdata/ipsec/nsconfig-reboot-none-policy.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -49006,6 +49051,31 @@ func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAll
 	return a, nil
 }
 
+var _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml = []byte(`apiVersion: operator.openshift.io/v1
+kind: MachineConfiguration
+metadata:
+  name: cluster
+  namespace: openshift-machine-config-operator
+spec:
+  logLevel: Normal
+  operatorLogLevel: Normal
+`)
+
+func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml, nil
+}
+
+func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfigurations/managedbootimages-empty.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml = []byte(`apiVersion: operator.openshift.io/v1
 kind: MachineConfiguration
 metadata:
@@ -49014,6 +49084,12 @@ metadata:
 spec:
   logLevel: Normal
   operatorLogLevel: Normal
+  managedBootImages:
+    machineManagers:
+      - resource: machinesets
+        apiGroup: machine.openshift.io
+        selection:
+          mode: None
 `)
 
 func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYamlBytes() ([]byte, error) {
@@ -49263,7 +49339,7 @@ objects:
                           // Output the url of the currently selected cluster
                           echo "Using project ${openshift.project()} in cluster with url ${openshift.cluster()}"
 
-                          template = openshift.create('https://raw.githubusercontent.com/openshift/origin/master/test/extended/testdata/multi-namespace-template.yaml').object()
+                          template = openshift.create('https://raw.githubusercontent.com/openshift/origin/main/test/extended/testdata/multi-namespace-template.yaml').object()
 
                           // Explore the Groovy object which models the OpenShift template as a Map
                           echo "Template contains ${template.parameters.size()} parameters"
@@ -50706,7 +50782,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50724,7 +50800,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -50800,6 +50876,7 @@ items:
       http {
         server {
             listen 8443;
+            listen [::]:8443 ipv6only=on;
             ssl    on;
             ssl_certificate     /etc/serving-cert/tls.crt;
             ssl_certificate_key    /etc/serving-cert/tls.key;
@@ -50963,7 +51040,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -51139,7 +51216,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -51157,7 +51234,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.52
+      image: registry.k8s.io/e2e-test-images/agnhost:2.53
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -52562,7 +52639,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.52
+                image: registry.k8s.io/e2e-test-images/agnhost:2.53
 `)
 
 func testExtendedTestdataTemplatesTemplateinstance_badobjectYamlBytes() ([]byte, error) {
@@ -52622,7 +52699,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.52
+                image: registry.k8s.io/e2e-test-images/agnhost:2.53
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -53466,7 +53543,7 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>EVENT_INTERVAL_TITLE_GOES_HERE</title>
-    <script src="https://unpkg.com/timelines-chart"></script>
+    <script src="https://cdn.jsdelivr.net/npm/timelines-chart"></script>
     <script src="https://d3js.org/d3-array.v1.min.js"></script>
     <script src="https://d3js.org/d3-collection.v1.min.js"></script>
     <script src="https://d3js.org/d3-color.v1.min.js"></script>
@@ -53563,6 +53640,11 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
     }
 
+    function isEtcdBootstrap(eventInterval) {
+        return eventInterval.source === 'PodLog' && eventInterval.message.reason === "EtcdBootstrap";
+
+    }
+
     function isPodLog(eventInterval) {
         if (eventInterval.source === 'PodLog') {
             return true
@@ -53602,6 +53684,10 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
     function isAPIUnreachableFromClientActivity(eventInterval) {
         return (eventInterval.source === "APIUnreachableFromClient")
+    }
+
+    function isStaticPodInstallMonitorActivity(eventInterval) {
+        return (eventInterval.source === "StaticPodInstallMonitor")
     }
 
     function isEndpointConnectivity(eventInterval) {
@@ -53732,6 +53818,10 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
 
     function isAPIUnreachableFromClientValue(item) {
         return [buildLocatorDisplayString(item.locator), "", "APIUnreachableFromClientMetrics"]
+    }
+
+    function isStaticPodInstallMonitorValue(item) {
+        return [buildLocatorDisplayString(item.locator), "", item.message.reason]
     }
 
     function disruptionValue(item) {
@@ -53949,8 +54039,12 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         timelineGroups.push({group: "api-unreachable", data: []})
         createTimelineData(isAPIUnreachableFromClientValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isAPIUnreachableFromClientActivity, regex)
 
+        timelineGroups.push({group: "staticpod-install", data: []})
+        createTimelineData(isStaticPodInstallMonitorValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isStaticPodInstallMonitorActivity, regex)
+
         timelineGroups.push({ group: "etcd-leaders", data: [] })
         createTimelineData(etcdLeadershipLogsValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEtcdLeadershipAndNotEmpty, regex)
+        createTimelineData("Bootstrap", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEtcdBootstrap, regex)
 
         timelineGroups.push({group: "cloud-metrics", data: []})
         createTimelineData(cloudMetricsValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isCloudMetrics, regex)
@@ -54079,7 +54173,7 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>EVENT_INTERVAL_TITLE_GOES_HERE</title>
-    <script src="https://unpkg.com/timelines-chart"></script>
+    <script src="https://cdn.jsdelivr.net/npm/timelines-chart"></script>
     <script src="https://d3js.org/d3-array.v1.min.js"></script>
     <script src="https://d3js.org/d3-collection.v1.min.js"></script>
     <script src="https://d3js.org/d3-color.v1.min.js"></script>
@@ -55606,8 +55700,9 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/index.pl":                                         testExtendedTestdataImage_ecosystemPerlHotdeployIndexPl,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/lib/My/Test.pm":                                   testExtendedTestdataImage_ecosystemPerlHotdeployLibMyTestPm,
 	"test/extended/testdata/image_ecosystem/perl-hotdeploy/perl.json":                                        testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson,
-	"test/extended/testdata/ipsec/ipsec-nsconfig-machine-config.yaml":                                        testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml,
 	"test/extended/testdata/ipsec/nmstate.yaml":                                                              testExtendedTestdataIpsecNmstateYaml,
+	"test/extended/testdata/ipsec/nsconfig-machine-config.yaml":                                              testExtendedTestdataIpsecNsconfigMachineConfigYaml,
+	"test/extended/testdata/ipsec/nsconfig-reboot-none-policy.yaml":                                          testExtendedTestdataIpsecNsconfigRebootNonePolicyYaml,
 	"test/extended/testdata/kernel/rt-tests-environment.yaml":                                                testExtendedTestdataKernelRtTestsEnvironmentYaml,
 	"test/extended/testdata/kernel/rt-tests-pod.yaml":                                                        testExtendedTestdataKernelRtTestsPodYaml,
 	"test/extended/testdata/ldap/groupsync/ad/blacklist_ldap.txt":                                            testExtendedTestdataLdapGroupsyncAdBlacklist_ldapTxt,
@@ -55680,6 +55775,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/long_names/Dockerfile":                                                           testExtendedTestdataLong_namesDockerfile,
 	"test/extended/testdata/long_names/fixture.json":                                                         testExtendedTestdataLong_namesFixtureJson,
 	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-all.yaml":                 testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml,
+	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-empty.yaml":               testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml,
 	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-none.yaml":                testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml,
 	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-partial.yaml":             testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml,
 	"test/extended/testdata/marketplace/csc/02-csc.yaml":                                                     testExtendedTestdataMarketplaceCsc02CscYaml,
@@ -56334,8 +56430,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					}},
 				}},
 				"ipsec": {nil, map[string]*bintree{
-					"ipsec-nsconfig-machine-config.yaml": {testExtendedTestdataIpsecIpsecNsconfigMachineConfigYaml, map[string]*bintree{}},
-					"nmstate.yaml":                       {testExtendedTestdataIpsecNmstateYaml, map[string]*bintree{}},
+					"nmstate.yaml":                     {testExtendedTestdataIpsecNmstateYaml, map[string]*bintree{}},
+					"nsconfig-machine-config.yaml":     {testExtendedTestdataIpsecNsconfigMachineConfigYaml, map[string]*bintree{}},
+					"nsconfig-reboot-none-policy.yaml": {testExtendedTestdataIpsecNsconfigRebootNonePolicyYaml, map[string]*bintree{}},
 				}},
 				"kernel": {nil, map[string]*bintree{
 					"rt-tests-environment.yaml": {testExtendedTestdataKernelRtTestsEnvironmentYaml, map[string]*bintree{}},
@@ -56425,6 +56522,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 				"machine_config": {nil, map[string]*bintree{
 					"machineconfigurations": {nil, map[string]*bintree{
 						"managedbootimages-all.yaml":     {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml, map[string]*bintree{}},
+						"managedbootimages-empty.yaml":   {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml, map[string]*bintree{}},
 						"managedbootimages-none.yaml":    {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml, map[string]*bintree{}},
 						"managedbootimages-partial.yaml": {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml, map[string]*bintree{}},
 					}},
