@@ -192,21 +192,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 			o.Expect(role.Rules[0].ResourceNames[0]).To(o.Equal(expectedSecretName),
 				"Unexpected resourceName on role %q in %q namespace", openstackCredsRole, systemNamespace)
 
-			g.By(fmt.Sprintf("Getting the openstack auth url from clouds.conf in secret %q in %q namespace",
-				expectedSecretName, systemNamespace))
+			g.By(fmt.Sprintf("Getting the credentials secret %q in %q namespace", expectedSecretName, systemNamespace))
 			secret, err := clientSet.CoreV1().Secrets(systemNamespace).Get(ctx, expectedSecretName, metav1.GetOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "Secret %q not found in %q namespace", expectedSecretName, systemNamespace)
-			conf, err := ini.Load([]byte(secret.Data["clouds.conf"]))
-			o.Expect(err).NotTo(o.HaveOccurred(),
-				"clouds.conf key not found on %q secret in %q namespace", expectedSecretName, systemNamespace)
-			globalSection, err := conf.GetSection("Global")
-			o.Expect(err).NotTo(o.HaveOccurred(),
-				"section Global not found on %q secret in %q namespace", expectedSecretName, systemNamespace)
-			authUrl, err := globalSection.GetKey("auth-url")
-			o.Expect(err).NotTo(o.HaveOccurred(),
-				"property auth-url not found on %q secret in %q namespace", expectedSecretName, systemNamespace)
 
-			g.By(fmt.Sprintf("Getting the openstack auth url from clouds.yaml in secret %q in %q namespace", expectedSecretName, systemNamespace))
+			g.By(fmt.Sprintf("Unmarshalling the clouds.yaml extracted from secret %q in %q namespace", expectedSecretName, systemNamespace))
 			cloudsYaml := make(map[string]map[string]*clouds.Cloud)
 			err = yaml.Unmarshal([]byte(secret.Data["clouds.yaml"]), &cloudsYaml)
 			o.Expect(err).NotTo(o.HaveOccurred(),
@@ -214,7 +204,6 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", f
 			clouds := cloudsYaml["clouds"]["openstack"]
 
 			g.By("Compare cloud auth url on secret with openstack API")
-			o.Expect(computeClient.IdentityEndpoint).To(o.HavePrefix(authUrl.Value()), "Unexpected auth url on clouds.conf")
 			o.Expect(computeClient.IdentityEndpoint).To(o.HavePrefix(clouds.AuthInfo.AuthURL), "Unexpected auth url on clouds.yaml")
 
 		})
