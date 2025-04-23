@@ -166,8 +166,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		g.By("Fetching an external network for the cluster")
 		cloudProviderConfig, err := getConfig(ctx,
 			oc.AdminKubeClient(),
-			"openshift-cloud-controller-manager",
-			"cloud-conf",
+			"openshift-config",
+			"cloud-provider-config",
 			"cloud.conf")
 		o.Expect(err).NotTo(o.HaveOccurred())
 		var fip *floatingips.FloatingIP
