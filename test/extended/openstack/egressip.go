@@ -48,6 +48,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		clientSet, err = e2e.LoadClientset()
 		o.Expect(err).NotTo(o.HaveOccurred())
 
+		isHCP, err := IsHostedControlPlane(ctx, clientSet)
+		o.Expect(err).NotTo(o.HaveOccurred())
+
 		g.By("preparing the openstack client")
 		networkClient, err = client.GetServiceClient(ctx, openstack.NewNetworkV2)
 		o.Expect(err).NotTo(o.HaveOccurred(), "Failed to build the OpenStack client")
@@ -164,10 +167,19 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egre
 		checkAllowedAddressesPairs(ctx, networkClient, primaryWorker, secondaryWorker, egressIPAddrStr, machineNetworkID)
 
 		g.By("Fetching an external network for the cluster")
+		var configMapNameSpace, configMapName string
+		if isHCP {
+			configMapNameSpace = "openshift-config"
+			configMapName = "cloud-provider-config"
+		} else {
+			configMapNameSpace = "openshift-cloud-controller-manager"
+			configMapName = "cloud-conf"
+		}
+
 		cloudProviderConfig, err := getConfig(ctx,
 			oc.AdminKubeClient(),
-			"openshift-cloud-controller-manager",
-			"cloud-conf",
+			configMapNameSpace,
+			configMapName,
 			"cloud.conf")
 		o.Expect(err).NotTo(o.HaveOccurred())
 		var fip *floatingips.FloatingIP
