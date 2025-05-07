@@ -67,3 +67,17 @@ func ByLabelRequirement(labelRequirement labels.Requirement) func(*metav1.ListOp
 		listOptions.LabelSelector = existingLabelSelector.Add(labelRequirement).String()
 	}
 }
+
+func Get(ctx context.Context, dc dynamic.Interface, name string) (objx.Map, error) {
+	mc := dc.Resource(schema.GroupVersionResource{
+		Group:    machineAPIGroup,
+		Version:  "v1beta1",
+		Resource: "machines",
+	}).Namespace(machineAPINamespace)
+
+	obj, err := mc.Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return objx.Map(obj.UnstructuredContent()), nil
+}
