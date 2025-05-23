@@ -84,8 +84,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		g.By("Gathering cloud-provider-config")
 		cloudProviderConfig, err = getConfig(ctx,
 			oc.AdminKubeClient(),
-			"openshift-cloud-controller-manager",
-			"cloud-conf",
+			"openshift-config",
+			"cloud-provider-config",
 			"cloud.conf")
 		o.Expect(err).NotTo(o.HaveOccurred())
 
