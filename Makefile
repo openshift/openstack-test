@@ -1,5 +1,5 @@
 
-openstack-tests: test/extended/openstack/*
+openstack-tests: test/extended/openstack/* cmd/openshift-tests/*
 	go build -o $@ ./cmd/openshift-tests
 
 # Update generated artifacts.
