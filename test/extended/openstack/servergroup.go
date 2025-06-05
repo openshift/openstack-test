@@ -72,7 +72,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenStack pla
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			workerNodeList, err = clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{
-				LabelSelector: "node-role.kubernetes.io/worker",
+				LabelSelector: "node-role.kubernetes.io/worker,!node-role.kubernetes.io/infra",
 			})
 			o.Expect(err).NotTo(o.HaveOccurred())
 
