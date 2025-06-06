@@ -37,6 +37,8 @@ var Annotations = map[string]string{
 
 	"[sig-installer][Suite:openshift/openstack] The OpenShift cluster runs with etcd on ephemeral local block device": "",
 
+	"[sig-installer][Suite:openshift/openstack] The OpenShift cluster should allow the manual setting of enable_topology to false [Serial]": "",
+
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes in a server group": "",
 
 	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity": "",
