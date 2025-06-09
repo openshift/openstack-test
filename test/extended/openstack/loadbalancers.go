@@ -82,10 +82,22 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		g.By("Gathering cloud-provider-config")
-		cloudProviderConfig, err = getConfig(ctx,
+		isHCP, err := IsHostedControlPlane(ctx, clientSet)
+		o.Expect(err).NotTo(o.HaveOccurred())
+
+		var configMapNameSpace, configMapName string
+		if isHCP {
+			configMapNameSpace = "openshift-config"
+			configMapName = "cloud-provider-config"
+		} else {
+			configMapNameSpace = "openshift-cloud-controller-manager"
+			configMapName = "cloud-conf"
+		}
+
+		cloudProviderConfig, err := getConfig(ctx,
 			oc.AdminKubeClient(),
-			"openshift-cloud-controller-manager",
-			"cloud-conf",
+			configMapNameSpace,
+			configMapName,
 			"cloud.conf")
 		o.Expect(err).NotTo(o.HaveOccurred())
 
