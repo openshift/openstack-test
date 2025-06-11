@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/openshift/openstack-test/test/extended/openstack/client"
 
@@ -20,8 +21,8 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
-	e2edeployment "k8s.io/kubernetes/test/e2e/framework/deployment"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
+	testutils "k8s.io/kubernetes/test/utils"
 
 	exutil "github.com/openshift/origin/test/extended/util"
 )
@@ -164,7 +165,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenShift clu
 		deployment, err := clientSet.AppsV1().Deployments(ns).Create(ctx,
 			testDeployment, metav1.CreateOptions{})
 		o.Expect(err).NotTo(o.HaveOccurred())
-		err = e2edeployment.WaitForDeploymentComplete(clientSet, deployment)
+		err = testutils.WaitForDeploymentComplete(clientSet, deployment, e2e.Logf, 20*time.Second, 15*time.Minute)
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		// Get the PVCs from the test namespace
