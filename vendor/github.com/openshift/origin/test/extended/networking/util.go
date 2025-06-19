@@ -30,6 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apiserver/pkg/storage/names"
@@ -748,7 +749,7 @@ func waitForDeploymentComplete(oc *exutil.CLI, namespace, name string) error {
 	return e2edeployment.WaitForDeploymentComplete(oc.AdminKubeClient(), deployment)
 }
 
-func isDaemonSetRunning(oc *exutil.CLI, namespace, name string) (bool, error) {
+func isDaemonSetRunningOnGeneration(oc *exutil.CLI, namespace, name string, generation int64) (bool, error) {
 	ds, err := getDaemonSet(oc, namespace, name)
 	if err != nil {
 		return false, err
@@ -756,9 +757,15 @@ func isDaemonSetRunning(oc *exutil.CLI, namespace, name string) (bool, error) {
 	if ds == nil {
 		return false, nil
 	}
-	// Be sure that it has ds pod running in each node.
-	desired, scheduled, ready := ds.Status.DesiredNumberScheduled, ds.Status.CurrentNumberScheduled, ds.Status.NumberReady
-	return desired == scheduled && desired == ready, nil
+	if generation == 0 {
+		generation = ds.Generation
+	}
+	desired, ready := ds.Status.DesiredNumberScheduled, ds.Status.NumberReady
+	return generation == ds.Status.ObservedGeneration && desired > 0 && desired == ready, nil
+}
+
+func isDaemonSetRunning(oc *exutil.CLI, namespace, name string) (bool, error) {
+	return isDaemonSetRunningOnGeneration(oc, namespace, name, 0)
 }
 
 func getDaemonSet(oc *exutil.CLI, namespace, name string) (*appsv1.DaemonSet, error) {
@@ -978,4 +985,22 @@ func getMachineConfigPoolByLabel(oc *exutil.CLI, mcSelectorLabel labels.Set) ([]
 		return nil, fmt.Errorf("empty machine config pools found for the selector")
 	}
 	return pools, nil
+}
+
+// hasNetworkConfigWriteAccess determines if the admin client can patch the cluster/network.config.openshift.io object
+// by patching the resource in a dry-run mode(no changes are persisted).
+func hasNetworkConfigWriteAccess(oc *exutil.CLI) (bool, error) {
+	_, err := oc.AdminConfigClient().ConfigV1().Networks().Patch(context.TODO(),
+		clusterConfig,
+		types.MergePatchType,
+		[]byte(`{"spec":{"networkType": ""}}`),
+		metav1.PatchOptions{FieldManager: oc.Namespace(), DryRun: []string{metav1.DryRunAll}})
+
+	if err != nil {
+		if kapierrs.IsInvalid(err) || kapierrs.IsForbidden(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }

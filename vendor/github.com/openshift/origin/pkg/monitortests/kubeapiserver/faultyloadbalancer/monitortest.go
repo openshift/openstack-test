@@ -49,6 +49,10 @@ type monitorTest struct {
 	monitor *faultyLBMonitor
 }
 
+func (test *monitorTest) PrepareCollection(ctx context.Context, adminRESTConfig *rest.Config, recorder monitorapi.RecorderWriter) error {
+	return nil
+}
+
 func (test *monitorTest) StartCollection(ctx context.Context, adminRESTConfig *rest.Config, recorder monitorapi.RecorderWriter) error {
 	test.monitor = &faultyLBMonitor{}
 	framework.Logf("monitor[%s]: initialized", MonitorName)
@@ -117,13 +121,11 @@ func (jut *junitTest) OnOverlap(shutdown, unreachable monitorapi.Interval) {
 }
 
 func (jut *junitTest) Skip() []*junitapi.JUnitTestCase {
-	skipped := &junitapi.JUnitTestCase{
-		Name: jut.name,
-		SkipMessage: &junitapi.SkipMessage{
-			Message: "No kube-apiserver shutdown interval found",
-		},
+	passed := &junitapi.JUnitTestCase{
+		Name:      jut.name,
+		SystemOut: "No kube-apiserver shutdown interval found",
 	}
-	return []*junitapi.JUnitTestCase{skipped}
+	return []*junitapi.JUnitTestCase{passed}
 }
 
 func (jut *junitTest) Result() []*junitapi.JUnitTestCase {

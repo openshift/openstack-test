@@ -131,6 +131,7 @@ const (
 	LocatorStatefulSetKey     LocatorKey = "statefulset"
 	LocatorNodeKey            LocatorKey = "node"
 	LocatorMachineKey         LocatorKey = "machine"
+	LocatorNodeRoleKey        LocatorKey = "node-role"
 	LocatorEtcdMemberKey      LocatorKey = "etcd-member"
 	LocatorNameKey            LocatorKey = "name"
 	LocatorHmsgKey            LocatorKey = "hmsg"
@@ -156,6 +157,7 @@ const (
 	LocatorMetricKey                LocatorKey = "metric"
 
 	LocatorAPIUnreachableHostKey                  LocatorKey = "host"
+	LocatorAPIUnreachableComponentKey             LocatorKey = "component"
 	LocatorOnPremKubeapiUnreachableFromHaproxyKey LocatorKey = "onprem-haproxy"
 
 	LocatorTypeKubeletSyncLoopProbeType LocatorKey = "probe"
@@ -238,6 +240,8 @@ const (
 	E2ETestFinished IntervalReason = "E2ETestFinished"
 
 	CloudMetricsExtrenuous                IntervalReason = "CloudMetricsExtrenuous"
+	CloudMetricsLBAvailability            IntervalReason = "CloudMetricsLBAvailability"
+	CloudMetricsLBHealthEvent             IntervalReason = "CloudMetricsLBHealthEvent"
 	FailedToDeleteCGroupsPath             IntervalReason = "FailedToDeleteCGroupsPath"
 	FailedToAuthenticateWithOpenShiftUser IntervalReason = "FailedToAuthenticateWithOpenShiftUser"
 	FailedContactingAPIReason             IntervalReason = "FailedContactingAPI"
@@ -252,8 +256,6 @@ const (
 
 	// client metrics show error connecting to the kube-apiserver
 	APIUnreachableFromClientMetrics IntervalReason = "APIUnreachableFromClientMetrics"
-
-	EtcdHighDiskFsyncReason IntervalReason = "EtcdHighDiskFsync"
 
 	LeaseAcquiring        IntervalReason = "Acquiring"
 	LeaseAcquiringStarted IntervalReason = "StartedAcquiring"
@@ -365,7 +367,6 @@ const (
 	SourceCloudMetrics                           = "CloudMetrics"
 
 	SourceAPIUnreachableFromClient IntervalSource = "APIUnreachableFromClient"
-	SourceEtcdDiskFsyncMonitor     IntervalSource = "EtcdDiskFsyncMonitor"
 	SourceMachine                  IntervalSource = "MachineMonitor"
 
 	SourceGenerationMonitor IntervalSource = "GenerationMonitor"

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/openshift/library-go/pkg/serviceability"
+	"github.com/openshift/openstack-test/pkg/cmd/openshift-tests/run"
 	"github.com/openshift/origin/pkg/cmd"
 	collectdiskcertificates "github.com/openshift/origin/pkg/cmd/openshift-tests/collect-disk-certificates"
 	"github.com/openshift/origin/pkg/cmd/openshift-tests/dev"
@@ -78,7 +79,7 @@ func main() {
 	}
 
 	root.AddCommand(
-		NewRunCommand(ioStreams),
+		run.NewRunCommand(ioStreams),
 		run_upgrade.NewRunUpgradeCommand(ioStreams),
 		images.NewImagesCommand(),
 		run_test.NewRunTestCommand(ioStreams),

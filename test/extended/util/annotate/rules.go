@@ -43,6 +43,7 @@ var (
 
 			// https://bugzilla.redhat.com/show_bug.cgi?id=2004074
 			`\[sig-network-edge\]\[Feature:Idling\] Unidling \[apigroup:apps.openshift.io\]\[apigroup:route.openshift.io\] should work with TCP \(while idling\)`,
+			`\[sig-network-edge\]\[Feature:Idling\] Unidling with Deployments \[apigroup:route.openshift.io\] should work with TCP \(while idling\)`,
 
 			// https://bugzilla.redhat.com/show_bug.cgi?id=2070929
 			`\[sig-network\]\[Feature:EgressIP\]\[apigroup:operator.openshift.io\] \[internal-targets\]`,
@@ -54,14 +55,8 @@ var (
 			`\[sig-devex\]\[Feature:ImageEcosystem\]\[mysql\]\[Slow\] openshift mysql image Creating from a template should instantiate the template`,
 			`\[sig-devex\]\[Feature:ImageEcosystem\]\[mariadb\]\[Slow\] openshift mariadb image Creating from a template should instantiate the template`,
 
-			// https://issues.redhat.com/browse/OCPBUGS-11652
-			`\[sig-cli\] oc adm node-logs`,
-		},
-		// tests that need to be temporarily disabled while the rebase is in progress.
-		"[Disabled:RebaseInProgress]": {
-			// https://issues.redhat.com/browse/OCPBUGS-13392
-			`\[sig-network\] NetworkPolicyLegacy \[LinuxOnly\] NetworkPolicy between server and client should enforce policy to allow traffic only from a pod in a different namespace based on PodSelector and NamespaceSelector`,
-			`\[sig-network\] NetworkPolicyLegacy \[LinuxOnly\] NetworkPolicy between server and client should enforce updated policy`,
+			// https://issues.redhat.com/browse/OCPBUGS-37799
+			`\[sig-builds\]\[Feature:Builds\]\[Slow\] can use private repositories as build input build using an HTTP token should be able to clone source code via an HTTP token \[apigroup:build.openshift.io\]`,
 		},
 		// tests that may work, but we don't support them
 		"[Disabled:Unsupported]": {},
@@ -90,7 +85,9 @@ var (
 			`\[sig-builds\]\[Feature:Builds\] oc new-app should succeed with a --name of 58 characters`,
 			`\[sig-arch\] Only known images used by tests`,
 		},
-		"[Skipped:SingleReplicaTopology]": {},
+		"[Skipped:SingleReplicaTopology]": {
+			`should be scheduled on different nodes`,
+		},
 
 		"[Feature:Networking-IPv4]": {
 			`\[sig-network\]\[Feature:Router\]\[apigroup:route.openshift.io\] when FIPS is disabled the HAProxy router should serve routes when configured with a 1024-bit RSA key`,
@@ -147,7 +144,6 @@ var (
 			`\[sig-apps\]\[Feature:DeploymentConfig\] deploymentconfigs with revision history limits should never persist more old deployments than acceptable after being observed by the controller`,
 			`\[sig-apps\]\[Feature:DeploymentConfig\] deploymentconfigs with test deployments should run a deployment to completion and then scale to zero`,
 			`\[sig-apps\]\[Feature:DeploymentConfig\] deploymentconfigs won't deploy RC with unresolved images when patched with empty image`,
-			`\[sig-apps\]\[Feature:Jobs\] Users should be able to create and run a job in a user project`,
 			`\[sig-arch\] Managed cluster should expose cluster services outside the cluster`,
 			`\[sig-arch\]\[Early\] Managed cluster should \[apigroup:config.openshift.io\] start all core operators`,
 			`\[sig-auth\]\[Feature:SecurityContextConstraints\] TestPodDefaultCapabilities`,
@@ -179,6 +175,7 @@ var (
 			`\[sig-builds\]\[Feature:Builds\]\[pullsearch\] docker build where the registry is not specified Building from a Dockerfile whose FROM image ref does not specify the image registry should create a docker build that has buildah search from our predefined list of image registries and succeed`,
 			`\[sig-cli\] CLI can run inside of a busybox container`,
 			`\[sig-cli\] oc debug deployment configs from a build`,
+			`\[sig-cli\] oc debug deployment from a build`,
 			`\[sig-cli\] oc rsh specific flags should work well when access to a remote shell`,
 			`\[sig-cli\] oc builds get buildconfig`,
 			`\[sig-cli\] oc builds patch buildconfig`,
@@ -195,7 +192,7 @@ var (
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should have non-Pod host cAdvisor metrics`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should provide ingress metrics`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should provide named network metrics`,
-			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should report telemetry \[Late\]`,
+			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should report telemetry \[Serial\] \[Late\]`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster should start and expose a secured proxy and unsecured metrics`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster shouldn't have failing rules evaluation`,
 			`\[sig-instrumentation\] Prometheus \[apigroup:image.openshift.io\] when installed on the cluster shouldn't report any alerts in firing state apart from Watchdog and AlertmanagerReceiversNotConfigured \[Early\]`,
@@ -222,6 +219,7 @@ var (
 			`\[sig-network\]\[Feature:Router\]\[apigroup:operator.openshift.io\] The HAProxy router should set Forwarded headers appropriately`,
 			`\[sig-network\]\[Feature:Router\]\[apigroup:route.openshift.io\]\[apigroup:operator.openshift.io\] The HAProxy router should support reencrypt to services backed by a serving certificate automatically`,
 			`\[sig-node\] Managed cluster should report ready nodes the entire duration of the test run`,
+			`\[sig-node\]\[Feature:Builds\]\[apigroup:build.openshift.io\] zstd:chunked Image should successfully run date command`,
 			`\[sig-storage\]\[Late\] Metrics should report short attach times`,
 			`\[sig-storage\]\[Late\] Metrics should report short mount times`,
 		},
@@ -240,6 +238,22 @@ var (
 		"[Skipped:NoOptionalCapabilities]": {
 			// This test requires a valid console url which doesn't exist when the optional console capability is disabled.
 			`\[sig-cli\] oc basics can show correct whoami result with console`,
+
+			// Image Registry Skips:
+			// Requires ImageRegistry to upload appended images
+			`\[sig-imageregistry\]\[Feature:ImageAppend\] Image append should create images by appending them`,
+			// Requires ImageRegistry to redirect blob pull
+			`\[sig-imageregistry\] Image registry \[apigroup:route.openshift.io\] should redirect on blob pull`,
+			// Requires ImageRegistry service to be active for OCM to be able to create pull secrets
+			`\[sig-devex\]\[Feature:OpenShiftControllerManager\] TestAutomaticCreationOfPullSecrets \[apigroup:config.openshift.io\]`,
+			`\[sig-devex\]\[Feature:OpenShiftControllerManager\] TestDockercfgTokenDeletedController \[apigroup:image.openshift.io\]`,
+
+			// These tests run against OLM which does not exist when the optional OLM capability is disabled.
+			`\[sig-operator\] OLM should Implement packages API server and list packagemanifest info with namespace not NULL`,
+			`\[sig-operator\] OLM should be installed with`,
+			`\[sig-operator\] OLM should have imagePullPolicy:IfNotPresent on thier deployments`,
+			`\[sig-operator\] an end user can use OLM`,
+			`\[sig-arch\] ocp payload should be based on existing source OLM`,
 		},
 	}
 )

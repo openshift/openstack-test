@@ -39,6 +39,10 @@ func NewEnsureValidImages() monitortestframework.MonitorTest {
 	return &clusterImageValidator{}
 }
 
+func (w *clusterImageValidator) PrepareCollection(ctx context.Context, adminRESTConfig *rest.Config, recorder monitorapi.RecorderWriter) error {
+	return nil
+}
+
 func (w *clusterImageValidator) StartCollection(ctx context.Context, adminRESTConfig *rest.Config, recorder monitorapi.RecorderWriter) error {
 	w.adminKubeConfig = adminRESTConfig
 	return nil
@@ -102,6 +106,10 @@ func (w *clusterImageValidator) EvaluateTestsFromConstructedIntervals(ctx contex
 		// TODO: will not work for a disconnected test environment and should be emulated by launching
 		//   an authenticated registry in a pod on cluster
 		"registry.redhat.io/ubi8/nodejs-14:latest",
+
+		// used by builds tests.
+		// For OKD, samples imports mysql from quay.io. including this prevents the test from failing
+		"registry.redhat.io/rhel8/mysql-80:latest",
 	)
 	if len(fromRepository) > 0 {
 		allowedPrefixes.Insert(fromRepository)
