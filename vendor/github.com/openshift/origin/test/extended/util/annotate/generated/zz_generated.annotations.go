@@ -31,6 +31,54 @@ var Annotations = map[string]string{
 
 	"[Serial] [sig-auth][Feature:OAuthServer] [RequestHeaders] [IdP] test RequestHeaders IdP [apigroup:config.openshift.io][apigroup:user.openshift.io]": " [Suite:openshift/conformance/serial]",
 
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should degrade on a MachineSet with an OwnerReference [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should not update boot images on any MachineSet when not configured [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should stamp coreos-bootimages configmap with current MCO hash and release version [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should update boot images on all MachineSets when configured [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should update boot images only on MachineSets that are opted in [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should degrade on a MachineSet with an OwnerReference [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should not update boot images on any MachineSet when not configured [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should stamp coreos-bootimages configmap with current MCO hash and release version [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should update boot images on all MachineSets when configured [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should update boot images only on MachineSets that are opted in [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:PinnedImages][OCPFeatureGate:MachineConfigNodes][Serial] All Nodes in a Custom Pool should have the PinnedImages in PIS [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:PinnedImages][OCPFeatureGate:MachineConfigNodes][Serial] All Nodes in a custom Pool should have the PinnedImages even after Garbage Collection [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:PinnedImages][OCPFeatureGate:MachineConfigNodes][Serial] All Nodes in a standard Pool should have the PinnedImages PIS [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:PinnedImages][OCPFeatureGate:MachineConfigNodes][Serial] Invalid PIS leads to degraded MCN in a custom Pool [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:PinnedImages][OCPFeatureGate:MachineConfigNodes][Serial] Invalid PIS leads to degraded MCN in a standard Pool [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][sig-mco][OCPFeatureGate:MachineConfigNodes] [Serial][Slow]Should properly create and remove MCN on node creation and deletion [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][sig-mco][OCPFeatureGate:MachineConfigNodes] [Serial][Slow]Should properly report MCN conditions on node degrade [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][sig-mco][OCPFeatureGate:MachineConfigNodes] [Suite:openshift/conformance/parallel]Should have MCN properties matching associated node properties for nodes in default MCPs [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][sig-mco][OCPFeatureGate:MachineConfigNodes] [Suite:openshift/conformance/parallel]Should properly block MCN updates by impersonation of the MCD SA [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][sig-mco][OCPFeatureGate:MachineConfigNodes] [Suite:openshift/conformance/parallel]Should properly block MCN updates from a MCD that is not the associated one [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][sig-mco][OCPFeatureGate:MachineConfigNodes] [Suite:openshift/conformance/parallel]Should properly update the MCN from the associated MCD [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][sig-mco][OCPFeatureGate:MachineConfigNodes] [Suite:openshift/conformance/serial][Serial]Should have MCN properties matching associated node properties for nodes in custom MCPs [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/machine-config-operator/disruptive][sig-mco][OCPFeatureGate:MachineConfigNodes] [Suite:openshift/conformance/serial][Serial]Should properly transition through MCN conditions on rebootless node update [apigroup:machineconfiguration.openshift.io]": "",
+
+	"[Suite:openshift/usernamespace] [sig-node] [FeatureGate:ProcMountType] [FeatureGate:UserNamespacesSupport] nested container should pass podman localsystem test in baseline mode": "",
+
 	"[sig-api-machinery] API data in etcd should be stored at the correct location and version for all resources [Serial]": " [Suite:openshift/conformance/serial]",
 
 	"[sig-api-machinery] API health endpoints should contain the required checks for the oauth-apiserver APIs": " [Suite:openshift/conformance/parallel]",
@@ -193,11 +241,11 @@ var Annotations = map[string]string{
 
 	"[sig-apps][Feature:OpenShiftControllerManager] TestTriggers_manual [apigroup:apps.openshift.io]": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-apps][apigroup:apps.openshift.io] Deployments on HighlyAvailableArbiterMode topology should be created on arbiter nodes when arbiter node is selected": " [Suite:openshift/conformance/parallel]",
+	"[sig-apps][apigroup:apps.openshift.io][OCPFeatureGate:HighlyAvailableArbiter] Deployments on HighlyAvailableArbiterMode topology should be created on arbiter nodes when arbiter node is selected": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-apps][apigroup:apps.openshift.io] Deployments on HighlyAvailableArbiterMode topology should be created on master nodes when no node selected": " [Suite:openshift/conformance/parallel]",
+	"[sig-apps][apigroup:apps.openshift.io][OCPFeatureGate:HighlyAvailableArbiter] Deployments on HighlyAvailableArbiterMode topology should be created on master nodes when no node selected": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-apps][apigroup:apps.openshift.io] Evaluate DaemonSet placement in HighlyAvailableArbiterMode topology should not create a DaemonSet on the Arbiter node": " [Suite:openshift/conformance/parallel]",
+	"[sig-apps][apigroup:apps.openshift.io][OCPFeatureGate:HighlyAvailableArbiter] Evaluate DaemonSet placement in HighlyAvailableArbiterMode topology should not create a DaemonSet on the Arbiter node": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-arch] Cluster topology single node tests Verify that OpenShift components deploy one replica in SingleReplica topology mode": " [Suite:openshift/conformance/parallel]",
 
@@ -261,7 +309,7 @@ var Annotations = map[string]string{
 
 	"[sig-arch][Late] clients should not use APIs that are removed in upcoming releases [apigroup:apiserver.openshift.io]": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-arch][Late] operators should not create watch channels very often [apigroup:apiserver.openshift.io]": " [Suite:openshift/conformance/parallel]",
+	"[sig-arch][Late][Jira:\"kube-apiserver\"] [OCPFeatureGate:ShortCertRotation] all certificates should expire in no more than 8 hours": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-arch][Late][Jira:\"kube-apiserver\"] all registered tls artifacts must have no metadata violation regressions": " [Suite:openshift/conformance/parallel]",
 
@@ -987,6 +1035,8 @@ var Annotations = map[string]string{
 
 	"[sig-cluster-lifecycle][Feature:Machines][Serial] Managed cluster should grow and decrease when scaling different machineSets simultaneously [Timeout:30m][apigroup:machine.openshift.io]": " [Suite:openshift/conformance/serial]",
 
+	"[sig-cluster-lifecycle][OCPFeatureGate:ImageStreamImportMode] ClusterVersion API desired architecture should be valid when architecture is set in release payload metadata [apigroup:config.openshift.io]": " [Suite:openshift/conformance/parallel]",
+
 	"[sig-coreos] [Conformance] CoreOS bootimages TestBootimagesPresent [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/parallel/minimal]",
 
 	"[sig-devex] check registry.redhat.io is available and samples operator can import sample imagestreams run sample related validations [apigroup:config.openshift.io][apigroup:image.openshift.io]": " [Skipped:Disconnected] [Suite:openshift/conformance/parallel]",
@@ -998,10 +1048,6 @@ var Annotations = map[string]string{
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.22-ubi8\" should print the usage": "",
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.22-ubi9\" should print the usage": "",
-
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/nodejs:18-ubi8\" should print the usage": "",
-
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/nodejs:18-ubi9\" should print the usage": "",
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/nodejs:20-ubi8\" should print the usage": "",
 
@@ -1037,9 +1083,9 @@ var Annotations = map[string]string{
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi9\" should print the usage": "",
 
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8\" should print the usage": "",
+	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8\" should print the usage": "",
 
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi9\" should print the usage": "",
+	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled returning s2i usage when running the image \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi9\" should print the usage": "",
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/dotnet:6.0-ubi8\" should be SCL enabled": "",
 
@@ -1048,10 +1094,6 @@ var Annotations = map[string]string{
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.22-ubi8\" should be SCL enabled": "",
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/nginx:1.22-ubi9\" should be SCL enabled": "",
-
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/nodejs:18-ubi8\" should be SCL enabled": "",
-
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/nodejs:18-ubi9\" should be SCL enabled": "",
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/nodejs:20-ubi8\" should be SCL enabled": "",
 
@@ -1087,9 +1129,9 @@ var Annotations = map[string]string{
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.0-ubi9\" should be SCL enabled": "",
 
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8\" should be SCL enabled": "",
+	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8\" should be SCL enabled": "",
 
-	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi9\" should be SCL enabled": "",
+	"[sig-devex][Feature:ImageEcosystem][Slow] openshift images should be SCL enabled using the SCL in s2i images \"image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi9\" should be SCL enabled": "",
 
 	"[sig-devex][Feature:ImageEcosystem][Slow] openshift sample application repositories [sig-devex][Feature:ImageEcosystem][nodejs] test nodejs images with nodejs-rest-http-crud db repo Building nodejs-postgresql app from new-app should build a nodejs-postgresql image and run it in a pod [apigroup:build.openshift.io]": "",
 
@@ -1169,7 +1211,19 @@ var Annotations = map[string]string{
 
 	"[sig-etcd][OCPFeatureGate:HardwareSpeed][Serial] etcd is able to set the hardware speed to \"\" [Timeout:30m][apigroup:machine.openshift.io]": " [Suite:openshift/conformance/serial]",
 
-	"[sig-etcd][apigroup:config.openshift.io] Ensure etcd health and quorum in HighlyAvailableArbiterMode should have all etcd pods running and quorum met": " [Suite:openshift/conformance/parallel]",
+	"[sig-etcd][apigroup:config.openshift.io][OCPFeatureGate:HighlyAvailableArbiter] Ensure etcd health and quorum in HighlyAvailableArbiterMode should have all etcd pods running and quorum met": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-imagepolicy][OCPFeatureGate:SigstoreImageVerification][Serial] Should fail clusterimagepolicy signature validation root of trust does not match the identity in the signature": " [Suite:openshift/conformance/serial]",
+
+	"[sig-imagepolicy][OCPFeatureGate:SigstoreImageVerification][Serial] Should fail clusterimagepolicy signature validation when scope in allowedRegistries list does not skip signature verification": " [Suite:openshift/conformance/serial]",
+
+	"[sig-imagepolicy][OCPFeatureGate:SigstoreImageVerification][Serial] Should fail imagepolicy signature validation in different namespaces root of trust does not match the identity in the signature": " [Suite:openshift/conformance/serial]",
+
+	"[sig-imagepolicy][OCPFeatureGate:SigstoreImageVerification][Serial] Should pass clusterimagepolicy signature validation with signed image": " [Suite:openshift/conformance/serial]",
+
+	"[sig-imagepolicy][OCPFeatureGate:SigstoreImageVerification][Serial] Should pass imagepolicy signature validation with signed image in namespaces": " [Suite:openshift/conformance/serial]",
+
+	"[sig-imageregistry] Image --dry-run should not delete resources [apigroup:image.openshift.io]": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-imageregistry] Image registry [apigroup:route.openshift.io] should redirect on blob pull [apigroup:image.openshift.io]": " [Skipped:NoOptionalCapabilities] [Suite:openshift/conformance/parallel]",
 
@@ -1357,26 +1411,6 @@ var Annotations = map[string]string{
 
 	"[sig-kubevirt] services when running openshift cluster on KubeVirt virtual machines should allow direct connections to pods from guest cluster pod in pod network across different guest nodes": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should degrade on a MachineSet with an OwnerReference [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
-	"[sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should not update boot images on any MachineSet when not configured [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
-	"[sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should stamp coreos-bootimages configmap with current MCO hash and release version [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
-	"[sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should update boot images on all MachineSets when configured [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
-	"[sig-mco][OCPFeatureGate:ManagedBootImagesAWS][Serial] Should update boot images only on MachineSets that are opted in [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
-	"[sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should degrade on a MachineSet with an OwnerReference [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
-	"[sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should not update boot images on any MachineSet when not configured [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
-	"[sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should stamp coreos-bootimages configmap with current MCO hash and release version [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
-	"[sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should update boot images on all MachineSets when configured [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
-	"[sig-mco][OCPFeatureGate:ManagedBootImages][Serial] Should update boot images only on MachineSets that are opted in [apigroup:machineconfiguration.openshift.io]": " [Suite:openshift/conformance/serial]",
-
 	"[sig-network-edge] DNS should answer A and AAAA queries for a dual-stack service [apigroup:config.openshift.io]": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-network-edge] DNS should answer endpoint and wildcard queries for the cluster": " [Disabled:Broken]",
@@ -1414,6 +1448,16 @@ var Annotations = map[string]string{
 	"[sig-network-edge][Feature:Idling] Unidling with Deployments [apigroup:route.openshift.io] should work with TCP (while idling)": " [Disabled:Broken]",
 
 	"[sig-network-edge][Feature:Idling] Unidling with Deployments [apigroup:route.openshift.io] should work with UDP": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network-edge][OCPFeatureGate:GatewayAPIController][Feature:Router][apigroup:gateway.networking.k8s.io] Ensure HTTPRoute object is created": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network-edge][OCPFeatureGate:GatewayAPIController][Feature:Router][apigroup:gateway.networking.k8s.io] Ensure LB, service, and dnsRecord are created for a Gateway object": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network-edge][OCPFeatureGate:GatewayAPIController][Feature:Router][apigroup:gateway.networking.k8s.io] Ensure OSSM and OLM related resources are created after creating GatewayClass": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network-edge][OCPFeatureGate:GatewayAPIController][Feature:Router][apigroup:gateway.networking.k8s.io] Ensure custom gatewayclass can be accepted": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network-edge][OCPFeatureGate:GatewayAPIController][Feature:Router][apigroup:gateway.networking.k8s.io] Ensure default gatewayclass is accepted": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-network] Internal connectivity for TCP and UDP on ports 9000-9999 is allowed [Serial:Self]": " [Suite:openshift/conformance/parallel]",
 
@@ -1725,6 +1769,28 @@ var Annotations = map[string]string{
 
 	"[sig-network][OCPFeatureGate:PersistentIPsForVirtualization][Feature:Layer2LiveMigration] Kubevirt Virtual Machines when using openshift ovn-kubernetes with user defined networks and persistent ips configured created using [OCPFeatureGate:NetworkSegmentation] UserDefinedNetwork [Suite:openshift/network/virtualization] should keep ip when the VMI attached to a secondary UDN is migrated between nodes": "",
 
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [EgressIP] Advertising EgressIP [apigroup:user.openshift.io][apigroup:security.openshift.io] For cluster user defined networks When the network topology is Layer 3 UDN pods should have the assigned EgressIPs and EgressIPs can be created, updated and deleted [apigroup:route.openshift.io] When the network is IPv4": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [EgressIP] Advertising EgressIP [apigroup:user.openshift.io][apigroup:security.openshift.io] For cluster user defined networks When the network topology is Layer 3 UDN pods should have the assigned EgressIPs and EgressIPs can be created, updated and deleted [apigroup:route.openshift.io] When the network is IPv6": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [EgressIP] Advertising EgressIP [apigroup:user.openshift.io][apigroup:security.openshift.io] For the default network Pods should have the assigned EgressIPs and EgressIPs can be created, updated and deleted [apigroup:route.openshift.io] When the network is IPv4": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [EgressIP] Advertising EgressIP [apigroup:user.openshift.io][apigroup:security.openshift.io] For the default network Pods should have the assigned EgressIPs and EgressIPs can be created, updated and deleted [apigroup:route.openshift.io] When the network is IPv6": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [PodNetwork] Advertising a cluster user defined network [apigroup:user.openshift.io][apigroup:security.openshift.io] Over a VRF-Lite configuration Pods should be able to communicate on a secondary network [Timeout:30m]": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [PodNetwork] Advertising a cluster user defined network [apigroup:user.openshift.io][apigroup:security.openshift.io] Over the default VRF When the network topology is Layer 2 External host should be able to query route advertised pods by the pod IP": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [PodNetwork] Advertising a cluster user defined network [apigroup:user.openshift.io][apigroup:security.openshift.io] Over the default VRF When the network topology is Layer 2 Pods should communicate with external host without being SNATed": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [PodNetwork] Advertising a cluster user defined network [apigroup:user.openshift.io][apigroup:security.openshift.io] Over the default VRF When the network topology is Layer 3 External host should be able to query route advertised pods by the pod IP": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [PodNetwork] Advertising a cluster user defined network [apigroup:user.openshift.io][apigroup:security.openshift.io] Over the default VRF When the network topology is Layer 3 Pods should communicate with external host without being SNATed": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [PodNetwork] Advertising the default network [apigroup:user.openshift.io][apigroup:security.openshift.io] External host should be able to query route advertised pods by the pod IP": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-network][OCPFeatureGate:RouteAdvertisements][Feature:RouteAdvertisements][apigroup:operator.openshift.io] when using openshift ovn-kubernetes [PodNetwork] Advertising the default network [apigroup:user.openshift.io][apigroup:security.openshift.io] Pods should communicate with external host without being SNATed": " [Suite:openshift/conformance/parallel]",
+
 	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with invalid setup the router should not support external certificate if inline certificate is also present": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io] with invalid setup the router should not support external certificate if the route termination type is Passthrough": " [Suite:openshift/conformance/parallel]",
@@ -1783,6 +1849,8 @@ var Annotations = map[string]string{
 
 	"[sig-node][Disruptive][Feature:KubeletGracefulShutdown] Kubelet with graceful shutdown configuration should respect pods termination grace period": " [Serial]",
 
+	"[sig-node][Feature:Builds][apigroup:build.openshift.io] zstd:chunked Image should successfully run date command": " [Skipped:Disconnected] [Suite:openshift/conformance/parallel]",
+
 	"[sig-node][Late] should not have pod creation failures due to systemd timeouts": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-node][Suite:openshift/nodes/realtime/latency][Disruptive] Real time kernel should meet latency requirements when tested with cyclictest": " [Serial]",
@@ -1811,15 +1879,43 @@ var Annotations = map[string]string{
 
 	"[sig-node][apigroup:config.openshift.io] CPU Partitioning node validation should have correct cpuset and cpushare set in crio containers": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-node][apigroup:config.openshift.io] expected Master and Arbiter node counts Should validate that there are Master and Arbiter nodes as specified in the cluster": " [Suite:openshift/conformance/parallel]",
+	"[sig-node][apigroup:config.openshift.io][OCPFeatureGate:HighlyAvailableArbiter] expected Master and Arbiter node counts Should validate that there are Master and Arbiter nodes as specified in the cluster": " [Suite:openshift/conformance/parallel]",
 
-	"[sig-node][apigroup:config.openshift.io] required pods on the Arbiter node Should verify that the correct number of pods are running on the Arbiter node": " [Suite:openshift/conformance/parallel]",
+	"[sig-node][apigroup:config.openshift.io][OCPFeatureGate:HighlyAvailableArbiter] required pods on the Arbiter node Should verify that the correct number of pods are running on the Arbiter node": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMCatalogdAPIV1Metas][Skipped:Disconnected] OLMv1 openshift-certified-operators Catalog should serve FBC via the /v1/api/metas endpoint": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMCatalogdAPIV1Metas][Skipped:Disconnected] OLMv1 openshift-community-operators Catalog should serve FBC via the /v1/api/metas endpoint": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMCatalogdAPIV1Metas][Skipped:Disconnected] OLMv1 openshift-redhat-marketplace Catalog should serve FBC via the /v1/api/metas endpoint": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMCatalogdAPIV1Metas][Skipped:Disconnected] OLMv1 openshift-redhat-operators Catalog should serve FBC via the /v1/api/metas endpoint": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMPreflightPermissionChecks][Skipped:Disconnected] OLMv1 operator preflight checks should report error when {ClusterRoleBindings} are not specified": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMPreflightPermissionChecks][Skipped:Disconnected] OLMv1 operator preflight checks should report error when {ConfigMap:resourceNames} are not all specified": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMPreflightPermissionChecks][Skipped:Disconnected] OLMv1 operator preflight checks should report error when {clusterextension/finalizer} is not specified": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMPreflightPermissionChecks][Skipped:Disconnected] OLMv1 operator preflight checks should report error when {create} verb is not specified": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMPreflightPermissionChecks][Skipped:Disconnected] OLMv1 operator preflight checks should report error when {escalate, bind} is not specified": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLMPreflightPermissionChecks][Skipped:Disconnected] OLMv1 operator preflight checks should report error when {services} are not specified": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-olmv1][OCPFeatureGate:NewOLM] OLMv1 CRDs should be installed": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-olmv1][OCPFeatureGate:NewOLM][Skipped:Disconnected] OLMv1 Catalogs should be installed": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-olmv1][OCPFeatureGate:NewOLM][Skipped:Disconnected] OLMv1 New Catalog Install should fail to install if it has an invalid reference": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLM][Skipped:Disconnected] OLMv1 openshift-certified-operators Catalog should serve FBC via the /v1/api/all endpoint": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLM][Skipped:Disconnected] OLMv1 openshift-community-operators Catalog should serve FBC via the /v1/api/all endpoint": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLM][Skipped:Disconnected] OLMv1 openshift-redhat-marketplace Catalog should serve FBC via the /v1/api/all endpoint": " [Suite:openshift/conformance/parallel]",
+
+	"[sig-olmv1][OCPFeatureGate:NewOLM][Skipped:Disconnected] OLMv1 openshift-redhat-operators Catalog should serve FBC via the /v1/api/all endpoint": " [Suite:openshift/conformance/parallel]",
 
 	"[sig-olmv1][OCPFeatureGate:NewOLM][Skipped:Disconnected] OLMv1 operator installation should block cluster upgrades if an incompatible operator is installed": " [Suite:openshift/conformance/parallel]",
 

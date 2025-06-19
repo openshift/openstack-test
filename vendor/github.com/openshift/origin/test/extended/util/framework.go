@@ -325,7 +325,14 @@ func WaitForOpenShiftNamespaceImageStreams(oc *CLI) error {
 		return err
 	}
 
-	if !hasSamplesOperator {
+	// Check to see if SamplesOperator managementState is Removed
+	out, err := oc.AsAdmin().Run("get").Args("configs.samples.operator.openshift.io", "cluster", "-o", "yaml").Output()
+
+	if err != nil {
+		e2e.Logf("\n  error on getting samples operator CR: %+v\n%#v\n", err, out)
+	}
+
+	if !hasSamplesOperator || strings.Contains(out, "managementState: Removed") {
 		images = []string{"cli", "tools", "tests", "installer"}
 	}
 
@@ -2321,6 +2328,15 @@ func IsMicroShiftCluster(kubeClient k8sclient.Interface) (bool, error) {
 	return true, nil
 }
 
+func IsTwoNodeFencing(ctx context.Context, configClient clientconfigv1.Interface) bool {
+	infrastructure, err := configClient.ConfigV1().Infrastructures().Get(ctx, "cluster", metav1.GetOptions{})
+	if err != nil {
+		return false
+	}
+
+	return infrastructure.Status.ControlPlaneTopology == configv1.DualReplicaTopologyMode
+}
+
 func groupName(groupVersionName string) string {
 	return strings.Split(groupVersionName, "/")[0]
 }
@@ -2404,6 +2420,27 @@ func IsCapabilityEnabled(oc *CLI, cap configv1.ClusterVersionCapability) (bool, 
 	return false, nil
 }
 
+// AllCapabilitiesEnabled returns true if all of the given capabilities are enabled on the cluster.
+func AllCapabilitiesEnabled(oc *CLI, caps ...configv1.ClusterVersionCapability) (bool, error) {
+	cv, err := oc.AdminConfigClient().ConfigV1().ClusterVersions().Get(context.Background(), "version", metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	enabledCaps := make(map[configv1.ClusterVersionCapability]struct{}, len(cv.Status.Capabilities.EnabledCapabilities))
+	for _, c := range cv.Status.Capabilities.EnabledCapabilities {
+		enabledCaps[c] = struct{}{}
+	}
+
+	for _, c := range caps {
+		if _, found := enabledCaps[c]; !found {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
 // SkipIfNotPlatform skip the test if supported platforms are not matched
 func SkipIfNotPlatform(oc *CLI, platforms ...configv1.PlatformType) {
 	var match bool
@@ -2417,6 +2454,15 @@ func SkipIfNotPlatform(oc *CLI, platforms ...configv1.PlatformType) {
 	}
 	if !match {
 		g.Skip("Skip this test scenario because it is not supported on the " + string(infra.Status.PlatformStatus.Type) + " platform")
+	}
+}
+
+// SkipIfMissingCapabilities skips the test if any of the given cluster capabilities is not enabled.
+func SkipIfMissingCapabilities(oc *CLI, caps ...configv1.ClusterVersionCapability) {
+	enabled, err := AllCapabilitiesEnabled(oc, caps...)
+	o.Expect(err).NotTo(o.HaveOccurred())
+	if !enabled {
+		g.Skip(fmt.Sprintf("Skip this test scenario because not all of the following capabilities are enabled: %v", caps))
 	}
 }
 

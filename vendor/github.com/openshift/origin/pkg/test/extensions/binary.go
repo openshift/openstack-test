@@ -55,6 +55,10 @@ var extensionBinaries = []TestBinary{
 		imageTag:   "hyperkube",
 		binaryPath: "/usr/bin/k8s-tests-ext.gz",
 	},
+	{
+		imageTag:   "machine-api-operator",
+		binaryPath: "/machine-api-tests-ext.gz",
+	},
 }
 
 // Info returns information about this particular extension.
@@ -102,7 +106,7 @@ func (b *TestBinary) ListTests(ctx context.Context, envFlags EnvironmentFlags) (
 	binLogger.Infof("OTE API version is: %s", b.info.APIVersion)
 	envFlags = b.filterToApplicableEnvironmentFlags(envFlags)
 	command := exec.Command(b.binaryPath, "list", "-o", "jsonl")
-	binLogger.Infof("adding the following applicable flags to the list command: %s", envFlags.String())
+	binLogger.Infof("Adding the following applicable flags to the list command: %s", envFlags.String())
 	command.Args = append(command.Args, envFlags.ArgStrings()...)
 	testList, err := runWithTimeout(ctx, command, 10*time.Minute)
 	if err != nil {
@@ -187,6 +191,8 @@ func (b *TestBinary) RunTests(ctx context.Context, timeout time.Duration, env []
 			result.Error = fmt.Sprintf("test binary %q returned unexpected result: %s", binName, result.Name)
 		}
 		expectedTests.Delete(result.Name)
+
+		result.Source = b.info.Source
 		results = append(results, result)
 	}
 
@@ -198,6 +204,8 @@ func (b *TestBinary) RunTests(ctx context.Context, timeout time.Duration, env []
 			Result: ResultFailed,
 			Output: string(testResult),
 			Error:  "external binary did not produce a result for this test",
+
+			Source: b.info.Source,
 		})
 	}
 

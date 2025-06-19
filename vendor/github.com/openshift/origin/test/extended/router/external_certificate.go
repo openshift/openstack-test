@@ -20,13 +20,16 @@ import (
 	admissionapi "k8s.io/pod-security-admission/api"
 
 	routev1 "github.com/openshift/api/route/v1"
+	"github.com/openshift/origin/pkg/monitortestlibrary/platformidentification"
 	"github.com/openshift/origin/test/extended/router/certgen"
 	exutil "github.com/openshift/origin/test/extended/util"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 	"k8s.io/kubernetes/test/e2e/framework/pod"
+	e2eoutput "k8s.io/kubernetes/test/e2e/framework/pod/output"
 )
 
 const (
@@ -35,23 +38,28 @@ const (
 	// secretReaderRoleBinding is the name of the RoleBinding associating the Role with the router service account.
 	secretReaderRoleBinding = "secret-reader-role-binding"
 	// helloOpenShiftResponse is the HTTP response from hello-openshift example pod.
-	helloOpenShiftResponse = "Hello OpenShift"
-	// defaultCertificateCN is the CommonName of router default certificate.
-	defaultCertificateCN = "ingress-operator"
+	// https://github.com/kubernetes/kubernetes/blob/88dfcb225d41326113990e87b11137641c121a32/test/images/agnhost/netexec/netexec.go#L266-L269
+	helloOpenShiftResponse = "NOW:"
+	rootCertIssuerCN       = "RouteExternalCertificate Root CA"
 )
 
 var _ = g.Describe("[sig-network][OCPFeatureGate:RouteExternalCertificate][Feature:Router][apigroup:route.openshift.io]", func() {
 	defer g.GinkgoRecover()
 	var (
 		oc            = exutil.NewCLIWithPodSecurityLevel("router-external-certificate", admissionapi.LevelBaseline)
-		helloPodPath  = exutil.FixturePath("..", "..", "examples", "hello-openshift", "hello-pod.json")
+		helloPodPath  = exutil.FixturePath("testdata", "cmd", "test", "cmd", "testdata", "hello-openshift", "hello-pod.json")
 		helloPodName  = "hello-openshift"
 		helloPodSvc   = "hello-openshift"
 		defaultDomain string
+		routerURL     string
 		err           error
 	)
 
 	g.BeforeEach(func() {
+		ip, err := exutil.WaitForRouterServiceIP(oc)
+		o.Expect(err).NotTo(o.HaveOccurred())
+		routerURL = fmt.Sprintf("https://%s", exutil.IPUrl(ip))
+
 		defaultDomain, err = getDefaultIngressClusterDomainName(oc, time.Minute)
 		o.Expect(err).NotTo(o.HaveOccurred(), "failed to find default domain name")
 
@@ -214,7 +222,7 @@ var _ = g.Describe("[sig-network][OCPFeatureGate:RouteExternalCertificate][Featu
 				for _, route := range routes {
 					hostName, err := getHostnameForRoute(oc, route.Name)
 					o.Expect(err).NotTo(o.HaveOccurred())
-					resp, err := httpsGetCall(hostName, rootDerBytes)
+					resp, err := httpsGetCall(oc, hostName, rootDerBytes)
 					o.Expect(err).NotTo(o.HaveOccurred())
 					o.Expect(resp).Should(o.ContainSubstring(helloOpenShiftResponse))
 				}
@@ -244,7 +252,7 @@ var _ = g.Describe("[sig-network][OCPFeatureGate:RouteExternalCertificate][Featu
 						for _, route := range routes {
 							hostName, err := getHostnameForRoute(oc, route.Name)
 							o.Expect(err).NotTo(o.HaveOccurred())
-							resp, err := httpsGetCall(hostName, rootDerBytes)
+							resp, err := httpsGetCall(oc, hostName, rootDerBytes)
 							o.Expect(err).NotTo(o.HaveOccurred())
 							o.Expect(resp).Should(o.ContainSubstring(helloOpenShiftResponse))
 						}
@@ -283,7 +291,7 @@ var _ = g.Describe("[sig-network][OCPFeatureGate:RouteExternalCertificate][Featu
 					for _, route := range routes {
 						hostName, err := getHostnameForRoute(oc, route.Name)
 						o.Expect(err).NotTo(o.HaveOccurred())
-						resp, err := httpsGetCall(hostName, rootDerBytes)
+						resp, err := httpsGetCall(oc, hostName, rootDerBytes)
 						o.Expect(err).NotTo(o.HaveOccurred())
 						o.Expect(resp).Should(o.ContainSubstring(helloOpenShiftResponse))
 					}
@@ -342,7 +350,7 @@ var _ = g.Describe("[sig-network][OCPFeatureGate:RouteExternalCertificate][Featu
 						g.By("Sending https request")
 						hostName, err := getHostnameForRoute(oc, routeToTest.Name)
 						o.Expect(err).NotTo(o.HaveOccurred())
-						resp, err := httpsGetCall(hostName, rootDerBytes)
+						resp, err := httpsGetCall(oc, hostName, rootDerBytes)
 						o.Expect(err).NotTo(o.HaveOccurred())
 						o.Expect(resp).Should(o.ContainSubstring(helloOpenShiftResponse))
 					})
@@ -402,7 +410,7 @@ var _ = g.Describe("[sig-network][OCPFeatureGate:RouteExternalCertificate][Featu
 						g.By("Sending https request")
 						hostName, err := getHostnameForRoute(oc, routeToTest.Name)
 						o.Expect(err).NotTo(o.HaveOccurred())
-						resp, err := httpsGetCall(hostName, rootDerBytes)
+						resp, err := httpsGetCall(oc, hostName, rootDerBytes)
 						o.Expect(err).NotTo(o.HaveOccurred())
 						o.Expect(resp).Should(o.ContainSubstring(helloOpenShiftResponse))
 					})
@@ -437,9 +445,24 @@ var _ = g.Describe("[sig-network][OCPFeatureGate:RouteExternalCertificate][Featu
 						g.By("Sending in-secure https request")
 						hostName, err := getHostnameForRoute(oc, routeToTest.Name)
 						o.Expect(err).NotTo(o.HaveOccurred())
-						resp, err := verifyRouteServesDefaultCert(hostName)
+
+						// Check if the job is running on an on-prem platform
+						onPrem, err := isOnPremJob(oc)
 						o.Expect(err).NotTo(o.HaveOccurred())
-						o.Expect(resp).Should(o.ContainSubstring(helloOpenShiftResponse))
+
+						if onPrem {
+							execPod := exutil.CreateExecPodOrFail(oc.AdminKubeClient(), oc.Namespace(), "execpod")
+							defer func() {
+								oc.AdminKubeClient().CoreV1().Pods(oc.Namespace()).Delete(context.Background(), execPod.Name, *metav1.NewDeleteOptions(1))
+							}()
+							// don't assume the router is available via external DNS, because of complexity
+							err = waitForRouterOKResponseExec(oc.Namespace(), execPod.Name, routerURL, hostName, changeTimeoutSeconds)
+							o.Expect(err).NotTo(o.HaveOccurred())
+						} else {
+							resp, err := verifyRouteServesDefaultCert(oc, hostName)
+							o.Expect(err).NotTo(o.HaveOccurred())
+							o.Expect(resp).Should(o.ContainSubstring(helloOpenShiftResponse))
+						}
 					})
 
 					g.Context("and again re-add the same external certificate", func() {
@@ -451,7 +474,7 @@ var _ = g.Describe("[sig-network][OCPFeatureGate:RouteExternalCertificate][Featu
 							g.By("Sending https request")
 							hostName, err := getHostnameForRoute(oc, routeToTest.Name)
 							o.Expect(err).NotTo(o.HaveOccurred())
-							resp, err := httpsGetCall(hostName, rootDerBytes)
+							resp, err := httpsGetCall(oc, hostName, rootDerBytes)
 							o.Expect(err).NotTo(o.HaveOccurred())
 							o.Expect(resp).Should(o.ContainSubstring(helloOpenShiftResponse))
 						})
@@ -464,7 +487,9 @@ var _ = g.Describe("[sig-network][OCPFeatureGate:RouteExternalCertificate][Featu
 
 // httpsGetCall makes an HTTPS GET request to the specified hostname with retries.
 // It uses the provided rootDerBytes as the trusted CA certificate.
-func httpsGetCall(hostname string, rootDerBytes []byte) (string, error) {
+// For on-prem platforms, it uses an exec pod to make the request.
+func httpsGetCall(oc *exutil.CLI, hostname string, rootDerBytes []byte) (string, error) {
+	url := fmt.Sprintf("https://%s", hostname)
 	e2e.Logf("running https get for host %q", hostname)
 
 	if len(rootDerBytes) == 0 {
@@ -476,6 +501,17 @@ func httpsGetCall(hostname string, rootDerBytes []byte) (string, error) {
 		Bytes: rootDerBytes,
 	})
 
+	// Check if the job is running on an on-prem platform
+	onPrem, err := isOnPremJob(oc)
+	if err != nil {
+		return "", err
+	}
+
+	if onPrem {
+		e2e.Logf("Running on an on-prem platform")
+		return httpsGetCallWithExecPod(oc, url, rootCertPEM)
+	}
+
 	// add root CA to trust pool
 	certPool := x509.NewCertPool()
 	if ok := certPool.AppendCertsFromPEM(rootCertPEM); !ok {
@@ -483,21 +519,118 @@ func httpsGetCall(hostname string, rootDerBytes []byte) (string, error) {
 	}
 	client := &http.Client{
 		Transport: &http.Transport{
+			// Use the HTTP proxy configured in the environment variables.
+			Proxy: http.ProxyFromEnvironment,
 			TLSClientConfig: &tls.Config{
 				RootCAs: certPool,
 			},
 		},
 	}
-	url := fmt.Sprintf("https://%s", hostname)
 
 	_, body, err := sendHttpRequestWithRetry(url, client)
 	return body, err
 }
 
+// httpsGetCallWithExecPod makes HTTPS GET request using an exec pod.
+// This function is used specifically for on-prem platforms where external DNS resolution
+// might be problematic. It creates a ConfigMap using the given root CA certificate,
+// mounts it to the exec pod, and then uses curl within the pod to make the HTTPS request with retries.
+func httpsGetCallWithExecPod(oc *exutil.CLI, url string, rootCertPEM []byte) (string, error) {
+	// Create a configMap to hold the root CA certificate.
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-%s-%s", oc.Namespace(), "root-ca", rand.String(5)),
+			Namespace: oc.Namespace(),
+		},
+		Data: map[string]string{
+			"ca.crt": string(rootCertPEM),
+		},
+	}
+	_, err := oc.KubeClient().CoreV1().ConfigMaps(oc.Namespace()).Create(context.Background(), cm, metav1.CreateOptions{})
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		oc.KubeClient().CoreV1().ConfigMaps(oc.Namespace()).Delete(context.Background(), cm.Name, metav1.DeleteOptions{})
+	}()
+
+	// Mount the root CA certificate to the exec pod
+	rootCAMountTweak := func(pod *corev1.Pod) {
+		volumeMount := corev1.VolumeMount{
+			Name:      "root-ca",
+			MountPath: "/var/run/secrets",
+		}
+
+		volume := corev1.Volume{
+			Name: "root-ca",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: cm.Name,
+					},
+					Items: []corev1.KeyToPath{{
+						Key:  "ca.crt",
+						Path: "ca.crt",
+					}},
+				},
+			},
+		}
+
+		pod.Spec.Containers[0].VolumeMounts = append(pod.Spec.Containers[0].VolumeMounts, volumeMount)
+		pod.Spec.Volumes = append(pod.Spec.Volumes, volume)
+	}
+
+	// Create an exec pod
+	execPodName := fmt.Sprintf("%s-%s-%s", oc.Namespace(), "execpod", rand.String(5))
+	execPod := exutil.CreateExecPodOrFail(oc.AdminKubeClient(), oc.Namespace(), execPodName, rootCAMountTweak)
+	defer func() {
+		oc.AdminKubeClient().CoreV1().Pods(oc.Namespace()).Delete(context.Background(), execPod.Name, *metav1.NewDeleteOptions(1))
+	}()
+
+	cmdForStatusCode := fmt.Sprintf(`curl -s -o /dev/null -w '%%{http_code}\n' --cacert /var/run/secrets/ca.crt %q`, url)
+	cmdForResponse := fmt.Sprintf("curl --cacert /var/run/secrets/ca.crt %q", url)
+
+	var respBody string
+	err = wait.PollUntilContextTimeout(context.Background(), time.Second, changeTimeoutSeconds*time.Second, false, func(ctx context.Context) (bool, error) {
+		e2e.Logf("Running exec command %q", cmdForStatusCode)
+
+		output, err := e2eoutput.RunHostCmd(oc.Namespace(), execPod.Name, cmdForStatusCode)
+		if err != nil {
+			e2e.Logf("Error running exec command: %s, %v, retrying...", output, err)
+			return false, nil
+		}
+
+		// check if the status code is 200 OK
+		if !strings.Contains(output, "200") {
+			e2e.Logf("Unexpected HTTP status code: %s, retrying...", output)
+			return false, nil
+		}
+
+		// Run another exec command to store the response body
+		e2e.Logf("Running exec command %q", cmdForResponse)
+
+		output, err = e2eoutput.RunHostCmd(oc.Namespace(), execPod.Name, cmdForResponse)
+		if err != nil {
+			e2e.Logf("Error running exec command: %s, %v, retrying...", output, err)
+			return false, nil
+		}
+		respBody = output
+		return true, nil
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("failed to make successful HTTPS request after retries: %w", err)
+	}
+
+	return respBody, nil
+}
+
 // verifyRouteServesDefaultCert checks that the given hostname serves the default certificate.
-func verifyRouteServesDefaultCert(hostname string) (string, error) {
+func verifyRouteServesDefaultCert(oc *exutil.CLI, hostname string) (string, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
+			// Use the HTTP proxy configured in the environment variables.
+			Proxy: http.ProxyFromEnvironment,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
@@ -514,13 +647,14 @@ func verifyRouteServesDefaultCert(hostname string) (string, error) {
 			return false, err
 		}
 
-		// check that the route is serving the default certificate.
+		// check that the route is serving the default certificate and not the external certificate.
 		for _, cert := range resp.TLS.PeerCertificates {
-			if !strings.Contains(cert.Issuer.CommonName, defaultCertificateCN) {
-				e2e.Logf("Unexpected Issuer CommonName: %v, retrying...", cert.Issuer.CommonName)
+			if strings.Contains(cert.Issuer.CommonName, rootCertIssuerCN) {
+				e2e.Logf("Still serving external certificate: found Issuer CN=%q (expected NOT to match with %q), retrying...", cert.Issuer.CommonName, rootCertIssuerCN)
 				return false, nil
 			}
 		}
+		e2e.Logf("None of the PeerCertificates have Issuer CN matching %q", rootCertIssuerCN)
 		return true, nil
 	})
 
@@ -611,12 +745,12 @@ func generateTLSCertSecret(namespace, secretName string, secretType corev1.Secre
 	notAfter := time.Now().Add(24 * time.Hour)
 
 	// Generate crt/key for secret
-	rootDerBytes, tlsCrtData, tlsPrivateKey, err := certgen.GenerateKeyPair(notBefore, notAfter, hosts...)
+	rootDerBytes, tlsCrtData, tlsPrivateKey, err := certgen.GenerateKeyPair(rootCertIssuerCN, notBefore, notAfter, hosts...)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	derKey, err := certgen.MarshalPrivateKeyToDERFormat(tlsPrivateKey)
+	pemKey, err := certgen.MarshalPrivateKeyToPEMString(tlsPrivateKey)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -633,7 +767,7 @@ func generateTLSCertSecret(namespace, secretName string, secretType corev1.Secre
 		},
 		StringData: map[string]string{
 			"tls.crt": pemCrt,
-			"tls.key": derKey,
+			"tls.key": pemKey,
 		},
 		Type: secretType,
 	}, rootDerBytes, nil
@@ -752,4 +886,17 @@ func patchRouteToRemoveExternalCertificate(oc *exutil.CLI, routeName string) err
 		context.Background(), routeName, types.JSONPatchType, []byte(routePatch), metav1.PatchOptions{},
 	)
 	return err
+}
+
+// isOnPremJob checks if the current job is running on an on-prem platform.
+func isOnPremJob(oc *exutil.CLI) (bool, error) {
+	onPremPlatforms := sets.NewString("metal", "openstack", "kubevirt", "none")
+
+	jobType, err := platformidentification.GetJobType(context.TODO(), oc.AdminConfig())
+	if err != nil {
+		return false, err
+	}
+	e2e.Logf("Detected platform: %s", jobType.Platform)
+
+	return onPremPlatforms.Has(jobType.Platform), nil
 }

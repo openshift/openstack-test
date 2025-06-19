@@ -14,10 +14,10 @@ import (
 	"time"
 )
 
-// MarshalPrivateKeyToDERFormat converts the key to a string
-// representation (SEC 1, ASN.1 DER form) suitable for dropping into a
+// MarshalPrivateKeyToPEMString converts the key to a string
+// representation (PEM form) suitable for dropping into a
 // route's TLS key stanza.
-func MarshalPrivateKeyToDERFormat(key *ecdsa.PrivateKey) (string, error) {
+func MarshalPrivateKeyToPEMString(key *ecdsa.PrivateKey) (string, error) {
 	data, err := x509.MarshalECPrivateKey(key)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal private key: %v", err)
@@ -47,7 +47,7 @@ func MarshalCertToPEMString(derBytes []byte) (string, error) {
 // GenerateKeyPair creates root CA, certificate and key with optional
 // hosts. Certificate is valid from notBefore and expires after
 // notAfter.
-func GenerateKeyPair(notBefore, notAfter time.Time, hosts ...string) ([]byte, []byte, *ecdsa.PrivateKey, error) {
+func GenerateKeyPair(rootCertCN string, notBefore, notAfter time.Time, hosts ...string) ([]byte, []byte, *ecdsa.PrivateKey, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
@@ -63,7 +63,7 @@ func GenerateKeyPair(notBefore, notAfter time.Time, hosts ...string) ([]byte, []
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization: []string{"Red Hat"},
-			CommonName:   "Root CA",
+			CommonName:   rootCertCN,
 		},
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,

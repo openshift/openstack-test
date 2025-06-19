@@ -68,6 +68,7 @@ import (
 	mcv1client "github.com/openshift/client-go/machineconfiguration/clientset/versioned"
 	oauthv1client "github.com/openshift/client-go/oauth/clientset/versioned"
 	operatorv1client "github.com/openshift/client-go/operator/clientset/versioned"
+	ingressv1client "github.com/openshift/client-go/operatoringress/clientset/versioned"
 	projectv1client "github.com/openshift/client-go/project/clientset/versioned"
 	quotav1client "github.com/openshift/client-go/quota/clientset/versioned"
 	routev1client "github.com/openshift/client-go/route/clientset/versioned"
@@ -76,6 +77,7 @@ import (
 	userv1client "github.com/openshift/client-go/user/clientset/versioned"
 	"github.com/openshift/library-go/test/library/metrics"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	gatewayapiv1client "sigs.k8s.io/gateway-api/pkg/client/clientset/versioned"
 )
 
 // CLI provides function to call the OpenShift CLI and Kubernetes and OpenShift
@@ -674,6 +676,11 @@ func (c *CLI) BuildClient() buildv1client.Interface {
 	return buildv1client.NewForConfigOrDie(c.UserConfig())
 }
 
+// GatewayApiClient provides a GatewayAPI client for the current namespace user.
+func (c *CLI) GatewayApiClient() gatewayapiv1client.Interface {
+	return gatewayapiv1client.NewForConfigOrDie(c.UserConfig())
+}
+
 func (c *CLI) ImageClient() imagev1client.Interface {
 	return imagev1client.NewForConfigOrDie(c.UserConfig())
 }
@@ -717,8 +724,17 @@ func (c *CLI) AdminConfigClient() configv1client.Interface {
 	)
 }
 
+// AdminGatewayApiClient provides a GatewayAPI client for the cluster admin user.
+func (c *CLI) AdminGatewayApiClient() gatewayapiv1client.Interface {
+	return gatewayapiv1client.NewForConfigOrDie(c.AdminConfig())
+}
+
 func (c *CLI) AdminImageClient() imagev1client.Interface {
 	return imagev1client.NewForConfigOrDie(c.AdminConfig())
+}
+
+func (c *CLI) AdminIngressClient() ingressv1client.Interface {
+	return ingressv1client.NewForConfigOrDie(c.AdminConfig())
 }
 
 func (c *CLI) AdminOAuthClient() oauthv1client.Interface {
@@ -938,7 +954,7 @@ func (c *CLI) start(stdOutBuff, stdErrBuff *bytes.Buffer) (*exec.Cmd, error) {
 	cmd := exec.Command(c.execPath, c.finalArgs...)
 	cmd.Stdin = c.stdin
 	// Redact any bearer token information from the log.
-	framework.Logf("Running '%s %s'", c.execPath, redactBearerToken(c.finalArgs))
+	framework.Logf("Running '%s %s'", c.execPath, RedactBearerToken(strings.Join(c.finalArgs, " ")))
 
 	cmd.Stdout = stdOutBuff
 	cmd.Stderr = stdErrBuff
@@ -947,8 +963,7 @@ func (c *CLI) start(stdOutBuff, stdErrBuff *bytes.Buffer) (*exec.Cmd, error) {
 	return cmd, err
 }
 
-func redactBearerToken(finalArgs []string) string {
-	args := strings.Join(finalArgs, " ")
+func RedactBearerToken(args string) string {
 	if strings.Contains(args, "Authorization: Bearer") {
 		// redact bearer token
 		re := regexp.MustCompile(`Authorization:\s+Bearer.*\s+`)
@@ -986,8 +1001,8 @@ func (c *CLI) outputs(stdOutBuff, stdErrBuff *bytes.Buffer) (string, string, err
 		c.stderr = bytes.NewBuffer(stdErrBytes)
 		return stdOut, stdErr, nil
 	case *exec.ExitError:
-		framework.Logf("Error running %v:\nStdOut>\n%s\nStdErr>\n%s\n", cmd, stdOut, stdErr)
-		wrappedErr := fmt.Errorf("Error running %v:\nStdOut>\n%s\nStdErr>\n%s\n%w\n", cmd, stdOut[getStartingIndexForLastN(stdOutBytes, 4096):], stdErr[getStartingIndexForLastN(stdErrBytes, 4096):], err)
+		framework.Logf("Error running %s %s:\nStdOut>\n%s\nStdErr>\n%s\n", c.execPath, RedactBearerToken(strings.Join(c.finalArgs, " ")), stdOut, stdErr)
+		wrappedErr := fmt.Errorf("Error running %s %s:\nStdOut>\n%s\nStdErr>\n%s\n%w\n", c.execPath, RedactBearerToken(strings.Join(c.finalArgs, " ")), stdOut[getStartingIndexForLastN(stdOutBytes, 4096):], stdErr[getStartingIndexForLastN(stdErrBytes, 4096):], err)
 		return stdOut, stdErr, wrappedErr
 	default:
 		FatalErr(fmt.Errorf("unable to execute %q: %v", c.execPath, err))

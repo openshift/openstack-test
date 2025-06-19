@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/sets"
-
 	configv1 "github.com/openshift/api/config/v1"
+	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 // ExtensionInfo represents an extension to openshift-tests.
@@ -70,6 +70,11 @@ var LifecycleBlocking Lifecycle = "blocking"
 
 type ExtensionTestSpecs []*ExtensionTestSpec
 
+type EnvironmentSelector struct {
+	Include string `json:"include,omitempty"`
+	Exclude string `json:"exclude,omitempty"`
+}
+
 type ExtensionTestSpec struct {
 	Name string `json:"name"`
 
@@ -89,11 +94,17 @@ type ExtensionTestSpec struct {
 	// Source is the origin of the test.
 	Source string `json:"source"`
 
+	// CodeLocations are the files where the spec originates from.
+	CodeLocations []string `json:"codeLocations,omitempty"`
+
 	// Lifecycle informs the executor whether the test is informing only, and should not cause the
 	// overall job run to fail, or if it's blocking where a failure of the test is fatal.
 	// Informing lifecycle tests can be used temporarily to gather information about a test's stability.
 	// Tests must not remain informing forever.
 	Lifecycle Lifecycle `json:"lifecycle"`
+
+	// EnvironmentSelector allows for CEL expressions to be used to control test inclusion
+	EnvironmentSelector EnvironmentSelector `json:"environmentSelector,omitempty"`
 
 	// Binary invokes a link to the external binary that provided this test
 	Binary *TestBinary
@@ -129,6 +140,10 @@ type ExtensionTestResult struct {
 	Output    string    `json:"output"`
 	Error     string    `json:"error,omitempty"`
 	Details   []Details `json:"details,omitempty"`
+
+	// Source is the information from the extension binary (it's image tag, repo, commit sha, etc), reported
+	// up by origin so it's easy to identify where a particular result came from in the overall combined result JSON.
+	Source Source `json:"source"`
 }
 
 // Details are human-readable messages to further explain skips, timeouts, etc.
@@ -184,12 +199,27 @@ const (
 	optionalCapability   EnvironmentFlagName = "optional-capability"
 	fact                 EnvironmentFlagName = "fact"
 	version              EnvironmentFlagName = "version"
+	featureGate          EnvironmentFlagName = "feature-gate"
+	apiGroup             EnvironmentFlagName = "api-group"
 )
 
 type EnvironmentFlagsBuilder struct {
 	flags EnvironmentFlags
 }
 
+func (e *EnvironmentFlagsBuilder) AddAPIGroups(values ...string) *EnvironmentFlagsBuilder {
+	for _, value := range values {
+		e.flags = append(e.flags, newEnvironmentFlag(apiGroup, value))
+	}
+	return e
+}
+
+func (e *EnvironmentFlagsBuilder) AddFeatureGates(values ...string) *EnvironmentFlagsBuilder {
+	for _, value := range values {
+		e.flags = append(e.flags, newEnvironmentFlag(featureGate, value))
+	}
+	return e
+}
 func (e *EnvironmentFlagsBuilder) AddPlatform(value string) *EnvironmentFlagsBuilder {
 	e.flags = append(e.flags, newEnvironmentFlag(platform, value))
 	return e
@@ -275,11 +305,28 @@ func (ef EnvironmentFlags) ArgStrings() []string {
 }
 
 func (ef EnvironmentFlags) String() string {
-	return strings.Join(ef.ArgStrings(), ", ")
+	return strings.Join(ef.ArgStrings(), " ")
+}
+
+func (ef EnvironmentFlags) LogFields() logrus.Fields {
+	fields := logrus.Fields{}
+
+	for _, flag := range ef {
+		name := string(flag.Name)
+		if val, ok := fields[name]; ok {
+			fields[name] = append(val.([]string), flag.Value)
+		} else {
+			fields[name] = []string{flag.Value}
+		}
+	}
+
+	return fields
 }
 
 // EnvironmentFlagVersions holds the "Since" version metadata for each flag.
 var EnvironmentFlagVersions = map[EnvironmentFlagName]string{
+	featureGate:          "v1.1",
+	apiGroup:             "v1.1",
 	platform:             "v1.0",
 	network:              "v1.0",
 	networkStack:         "v1.0",
