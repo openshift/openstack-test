@@ -25,6 +25,10 @@ func NewDisruptionInvariant() monitortestframework.MonitorTest {
 	return &newAPIServerDisruptionChecker{}
 }
 
+func (w *newAPIServerDisruptionChecker) PrepareCollection(ctx context.Context, adminRESTConfig *rest.Config, recorder monitorapi.RecorderWriter) error {
+	return nil
+}
+
 func (w *newAPIServerDisruptionChecker) StartCollection(ctx context.Context, adminRESTConfig *rest.Config, recorder monitorapi.RecorderWriter) error {
 	w.adminRESTConfig = adminRESTConfig
 
@@ -71,9 +75,5 @@ func (w *newAPIServerDisruptionChecker) WriteContentToStorage(ctx context.Contex
 }
 
 func (w *newAPIServerDisruptionChecker) Cleanup(ctx context.Context) error {
-	if w.notSupportedReason != nil {
-		return w.notSupportedReason
-	}
-
 	return nil
 }

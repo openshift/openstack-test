@@ -4,15 +4,15 @@ go 1.23.0
 
 toolchain go1.23.4
 
-require github.com/openshift/origin v1.5.0-alpha.3.0.20250403185546-e0b9b4bf6f06
+require github.com/openshift/origin v1.5.0-alpha.3.0.20250613125118-140c6726a606
 
 require (
 	github.com/Masterminds/semver v1.5.0
-	github.com/gophercloud/gophercloud/v2 v2.0.0
+	github.com/gophercloud/gophercloud/v2 v2.7.0
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
-	github.com/openshift/api v0.0.0-20250131155403-30a036067514
-	github.com/openshift/client-go v0.0.0-20250131180035-f7ec47e2d87a
+	github.com/openshift/api v0.0.0-20250513132935-9052dea86694
+	github.com/openshift/client-go v0.0.0-20250513150353-9ea84fa6431b
 	github.com/openshift/cluster-api-actuator-pkg v0.0.0-20250401133953-e7e157c4c1fe
 	github.com/openshift/library-go v0.0.0-20250129210218-fe56c2cf5d70
 	github.com/sirupsen/logrus v1.9.3
@@ -21,15 +21,16 @@ require (
 	github.com/stretchr/objx v0.5.2
 	gopkg.in/ini.v1 v1.67.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.32.3
-	k8s.io/apimachinery v0.32.3
-	k8s.io/cli-runtime v0.32.3
-	k8s.io/client-go v0.32.3
-	k8s.io/component-base v0.32.3
-	k8s.io/kubectl v0.32.3
-	k8s.io/kubernetes v1.32.2
-	k8s.io/pod-security-admission v0.32.3
-	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
+	k8s.io/api v0.32.5
+	k8s.io/apimachinery v0.32.5
+	k8s.io/cli-runtime v0.32.5
+	k8s.io/client-go v0.32.5
+	k8s.io/component-base v0.32.5
+	k8s.io/klog/v2 v2.130.1
+	k8s.io/kubectl v0.32.5
+	k8s.io/kubernetes v1.32.5
+	k8s.io/pod-security-admission v0.32.5
+	k8s.io/utils v0.0.0-20241210054802-24370beab758
 	sigs.k8s.io/controller-runtime v0.19.5
 )
 
@@ -37,17 +38,19 @@ require (
 	cel.dev/expr v0.18.0 // indirect
 	git.sr.ht/~sbinet/gg v0.5.0 // indirect
 	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.14.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.16.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.10.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets v0.12.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/keyvault/internal v0.7.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/monitor/query/azlogs v1.1.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 v5.7.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerregistry/armcontainerregistry v1.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v4 v4.8.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/keyvault/armkeyvault v1.4.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor v0.10.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v4 v4.3.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/operationalinsights/armoperationalinsights v1.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/privatedns/armprivatedns v1.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources v1.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/storage/armstorage v1.6.0 // indirect
@@ -140,7 +143,7 @@ require (
 	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
@@ -150,7 +153,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.3.0 // indirect
+	github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.6.0 // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
@@ -160,6 +163,7 @@ require (
 	github.com/lithammer/dedent v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/metallb/frr-k8s v0.0.15 // indirect
 	github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
@@ -189,6 +193,7 @@ require (
 	github.com/openshift/cluster-autoscaler-operator v0.0.1-0.20241204142113-43631b045675 // indirect
 	github.com/openshift/cluster-network-operator v0.0.0-20240708200319-1cd8678b38fb // indirect
 	github.com/openshift/machine-api-operator v0.2.1-0.20250122132849-b397e885dafb // indirect
+	github.com/ovn-org/ovn-kubernetes/go-controller v0.0.0-20250118001652-a8b9c3c31417 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -240,16 +245,16 @@ require (
 	go.uber.org/mock v0.4.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
 	golang.org/x/image v0.11.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/term v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/term v0.30.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
@@ -266,11 +271,11 @@ require (
 	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.32.3 // indirect
-	k8s.io/apiserver v0.32.3 // indirect
+	k8s.io/apiextensions-apiserver v0.32.5 // indirect
+	k8s.io/apiserver v0.32.5 // indirect
 	k8s.io/cloud-provider v0.31.1 // indirect
 	k8s.io/cluster-bootstrap v0.31.3 // indirect
-	k8s.io/component-helpers v0.32.3 // indirect
+	k8s.io/component-helpers v0.32.5 // indirect
 	k8s.io/controller-manager v0.32.1 // indirect
 	k8s.io/cri-api v0.27.1 // indirect
 	k8s.io/cri-client v0.0.0 // indirect
@@ -278,9 +283,8 @@ require (
 	k8s.io/dynamic-resource-allocation v0.0.0 // indirect
 	k8s.io/externaljwt v0.0.0 // indirect
 	k8s.io/klog v1.0.0 // indirect
-	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kms v0.32.1 // indirect
-	k8s.io/kube-aggregator v0.32.3 // indirect
+	k8s.io/kube-aggregator v0.32.5 // indirect
 	k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f // indirect
 	k8s.io/kube-scheduler v0.0.0 // indirect
 	k8s.io/kubelet v0.31.1 // indirect
@@ -291,51 +295,50 @@ require (
 	sigs.k8s.io/cloud-provider-azure/pkg/azclient v0.0.29 // indirect
 	sigs.k8s.io/cloud-provider-azure/pkg/azclient/configloader v0.0.16 // indirect
 	sigs.k8s.io/cluster-api v1.9.4 // indirect
-	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
+	sigs.k8s.io/gateway-api v1.2.1 // indirect
+	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
 	sigs.k8s.io/kube-storage-version-migrator v0.0.6-0.20230721195810-5c8923c5ff96 // indirect
 	sigs.k8s.io/kustomize/api v0.18.0 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.18.1 // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 // indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
 replace (
 	github.com/onsi/ginkgo/v2 => github.com/openshift/onsi-ginkgo/v2 v2.6.1-0.20241205171354-8006f302fd12
-	k8s.io/api => github.com/openshift/kubernetes/staging/src/k8s.io/api v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/apiextensions-apiserver => github.com/openshift/kubernetes/staging/src/k8s.io/apiextensions-apiserver v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/apimachinery => github.com/openshift/kubernetes/staging/src/k8s.io/apimachinery v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/apiserver => github.com/openshift/kubernetes/staging/src/k8s.io/apiserver v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/cli-runtime => github.com/openshift/kubernetes/staging/src/k8s.io/cli-runtime v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/client-go => github.com/openshift/kubernetes/staging/src/k8s.io/client-go v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/cloud-provider => github.com/openshift/kubernetes/staging/src/k8s.io/cloud-provider v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/cluster-bootstrap => github.com/openshift/kubernetes/staging/src/k8s.io/cluster-bootstrap v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/code-generator => github.com/openshift/kubernetes/staging/src/k8s.io/code-generator v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/component-base => github.com/openshift/kubernetes/staging/src/k8s.io/component-base v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/component-helpers => github.com/openshift/kubernetes/staging/src/k8s.io/component-helpers v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/controller-manager => github.com/openshift/kubernetes/staging/src/k8s.io/controller-manager v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/cri-api => github.com/openshift/kubernetes/staging/src/k8s.io/cri-api v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/cri-client => github.com/openshift/kubernetes/staging/src/k8s.io/cri-client v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/csi-translation-lib => github.com/openshift/kubernetes/staging/src/k8s.io/csi-translation-lib v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/dynamic-resource-allocation => github.com/openshift/kubernetes/staging/src/k8s.io/dynamic-resource-allocation v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/endpointslice => github.com/openshift/kubernetes/staging/src/k8s.io/endpointslice v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/externaljwt => github.com/openshift/kubernetes/staging/src/k8s.io/externaljwt v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/kube-aggregator => github.com/openshift/kubernetes/staging/src/k8s.io/kube-aggregator v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/kube-controller-manager => github.com/openshift/kubernetes/staging/src/k8s.io/kube-controller-manager v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/kube-proxy => github.com/openshift/kubernetes/staging/src/k8s.io/kube-proxy v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/kube-scheduler => github.com/openshift/kubernetes/staging/src/k8s.io/kube-scheduler v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/kubectl => github.com/openshift/kubernetes/staging/src/k8s.io/kubectl v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/kubelet => github.com/openshift/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/kubernetes => github.com/openshift/kubernetes v1.30.1-0.20250320083338-1601b9e27d85
-	k8s.io/metrics => github.com/openshift/kubernetes/staging/src/k8s.io/metrics v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/mount-utils => github.com/openshift/kubernetes/staging/src/k8s.io/mount-utils v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/pod-security-admission => github.com/openshift/kubernetes/staging/src/k8s.io/pod-security-admission v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/sample-apiserver => github.com/openshift/kubernetes/staging/src/k8s.io/sample-apiserver v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/sample-cli-plugin => github.com/openshift/kubernetes/staging/src/k8s.io/sample-cli-plugin v0.0.0-20250320083338-1601b9e27d85
-	k8s.io/sample-controller => github.com/openshift/kubernetes/staging/src/k8s.io/sample-controller v0.0.0-20250320083338-1601b9e27d85
+	k8s.io/api => github.com/openshift/kubernetes/staging/src/k8s.io/api v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/apiextensions-apiserver => github.com/openshift/kubernetes/staging/src/k8s.io/apiextensions-apiserver v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/apimachinery => github.com/openshift/kubernetes/staging/src/k8s.io/apimachinery v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/apiserver => github.com/openshift/kubernetes/staging/src/k8s.io/apiserver v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/cli-runtime => github.com/openshift/kubernetes/staging/src/k8s.io/cli-runtime v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/client-go => github.com/openshift/kubernetes/staging/src/k8s.io/client-go v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/cloud-provider => github.com/openshift/kubernetes/staging/src/k8s.io/cloud-provider v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/cluster-bootstrap => github.com/openshift/kubernetes/staging/src/k8s.io/cluster-bootstrap v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/code-generator => github.com/openshift/kubernetes/staging/src/k8s.io/code-generator v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/component-base => github.com/openshift/kubernetes/staging/src/k8s.io/component-base v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/component-helpers => github.com/openshift/kubernetes/staging/src/k8s.io/component-helpers v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/controller-manager => github.com/openshift/kubernetes/staging/src/k8s.io/controller-manager v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/cri-api => github.com/openshift/kubernetes/staging/src/k8s.io/cri-api v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/cri-client => github.com/openshift/kubernetes/staging/src/k8s.io/cri-client v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/csi-translation-lib => github.com/openshift/kubernetes/staging/src/k8s.io/csi-translation-lib v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/dynamic-resource-allocation => github.com/openshift/kubernetes/staging/src/k8s.io/dynamic-resource-allocation v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/endpointslice => github.com/openshift/kubernetes/staging/src/k8s.io/endpointslice v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/externaljwt => github.com/openshift/kubernetes/staging/src/k8s.io/externaljwt v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/kube-aggregator => github.com/openshift/kubernetes/staging/src/k8s.io/kube-aggregator v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/kube-controller-manager => github.com/openshift/kubernetes/staging/src/k8s.io/kube-controller-manager v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/kube-proxy => github.com/openshift/kubernetes/staging/src/k8s.io/kube-proxy v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/kube-scheduler => github.com/openshift/kubernetes/staging/src/k8s.io/kube-scheduler v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/kubectl => github.com/openshift/kubernetes/staging/src/k8s.io/kubectl v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/kubelet => github.com/openshift/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/kubernetes => github.com/openshift/kubernetes v1.30.1-0.20250527023356-4cd5657aac98
+	k8s.io/metrics => github.com/openshift/kubernetes/staging/src/k8s.io/metrics v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/mount-utils => github.com/openshift/kubernetes/staging/src/k8s.io/mount-utils v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/pod-security-admission => github.com/openshift/kubernetes/staging/src/k8s.io/pod-security-admission v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/sample-apiserver => github.com/openshift/kubernetes/staging/src/k8s.io/sample-apiserver v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/sample-cli-plugin => github.com/openshift/kubernetes/staging/src/k8s.io/sample-cli-plugin v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/sample-controller => github.com/openshift/kubernetes/staging/src/k8s.io/sample-controller v0.0.0-20250527023356-4cd5657aac98
 )
 
 // The cadvisor version used in k8s v1.32.1 (v0.51.0) relies on code present on this version
 // This can be removed once it's no longer used in o/k
 replace github.com/containerd/errdefs => github.com/containerd/errdefs v0.1.0
-
-replace github.com/containerd/containerd => github.com/containerd/containerd/api v1.8.0

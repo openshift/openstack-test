@@ -1,6 +1,8 @@
 package subnets
 
 import (
+	"time"
+
 	"github.com/gophercloud/gophercloud/v2"
 	"github.com/gophercloud/gophercloud/v2/pagination"
 )
@@ -83,6 +85,9 @@ type Subnet struct {
 	// DNS name servers used by hosts in this subnet.
 	DNSNameservers []string `json:"dns_nameservers"`
 
+	//  Specifies whether the fixed IP addresses are published to the DNS.
+	DNSPublishFixedIP bool `json:"dns_publish_fixed_ip"`
+
 	// Service types associated with the subnet.
 	ServiceTypes []string `json:"service_types"`
 
@@ -118,6 +123,12 @@ type Subnet struct {
 
 	// RevisionNumber optionally set via extensions/standard-attr-revisions
 	RevisionNumber int `json:"revision_number"`
+
+	// Timestamp when the subnet was created
+	CreatedAt time.Time `json:"created_at"`
+
+	// Timestamp when the subnet was last updated
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // SubnetPage is the page returned by a pager when traversing over a collection

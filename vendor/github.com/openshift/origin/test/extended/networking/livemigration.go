@@ -85,8 +85,16 @@ var _ = Describe("[sig-network][OCPFeatureGate:PersistentIPsForVirtualization][F
 
 						f.Namespace = ns
 						netConfig.namespace = f.Namespace.Name
-						// correctCIDRFamily makes use of the ginkgo framework so it needs to be in the testcase
-						netConfig.cidr = correctCIDRFamily(oc, cidrIPv4, cidrIPv6)
+
+						// IPv6 only supported for primaries yet, the
+						// kubevirt bridge binding dhcp server do not
+						// support it.
+						if netConfig.role == "primary" {
+							// correctCIDRFamily makes use of the ginkgo framework so it needs to be in the testcase
+							netConfig.cidr = correctCIDRFamily(oc, cidrIPv4, cidrIPv6)
+						} else {
+							netConfig.cidr = cidrIPv4
+						}
 						workerNodes, err := getWorkerNodesOrdered(cs)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(len(workerNodes)).To(BeNumerically(">=", 2))
@@ -113,6 +121,7 @@ var _ = Describe("[sig-network][OCPFeatureGate:PersistentIPsForVirtualization][F
 							VMNamespace:               f.Namespace.Name,
 							FedoraContainterDiskImage: image.LocationFor("quay.io/kubevirt/fedora-with-test-tooling-container-disk:20241024_891122a6fc"),
 						}
+
 						if netConfig.role == "primary" {
 							vmCreationParams.NetBindingName = bindingName
 						} else {
@@ -402,7 +411,17 @@ func addressFromStatus(cli *kubevirt.Client, vmName string) ([]string, error) {
 	if err := json.Unmarshal([]byte(addressesStr), &addresses); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal addresses %q: %w", addressesStr, err)
 	}
-	return addresses, nil
+
+	// Filter out IPv6 link-local addresses using net.IP.IsLinkLocalUnicast
+	var filteredAddresses []string
+	for _, addr := range addresses {
+		ip := net.ParseIP(addr)
+		if ip != nil && !ip.IsLinkLocalUnicast() {
+			filteredAddresses = append(filteredAddresses, addr)
+		}
+	}
+
+	return filteredAddresses, nil
 }
 
 func obtainAddresses(virtClient *kubevirt.Client, vmName string) ([]string, error) {
