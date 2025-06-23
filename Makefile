@@ -4,6 +4,7 @@ openstack-tests: test/extended/openstack/* cmd/openshift-tests/*
 
 # Update generated artifacts.
 update:
+	mkdir -p ./test/extented/util/annotate/generated
 	go generate ./test/extended
 .PHONY: update
 
