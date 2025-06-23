@@ -11,7 +11,7 @@ import (
 )
 
 // This test is [Serial] because it modifies the cluster/machineconfigurations.operator.openshift.io object in each test.
-var _ = g.Describe("[sig-mco][OCPFeatureGate:ManagedBootImages][Serial]", func() {
+var _ = g.Describe("[Suite:openshift/machine-config-operator/disruptive][Suite:openshift/conformance/serial][sig-mco][OCPFeatureGate:ManagedBootImages][Serial]", func() {
 	defer g.GinkgoRecover()
 	var (
 		MCOMachineConfigurationBaseDir = exutil.FixturePath("testdata", "machine_config", "machineconfigurations")
@@ -33,7 +33,7 @@ var _ = g.Describe("[sig-mco][OCPFeatureGate:ManagedBootImages][Serial]", func()
 
 	g.AfterEach(func() {
 		// Clear out boot image configuration between tests
-		ApplyBootImageFixture(oc, emptyMachineSetFixture)
+		ApplyMachineConfigurationFixture(oc, emptyMachineSetFixture)
 	})
 
 	g.It("Should update boot images only on MachineSets that are opted in [apigroup:machineconfiguration.openshift.io]", func() {

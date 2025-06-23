@@ -19,8 +19,21 @@ import (
 
 	"github.com/onsi/ginkgo/v2"
 	configv1 "github.com/openshift/api/config/v1"
+	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
+	"golang.org/x/mod/semver"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
+	e2e "k8s.io/kubernetes/test/e2e/framework"
+
 	"github.com/openshift/origin/pkg/clioptions/clusterdiscovery"
 	"github.com/openshift/origin/pkg/clioptions/clusterinfo"
+	"github.com/openshift/origin/pkg/clioptions/kubeconfig"
 	"github.com/openshift/origin/pkg/defaultmonitortests"
 	"github.com/openshift/origin/pkg/monitor"
 	monitorserialization "github.com/openshift/origin/pkg/monitor/serialization"
@@ -28,14 +41,6 @@ import (
 	"github.com/openshift/origin/pkg/riskanalysis"
 	"github.com/openshift/origin/pkg/test/extensions"
 	"github.com/openshift/origin/pkg/test/ginkgo/junitapi"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/pflag"
-	"golang.org/x/mod/semver"
-	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/rest"
-	e2e "k8s.io/kubernetes/test/e2e/framework"
 )
 
 const (
@@ -55,6 +60,16 @@ type GinkgoRunSuiteOptions struct {
 	FailFast    bool
 	Timeout     time.Duration
 	JUnitDir    string
+
+	// ShardCount is the total number of partitions the test suite is divided into.
+	// Each executor runs one of these partitions.
+	ShardCount int
+
+	// ShardStrategy is which strategy we'll use for dividing tests.
+	ShardStrategy string
+
+	// ShardID is the 1-based index of the shard this instance is responsible for running.
+	ShardID int
 
 	// SyntheticEventTests allows the caller to translate events or outside
 	// context into a failure.
@@ -78,7 +93,8 @@ type GinkgoRunSuiteOptions struct {
 
 func NewGinkgoRunSuiteOptions(streams genericclioptions.IOStreams) *GinkgoRunSuiteOptions {
 	return &GinkgoRunSuiteOptions{
-		IOStreams: streams,
+		IOStreams:     streams,
+		ShardStrategy: "hash",
 	}
 }
 
@@ -98,6 +114,10 @@ func (o *GinkgoRunSuiteOptions) BindFlags(flags *pflag.FlagSet) {
 	flags.StringSliceVar(&o.ExactMonitorTests, "monitor", o.ExactMonitorTests,
 		fmt.Sprintf("list of exactly which monitors to enable. All others will be disabled.  Current monitors are: [%s]", strings.Join(monitorNames, ", ")))
 	flags.StringSliceVar(&o.DisableMonitorTests, "disable-monitor", o.DisableMonitorTests, "list of monitors to disable.  Defaults for others will be honored.")
+
+	flags.IntVar(&o.ShardID, "shard-id", o.ShardID, "When tests are sharded across instances, which instance we are")
+	flags.IntVar(&o.ShardCount, "shard-count", o.ShardCount, "Number of shards used to run tests across multiple instances")
+	flags.StringVar(&o.ShardStrategy, "shard-strategy", o.ShardStrategy, "Which strategy to use for sharding (hash)")
 }
 
 func (o *GinkgoRunSuiteOptions) Validate() error {
@@ -136,6 +156,12 @@ func (o *GinkgoRunSuiteOptions) Run(suite *TestSuite, junitSuiteName string, mon
 		return fmt.Errorf("failed reading origin test suites: %w", err)
 	}
 
+	var sharder Sharder
+	switch o.ShardStrategy {
+	default:
+		sharder = &HashSharder{}
+	}
+
 	logrus.WithField("suite", suite.Name).Infof("Found %d internal tests in openshift-tests binary", len(tests))
 
 	var fallbackSyntheticTestResult []*junitapi.JUnitTestCase
@@ -170,11 +196,11 @@ func (o *GinkgoRunSuiteOptions) Run(suite *TestSuite, junitSuiteName string, mon
 		listContext, listContextCancel := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer listContextCancel()
 
-		envFlags, err := determineEnvironmentFlags(upgrade, o.DryRun)
+		envFlags, err := determineEnvironmentFlags(ctx, upgrade, o.DryRun)
 		if err != nil {
 			return fmt.Errorf("could not determine environment flags: %w", err)
 		}
-		logrus.WithField("flags", envFlags.String()).Infof("Determined all potential environment flags")
+		logrus.WithFields(envFlags.LogFields()).Infof("Determined all potential environment flags")
 
 		externalTestSpecs, err := externalBinaries.ListTests(listContext, defaultBinaryParallelism, envFlags)
 		if err != nil {
@@ -355,10 +381,20 @@ func (o *GinkgoRunSuiteOptions) Run(suite *TestSuite, junitSuiteName string, mon
 	early, notEarly := splitTests(tests, func(t *testCase) bool {
 		return strings.Contains(t.name, "[Early]")
 	})
+	logrus.Infof("Found %d early tests", len(early))
 
 	late, primaryTests := splitTests(notEarly, func(t *testCase) bool {
 		return strings.Contains(t.name, "[Late]")
 	})
+	logrus.Infof("Found %d late tests", len(late))
+
+	// Sharding always runs early and late tests in every invocation. I think this
+	// makes sense, because these tests may collect invariant data we want to know about
+	// every run.
+	primaryTests, err = sharder.Shard(primaryTests, o.ShardCount, o.ShardID)
+	if err != nil {
+		return err
+	}
 
 	kubeTests, openshiftTests := splitTests(primaryTests, func(t *testCase) bool {
 		return strings.Contains(t.name, "[Suite:k8s]")
@@ -371,6 +407,11 @@ func (o *GinkgoRunSuiteOptions) Run(suite *TestSuite, junitSuiteName string, mon
 	mustGatherTests, openshiftTests := splitTests(openshiftTests, func(t *testCase) bool {
 		return strings.Contains(t.name, "[sig-cli] oc adm must-gather")
 	})
+
+	logrus.Infof("Found %d openshift tests", len(openshiftTests))
+	logrus.Infof("Found %d kube tests", len(kubeTests))
+	logrus.Infof("Found %d storage tests", len(storageTests))
+	logrus.Infof("Found %d must-gather tests", len(mustGatherTests))
 
 	// If user specifies a count, duplicate the kube and openshift tests that many times.
 	expectedTestCount := len(early) + len(late)
@@ -468,7 +509,15 @@ func (o *GinkgoRunSuiteOptions) Run(suite *TestSuite, junitSuiteName string, mon
 
 		// Make a copy of the all failing tests (subject to the max allowed flakes) so we can have
 		// a list of tests to retry.
+		failedExtensionTestCount := 0
 		for _, test := range failing {
+			// Do not retry extension tests -- we also want to remove retries from origin-sourced
+			// tests, but extensions is where we can start.
+			if test.binary != nil {
+				failedExtensionTestCount++
+				continue
+			}
+
 			retry := test.Retry()
 			retries = append(retries, retry)
 			if len(retries) > suite.MaximumAllowedFlakes {
@@ -476,7 +525,7 @@ func (o *GinkgoRunSuiteOptions) Run(suite *TestSuite, junitSuiteName string, mon
 			}
 		}
 
-		logrus.Warningf("Retry count: %d", len(retries))
+		logrus.Warningf("%d tests failed, %d origin-sourced tests will be retried; %d extension tests will not", len(failing), len(retries), failedExtensionTestCount)
 
 		// Run the tests in the retries list.
 		q := newParallelTestQueue(testRunnerContext)
@@ -716,13 +765,13 @@ outerLoop:
 	return matches, nil
 }
 
-func determineEnvironmentFlags(upgrade bool, dryRun bool) (extensions.EnvironmentFlags, error) {
-	clientConfig, err := e2e.LoadConfig(true)
+func determineEnvironmentFlags(ctx context.Context, upgrade bool, dryRun bool) (extensions.EnvironmentFlags, error) {
+	restConfig, err := e2e.LoadConfig(true)
 	if err != nil {
 		logrus.WithError(err).Error("error calling e2e.LoadConfig")
 		return nil, err
 	}
-	clusterState, err := clusterdiscovery.DiscoverClusterState(clientConfig)
+	clusterState, err := clusterdiscovery.DiscoverClusterState(restConfig)
 	if err != nil {
 		logrus.WithError(err).Warn("error Discovering Cluster State, flags requiring it will not be present")
 	}
@@ -742,6 +791,29 @@ func determineEnvironmentFlags(upgrade bool, dryRun bool) (extensions.Environmen
 		AddNetwork(config.NetworkPlugin).
 		AddNetworkStack(config.IPFamily).
 		AddExternalConnectivity(determineExternalConnectivity(config))
+
+	clientConfig, err := clientconfigv1.NewForConfig(restConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	discoveryClient, err := kubeconfig.NewDiscoveryGetter(restConfig).GetDiscoveryClient()
+	if err != nil {
+		return nil, err
+	}
+	apiGroups, err := determineEnabledAPIGroups(discoveryClient)
+	if err != nil {
+		return nil, errors.WithMessage(err, "couldn't determine api groups")
+	}
+	envFlagBuilder.AddAPIGroups(apiGroups.UnsortedList()...)
+
+	if apiGroups.Has("config.openshift.io") {
+		featureGates, err := determineEnabledFeatureGates(ctx, clientConfig)
+		if err != nil {
+			return nil, errors.WithMessage(err, "couldn't determine feature gates")
+		}
+		envFlagBuilder.AddFeatureGates(featureGates...)
+	}
 
 	//Additional flags can only be determined if we are able to obtain the clusterState
 	if clusterState != nil {
@@ -798,4 +870,56 @@ func determineExternalConnectivity(clusterConfig *clusterdiscovery.ClusterConfig
 		return "Proxied"
 	}
 	return "Direct"
+}
+
+func determineEnabledAPIGroups(discoveryClient discovery.AggregatedDiscoveryInterface) (sets.Set[string], error) {
+	groups, err := discoveryClient.ServerGroups()
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve served resources: %v", err)
+	}
+	apiGroups := sets.New[string]()
+	for _, apiGroup := range groups.Groups {
+		// ignore the empty group
+		if apiGroup.Name == "" {
+			continue
+		}
+		apiGroups.Insert(apiGroup.Name)
+	}
+
+	return apiGroups, nil
+}
+
+func determineEnabledFeatureGates(ctx context.Context, configClient clientconfigv1.Interface) ([]string, error) {
+	featureGate, err := configClient.ConfigV1().FeatureGates().Get(ctx, "cluster", metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	clusterVersion, err := configClient.ConfigV1().ClusterVersions().Get(ctx, "version", metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	desiredVersion := clusterVersion.Status.Desired.Version
+	if len(desiredVersion) == 0 && len(clusterVersion.Status.History) > 0 {
+		desiredVersion = clusterVersion.Status.History[0].Version
+	}
+
+	ret := sets.NewString()
+	found := false
+	for _, featureGateValues := range featureGate.Status.FeatureGates {
+		if featureGateValues.Version != desiredVersion {
+			continue
+		}
+		found = true
+		for _, enabled := range featureGateValues.Enabled {
+			ret.Insert(string(enabled.Name))
+		}
+		break
+	}
+	if !found {
+		logrus.Warning("no feature gates found")
+		return nil, nil
+	}
+
+	return ret.List(), nil
 }

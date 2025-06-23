@@ -27,7 +27,7 @@ type auditViolationRecord struct {
 	username  string
 }
 
-func (v *auditViolations) HandleAuditLogEvent(auditEvent *auditv1.Event, beginning, end *metav1.MicroTime) {
+func (v *auditViolations) HandleAuditLogEvent(auditEvent *auditv1.Event, beginning, end *metav1.MicroTime, nodeName string) {
 	if beginning != nil && auditEvent.RequestReceivedTimestamp.Before(beginning) || end != nil && end.Before(&auditEvent.RequestReceivedTimestamp) {
 		return
 	}
@@ -41,7 +41,7 @@ func (v *auditViolations) HandleAuditLogEvent(auditEvent *auditv1.Event, beginni
 			violation: violation,
 			resource:  auditEvent.ObjectRef.Resource,
 			namespace: auditEvent.ObjectRef.Namespace,
-			name:      auditEvent.ObjectRef.Namespace,
+			name:      auditEvent.ObjectRef.Name,
 			username:  auditEvent.User.Username,
 		})
 	}

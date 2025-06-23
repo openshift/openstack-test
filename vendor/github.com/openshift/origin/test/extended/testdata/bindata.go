@@ -419,10 +419,25 @@
 // test/extended/testdata/ldap/ldapserver-service.yaml
 // test/extended/testdata/long_names/Dockerfile
 // test/extended/testdata/long_names/fixture.json
+// test/extended/testdata/machine_config/kubeletconfig/gcKC.yaml
+// test/extended/testdata/machine_config/machineconfig/0-infra-mc.yaml
+// test/extended/testdata/machine_config/machineconfig/0-master-mc.yaml
+// test/extended/testdata/machine_config/machineconfig/1-master-invalid-mc.yaml
+// test/extended/testdata/machine_config/machineconfig/1-worker-invalid-mc.yaml
+// test/extended/testdata/machine_config/machineconfigpool/customMCP.yaml
+// test/extended/testdata/machine_config/machineconfigpool/infra-mcp.yaml
 // test/extended/testdata/machine_config/machineconfigurations/managedbootimages-all.yaml
 // test/extended/testdata/machine_config/machineconfigurations/managedbootimages-empty.yaml
 // test/extended/testdata/machine_config/machineconfigurations/managedbootimages-none.yaml
 // test/extended/testdata/machine_config/machineconfigurations/managedbootimages-partial.yaml
+// test/extended/testdata/machine_config/machineconfigurations/nodedisruptionpolicy-rebootless-path.yaml
+// test/extended/testdata/machine_config/pinnedimage/customGCMCPpis.yaml
+// test/extended/testdata/machine_config/pinnedimage/customInvalidPis.yaml
+// test/extended/testdata/machine_config/pinnedimage/customMCPpis.yaml
+// test/extended/testdata/machine_config/pinnedimage/invalidPis.yaml
+// test/extended/testdata/machine_config/pinnedimage/masterInvalidPis.yaml
+// test/extended/testdata/machine_config/pinnedimage/masterPis.yaml
+// test/extended/testdata/machine_config/pinnedimage/pis.yaml
 // test/extended/testdata/marketplace/csc/02-csc.yaml
 // test/extended/testdata/marketplace/opsrc/02-opsrc.yaml
 // test/extended/testdata/mixed-api-versions.yaml
@@ -434,6 +449,14 @@
 // test/extended/testdata/net-attach-defs/whereabouts-nad.yml
 // test/extended/testdata/net-attach-defs/whereabouts-race-awake.yml
 // test/extended/testdata/net-attach-defs/whereabouts-race-sleepy.yml
+// test/extended/testdata/node/nested_container/Dockerfile
+// test/extended/testdata/node/nested_container/containers.conf
+// test/extended/testdata/node/nested_container/run_tests.sh
+// test/extended/testdata/node/nested_container/skip_tests.sh
+// test/extended/testdata/node/zstd-chunked/Dockerfile
+// test/extended/testdata/node/zstd-chunked/Dockerfile.sample
+// test/extended/testdata/node/zstd-chunked/build.sh
+// test/extended/testdata/node/zstd-chunked/test-custom-build.yaml
 // test/extended/testdata/node_tuning/nto-stalld.yaml
 // test/extended/testdata/oauthserver/cabundle-cm.yaml
 // test/extended/testdata/oauthserver/oauth-network.yaml
@@ -443,6 +466,14 @@
 // test/extended/testdata/olm/subscription.yaml
 // test/extended/testdata/olmv1/install-catalog.yaml
 // test/extended/testdata/olmv1/install-operator.yaml
+// test/extended/testdata/olmv1/install-pipeline-operator-0.yaml
+// test/extended/testdata/olmv1/install-pipeline-operator-1.yaml
+// test/extended/testdata/olmv1/install-pipeline-operator-2.yaml
+// test/extended/testdata/olmv1/install-pipeline-operator-3.yaml
+// test/extended/testdata/olmv1/install-pipeline-operator-4.yaml
+// test/extended/testdata/olmv1/install-pipeline-operator-5.yaml
+// test/extended/testdata/olmv1/install-pipeline-operator-6.yaml
+// test/extended/testdata/olmv1/install-pipeline-operator-base.yaml
 // test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml
 // test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml
 // test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml
@@ -11712,7 +11743,7 @@ var _examplesQuickstartsRailsPostgresqlPersistentJson = []byte(`{
 						],
 						"from": {
 							"kind": "ImageStreamTag",
-							"name": "ruby:3.1-ubi8",
+							"name": "ruby:3.3-ubi8",
 							"namespace": "${NAMESPACE}"
 						}
 					},
@@ -12339,7 +12370,7 @@ var _examplesQuickstartsRailsPostgresqlJson = []byte(`{
 						],
 						"from": {
 							"kind": "ImageStreamTag",
-							"name": "ruby:3.1-ubi8",
+							"name": "ruby:3.3-ubi8",
 							"namespace": "${NAMESPACE}"
 						}
 					},
@@ -17785,7 +17816,7 @@ var _testExtendedTestdataBuildsBuildSecretsTestS2iBuildJson = []byte(`{
       "sourceStrategy": {
         "from": {
           "kind": "DockerImage",
-          "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8"
+          "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8"
         },
         "env": [
           {
@@ -19116,7 +19147,7 @@ spec:
         value: "2"
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
 `)
 
 func testExtendedTestdataBuildsStatusfailBadcontextdirs2iYamlBytes() ([]byte, error) {
@@ -19216,7 +19247,7 @@ spec:
     dockerStrategy:
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
 `)
 
 func testExtendedTestdataBuildsStatusfailFetchimagecontentdockerYamlBytes() ([]byte, error) {
@@ -19250,7 +19281,7 @@ spec:
           value: "2"
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
 `)
 
 func testExtendedTestdataBuildsStatusfailFetchsourcedockerYamlBytes() ([]byte, error) {
@@ -19284,7 +19315,7 @@ spec:
           value: "2"
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
 `)
 
 func testExtendedTestdataBuildsStatusfailFetchsources2iYamlBytes() ([]byte, error) {
@@ -19316,7 +19347,7 @@ spec:
 
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
       scripts: "http://example.org/scripts"
       env:
         - name: http_proxy
@@ -19359,7 +19390,7 @@ spec:
           value: "2"
       from:
         kind: DockerImage
-        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+        name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
       forcePull: true
 `)
 
@@ -20085,7 +20116,7 @@ items:
       dockerStrategy:
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
         env:
         - name: SOME_HTTP_PROXY
           value: https://envuser:password@proxy3.com
@@ -20274,7 +20305,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
     resources: {}
   status:
     lastVersion: 0
@@ -20303,7 +20334,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
     resources: {}
   status:
     lastVersion: 0
@@ -20331,7 +20362,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
     resources: {}
   status:
     lastVersion: 0
@@ -20360,7 +20391,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
     resources: {}
   status:
     lastVersion: 0
@@ -20388,7 +20419,7 @@ items:
           value: '5'
         from:
           kind: DockerImage
-          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8
+          name: image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8
     resources: {}
     nodeSelector:
       nodelabelkey: nodelabelvalue
@@ -21180,7 +21211,7 @@ var _testExtendedTestdataBuildsTestEnvBuildJson = []byte(`{
         ],
         "from": {
           "kind": "DockerImage",
-          "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8"
+          "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8"
         }
       }
     },
@@ -21529,7 +21560,7 @@ items:
             value: "2"
         from:
           kind: ImageStreamTag
-          name: ruby:3.1-ubi8
+          name: ruby:3.3-ubi8
           namespace: openshift
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
@@ -29640,7 +29671,7 @@ var _testExtendedTestdataClusterQuickstartsRailsPostgresqlJson = []byte(`{
 						],
 						"from": {
 							"kind": "ImageStreamTag",
-							"name": "ruby:3.1-ubi8",
+							"name": "ruby:3.3-ubi8",
 							"namespace": "${NAMESPACE}"
 						}
 					},
@@ -33756,10 +33787,10 @@ os::test::junit::declare_suite_end
 os::test::junit::declare_suite_start "cmd/images${IMAGES_TESTS_POSTFIX:-}/merge-tags-on-apply"
 os::cmd::expect_success 'oc new-project merge-tags'
 os::cmd::expect_success 'oc create -f ${TEST_DATA}/image-streams/image-streams-centos7.json'
-os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[*].name}' '2.7-ubi8 3.0-ubi7 3.0-ubi9 3.1-ubi8 latest'
+os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[*].name}' '2.7-ubi8 3.0-ubi7 3.0-ubi9 3.3-ubi8 latest'
 
 os::cmd::expect_success 'oc apply -f ${TEST_DATA}/modified-ruby-imagestream.json'
-os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[*].name}' '2.7-ubi8 3.0-ubi7 3.0-ubi9 3.1-ubi8 latest newtag'
+os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[*].name}' '2.7-ubi8 3.0-ubi7 3.0-ubi9 3.3-ubi8 latest newtag'
 os::cmd::expect_success_and_text 'oc get is ruby -o jsonpath={.spec.tags[0].annotations.version}' '2.7 patched'
 os::cmd::expect_success 'oc delete project merge-tags'
 echo "apply new imagestream tags: ok"
@@ -37520,20 +37551,20 @@ var _testExtendedTestdataCmdTestCmdTestdataImageStreamsImageStreamsCentos7Json =
             }
           },
           {
-            "name": "3.1-ubi8",
+            "name": "3.3-ubi8",
             "annotations": {
-              "description": "Build and run Ruby 3.1 applications on UBI 8. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/s2i-ruby-container/blob/master/3.1/README.md.",
+              "description": "Build and run Ruby 3.3 applications on UBI 8. For more information about using this builder image, including OpenShift considerations, see https://github.com/sclorg/s2i-ruby-container/blob/master/3.3/README.md.",
               "iconClass": "icon-ruby",
-              "openshift.io/display-name": "Ruby 3.1 (UBI 8)",
+              "openshift.io/display-name": "Ruby 3.3 (UBI 8)",
               "openshift.io/provider-display-name": "Red Hat, Inc.",
               "sampleRepo": "https://github.com/sclorg/ruby-ex.git",
-              "supports": "ruby:3.1,ruby",
+              "supports": "ruby:3.3,ruby",
               "tags": "builder,ruby",
-              "version": "3.1"
+              "version": "3.3"
             },
             "from": {
               "kind": "DockerImage",
-              "name": "registry.redhat.io/ubi8/ruby-31:latest"
+              "name": "registry.redhat.io/ubi8/ruby-33:latest"
             },
             "generation": null,
             "importPolicy": {},
@@ -38291,12 +38322,12 @@ spec:
   tags:
   - from:
       kind: ImageStreamTag
-      name: "3.1"
+      name: "3.3"
     name: "latest"
   - from:
       kind: ImageStreamTag
-      name: ruby:3.1-ubi8
-    name: "3.1"
+      name: ruby:3.3-ubi8
+    name: "3.3"
 `)
 
 func testExtendedTestdataCmdTestCmdTestdataNewAppImagestreamRefYamlBytes() ([]byte, error) {
@@ -43493,6 +43524,9 @@ spec:
   - type: Allow
     to:
       dnsName: redhat.com
+  - type: Allow
+    to:
+      dnsName: AMAZON.COM
   - type: Deny
     to:
       dnsName: www.google.com
@@ -43538,6 +43572,9 @@ spec:
       dnsName: redhat.com
   - type: Allow
     to:
+      dnsName: AMAZON.COM
+  - type: Allow
+    to:
       dnsName: "*.google.com"
   - type: Allow
     to:
@@ -43576,6 +43613,9 @@ spec:
   - type: Allow
     to:
       dnsName: redhat.com
+  - type: Allow
+    to:
+      dnsName: amazon.com
   - type: Allow
     to:
       cidrSelector: 8.8.8.8/32
@@ -45287,7 +45327,7 @@ var _testExtendedTestdataImageTestImageJson = []byte(`{
     "name": "test",
     "creationTimestamp": null
   },
-  "dockerImageReference": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8",
+  "dockerImageReference": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8",
   "dockerImageMetadata": {
     "kind": "DockerImage",
     "apiVersion": "1.0",
@@ -48966,7 +49006,7 @@ var _testExtendedTestdataLong_namesFixtureJson = []byte(`{
                     "sourceStrategy": {
                         "from": {
                             "kind": "DockerImage",
-                            "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8"
+                            "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8"
                         }
                     }
                 }
@@ -48995,7 +49035,7 @@ var _testExtendedTestdataLong_namesFixtureJson = []byte(`{
                     "sourceStrategy": {
                         "from": {
                             "kind": "DockerImage",
-                            "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8"
+                            "name": "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8"
                         }
                     }
                 }
@@ -49016,6 +49056,225 @@ func testExtendedTestdataLong_namesFixtureJson() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/long_names/fixture.json", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configKubeletconfigGckcYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  name: custom-gc-config
+spec:
+  machineConfigPoolSelector:
+    matchLabels:
+      pools.operator.machineconfiguration.openshift.io/custom: ""
+  kubeletConfig:
+    imageMinimumGCAge: 0s
+    imageGCHighThresholdPercent: 2
+    imageGCLowThresholdPercent: 1
+`)
+
+func testExtendedTestdataMachine_configKubeletconfigGckcYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configKubeletconfigGckcYaml, nil
+}
+
+func testExtendedTestdataMachine_configKubeletconfigGckcYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configKubeletconfigGckcYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/kubeletconfig/gcKC.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configMachineconfig0InfraMcYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: infra
+  name: 90-infra-testfile
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:,hello%20world%0A
+        mode: 420
+        path: /home/core/test
+`)
+
+func testExtendedTestdataMachine_configMachineconfig0InfraMcYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configMachineconfig0InfraMcYaml, nil
+}
+
+func testExtendedTestdataMachine_configMachineconfig0InfraMcYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configMachineconfig0InfraMcYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfig/0-infra-mc.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configMachineconfig0MasterMcYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 90-master-testfile
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:,hello%20world%0A
+        mode: 420
+        path: /home/core/test
+`)
+
+func testExtendedTestdataMachine_configMachineconfig0MasterMcYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configMachineconfig0MasterMcYaml, nil
+}
+
+func testExtendedTestdataMachine_configMachineconfig0MasterMcYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configMachineconfig0MasterMcYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfig/0-master-mc.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configMachineconfig1MasterInvalidMcYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 91-master-testfile-invalid
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:,hello%20world%0A
+        mode: 420
+        path: /home/core
+`)
+
+func testExtendedTestdataMachine_configMachineconfig1MasterInvalidMcYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configMachineconfig1MasterInvalidMcYaml, nil
+}
+
+func testExtendedTestdataMachine_configMachineconfig1MasterInvalidMcYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configMachineconfig1MasterInvalidMcYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfig/1-master-invalid-mc.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configMachineconfig1WorkerInvalidMcYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker
+  name: 91-worker-testfile-invalid
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:,hello%20world%0A
+        mode: 420
+        path: /home/core
+`)
+
+func testExtendedTestdataMachine_configMachineconfig1WorkerInvalidMcYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configMachineconfig1WorkerInvalidMcYaml, nil
+}
+
+func testExtendedTestdataMachine_configMachineconfig1WorkerInvalidMcYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configMachineconfig1WorkerInvalidMcYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfig/1-worker-invalid-mc.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configMachineconfigpoolCustommcpYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: custom
+  labels:
+    pools.operator.machineconfiguration.openshift.io/custom: ""
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      - {key: machineconfiguration.openshift.io/role, operator: In, values: [worker,custom]}
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/custom: ""
+`)
+
+func testExtendedTestdataMachine_configMachineconfigpoolCustommcpYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configMachineconfigpoolCustommcpYaml, nil
+}
+
+func testExtendedTestdataMachine_configMachineconfigpoolCustommcpYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configMachineconfigpoolCustommcpYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfigpool/customMCP.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: infra
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      - {key: machineconfiguration.openshift.io/role, operator: In, values: [worker,infra]}
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/infra: ""
+`)
+
+func testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYaml, nil
+}
+
+func testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfigpool/infra-mcp.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -49138,6 +49397,216 @@ func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPar
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfigurations/managedbootimages-partial.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configMachineconfigurationsNodedisruptionpolicyRebootlessPathYaml = []byte(`apiVersion: operator.openshift.io/v1
+kind: MachineConfiguration
+metadata:
+  name: cluster
+  namespace: openshift-machine-config-operator
+spec:
+  nodeDisruptionPolicy:
+    files:
+      - path: /home/core/test
+        actions:
+          - type: None
+`)
+
+func testExtendedTestdataMachine_configMachineconfigurationsNodedisruptionpolicyRebootlessPathYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configMachineconfigurationsNodedisruptionpolicyRebootlessPathYaml, nil
+}
+
+func testExtendedTestdataMachine_configMachineconfigurationsNodedisruptionpolicyRebootlessPathYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configMachineconfigurationsNodedisruptionpolicyRebootlessPathYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfigurations/nodedisruptionpolicy-rebootless-path.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configPinnedimageCustomgcmcppisYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: PinnedImageSet
+metadata:
+  name: test-pinned
+  labels:
+    machineconfiguration.openshift.io/role: "custom"
+spec:
+  pinnedImages:
+   - name: quay.io/openshifttest/busybox@sha256:c5439d7db88ab5423999530349d327b04279ad3161d7596d2126dfb5b02bfd1f 
+`)
+
+func testExtendedTestdataMachine_configPinnedimageCustomgcmcppisYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configPinnedimageCustomgcmcppisYaml, nil
+}
+
+func testExtendedTestdataMachine_configPinnedimageCustomgcmcppisYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configPinnedimageCustomgcmcppisYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/pinnedimage/customGCMCPpis.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configPinnedimageCustominvalidpisYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: PinnedImageSet
+metadata:
+  name: test-pinned
+  labels:
+    machineconfiguration.openshift.io/role: "custom"
+spec:
+  pinnedImages:
+   - name: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:86d26e7ebcccd6f07a75db5b1e56283b25c2ee1c6a755d6ffc5a4d59beb9cdef
+`)
+
+func testExtendedTestdataMachine_configPinnedimageCustominvalidpisYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configPinnedimageCustominvalidpisYaml, nil
+}
+
+func testExtendedTestdataMachine_configPinnedimageCustominvalidpisYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configPinnedimageCustominvalidpisYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/pinnedimage/customInvalidPis.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configPinnedimageCustommcppisYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: PinnedImageSet
+metadata:
+  name: test-pinned
+  labels:
+    machineconfiguration.openshift.io/role: "custom"
+spec:
+  pinnedImages:
+   - name: quay.io/openshifttest/busybox@sha256:c5439d7db88ab5423999530349d327b04279ad3161d7596d2126dfb5b02bfd1f 
+`)
+
+func testExtendedTestdataMachine_configPinnedimageCustommcppisYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configPinnedimageCustommcppisYaml, nil
+}
+
+func testExtendedTestdataMachine_configPinnedimageCustommcppisYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configPinnedimageCustommcppisYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/pinnedimage/customMCPpis.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configPinnedimageInvalidpisYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: PinnedImageSet
+metadata:
+  name: test-pinned
+  labels:
+    machineconfiguration.openshift.io/role: "worker"
+spec:
+  pinnedImages:
+   - name: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:86d26e7ebcccd6f07a75db5b1e56283b25c2ee1c6a755d6ffc5a4d59beb9cdef
+`)
+
+func testExtendedTestdataMachine_configPinnedimageInvalidpisYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configPinnedimageInvalidpisYaml, nil
+}
+
+func testExtendedTestdataMachine_configPinnedimageInvalidpisYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configPinnedimageInvalidpisYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/pinnedimage/invalidPis.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configPinnedimageMasterinvalidpisYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: PinnedImageSet
+metadata:
+  name: test-pinned
+  labels:
+    machineconfiguration.openshift.io/role: "master"
+spec:
+  pinnedImages:
+   - name: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:86d26e7ebcccd6f07a75db5b1e56283b25c2ee1c6a755d6ffc5a4d59beb9cdef
+`)
+
+func testExtendedTestdataMachine_configPinnedimageMasterinvalidpisYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configPinnedimageMasterinvalidpisYaml, nil
+}
+
+func testExtendedTestdataMachine_configPinnedimageMasterinvalidpisYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configPinnedimageMasterinvalidpisYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/pinnedimage/masterInvalidPis.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configPinnedimageMasterpisYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: PinnedImageSet
+metadata:
+  name: test-pinned
+  labels:
+    machineconfiguration.openshift.io/role: "master"
+spec:
+  pinnedImages:
+   - name: quay.io/openshifttest/busybox@sha256:c5439d7db88ab5423999530349d327b04279ad3161d7596d2126dfb5b02bfd1f
+`)
+
+func testExtendedTestdataMachine_configPinnedimageMasterpisYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configPinnedimageMasterpisYaml, nil
+}
+
+func testExtendedTestdataMachine_configPinnedimageMasterpisYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configPinnedimageMasterpisYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/pinnedimage/masterPis.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataMachine_configPinnedimagePisYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: PinnedImageSet
+metadata:
+  name: test-pinned
+  labels:
+    machineconfiguration.openshift.io/role: "worker"
+spec:
+  pinnedImages:
+   - name: quay.io/openshifttest/busybox@sha256:c5439d7db88ab5423999530349d327b04279ad3161d7596d2126dfb5b02bfd1f
+`)
+
+func testExtendedTestdataMachine_configPinnedimagePisYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataMachine_configPinnedimagePisYaml, nil
+}
+
+func testExtendedTestdataMachine_configPinnedimagePisYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataMachine_configPinnedimagePisYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/machine_config/pinnedimage/pis.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -49807,6 +50276,402 @@ func testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml() (*asset, error)
 	return a, nil
 }
 
+var _testExtendedTestdataNodeNested_containerDockerfile = []byte(`FROM registry.fedoraproject.org/fedora:41
+ARG VERSION=v5.4.0
+
+# TODO: rpm --setcaps... needed due to Fedora (base) image builds
+#       being (maybe still?) affected by
+#       https://bugzilla.redhat.com/show_bug.cgi?id=1995337#c3
+RUN dnf -y makecache && \
+    dnf -y update && \
+    rpm --setcaps shadow-utils 2>/dev/null && \
+    dnf -y install \
+    awk \
+    podman \
+    fuse-overlayfs \
+    openssh-clients \
+    ucpp \
+	bats \
+	buildah \
+	file \
+	git \
+	go \
+	gpgme-devel \
+	htpasswd \
+	jq \
+	libseccomp-devel \
+	make \
+	nc \
+	openssl \
+	procps \
+	python-yaml \
+	skopeo \
+	slirp4netns \
+	socat \
+	ss \
+	timeout \
+    --exclude container-selinux && \
+    ln -s /usr/bin/ucpp /usr/local/bin/cpp && \
+    dnf clean all && \
+    rm -rf /var/cache /var/log/dnf* /var/log/yum.*
+
+RUN useradd podman && \
+    echo -e "podman:1:999\npodman:1001:64535" > /etc/subuid && \
+    echo -e "podman:1:999\npodman:1001:64535" > /etc/subgid
+
+ADD /containers.conf /etc/containers/containers.conf
+
+RUN mkdir -p /home/podman/.local/share/containers && \
+    chown podman:podman -R /home/podman && \
+    chmod 644 /etc/containers/containers.conf
+
+# Copy & modify the defaults to provide reference if runtime changes needed.
+# Changes here are required for running with fuse-overlay storage inside container.
+RUN sed -e 's|^#mount_program|mount_program|g' \
+           -e '/additionalimage.*/a "/var/lib/shared",' \
+           -e 's|^mountopt[[:space:]]*=.*$|mountopt = "nodev,fsync=0"|g' \
+           /usr/share/containers/storage.conf \
+           > /etc/containers/storage.conf
+
+RUN mkdir -p /run/user/1000 && chown podman:podman $_
+
+USER podman
+RUN mkdir -p /home/podman/go/src/github.com/containers && \
+	cd $_ && \
+	git clone --depth=1 --branch ${VERSION} https://github.com/containers/podman && \
+	cd podman && \
+	make bin/podman-testing bin/podman
+
+WORKDIR /home/podman/go/src/github.com/containers/podman
+COPY --chown=podman:podman --chmod=755 skip_tests.sh skip_tests.sh
+RUN ./skip_tests.sh
+
+COPY --chown=podman:podman --chmod=755 run_tests.sh run_tests.sh
+
+ENTRYPOINT ["/usr/libexec/podman/catatonit", "--"]
+CMD [ "./run_tests.sh" ]`)
+
+func testExtendedTestdataNodeNested_containerDockerfileBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeNested_containerDockerfile, nil
+}
+
+func testExtendedTestdataNodeNested_containerDockerfile() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeNested_containerDockerfileBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/nested_container/Dockerfile", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeNested_containerContainersConf = []byte(`[containers]
+netns="private"
+userns="host"
+ipcns="shareable"
+utsns="private"
+cgroupns="private"
+cgroups="enabled"
+log_driver = "k8s-file"
+volumes = [
+    "/proc:/proc",
+	"/sys:/sys",
+]
+default_sysctls = []
+[engine]
+cgroup_manager = "cgroupfs"
+events_logger="file"
+runtime="crun"`)
+
+func testExtendedTestdataNodeNested_containerContainersConfBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeNested_containerContainersConf, nil
+}
+
+func testExtendedTestdataNodeNested_containerContainersConf() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeNested_containerContainersConfBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/nested_container/containers.conf", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeNested_containerRun_testsSh = []byte(`#!/usr/bin/env bash
+
+mkdir -p serial-junit
+PODMAN=$(pwd)/bin/podman bats -T --report-formatter junit -o serial-junit --filter-tags '!ci:parallel' test/system/ || touch fail
+mkdir -p parallel-junit
+PODMAN=$(pwd)/bin/podman bats -T --report-formatter junit -o parallel-junit --filter-tags ci:parallel -j $(nproc) test/system/ || touch fail
+touch done
+echo "Finished running tests."
+# wait for the test results to be retrieved
+tail -f /dev/null
+`)
+
+func testExtendedTestdataNodeNested_containerRun_testsShBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeNested_containerRun_testsSh, nil
+}
+
+func testExtendedTestdataNodeNested_containerRun_testsSh() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeNested_containerRun_testsShBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/nested_container/run_tests.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeNested_containerSkip_testsSh = []byte(`#!/usr/bin/env bash
+set -e
+
+TEST_DIR=test/system
+function insert_skip {
+	file=$1
+	testcase=$2
+	# escape slash
+	testcase=$(echo $testcase | sed 's/\//\\\//g')
+	echo $testcase
+	sed -i "/$testcase/a\
+	skip 'not working in cri-o'" "$TEST_DIR/$file"
+}
+
+# cannot pause without cgroup, and no cgroup in rootless container
+rm $TEST_DIR/080-pause.bats
+# systemd
+rm $TEST_DIR/250-systemd.bats
+rm $TEST_DIR/251-system-service.bats
+rm $TEST_DIR/252-quadlet.bats
+rm $TEST_DIR/255-auto-update.bats
+rm $TEST_DIR/270-socket-activation.bats
+
+# broken tests https://github.com/containers/podman/commit/c65bb903b63c60a1ef2ccd3c21e118c4784d2f6b#diff-78c7444aee8aa212e7101395b618015dec2d5d1eab06fb7de2a8ecdf7418cde4
+insert_skip 030-run.bats 'podman run - basic tests'
+insert_skip 030-run.bats 'podman run - no entrypoint'
+
+# Error: retrieving label for image "a6b6f7ac212ddfdb879e9b9c4df1655c9b07ead8b028110e657364485c577bff": you may need to remove the image to resolve the error: fallback error checking whether image is a manifest list: choosing image instance: no image found in manifest list for architecture "amd64", variant "", OS "linux": choosing image instance: no image found in manifest list for architecture "amd64", variant "", OS "linux"
+insert_skip 012-manifest.bats "podman images - bare manifest"
+# There is only one tty - /dev/tty
+insert_skip 030-run.bats 'podman run --privileged as rootless will not mount /dev/tty\\d+'
+# systemd can't run in nested container
+insert_skip 030-run.bats "podman run - /run must not be world-writable in systemd containers"
+# Error: OCI runtime error: crun: write to ` + "`" + `/proc/self/oom_score_adj` + "`" + `: Invalid argument
+insert_skip 030-run.bats "podman run doesn't override oom-score-adj"
+# flaky
+insert_skip 090-events.bats "image events"
+# mount not shown
+insert_skip 160-volumes.bats "podman run --volumes : basic"
+# ping: permission denied (are you root?) 
+insert_skip 200-pod.bats "podman pod create - hashtag AllTheOptions"
+# /home/podman/go/src/github.com/containers/podman/test/system/helpers.bash: line 1117: /usr/bin/expr: Argument list too long
+insert_skip 200-pod.bats "podman pod top - containers in different PID namespaces"
+# flaky
+insert_skip 320-system-df.bats "podman system df --format json functionality"
+# FAIL: Pause process 42825 is still running even after podman system migrate
+insert_skip 550-pause-process.bats "rootless podman only ever uses single pause process"
+ 
+# Error: cannot remove container 31261d3890fe98a254b9fc2eb219753bc28df05efdf22c0f34222c33a2185a27 as it could not be stopped: given PID did not die within timeout
+insert_skip 065-cp.bats "podman cp file from/to host while --pid=host"
+insert_skip 195-run-namespaces.bats "podman test all namespaces"
+ 
+# userns
+insert_skip 170-run-userns.bats "podman userns=auto in config file"
+insert_skip 170-run-userns.bats "podman userns=auto and secrets"
+insert_skip 170-run-userns.bats "podman userns=auto with id mapping"
+insert_skip 700-play.bats "podman kube restore user namespace" # usernamespace
+ 
+# # won't fix
+
+# cat: /proc/sys/net/core/wmem_default: No such file or directory
+# https://github.com/moby/moby/issues/30778
+insert_skip 505-networking-pasta.bats "UDP/IPv4 large transfer, tap"
+insert_skip 505-networking-pasta.bats "UDP/IPv4 large transfer, loopback"
+insert_skip 505-networking-pasta.bats "UDP/IPv6 large transfer, tap"
+insert_skip 505-networking-pasta.bats "UDP/IPv6 large transfer, loopback"
+
+# healthcheck
+insert_skip 055-rm.bats "podman container rm doesn't affect stopping containers"
+insert_skip 055-rm.bats "podman container rm --force doesn't leave running processes"
+insert_skip 220-healthcheck.bats "podman healthcheck"
+insert_skip 700-play.bats "podman kube play healthcheck should wait initialDelaySeconds before updating status"
+
+# cgroup
+# cannot pause the container without a cgroup
+# https://github.com/containers/podman/issues/12782
+insert_skip 200-pod.bats "podman pod cleans cgroup and keeps limits"
+# opening file ` + "`" + `memory.max` + "`" + ` for writing: Permission denied
+insert_skip 280-update.bats "podman update - test all options"
+insert_skip 280-update.bats "podman update - resources on update are not changed unless requested"
+insert_skip 600-completion.bats "podman shell completion test"
+
+# systemd
+insert_skip 030-run.bats "podman run --log-driver" # FAIL: podman logs, with driver 'journald'
+insert_skip 035-logs.bats "podman logs - tail test, journald"
+insert_skip 035-logs.bats "podman logs - multi journald"
+insert_skip 035-logs.bats "podman logs restarted journald"
+insert_skip 035-logs.bats "podman logs - since journald"
+insert_skip 035-logs.bats "podman logs - until journald"
+insert_skip 035-logs.bats "podman logs - --follow journald"
+insert_skip 035-logs.bats "podman logs - --since --follow journald"
+insert_skip 035-logs.bats "podman logs - --until --follow journald"
+insert_skip 035-logs.bats "podman logs - journald log driver requires journald events backend"
+insert_skip 090-events.bats "events with disjunctive filters - journald"
+insert_skip 090-events.bats "events with file backend and journald logdriver with --follow failure"
+insert_skip 090-events.bats "events - container inspect data - journald"
+insert_skip 220-healthcheck.bats "podman healthcheck --health-log-destination journal"
+insert_skip 420-cgroups.bats "podman run, preserves initial --cgroup-manager"
+`)
+
+func testExtendedTestdataNodeNested_containerSkip_testsShBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeNested_containerSkip_testsSh, nil
+}
+
+func testExtendedTestdataNodeNested_containerSkip_testsSh() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeNested_containerSkip_testsShBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/nested_container/skip_tests.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeZstdChunkedDockerfile = []byte(`FROM registry.redhat.io/rhel8/buildah:latest
+# For simplicity, /tmp/build contains the inputs we’ll be building when we
+# run this custom builder image. Normally the custom builder image would
+# fetch this content from some location at build time. (e.g. via git clone).
+ADD Dockerfile.sample /tmp/input/Dockerfile
+ADD build.sh /usr/bin
+RUN chmod a+x /usr/bin/build.sh
+# /usr/build/build.sh contains the actual custom build logic that will be executed when
+# this custom builder image is executed.
+ENTRYPOINT ["/usr/bin/build.sh"]
+`)
+
+func testExtendedTestdataNodeZstdChunkedDockerfileBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeZstdChunkedDockerfile, nil
+}
+
+func testExtendedTestdataNodeZstdChunkedDockerfile() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeZstdChunkedDockerfileBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/zstd-chunked/Dockerfile", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeZstdChunkedDockerfileSample = []byte(`FROM image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
+CMD ["date"]
+`)
+
+func testExtendedTestdataNodeZstdChunkedDockerfileSampleBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeZstdChunkedDockerfileSample, nil
+}
+
+func testExtendedTestdataNodeZstdChunkedDockerfileSample() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeZstdChunkedDockerfileSampleBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/zstd-chunked/Dockerfile.sample", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeZstdChunkedBuildSh = []byte(`#!/bin/sh
+
+set -euo pipefail
+
+# Note that in this case the build inputs are part of the custom builder image, but normally this
+# would be retrieved from an external source.
+cd /tmp/input
+# OUTPUT_REGISTRY and OUTPUT_IMAGE are env variables provided by the custom
+# build framework
+TAG="${OUTPUT_REGISTRY}/${OUTPUT_IMAGE}"
+
+cp -R /var/run/configs/openshift.io/certs/certs.d/* /etc/containers/certs.d/
+
+# buildah requires a slight modification to the push secret provided by the service account in order to use it for pushing the image
+echo "{ \"auths\": $(cat /var/run/secrets/openshift.io/pull/.dockercfg)}" > /tmp/.pull
+echo "{ \"auths\": $(cat /var/run/secrets/openshift.io/push/.dockercfg)}" > /tmp/.push
+
+# performs the build of the new image defined by Dockerfile.sample
+buildah --authfile /tmp/.pull --storage-driver vfs bud --isolation chroot -t ${TAG} .
+# push the new image to the target for the build
+buildah --authfile /tmp/.push --storage-driver vfs push --compression-format zstd:chunked ${TAG}
+`)
+
+func testExtendedTestdataNodeZstdChunkedBuildShBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeZstdChunkedBuildSh, nil
+}
+
+func testExtendedTestdataNodeZstdChunkedBuildSh() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeZstdChunkedBuildShBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/zstd-chunked/build.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml = []byte(`kind: List
+apiVersion: v1
+items:
+- kind: ImageStream
+  apiVersion: image.openshift.io/v1
+  metadata:
+    name: sample-custom
+- kind: BuildConfig
+  apiVersion: build.openshift.io/v1
+  metadata:
+    name: sample-custom-build
+    labels:
+      name: sample-custom-build
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: 'true'
+  spec:
+    strategy:
+      type: Custom
+      customStrategy:
+        env:
+          - name: "BUILD_LOGLEVEL"
+            value: "2"
+        forcePull: true
+        from:
+          kind: ImageStreamTag
+          name: custom-builder-image:latest
+    output:
+      to:
+        kind: ImageStreamTag
+        name: sample-custom:latest
+`)
+
+func testExtendedTestdataNodeZstdChunkedTestCustomBuildYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml, nil
+}
+
+func testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeZstdChunkedTestCustomBuildYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/zstd-chunked/test-custom-build.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataNode_tuningNtoStalldYaml = []byte(`apiVersion: tuned.openshift.io/v1
 kind: Tuned
 metadata:
@@ -50158,30 +51023,30 @@ func testExtendedTestdataOlmv1InstallCatalogYaml() (*asset, error) {
 var _testExtendedTestdataOlmv1InstallOperatorYaml = []byte(`apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: install-test-sa-{PACKAGENAME}
+  name: install-test-sa-{UNIQUE}
   namespace: {NAMESPACE}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: install-test-crb-{PACKAGENAME}
+  name: install-test-crb-{UNIQUE}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
 subjects:
 - kind: ServiceAccount
-  name: install-test-sa-{PACKAGENAME}
+  name: install-test-sa-{UNIQUE}
   namespace: {NAMESPACE}
 ---
 apiVersion: olm.operatorframework.io/v1
 kind: ClusterExtension
 metadata:
-  name: install-test-ce-{PACKAGENAME}
+  name: install-test-ce-{UNIQUE}
 spec:
   namespace: {NAMESPACE}
   serviceAccount:
-    name: install-test-sa-{PACKAGENAME}
+    name: install-test-sa-{UNIQUE}
   source:
     catalog:
       packageName: {PACKAGENAME}
@@ -50202,6 +51067,2495 @@ func testExtendedTestdataOlmv1InstallOperatorYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-operator.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataOlmv1InstallPipelineOperator0Yaml = []byte(`# This is the baseline RBAC needed to install the operator.
+# Other versions of install-pipeline-operator-X.yaml have had something removed
+# So, diff against this version to know exactly what has been removed (even though
+# there is a comment at the top of the file).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: install-test-cr-{UNIQUE}
+rules:
+- apiGroups:
+  - olm.operatorframework.io
+  resources:
+  - clusterextensions/finalizers
+  verbs:
+  - update
+  # Scoped to the name of the ClusterExtension
+  resourceNames:
+  - install-test-ce-{UNIQUE}
+- apiGroups:
+    - ''
+  resources:
+    - nodes
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - pods
+    - pods/finalizers
+    - services
+    - services/finalizers
+    - endpoints
+    - endpoints/finalizers
+    - persistentvolumeclaims
+    - persistentvolumeclaims/finalizers
+    - events
+    - events/finalizers
+    - configmaps
+    - configmaps/finalizers
+    - secrets
+    - secrets/finalizers
+    - pods/log
+    - limitranges
+    - limitranges/finalizers
+    - namespaces
+    - namespaces/finalizers
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - extensions
+    - apps
+  resources:
+    - ingresses
+    - ingresses/finalizers
+    - ingresses/status
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - apps
+  resources:
+    - deployments
+    - deployments/finalizers
+    - daemonsets
+    - daemonsets/finalizers
+    - replicasets
+    - replicasets/finalizers
+    - statefulsets
+    - statefulsets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - clusterroles
+    - clusterroles/finalizers
+    - roles
+    - roles/finalizers
+    - clusterrolebindings
+    - clusterrolebindings/finalizers
+    - rolebindings
+    - rolebindings/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+    - bind
+    - escalate
+- apiGroups:
+    - ''
+  resources:
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - impersonate
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+    - customresourcedefinitions/finalizers
+    - customresourcedefinitions/status
+  verbs:
+    - get
+    - create
+    - update
+    - delete
+    - list
+    - patch
+    - watch
+- apiGroups:
+    - admissionregistration.k8s.io
+  resources:
+    - mutatingwebhookconfigurations
+    - mutatingwebhookconfigurations/finalizers
+    - validatingwebhookconfigurations
+    - validatingwebhookconfigurations/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - build.knative.dev
+  resources:
+    - builds
+    - builds/finalizers
+    - buildtemplates
+    - buildtemplates/finalizers
+    - clusterbuildtemplates
+    - clusterbuildtemplates/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - extensions
+  resources:
+    - deployments
+    - deployments/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - tekton.dev
+    - resolution.tekton.dev
+    - triggers.tekton.dev
+    - operator.tekton.dev
+    - pipelinesascode.tekton.dev
+    - dashboard.tekton.dev
+  resources:
+    - '*'
+  verbs:
+    - add
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - security.openshift.io
+  resources:
+    - securitycontextconstraints
+    - securitycontextconstraints/finalizers
+  verbs:
+    - use
+    - get
+    - list
+    - create
+    - update
+    - delete
+- apiGroups:
+    - events.k8s.io
+  resources:
+    - events
+  verbs:
+    - create
+- apiGroups:
+    - route.openshift.io
+  resources:
+    - routes
+    - routes/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+    - leases/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleyamlsamples
+    - consoleyamlsamples/finalizers
+    - consoleclidownloads
+    - consoleclidownloads/finalizers
+    - consolequickstarts
+    - consolequickstarts/finalizers
+    - consolelinks
+    - consolelinks/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - autoscaling
+  resources:
+    - horizontalpodautoscalers
+    - horizontalpodautoscalers/finalizers
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - policy
+  resources:
+    - poddisruptionbudgets
+    - poddisruptionbudgets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - monitoring.coreos.com
+  resources:
+    - servicemonitors
+    - servicemonitors/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - batch
+  resources:
+    - jobs
+    - jobs/finalizers
+    - cronjobs
+    - cronjobs/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleplugins
+    - consoleplugins/finalizers
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+    - update
+    - patch
+`)
+
+func testExtendedTestdataOlmv1InstallPipelineOperator0YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataOlmv1InstallPipelineOperator0Yaml, nil
+}
+
+func testExtendedTestdataOlmv1InstallPipelineOperator0Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator0YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-0.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataOlmv1InstallPipelineOperator1Yaml = []byte(`# Remove (namespace-scoped) services from resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: install-test-cr-{UNIQUE}
+rules:
+- apiGroups:
+  - olm.operatorframework.io
+  resources:
+  - clusterextensions/finalizers
+  verbs:
+  - update
+  # Scoped to the name of the ClusterExtension
+  resourceNames:
+  - install-test-ce-{UNIQUE}
+- apiGroups:
+    - ''
+  resources:
+    - nodes
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - pods
+    - pods/finalizers
+    - endpoints
+    - endpoints/finalizers
+    - persistentvolumeclaims
+    - persistentvolumeclaims/finalizers
+    - events
+    - events/finalizers
+    - configmaps
+    - configmaps/finalizers
+    - secrets
+    - secrets/finalizers
+    - pods/log
+    - limitranges
+    - limitranges/finalizers
+    - namespaces
+    - namespaces/finalizers
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - extensions
+    - apps
+  resources:
+    - ingresses
+    - ingresses/finalizers
+    - ingresses/status
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - apps
+  resources:
+    - deployments
+    - deployments/finalizers
+    - daemonsets
+    - daemonsets/finalizers
+    - replicasets
+    - replicasets/finalizers
+    - statefulsets
+    - statefulsets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - clusterroles
+    - clusterroles/finalizers
+    - roles
+    - roles/finalizers
+    - clusterrolebindings
+    - clusterrolebindings/finalizers
+    - rolebindings
+    - rolebindings/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+    - bind
+    - escalate
+- apiGroups:
+    - ''
+  resources:
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - impersonate
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+    - customresourcedefinitions/finalizers
+    - customresourcedefinitions/status
+  verbs:
+    - get
+    - create
+    - update
+    - delete
+    - list
+    - patch
+    - watch
+- apiGroups:
+    - admissionregistration.k8s.io
+  resources:
+    - mutatingwebhookconfigurations
+    - mutatingwebhookconfigurations/finalizers
+    - validatingwebhookconfigurations
+    - validatingwebhookconfigurations/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - build.knative.dev
+  resources:
+    - builds
+    - builds/finalizers
+    - buildtemplates
+    - buildtemplates/finalizers
+    - clusterbuildtemplates
+    - clusterbuildtemplates/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - extensions
+  resources:
+    - deployments
+    - deployments/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - tekton.dev
+    - resolution.tekton.dev
+    - triggers.tekton.dev
+    - operator.tekton.dev
+    - pipelinesascode.tekton.dev
+    - dashboard.tekton.dev
+  resources:
+    - '*'
+  verbs:
+    - add
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - security.openshift.io
+  resources:
+    - securitycontextconstraints
+    - securitycontextconstraints/finalizers
+  verbs:
+    - use
+    - get
+    - list
+    - create
+    - update
+    - delete
+- apiGroups:
+    - events.k8s.io
+  resources:
+    - events
+  verbs:
+    - create
+- apiGroups:
+    - route.openshift.io
+  resources:
+    - routes
+    - routes/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+    - leases/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleyamlsamples
+    - consoleyamlsamples/finalizers
+    - consoleclidownloads
+    - consoleclidownloads/finalizers
+    - consolequickstarts
+    - consolequickstarts/finalizers
+    - consolelinks
+    - consolelinks/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - autoscaling
+  resources:
+    - horizontalpodautoscalers
+    - horizontalpodautoscalers/finalizers
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - policy
+  resources:
+    - poddisruptionbudgets
+    - poddisruptionbudgets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - monitoring.coreos.com
+  resources:
+    - servicemonitors
+    - servicemonitors/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - batch
+  resources:
+    - jobs
+    - jobs/finalizers
+    - cronjobs
+    - cronjobs/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleplugins
+    - consoleplugins/finalizers
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+    - update
+    - patch
+`)
+
+func testExtendedTestdataOlmv1InstallPipelineOperator1YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataOlmv1InstallPipelineOperator1Yaml, nil
+}
+
+func testExtendedTestdataOlmv1InstallPipelineOperator1Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator1YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-1.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataOlmv1InstallPipelineOperator2Yaml = []byte(`# Remove create verb from '' API group
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: install-test-cr-{UNIQUE}
+rules:
+- apiGroups:
+  - olm.operatorframework.io
+  resources:
+  - clusterextensions/finalizers
+  verbs:
+  - update
+  # Scoped to the name of the ClusterExtension
+  resourceNames:
+  - install-test-ce-{UNIQUE}
+- apiGroups:
+    - ''
+  resources:
+    - nodes
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - pods
+    - pods/finalizers
+    - services
+    - services/finalizers
+    - endpoints
+    - endpoints/finalizers
+    - persistentvolumeclaims
+    - persistentvolumeclaims/finalizers
+    - events
+    - events/finalizers
+    - configmaps
+    - configmaps/finalizers
+    - secrets
+    - secrets/finalizers
+    - pods/log
+    - limitranges
+    - limitranges/finalizers
+    - namespaces
+    - namespaces/finalizers
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - extensions
+    - apps
+  resources:
+    - ingresses
+    - ingresses/finalizers
+    - ingresses/status
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - apps
+  resources:
+    - deployments
+    - deployments/finalizers
+    - daemonsets
+    - daemonsets/finalizers
+    - replicasets
+    - replicasets/finalizers
+    - statefulsets
+    - statefulsets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - clusterroles
+    - clusterroles/finalizers
+    - roles
+    - roles/finalizers
+    - clusterrolebindings
+    - clusterrolebindings/finalizers
+    - rolebindings
+    - rolebindings/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+    - bind
+    - escalate
+- apiGroups:
+    - ''
+  resources:
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - impersonate
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+    - customresourcedefinitions/finalizers
+    - customresourcedefinitions/status
+  verbs:
+    - get
+    - create
+    - update
+    - delete
+    - list
+    - patch
+    - watch
+- apiGroups:
+    - admissionregistration.k8s.io
+  resources:
+    - mutatingwebhookconfigurations
+    - mutatingwebhookconfigurations/finalizers
+    - validatingwebhookconfigurations
+    - validatingwebhookconfigurations/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - build.knative.dev
+  resources:
+    - builds
+    - builds/finalizers
+    - buildtemplates
+    - buildtemplates/finalizers
+    - clusterbuildtemplates
+    - clusterbuildtemplates/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - extensions
+  resources:
+    - deployments
+    - deployments/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - tekton.dev
+    - resolution.tekton.dev
+    - triggers.tekton.dev
+    - operator.tekton.dev
+    - pipelinesascode.tekton.dev
+    - dashboard.tekton.dev
+  resources:
+    - '*'
+  verbs:
+    - add
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - security.openshift.io
+  resources:
+    - securitycontextconstraints
+    - securitycontextconstraints/finalizers
+  verbs:
+    - use
+    - get
+    - list
+    - create
+    - update
+    - delete
+- apiGroups:
+    - events.k8s.io
+  resources:
+    - events
+  verbs:
+    - create
+- apiGroups:
+    - route.openshift.io
+  resources:
+    - routes
+    - routes/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+    - leases/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleyamlsamples
+    - consoleyamlsamples/finalizers
+    - consoleclidownloads
+    - consoleclidownloads/finalizers
+    - consolequickstarts
+    - consolequickstarts/finalizers
+    - consolelinks
+    - consolelinks/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - autoscaling
+  resources:
+    - horizontalpodautoscalers
+    - horizontalpodautoscalers/finalizers
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - policy
+  resources:
+    - poddisruptionbudgets
+    - poddisruptionbudgets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - monitoring.coreos.com
+  resources:
+    - servicemonitors
+    - servicemonitors/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - batch
+  resources:
+    - jobs
+    - jobs/finalizers
+    - cronjobs
+    - cronjobs/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleplugins
+    - consoleplugins/finalizers
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+    - update
+    - patch
+`)
+
+func testExtendedTestdataOlmv1InstallPipelineOperator2YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataOlmv1InstallPipelineOperator2Yaml, nil
+}
+
+func testExtendedTestdataOlmv1InstallPipelineOperator2Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator2YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-2.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataOlmv1InstallPipelineOperator3Yaml = []byte(`# Remove CRB from list of resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: install-test-cr-{UNIQUE}
+rules:
+- apiGroups:
+  - olm.operatorframework.io
+  resources:
+  - clusterextensions/finalizers
+  verbs:
+  - update
+  # Scoped to the name of the ClusterExtension
+  resourceNames:
+  - install-test-ce-{UNIQUE}
+- apiGroups:
+    - ''
+  resources:
+    - nodes
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - pods
+    - pods/finalizers
+    - services
+    - services/finalizers
+    - endpoints
+    - endpoints/finalizers
+    - persistentvolumeclaims
+    - persistentvolumeclaims/finalizers
+    - events
+    - events/finalizers
+    - configmaps
+    - configmaps/finalizers
+    - secrets
+    - secrets/finalizers
+    - pods/log
+    - limitranges
+    - limitranges/finalizers
+    - namespaces
+    - namespaces/finalizers
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - extensions
+    - apps
+  resources:
+    - ingresses
+    - ingresses/finalizers
+    - ingresses/status
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - apps
+  resources:
+    - deployments
+    - deployments/finalizers
+    - daemonsets
+    - daemonsets/finalizers
+    - replicasets
+    - replicasets/finalizers
+    - statefulsets
+    - statefulsets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - clusterroles
+    - clusterroles/finalizers
+    - roles
+    - roles/finalizers
+    - rolebindings
+    - rolebindings/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+    - bind
+    - escalate
+- apiGroups:
+    - ''
+  resources:
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - impersonate
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+    - customresourcedefinitions/finalizers
+    - customresourcedefinitions/status
+  verbs:
+    - get
+    - create
+    - update
+    - delete
+    - list
+    - patch
+    - watch
+- apiGroups:
+    - admissionregistration.k8s.io
+  resources:
+    - mutatingwebhookconfigurations
+    - mutatingwebhookconfigurations/finalizers
+    - validatingwebhookconfigurations
+    - validatingwebhookconfigurations/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - build.knative.dev
+  resources:
+    - builds
+    - builds/finalizers
+    - buildtemplates
+    - buildtemplates/finalizers
+    - clusterbuildtemplates
+    - clusterbuildtemplates/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - extensions
+  resources:
+    - deployments
+    - deployments/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - tekton.dev
+    - resolution.tekton.dev
+    - triggers.tekton.dev
+    - operator.tekton.dev
+    - pipelinesascode.tekton.dev
+    - dashboard.tekton.dev
+  resources:
+    - '*'
+  verbs:
+    - add
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - security.openshift.io
+  resources:
+    - securitycontextconstraints
+    - securitycontextconstraints/finalizers
+  verbs:
+    - use
+    - get
+    - list
+    - create
+    - update
+    - delete
+- apiGroups:
+    - events.k8s.io
+  resources:
+    - events
+  verbs:
+    - create
+- apiGroups:
+    - route.openshift.io
+  resources:
+    - routes
+    - routes/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+    - leases/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleyamlsamples
+    - consoleyamlsamples/finalizers
+    - consoleclidownloads
+    - consoleclidownloads/finalizers
+    - consolequickstarts
+    - consolequickstarts/finalizers
+    - consolelinks
+    - consolelinks/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - autoscaling
+  resources:
+    - horizontalpodautoscalers
+    - horizontalpodautoscalers/finalizers
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - policy
+  resources:
+    - poddisruptionbudgets
+    - poddisruptionbudgets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - monitoring.coreos.com
+  resources:
+    - servicemonitors
+    - servicemonitors/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - batch
+  resources:
+    - jobs
+    - jobs/finalizers
+    - cronjobs
+    - cronjobs/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleplugins
+    - consoleplugins/finalizers
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+    - update
+    - patch
+`)
+
+func testExtendedTestdataOlmv1InstallPipelineOperator3YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataOlmv1InstallPipelineOperator3Yaml, nil
+}
+
+func testExtendedTestdataOlmv1InstallPipelineOperator3Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator3YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-3.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataOlmv1InstallPipelineOperator4Yaml = []byte(`# Be explicit about configmap resource names
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: install-test-cr-{UNIQUE}
+rules:
+- apiGroups:
+  - olm.operatorframework.io
+  resources:
+  - clusterextensions/finalizers
+  verbs:
+  - update
+  # Scoped to the name of the ClusterExtension
+  resourceNames:
+  - install-test-ce-{UNIQUE}
+- apiGroups:
+    - ''
+  resources:
+    - nodes
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - configmaps
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+  resourceNames:
+    - config-logging
+    - tekton-config-defaults
+    - tekton-config-observability
+- apiGroups:
+    - ''
+  resources:
+    - pods
+    - pods/finalizers
+    - services
+    - services/finalizers
+    - endpoints
+    - endpoints/finalizers
+    - persistentvolumeclaims
+    - persistentvolumeclaims/finalizers
+    - events
+    - events/finalizers
+    - configmaps/finalizers
+    - secrets
+    - secrets/finalizers
+    - pods/log
+    - limitranges
+    - limitranges/finalizers
+    - namespaces
+    - namespaces/finalizers
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - extensions
+    - apps
+  resources:
+    - ingresses
+    - ingresses/finalizers
+    - ingresses/status
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - apps
+  resources:
+    - deployments
+    - deployments/finalizers
+    - daemonsets
+    - daemonsets/finalizers
+    - replicasets
+    - replicasets/finalizers
+    - statefulsets
+    - statefulsets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - clusterroles
+    - clusterroles/finalizers
+    - roles
+    - roles/finalizers
+    - clusterrolebindings
+    - clusterrolebindings/finalizers
+    - rolebindings
+    - rolebindings/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+    - bind
+    - escalate
+- apiGroups:
+    - ''
+  resources:
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - impersonate
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+    - customresourcedefinitions/finalizers
+    - customresourcedefinitions/status
+  verbs:
+    - get
+    - create
+    - update
+    - delete
+    - list
+    - patch
+    - watch
+- apiGroups:
+    - admissionregistration.k8s.io
+  resources:
+    - mutatingwebhookconfigurations
+    - mutatingwebhookconfigurations/finalizers
+    - validatingwebhookconfigurations
+    - validatingwebhookconfigurations/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - build.knative.dev
+  resources:
+    - builds
+    - builds/finalizers
+    - buildtemplates
+    - buildtemplates/finalizers
+    - clusterbuildtemplates
+    - clusterbuildtemplates/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - extensions
+  resources:
+    - deployments
+    - deployments/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - tekton.dev
+    - resolution.tekton.dev
+    - triggers.tekton.dev
+    - operator.tekton.dev
+    - pipelinesascode.tekton.dev
+    - dashboard.tekton.dev
+  resources:
+    - '*'
+  verbs:
+    - add
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - security.openshift.io
+  resources:
+    - securitycontextconstraints
+    - securitycontextconstraints/finalizers
+  verbs:
+    - use
+    - get
+    - list
+    - create
+    - update
+    - delete
+- apiGroups:
+    - events.k8s.io
+  resources:
+    - events
+  verbs:
+    - create
+- apiGroups:
+    - route.openshift.io
+  resources:
+    - routes
+    - routes/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+    - leases/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleyamlsamples
+    - consoleyamlsamples/finalizers
+    - consoleclidownloads
+    - consoleclidownloads/finalizers
+    - consolequickstarts
+    - consolequickstarts/finalizers
+    - consolelinks
+    - consolelinks/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - autoscaling
+  resources:
+    - horizontalpodautoscalers
+    - horizontalpodautoscalers/finalizers
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - policy
+  resources:
+    - poddisruptionbudgets
+    - poddisruptionbudgets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - monitoring.coreos.com
+  resources:
+    - servicemonitors
+    - servicemonitors/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - batch
+  resources:
+    - jobs
+    - jobs/finalizers
+    - cronjobs
+    - cronjobs/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleplugins
+    - consoleplugins/finalizers
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+    - update
+    - patch
+`)
+
+func testExtendedTestdataOlmv1InstallPipelineOperator4YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataOlmv1InstallPipelineOperator4Yaml, nil
+}
+
+func testExtendedTestdataOlmv1InstallPipelineOperator4Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator4YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-4.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataOlmv1InstallPipelineOperator5Yaml = []byte(`# Remove clusterextensions/finalizers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: install-test-cr-{UNIQUE}
+rules:
+- apiGroups:
+    - ''
+  resources:
+    - nodes
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - pods
+    - pods/finalizers
+    - services
+    - services/finalizers
+    - endpoints
+    - endpoints/finalizers
+    - persistentvolumeclaims
+    - persistentvolumeclaims/finalizers
+    - events
+    - events/finalizers
+    - configmaps
+    - configmaps/finalizers
+    - secrets
+    - secrets/finalizers
+    - pods/log
+    - limitranges
+    - limitranges/finalizers
+    - namespaces
+    - namespaces/finalizers
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - extensions
+    - apps
+  resources:
+    - ingresses
+    - ingresses/finalizers
+    - ingresses/status
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - apps
+  resources:
+    - deployments
+    - deployments/finalizers
+    - daemonsets
+    - daemonsets/finalizers
+    - replicasets
+    - replicasets/finalizers
+    - statefulsets
+    - statefulsets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - clusterroles
+    - clusterroles/finalizers
+    - roles
+    - roles/finalizers
+    - clusterrolebindings
+    - clusterrolebindings/finalizers
+    - rolebindings
+    - rolebindings/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+    - bind
+    - escalate
+- apiGroups:
+    - ''
+  resources:
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - impersonate
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+    - customresourcedefinitions/finalizers
+    - customresourcedefinitions/status
+  verbs:
+    - get
+    - create
+    - update
+    - delete
+    - list
+    - patch
+    - watch
+- apiGroups:
+    - admissionregistration.k8s.io
+  resources:
+    - mutatingwebhookconfigurations
+    - mutatingwebhookconfigurations/finalizers
+    - validatingwebhookconfigurations
+    - validatingwebhookconfigurations/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - build.knative.dev
+  resources:
+    - builds
+    - builds/finalizers
+    - buildtemplates
+    - buildtemplates/finalizers
+    - clusterbuildtemplates
+    - clusterbuildtemplates/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - extensions
+  resources:
+    - deployments
+    - deployments/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - tekton.dev
+    - resolution.tekton.dev
+    - triggers.tekton.dev
+    - operator.tekton.dev
+    - pipelinesascode.tekton.dev
+    - dashboard.tekton.dev
+  resources:
+    - '*'
+  verbs:
+    - add
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - security.openshift.io
+  resources:
+    - securitycontextconstraints
+    - securitycontextconstraints/finalizers
+  verbs:
+    - use
+    - get
+    - list
+    - create
+    - update
+    - delete
+- apiGroups:
+    - events.k8s.io
+  resources:
+    - events
+  verbs:
+    - create
+- apiGroups:
+    - route.openshift.io
+  resources:
+    - routes
+    - routes/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+    - leases/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleyamlsamples
+    - consoleyamlsamples/finalizers
+    - consoleclidownloads
+    - consoleclidownloads/finalizers
+    - consolequickstarts
+    - consolequickstarts/finalizers
+    - consolelinks
+    - consolelinks/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - autoscaling
+  resources:
+    - horizontalpodautoscalers
+    - horizontalpodautoscalers/finalizers
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - policy
+  resources:
+    - poddisruptionbudgets
+    - poddisruptionbudgets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - monitoring.coreos.com
+  resources:
+    - servicemonitors
+    - servicemonitors/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - batch
+  resources:
+    - jobs
+    - jobs/finalizers
+    - cronjobs
+    - cronjobs/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleplugins
+    - consoleplugins/finalizers
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+    - update
+    - patch
+`)
+
+func testExtendedTestdataOlmv1InstallPipelineOperator5YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataOlmv1InstallPipelineOperator5Yaml, nil
+}
+
+func testExtendedTestdataOlmv1InstallPipelineOperator5Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator5YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-5.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataOlmv1InstallPipelineOperator6Yaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: install-test-cr-{UNIQUE}
+rules:
+- apiGroups:
+  - olm.operatorframework.io
+  resources:
+  - clusterextensions/finalizers
+  verbs:
+  - update
+  # Scoped to the name of the ClusterExtension
+  resourceNames:
+  - install-test-ce-{UNIQUE}
+- apiGroups:
+    - ''
+  resources:
+    - nodes
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - pods
+    - pods/finalizers
+    - services
+    - services/finalizers
+    - endpoints
+    - endpoints/finalizers
+    - persistentvolumeclaims
+    - persistentvolumeclaims/finalizers
+    - events
+    - events/finalizers
+    - configmaps
+    - configmaps/finalizers
+    - secrets
+    - secrets/finalizers
+    - pods/log
+    - limitranges
+    - limitranges/finalizers
+    - namespaces
+    - namespaces/finalizers
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - extensions
+    - apps
+  resources:
+    - ingresses
+    - ingresses/finalizers
+    - ingresses/status
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - apps
+  resources:
+    - deployments
+    - deployments/finalizers
+    - daemonsets
+    - daemonsets/finalizers
+    - replicasets
+    - replicasets/finalizers
+    - statefulsets
+    - statefulsets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - clusterroles
+    - clusterroles/finalizers
+    - roles
+    - roles/finalizers
+    - clusterrolebindings
+    - clusterrolebindings/finalizers
+    - rolebindings
+    - rolebindings/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - ''
+  resources:
+    - serviceaccounts
+    - serviceaccounts/finalizers
+  verbs:
+    - impersonate
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+    - customresourcedefinitions/finalizers
+    - customresourcedefinitions/status
+  verbs:
+    - get
+    - create
+    - update
+    - delete
+    - list
+    - patch
+    - watch
+- apiGroups:
+    - admissionregistration.k8s.io
+  resources:
+    - mutatingwebhookconfigurations
+    - mutatingwebhookconfigurations/finalizers
+    - validatingwebhookconfigurations
+    - validatingwebhookconfigurations/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - build.knative.dev
+  resources:
+    - builds
+    - builds/finalizers
+    - buildtemplates
+    - buildtemplates/finalizers
+    - clusterbuildtemplates
+    - clusterbuildtemplates/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - extensions
+  resources:
+    - deployments
+    - deployments/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - tekton.dev
+    - resolution.tekton.dev
+    - triggers.tekton.dev
+    - operator.tekton.dev
+    - pipelinesascode.tekton.dev
+    - dashboard.tekton.dev
+  resources:
+    - '*'
+  verbs:
+    - add
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - security.openshift.io
+  resources:
+    - securitycontextconstraints
+    - securitycontextconstraints/finalizers
+  verbs:
+    - use
+    - get
+    - list
+    - create
+    - update
+    - delete
+- apiGroups:
+    - events.k8s.io
+  resources:
+    - events
+  verbs:
+    - create
+- apiGroups:
+    - route.openshift.io
+  resources:
+    - routes
+    - routes/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+    - leases/finalizers
+  verbs:
+    - get
+    - list
+    - create
+    - update
+    - delete
+    - patch
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleyamlsamples
+    - consoleyamlsamples/finalizers
+    - consoleclidownloads
+    - consoleclidownloads/finalizers
+    - consolequickstarts
+    - consolequickstarts/finalizers
+    - consolelinks
+    - consolelinks/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - autoscaling
+  resources:
+    - horizontalpodautoscalers
+    - horizontalpodautoscalers/finalizers
+  verbs:
+    - delete
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - policy
+  resources:
+    - poddisruptionbudgets
+    - poddisruptionbudgets/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - monitoring.coreos.com
+  resources:
+    - servicemonitors
+    - servicemonitors/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - batch
+  resources:
+    - jobs
+    - jobs/finalizers
+    - cronjobs
+    - cronjobs/finalizers
+  verbs:
+    - delete
+    - deletecollection
+    - create
+    - patch
+    - get
+    - list
+    - update
+    - watch
+- apiGroups:
+    - console.openshift.io
+  resources:
+    - consoleplugins
+    - consoleplugins/finalizers
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+    - update
+    - patch
+`)
+
+func testExtendedTestdataOlmv1InstallPipelineOperator6YamlBytes() ([]byte, error) {
+	return _testExtendedTestdataOlmv1InstallPipelineOperator6Yaml, nil
+}
+
+func testExtendedTestdataOlmv1InstallPipelineOperator6Yaml() (*asset, error) {
+	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator6YamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-6.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml = []byte(`apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: install-test-sa-{UNIQUE}
+  namespace: {NAMESPACE}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: install-test-crb-{UNIQUE}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: install-test-cr-{UNIQUE}
+subjects:
+- kind: ServiceAccount
+  name: install-test-sa-{UNIQUE}
+  namespace: {NAMESPACE}
+---
+apiVersion: olm.operatorframework.io/v1
+kind: ClusterExtension
+metadata:
+  name: install-test-ce-{UNIQUE}
+spec:
+  namespace: {NAMESPACE}
+  serviceAccount:
+    name: install-test-sa-{UNIQUE}
+  source:
+    catalog:
+      packageName: "openshift-pipelines-operator-rh"
+      version: "1.17.1"
+      selector: {}
+      upgradeConstraintPolicy: CatalogProvided
+    sourceType: Catalog
+`)
+
+func testExtendedTestdataOlmv1InstallPipelineOperatorBaseYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml, nil
+}
+
+func testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperatorBaseYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-base.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -51292,7 +54646,7 @@ var _testExtendedTestdataRun_policyParallelBcYaml = []byte(`---
           sourceStrategy:
             from:
               kind: "DockerImage"
-              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8"
+              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8"
         resources: {}
       status:
         lastVersion: 0
@@ -51338,7 +54692,7 @@ var _testExtendedTestdataRun_policySerialBcYaml = []byte(`---
           sourceStrategy:
             from:
               kind: "DockerImage"
-              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8"
+              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8"
     -
       kind: "BuildConfig"
       apiVersion: "build.openshift.io/v1"
@@ -51359,7 +54713,7 @@ var _testExtendedTestdataRun_policySerialBcYaml = []byte(`---
           sourceStrategy:
             from:
               kind: "DockerImage"
-              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8"
+              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8"
 `)
 
 func testExtendedTestdataRun_policySerialBcYamlBytes() ([]byte, error) {
@@ -51402,7 +54756,7 @@ var _testExtendedTestdataRun_policySerialLatestOnlyBcYaml = []byte(`---
           sourceStrategy:
             from:
               kind: "DockerImage"
-              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.1-ubi8"
+              name: "image-registry.openshift-image-registry.svc:5000/openshift/ruby:3.3-ubi8"
         resources: {}
       status:
         lastVersion: 0
@@ -55774,10 +59128,25 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/ldap/ldapserver-service.yaml":                                                    testExtendedTestdataLdapLdapserverServiceYaml,
 	"test/extended/testdata/long_names/Dockerfile":                                                           testExtendedTestdataLong_namesDockerfile,
 	"test/extended/testdata/long_names/fixture.json":                                                         testExtendedTestdataLong_namesFixtureJson,
+	"test/extended/testdata/machine_config/kubeletconfig/gcKC.yaml":                                          testExtendedTestdataMachine_configKubeletconfigGckcYaml,
+	"test/extended/testdata/machine_config/machineconfig/0-infra-mc.yaml":                                    testExtendedTestdataMachine_configMachineconfig0InfraMcYaml,
+	"test/extended/testdata/machine_config/machineconfig/0-master-mc.yaml":                                   testExtendedTestdataMachine_configMachineconfig0MasterMcYaml,
+	"test/extended/testdata/machine_config/machineconfig/1-master-invalid-mc.yaml":                           testExtendedTestdataMachine_configMachineconfig1MasterInvalidMcYaml,
+	"test/extended/testdata/machine_config/machineconfig/1-worker-invalid-mc.yaml":                           testExtendedTestdataMachine_configMachineconfig1WorkerInvalidMcYaml,
+	"test/extended/testdata/machine_config/machineconfigpool/customMCP.yaml":                                 testExtendedTestdataMachine_configMachineconfigpoolCustommcpYaml,
+	"test/extended/testdata/machine_config/machineconfigpool/infra-mcp.yaml":                                 testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYaml,
 	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-all.yaml":                 testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml,
 	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-empty.yaml":               testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml,
 	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-none.yaml":                testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml,
 	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-partial.yaml":             testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml,
+	"test/extended/testdata/machine_config/machineconfigurations/nodedisruptionpolicy-rebootless-path.yaml":  testExtendedTestdataMachine_configMachineconfigurationsNodedisruptionpolicyRebootlessPathYaml,
+	"test/extended/testdata/machine_config/pinnedimage/customGCMCPpis.yaml":                                  testExtendedTestdataMachine_configPinnedimageCustomgcmcppisYaml,
+	"test/extended/testdata/machine_config/pinnedimage/customInvalidPis.yaml":                                testExtendedTestdataMachine_configPinnedimageCustominvalidpisYaml,
+	"test/extended/testdata/machine_config/pinnedimage/customMCPpis.yaml":                                    testExtendedTestdataMachine_configPinnedimageCustommcppisYaml,
+	"test/extended/testdata/machine_config/pinnedimage/invalidPis.yaml":                                      testExtendedTestdataMachine_configPinnedimageInvalidpisYaml,
+	"test/extended/testdata/machine_config/pinnedimage/masterInvalidPis.yaml":                                testExtendedTestdataMachine_configPinnedimageMasterinvalidpisYaml,
+	"test/extended/testdata/machine_config/pinnedimage/masterPis.yaml":                                       testExtendedTestdataMachine_configPinnedimageMasterpisYaml,
+	"test/extended/testdata/machine_config/pinnedimage/pis.yaml":                                             testExtendedTestdataMachine_configPinnedimagePisYaml,
 	"test/extended/testdata/marketplace/csc/02-csc.yaml":                                                     testExtendedTestdataMarketplaceCsc02CscYaml,
 	"test/extended/testdata/marketplace/opsrc/02-opsrc.yaml":                                                 testExtendedTestdataMarketplaceOpsrc02OpsrcYaml,
 	"test/extended/testdata/mixed-api-versions.yaml":                                                         testExtendedTestdataMixedApiVersionsYaml,
@@ -55789,6 +59158,14 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/net-attach-defs/whereabouts-nad.yml":                                             testExtendedTestdataNetAttachDefsWhereaboutsNadYml,
 	"test/extended/testdata/net-attach-defs/whereabouts-race-awake.yml":                                      testExtendedTestdataNetAttachDefsWhereaboutsRaceAwakeYml,
 	"test/extended/testdata/net-attach-defs/whereabouts-race-sleepy.yml":                                     testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml,
+	"test/extended/testdata/node/nested_container/Dockerfile":                                                testExtendedTestdataNodeNested_containerDockerfile,
+	"test/extended/testdata/node/nested_container/containers.conf":                                           testExtendedTestdataNodeNested_containerContainersConf,
+	"test/extended/testdata/node/nested_container/run_tests.sh":                                              testExtendedTestdataNodeNested_containerRun_testsSh,
+	"test/extended/testdata/node/nested_container/skip_tests.sh":                                             testExtendedTestdataNodeNested_containerSkip_testsSh,
+	"test/extended/testdata/node/zstd-chunked/Dockerfile":                                                    testExtendedTestdataNodeZstdChunkedDockerfile,
+	"test/extended/testdata/node/zstd-chunked/Dockerfile.sample":                                             testExtendedTestdataNodeZstdChunkedDockerfileSample,
+	"test/extended/testdata/node/zstd-chunked/build.sh":                                                      testExtendedTestdataNodeZstdChunkedBuildSh,
+	"test/extended/testdata/node/zstd-chunked/test-custom-build.yaml":                                        testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml,
 	"test/extended/testdata/node_tuning/nto-stalld.yaml":                                                     testExtendedTestdataNode_tuningNtoStalldYaml,
 	"test/extended/testdata/oauthserver/cabundle-cm.yaml":                                                    testExtendedTestdataOauthserverCabundleCmYaml,
 	"test/extended/testdata/oauthserver/oauth-network.yaml":                                                  testExtendedTestdataOauthserverOauthNetworkYaml,
@@ -55798,6 +59175,14 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/olm/subscription.yaml":                                                           testExtendedTestdataOlmSubscriptionYaml,
 	"test/extended/testdata/olmv1/install-catalog.yaml":                                                      testExtendedTestdataOlmv1InstallCatalogYaml,
 	"test/extended/testdata/olmv1/install-operator.yaml":                                                     testExtendedTestdataOlmv1InstallOperatorYaml,
+	"test/extended/testdata/olmv1/install-pipeline-operator-0.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator0Yaml,
+	"test/extended/testdata/olmv1/install-pipeline-operator-1.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator1Yaml,
+	"test/extended/testdata/olmv1/install-pipeline-operator-2.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator2Yaml,
+	"test/extended/testdata/olmv1/install-pipeline-operator-3.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator3Yaml,
+	"test/extended/testdata/olmv1/install-pipeline-operator-4.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator4Yaml,
+	"test/extended/testdata/olmv1/install-pipeline-operator-5.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator5Yaml,
+	"test/extended/testdata/olmv1/install-pipeline-operator-6.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator6Yaml,
+	"test/extended/testdata/olmv1/install-pipeline-operator-base.yaml":                                       testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml,
 	"test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml":                               testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml,
 	"test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml":                          testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml,
 	"test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml":                   testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml,
@@ -56520,11 +59905,34 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"fixture.json": {testExtendedTestdataLong_namesFixtureJson, map[string]*bintree{}},
 				}},
 				"machine_config": {nil, map[string]*bintree{
+					"kubeletconfig": {nil, map[string]*bintree{
+						"gcKC.yaml": {testExtendedTestdataMachine_configKubeletconfigGckcYaml, map[string]*bintree{}},
+					}},
+					"machineconfig": {nil, map[string]*bintree{
+						"0-infra-mc.yaml":          {testExtendedTestdataMachine_configMachineconfig0InfraMcYaml, map[string]*bintree{}},
+						"0-master-mc.yaml":         {testExtendedTestdataMachine_configMachineconfig0MasterMcYaml, map[string]*bintree{}},
+						"1-master-invalid-mc.yaml": {testExtendedTestdataMachine_configMachineconfig1MasterInvalidMcYaml, map[string]*bintree{}},
+						"1-worker-invalid-mc.yaml": {testExtendedTestdataMachine_configMachineconfig1WorkerInvalidMcYaml, map[string]*bintree{}},
+					}},
+					"machineconfigpool": {nil, map[string]*bintree{
+						"customMCP.yaml": {testExtendedTestdataMachine_configMachineconfigpoolCustommcpYaml, map[string]*bintree{}},
+						"infra-mcp.yaml": {testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYaml, map[string]*bintree{}},
+					}},
 					"machineconfigurations": {nil, map[string]*bintree{
-						"managedbootimages-all.yaml":     {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml, map[string]*bintree{}},
-						"managedbootimages-empty.yaml":   {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml, map[string]*bintree{}},
-						"managedbootimages-none.yaml":    {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml, map[string]*bintree{}},
-						"managedbootimages-partial.yaml": {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml, map[string]*bintree{}},
+						"managedbootimages-all.yaml":                {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml, map[string]*bintree{}},
+						"managedbootimages-empty.yaml":              {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml, map[string]*bintree{}},
+						"managedbootimages-none.yaml":               {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml, map[string]*bintree{}},
+						"managedbootimages-partial.yaml":            {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml, map[string]*bintree{}},
+						"nodedisruptionpolicy-rebootless-path.yaml": {testExtendedTestdataMachine_configMachineconfigurationsNodedisruptionpolicyRebootlessPathYaml, map[string]*bintree{}},
+					}},
+					"pinnedimage": {nil, map[string]*bintree{
+						"customGCMCPpis.yaml":   {testExtendedTestdataMachine_configPinnedimageCustomgcmcppisYaml, map[string]*bintree{}},
+						"customInvalidPis.yaml": {testExtendedTestdataMachine_configPinnedimageCustominvalidpisYaml, map[string]*bintree{}},
+						"customMCPpis.yaml":     {testExtendedTestdataMachine_configPinnedimageCustommcppisYaml, map[string]*bintree{}},
+						"invalidPis.yaml":       {testExtendedTestdataMachine_configPinnedimageInvalidpisYaml, map[string]*bintree{}},
+						"masterInvalidPis.yaml": {testExtendedTestdataMachine_configPinnedimageMasterinvalidpisYaml, map[string]*bintree{}},
+						"masterPis.yaml":        {testExtendedTestdataMachine_configPinnedimageMasterpisYaml, map[string]*bintree{}},
+						"pis.yaml":              {testExtendedTestdataMachine_configPinnedimagePisYaml, map[string]*bintree{}},
 					}},
 				}},
 				"marketplace": {nil, map[string]*bintree{
@@ -56548,6 +59956,20 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"whereabouts-race-awake.yml":  {testExtendedTestdataNetAttachDefsWhereaboutsRaceAwakeYml, map[string]*bintree{}},
 					"whereabouts-race-sleepy.yml": {testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml, map[string]*bintree{}},
 				}},
+				"node": {nil, map[string]*bintree{
+					"nested_container": {nil, map[string]*bintree{
+						"Dockerfile":      {testExtendedTestdataNodeNested_containerDockerfile, map[string]*bintree{}},
+						"containers.conf": {testExtendedTestdataNodeNested_containerContainersConf, map[string]*bintree{}},
+						"run_tests.sh":    {testExtendedTestdataNodeNested_containerRun_testsSh, map[string]*bintree{}},
+						"skip_tests.sh":   {testExtendedTestdataNodeNested_containerSkip_testsSh, map[string]*bintree{}},
+					}},
+					"zstd-chunked": {nil, map[string]*bintree{
+						"Dockerfile":             {testExtendedTestdataNodeZstdChunkedDockerfile, map[string]*bintree{}},
+						"Dockerfile.sample":      {testExtendedTestdataNodeZstdChunkedDockerfileSample, map[string]*bintree{}},
+						"build.sh":               {testExtendedTestdataNodeZstdChunkedBuildSh, map[string]*bintree{}},
+						"test-custom-build.yaml": {testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml, map[string]*bintree{}},
+					}},
+				}},
 				"node_tuning": {nil, map[string]*bintree{
 					"nto-stalld.yaml": {testExtendedTestdataNode_tuningNtoStalldYaml, map[string]*bintree{}},
 				}},
@@ -56562,8 +59984,16 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"subscription.yaml":  {testExtendedTestdataOlmSubscriptionYaml, map[string]*bintree{}},
 				}},
 				"olmv1": {nil, map[string]*bintree{
-					"install-catalog.yaml":  {testExtendedTestdataOlmv1InstallCatalogYaml, map[string]*bintree{}},
-					"install-operator.yaml": {testExtendedTestdataOlmv1InstallOperatorYaml, map[string]*bintree{}},
+					"install-catalog.yaml":                {testExtendedTestdataOlmv1InstallCatalogYaml, map[string]*bintree{}},
+					"install-operator.yaml":               {testExtendedTestdataOlmv1InstallOperatorYaml, map[string]*bintree{}},
+					"install-pipeline-operator-0.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator0Yaml, map[string]*bintree{}},
+					"install-pipeline-operator-1.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator1Yaml, map[string]*bintree{}},
+					"install-pipeline-operator-2.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator2Yaml, map[string]*bintree{}},
+					"install-pipeline-operator-3.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator3Yaml, map[string]*bintree{}},
+					"install-pipeline-operator-4.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator4Yaml, map[string]*bintree{}},
+					"install-pipeline-operator-5.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator5Yaml, map[string]*bintree{}},
+					"install-pipeline-operator-6.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator6Yaml, map[string]*bintree{}},
+					"install-pipeline-operator-base.yaml": {testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml, map[string]*bintree{}},
 				}},
 				"poddisruptionbudgets": {nil, map[string]*bintree{
 					"always-allow-policy-pdb.yaml":             {testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml, map[string]*bintree{}},
