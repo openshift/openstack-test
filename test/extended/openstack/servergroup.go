@@ -14,7 +14,7 @@ import (
 	"github.com/openshift/openstack-test/test/extended/openstack/machines"
 	exutil "github.com/openshift/origin/test/extended/util"
 	"github.com/stretchr/objx"
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
