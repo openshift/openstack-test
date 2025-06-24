@@ -105,7 +105,8 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("Deleting the new machineset")
-			framework.DeleteMachineSets(rclient, ms)
+			err = framework.DeleteMachineSets(rclient, ms)
+			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to delete Machineset")
 			err = GetMachinesetRetry(ctx, rclient, ms, false)
 			o.Expect(errors.IsNotFound(err)).To(o.BeTrue(), "Machineset %v was not deleted", ms.Name)
 
