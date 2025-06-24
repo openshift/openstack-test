@@ -41,6 +41,7 @@ import (
 	psapi "k8s.io/pod-security-admission/api"
 	"k8s.io/utils/ptr"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
+	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
 const (
@@ -673,4 +674,33 @@ func waitUntilNMachinesPrefix(ctx context.Context, dc dynamic.Interface, prefix 
 
 	})
 	return err
+}
+
+// IsHostedControlPlane returns true if the cluster is a Hosted Control Plane (HCP)
+// by checking hypershift.openshift.io/managed=true label on cluster-config-v1 ConfigMap.
+func IsHostedControlPlane(ctx context.Context, clientSet *kubernetes.Clientset) (bool, error) {
+	cm, err := clientSet.CoreV1().ConfigMaps("kube-system").Get(ctx, "cluster-config-v1", metav1.GetOptions{})
+	if err != nil {
+		if errors.IsNotFound(err) || errors.IsForbidden(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	if val, ok := cm.Labels["hypershift.openshift.io/managed"]; ok && val == "true" {
+		e2e.Logf("Detected Hosted Control Plane (HCP) cluster via ConfigMap label")
+		return true, nil
+	}
+	return false, nil
+}
+
+// SkipIfHCPCluster skips the current test if running on a Hosted Control Plane cluster
+func SkipIfHCPCluster(ctx context.Context, clientSet *kubernetes.Clientset) {
+	isHCP, err := IsHostedControlPlane(ctx, clientSet)
+	if err != nil {
+		e2e.Logf("Unable to determine if cluster is HCP: %v", err)
+		return
+	}
+	if isHCP {
+		e2eskipper.Skipf("Skipping test: not applicable for Hosted Control Plane clusters")
+	}
 }
