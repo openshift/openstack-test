@@ -180,7 +180,7 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
 // getFirstWorkerID returns the ID of the first worker node
 func getFirstWorkerID(clientSet *kubernetes.Clientset, ctx context.Context) string {
 	workerNodeList, err := clientSet.CoreV1().Nodes().List(ctx, metav1.ListOptions{
-		LabelSelector: "node-role.kubernetes.io/worker",
+		LabelSelector: "node-role.kubernetes.io/worker,!node-role.kubernetes.io/infra",
 	})
 	o.Expect(err).NotTo(o.HaveOccurred())
 	worker := workerNodeList.Items[0]
