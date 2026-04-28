@@ -573,11 +573,11 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 			name := "shard-" + string(uuid.NewUUID())
 			domain := "ingress-canary.openshift-ingress-canary.svc"
 			shardIngressCtrl, err := deployLbIngressController(ctx, oc, 10*time.Minute, name, domain, map[string]string{"ingress.openshift.io/canary": "canary_controller"})
+			o.Expect(err).NotTo(o.HaveOccurred(), "new ingresscontroller did not rollout")
 			defer func() {
 				err := oc.AdminOperatorClient().OperatorV1().IngressControllers(shardIngressCtrl.Namespace).Delete(ctx, shardIngressCtrl.Name, metav1.DeleteOptions{})
 				o.Expect(err).NotTo(o.HaveOccurred(), "error destroying ingress-controller created during the test")
 			}()
-			o.Expect(err).NotTo(o.HaveOccurred(), "new ingresscontroller did not rollout")
 
 			g.By("Checks from openshift perspective")
 			svc, err := oc.AdminKubeClient().CoreV1().Services("openshift-ingress").Get(ctx, "router-"+name, metav1.GetOptions{})
@@ -618,9 +618,9 @@ var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The O
 				e2e.Logf("Attempting to connect using host: %q", host)
 				resp, err := httpsGetWithCustomLookup(host, svcIp)
 				o.Expect(err).NotTo(o.HaveOccurred())
-				defer resp.Body.Close()
 				o.Expect(resp.Status).Should(o.Equal("200 OK"), "Unexpected response on try #%d", i)
 				body, err := io.ReadAll(resp.Body)
+				resp.Body.Close()
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(string(body)).Should(o.Equal("Healthcheck requested\n"), "Unexpected response on try #%d", i)
 			}
