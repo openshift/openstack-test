@@ -2,16 +2,16 @@
 
 aliases:
   openstack-approvers:
-    - dkokkino
+    - dlaw4608
+    - eshulman2
     - gryf
     - mandre
-    - pierreprinetti
     - stephenfin
   openstack-reviewers:
-    - dkokkino
+    - dlaw4608
+    - eshulman2
     - gryf
     - mandre
-    - pierreprinetti
     - stephenfin
   qe-approvers:
     - eurijon
