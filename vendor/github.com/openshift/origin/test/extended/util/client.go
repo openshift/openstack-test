@@ -87,21 +87,30 @@ type CLI struct {
 	verb            string
 	configPath      string
 	adminConfigPath string
+	guestConfigPath string // Added for OTP compatibility
 
 	// directory with static manifests, each file is expected to be a single manifest
 	// manifest files can be stored under directory tree
 	staticConfigManifestDir string
 
-	token                string
-	username             string
-	globalArgs           []string
-	commandArgs          []string
-	finalArgs            []string
-	namespacesToDelete   []string
-	stdin                *bytes.Buffer
-	stdout               io.Writer
-	stderr               io.Writer
+	token              string
+	username           string
+	globalArgs         []string
+	commandArgs        []string
+	finalArgs          []string
+	namespacesToDelete []string
+	stdin              *bytes.Buffer
+	stdout             io.Writer
+	stderr             io.Writer
+
+	// env allows setting environment variables for the command (when nil, the environment
+	// is inherited from the current process)
+	env []string
+	// addEnvVars allows adding environment variables on top of what is defined in env.
+	addEnvVars map[string]string
+
 	verbose              bool
+	showInfo             bool // control framework.Logf output
 	withoutNamespace     bool
 	withManagedNamespace bool
 	kubeFramework        *framework.Framework
@@ -126,6 +135,7 @@ func NewCLIWithFramework(kubeFramework *framework.Framework) *CLI {
 		execPath:                "oc",
 		adminConfigPath:         KubeConfigPath(),
 		staticConfigManifestDir: StaticConfigManifestDir(),
+		showInfo:                true,
 	}
 	// Called only once (assumed the objects will never get modified)
 	// TODO: run in every BeforeEach
@@ -170,6 +180,7 @@ func NewCLIWithoutNamespace(project string) *CLI {
 		execPath:                "oc",
 		adminConfigPath:         KubeConfigPath(),
 		staticConfigManifestDir: StaticConfigManifestDir(),
+		showInfo:                true,
 		withoutNamespace:        true,
 	}
 	g.BeforeEach(cli.kubeFramework.BeforeEach)
@@ -203,6 +214,7 @@ func NewCLIForMonitorTest(project string) *CLI {
 		execPath:                "oc",
 		adminConfigPath:         KubeConfigPath(),
 		staticConfigManifestDir: StaticConfigManifestDir(),
+		showInfo:                true,
 		withoutNamespace:        true,
 	}
 
@@ -218,6 +230,7 @@ func NewCLIForMonitorTest(project string) *CLI {
 // allowed inside an `It` block. `AfterEach` and `BeforeEach` are not allowed there though.
 func NewHypershiftManagementCLI(project string) *CLI {
 	kubeconfig, _, err := GetHypershiftManagementClusterConfigAndNamespace()
+	// TODO: this is assuming to be executing within ginkgo, which is not always the case (monitortests)
 	o.Expect(err).NotTo(o.HaveOccurred())
 	return &CLI{
 		kubeFramework: &framework.Framework{
@@ -232,6 +245,7 @@ func NewHypershiftManagementCLI(project string) *CLI {
 		username:         "admin",
 		execPath:         "oc",
 		adminConfigPath:  kubeconfig,
+		showInfo:         true,
 		withoutNamespace: true,
 	}
 }
@@ -307,6 +321,32 @@ func (c CLI) WithToken(token string) *CLI {
 	c.configPath = ""
 	c.token = token
 	return &c
+}
+
+// WithKubeConfigCopy copies the current kubeconfig into a temporary file and sets the copy as the current kubeconfig
+// for the duration of the invocation of fnc. The temporary file is removed once fnc returns.
+func (c CLI) WithKubeConfigCopy(fnc func(*CLI)) {
+	out, err := os.CreateTemp("", "kubeconfig")
+	if err != nil {
+		FatalErr(err)
+	}
+	defer os.Remove(out.Name())
+
+	in, err := os.Open(c.configPath)
+	if err != nil {
+		out.Close()
+		FatalErr(err)
+	}
+
+	_, err = io.Copy(out, in)
+	in.Close()
+	out.Close()
+	if err != nil {
+		FatalErr(err)
+	}
+
+	c.configPath = out.Name()
+	fnc(&c)
 }
 
 // SetupProject creates a new project and assign a random user to the project.
@@ -420,7 +460,11 @@ func (c *CLI) setupProject() string {
 		o.Expect(err).NotTo(o.HaveOccurred())
 	}
 
-	WaitForNamespaceSCCAnnotations(c.KubeClient().CoreV1(), newNamespace)
+	// Only wait for SCC annotations if the SCC API exists (OpenShift clusters)
+	// Skip on pure Kubernetes/AKS clusters where SCC is not available
+	if exist, _ := DoesApiResourceExist(c.AdminConfig(), "securitycontextconstraints", "security.openshift.io"); exist {
+		WaitForNamespaceSCCAnnotations(c.KubeClient().CoreV1(), newNamespace)
+	}
 
 	framework.Logf("Project %q has been fully provisioned.", newNamespace)
 	return newNamespace
@@ -476,7 +520,11 @@ func (c *CLI) setupNamespace() string {
 	err = c.setupNamespaceManagedAnnotation(newNamespace)
 	o.Expect(err).NotTo(o.HaveOccurred())
 
-	WaitForNamespaceSCCAnnotations(c.KubeClient().CoreV1(), newNamespace)
+	// Only wait for SCC annotations if the SCC API exists (OpenShift clusters)
+	// Skip on pure Kubernetes/AKS clusters where SCC is not available
+	if exist, _ := DoesApiResourceExist(c.AdminConfig(), "securitycontextconstraints", "security.openshift.io"); exist {
+		WaitForNamespaceSCCAnnotations(c.KubeClient().CoreV1(), newNamespace)
+	}
 
 	framework.Logf("Namespace %q has been fully provisioned.", newNamespace)
 
@@ -827,6 +875,17 @@ func (c *CLI) NewPrometheusClient(ctx context.Context) prometheusv1.API {
 }
 
 func (c *CLI) UserConfig() *rest.Config {
+	if c.token != "" {
+		clientConfig, err := GetClientConfig(c.adminConfigPath)
+		if err != nil {
+			FatalErr(err)
+		}
+
+		anon := rest.AnonymousClientConfig(clientConfig)
+		anon.BearerToken = c.token
+		return anon
+	}
+
 	clientConfig, err := GetClientConfig(c.configPath)
 	if err != nil {
 		FatalErr(err)
@@ -854,6 +913,26 @@ func (c *CLI) Namespace() string {
 // setOutput allows to override the default command output
 func (c *CLI) setOutput(out io.Writer) *CLI {
 	c.stdout = out
+	return c
+}
+
+// Env sets the command's environment variables with the same semantics as exec.Cmd's Env property.
+// https://pkg.go.dev/os/exec#Cmd
+//
+// EnvVar()-provided variables will be appended to whatever Env was set before.
+func (c *CLI) Env(env ...string) *CLI {
+	c.env = env
+	return c
+}
+
+// EnvVar sets an environment variable for the command, appended to whatever Env is set on the CLI
+// when eventually executed, or to environment inherited from the current process if Env() was not
+// called.
+func (c *CLI) EnvVar(name, value string) *CLI {
+	if c.addEnvVars == nil {
+		c.addEnvVars = make(map[string]string)
+	}
+	c.addEnvVars[name] = value
 	return c
 }
 
@@ -954,7 +1033,21 @@ func (c *CLI) start(stdOutBuff, stdErrBuff *bytes.Buffer) (*exec.Cmd, error) {
 	cmd := exec.Command(c.execPath, c.finalArgs...)
 	cmd.Stdin = c.stdin
 	// Redact any bearer token information from the log.
-	framework.Logf("Running '%s %s'", c.execPath, RedactBearerToken(strings.Join(c.finalArgs, " ")))
+	// Only log if showInfo is enabled (controlled by util_otp)
+	if c.showInfo {
+		framework.Logf("Running '%s %s'", c.execPath, RedactBearerToken(strings.Join(c.finalArgs, " ")))
+	}
+
+	cmd.Env = c.env
+	if len(c.addEnvVars) > 0 {
+		// This is a nil check to allow setting empty environment with Env()
+		if cmd.Env == nil {
+			cmd.Env = os.Environ()
+		}
+		for name, value := range c.addEnvVars {
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", name, value))
+		}
+	}
 
 	cmd.Stdout = stdOutBuff
 	cmd.Stderr = stdErrBuff
@@ -963,13 +1056,10 @@ func (c *CLI) start(stdOutBuff, stdErrBuff *bytes.Buffer) (*exec.Cmd, error) {
 	return cmd, err
 }
 
+var reToken = regexp.MustCompile(`(?i)(Authorization:\s*Bearer\s+)[^\s"]+|((BearerToken:\s*")[^"]+)`)
+
 func RedactBearerToken(args string) string {
-	if strings.Contains(args, "Authorization: Bearer") {
-		// redact bearer token
-		re := regexp.MustCompile(`Authorization:\s+Bearer.*\s+`)
-		args = re.ReplaceAllString(args, "Authorization: Bearer <redacted> ")
-	}
-	return args
+	return reToken.ReplaceAllString(args, `${1}${3}<redacted>`)
 }
 
 // getStartingIndexForLastN calculates a byte offset in a byte slice such that when using
@@ -1182,19 +1272,36 @@ func WaitForAccess(c kubernetes.Interface, allowed bool, review *kubeauthorizati
 }
 
 func GetClientConfig(kubeConfigFile string) (*rest.Config, error) {
-	kubeConfigBytes, err := ioutil.ReadFile(kubeConfigFile)
+	var clientConfig *rest.Config
+	var lastErr error
+	err := wait.PollImmediate(200*time.Millisecond, 10*time.Second, func() (bool, error) {
+		kubeConfigBytes, err := os.ReadFile(kubeConfigFile)
+		if err != nil {
+			lastErr = err
+			if os.IsNotExist(err) {
+				return false, nil
+			}
+			return false, err
+		}
+		if len(kubeConfigBytes) == 0 {
+			lastErr = fmt.Errorf("kubeconfig file %q is empty", kubeConfigFile)
+			return false, nil
+		}
+		kubeConfig, err := clientcmd.NewClientConfigFromBytes(kubeConfigBytes)
+		if err != nil {
+			lastErr = err
+			return false, nil
+		}
+		clientConfig, err = kubeConfig.ClientConfig()
+		if err != nil {
+			lastErr = err
+			return false, nil
+		}
+		return true, nil
+	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read kubeconfig %q after retries: %w", kubeConfigFile, lastErr)
 	}
-	kubeConfig, err := clientcmd.NewClientConfigFromBytes(kubeConfigBytes)
-	if err != nil {
-		return nil, err
-	}
-	clientConfig, err := kubeConfig.ClientConfig()
-	if err != nil {
-		return nil, err
-	}
-
 	return clientConfig, nil
 }
 

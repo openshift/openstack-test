@@ -32,7 +32,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
-	"k8s.io/kubernetes/test/e2e/feature"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	"k8s.io/kubernetes/test/e2e/storage/drivers"
@@ -54,6 +53,8 @@ const (
 
 const (
 	resizePollInterval = 2 * time.Second
+	pvcCountQuotaKey   = "persistentvolumeclaims"
+	pvcSizeQuotaKey    = "requests.storage"
 )
 
 var (
@@ -70,6 +71,8 @@ type recoveryTest struct {
 	disableControllerExpansion bool
 	expectedResizeStatus       v1.ClaimResourceStatus
 	recoverySize               resource.Quantity
+	fullResourceQuota          *v1.ResourceQuota
+	expectedQuotaUsage         *v1.ResourceQuota
 }
 
 var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
@@ -395,7 +398,7 @@ var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
 		}
 	})
 
-	f.Context("Expansion with recovery", feature.RecoverVolumeExpansionFailure, func() {
+	f.Context("Expansion with recovery", func() {
 		tests := []recoveryTest{
 			{
 				name:                       "should record target size in allocated resources",
@@ -404,6 +407,22 @@ var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
 				disableControllerExpansion: false,
 				simulatedCSIDriverError:    expansionSuccess,
 				expectedResizeStatus:       "",
+				fullResourceQuota: &v1.ResourceQuota{
+					Spec: v1.ResourceQuotaSpec{
+						Hard: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("20Gi"),
+							pvcCountQuotaKey: resource.MustParse("5"),
+						},
+					},
+				},
+				expectedQuotaUsage: &v1.ResourceQuota{
+					Status: v1.ResourceQuotaStatus{
+						Used: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("4Gi"),
+							pvcCountQuotaKey: resource.MustParse("1"),
+						},
+					},
+				},
 			},
 			{
 				name:                       "should allow recovery if controller expansion fails with infeasible error",
@@ -413,6 +432,22 @@ var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
 				simulatedCSIDriverError:    expansionFailedOnControllerWithInfeasibleError,
 				expectedResizeStatus:       v1.PersistentVolumeClaimControllerResizeInfeasible,
 				recoverySize:               resource.MustParse("4Gi"),
+				fullResourceQuota: &v1.ResourceQuota{
+					Spec: v1.ResourceQuotaSpec{
+						Hard: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("20Gi"),
+							pvcCountQuotaKey: resource.MustParse("5"),
+						},
+					},
+				},
+				expectedQuotaUsage: &v1.ResourceQuota{
+					Status: v1.ResourceQuotaStatus{
+						Used: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("4Gi"),
+							pvcCountQuotaKey: resource.MustParse("1"),
+						},
+					},
+				},
 			},
 			{
 				name:                       "should allow recovery if controller expansion fails with final error",
@@ -422,6 +457,22 @@ var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
 				simulatedCSIDriverError:    expansionFailedOnControllerWithFinalError,
 				expectedResizeStatus:       v1.PersistentVolumeClaimControllerResizeInProgress,
 				recoverySize:               resource.MustParse("4Gi"),
+				fullResourceQuota: &v1.ResourceQuota{
+					Spec: v1.ResourceQuotaSpec{
+						Hard: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("20Gi"),
+							pvcCountQuotaKey: resource.MustParse("5"),
+						},
+					},
+				},
+				expectedQuotaUsage: &v1.ResourceQuota{
+					Status: v1.ResourceQuotaStatus{
+						Used: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("4Gi"),
+							pvcCountQuotaKey: resource.MustParse("1"),
+						},
+					},
+				},
 			},
 			{
 				name:                       "recovery should not be possible in partially expanded volumes",
@@ -440,6 +491,22 @@ var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
 				simulatedCSIDriverError:    expansionFailedOnNodeWithInfeasibleError,
 				expectedResizeStatus:       v1.PersistentVolumeClaimNodeResizeInfeasible,
 				recoverySize:               resource.MustParse("5Gi"),
+				fullResourceQuota: &v1.ResourceQuota{
+					Spec: v1.ResourceQuotaSpec{
+						Hard: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("20Gi"),
+							pvcCountQuotaKey: resource.MustParse("5"),
+						},
+					},
+				},
+				expectedQuotaUsage: &v1.ResourceQuota{
+					Status: v1.ResourceQuotaStatus{
+						Used: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("5Gi"),
+							pvcCountQuotaKey: resource.MustParse("1"),
+						},
+					},
+				},
 			},
 			{
 				name:                       "recovery should be possible for node-only expanded volumes with final error",
@@ -449,6 +516,22 @@ var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
 				simulatedCSIDriverError:    expansionFailedOnNodeWithFinalError,
 				expectedResizeStatus:       v1.PersistentVolumeClaimNodeResizeInProgress,
 				recoverySize:               resource.MustParse("5Gi"),
+				fullResourceQuota: &v1.ResourceQuota{
+					Spec: v1.ResourceQuotaSpec{
+						Hard: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("20Gi"),
+							pvcCountQuotaKey: resource.MustParse("5"),
+						},
+					},
+				},
+				expectedQuotaUsage: &v1.ResourceQuota{
+					Status: v1.ResourceQuotaStatus{
+						Used: v1.ResourceList{
+							pvcSizeQuotaKey:  resource.MustParse("5Gi"),
+							pvcCountQuotaKey: resource.MustParse("1"),
+						},
+					},
+				},
 			},
 		}
 
@@ -456,7 +539,7 @@ var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
 			test := t
 			ginkgo.It(test.name, func(ctx context.Context) {
 				var err error
-				params := testParameters{enableResizing: true, enableNodeExpansion: true, enableRecoverExpansionFailure: true, disableControllerExpansion: test.disableControllerExpansion}
+				params := testParameters{enableResizing: true, enableNodeExpansion: true, disableControllerExpansion: test.disableControllerExpansion}
 
 				if test.simulatedCSIDriverError != expansionSuccess {
 					params.hooks = createExpansionHook(test.simulatedCSIDriverError)
@@ -464,6 +547,11 @@ var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
 
 				m.init(ctx, params)
 				ginkgo.DeferCleanup(m.cleanup)
+				var currentQuota *v1.ResourceQuota
+
+				if test.fullResourceQuota != nil {
+					currentQuota = m.createResourceQuota(ctx, test.fullResourceQuota)
+				}
 
 				sc, pvc, pod := m.createPod(ctx, pvcReference)
 				gomega.Expect(pod).NotTo(gomega.BeNil(), "while creating pod for resizing")
@@ -492,11 +580,48 @@ var _ = utils.SIGDescribe("CSI Mock volume expansion", func() {
 				} else {
 					validateRecoveryBehaviour(ctx, pvc, m, test)
 				}
+
+				if test.expectedQuotaUsage != nil {
+					validateQuotaUsage(ctx, m, currentQuota, test.expectedQuotaUsage)
+				}
 			})
 		}
-
 	})
 })
+
+func validateQuotaUsage(ctx context.Context, m *mockDriverSetup, currentQuota, expectedQuota *v1.ResourceQuota) {
+	ginkgo.By("Waiting for resource quota usage to be updated")
+	var (
+		quota     *v1.ResourceQuota
+		usedCount resource.Quantity
+		usedSize  resource.Quantity
+	)
+
+	expectedCount := expectedQuota.Status.Used[pvcCountQuotaKey]
+	expectedUsedSize := expectedQuota.Status.Used[pvcSizeQuotaKey]
+
+	gomega.Eventually(func() error {
+		q, err := m.cs.CoreV1().ResourceQuotas(currentQuota.Namespace).Get(ctx, currentQuota.Name, metav1.GetOptions{})
+		if err != nil {
+			return fmt.Errorf("failed to get resource quota %s/%s: %w", currentQuota.Namespace, currentQuota.Name, err)
+		}
+		if q.Status.Used == nil {
+			return fmt.Errorf("resource quota %s/%s has nil Status.Used", currentQuota.Namespace, currentQuota.Name)
+		}
+
+		quota = q
+		usedCount = quota.Status.Used[pvcCountQuotaKey]
+		usedSize = quota.Status.Used[pvcSizeQuotaKey]
+
+		if usedCount.Cmp(expectedCount) != 0 || usedSize.Cmp(expectedUsedSize) != 0 {
+			return fmt.Errorf(
+				"resource quota usage did not converge; currentlyUsed: %s/%s, expected: %s/%s",
+				usedCount.String(), usedSize.String(), expectedCount.String(), expectedUsedSize.String(),
+			)
+		}
+		return nil
+	}, csiResizeWaitPeriod, resizePollInterval).Should(gomega.Succeed())
+}
 
 func validateRecoveryBehaviour(ctx context.Context, pvc *v1.PersistentVolumeClaim, m *mockDriverSetup, test recoveryTest) {
 	var err error
@@ -525,8 +650,10 @@ func validateRecoveryBehaviour(ctx context.Context, pvc *v1.PersistentVolumeClai
 		framework.Failf("error updating pvc size %q", pvc.Name)
 	}
 
-	// if expansion failed on controller with final error, then recovery should be possible
-	if test.simulatedCSIDriverError == expansionFailedOnControllerWithInfeasibleError {
+	// If expansion failed on controller (infeasible or final), recovery should be possible.
+	// Wait for the recovery resize to settle before checking quota.
+	if test.simulatedCSIDriverError == expansionFailedOnControllerWithInfeasibleError ||
+		test.simulatedCSIDriverError == expansionFailedOnControllerWithFinalError {
 		validateExpansionSuccess(ctx, pvc, m, test, test.recoverySize.String())
 		return
 	}

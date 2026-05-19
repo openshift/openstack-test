@@ -81,7 +81,6 @@ const (
 	CinderCSIDriver          CSIDriverName = "cinder.csi.openstack.org"
 	VSphereCSIDriver         CSIDriverName = "csi.vsphere.vmware.com"
 	ManilaCSIDriver          CSIDriverName = "manila.csi.openstack.org"
-	OvirtCSIDriver           CSIDriverName = "csi.ovirt.org"
 	KubevirtCSIDriver        CSIDriverName = "csi.kubevirt.io"
 	SharedResourcesCSIDriver CSIDriverName = "csi.sharedresource.openshift.io"
 	AlibabaDiskCSIDriver     CSIDriverName = "diskplugin.csi.alibabacloud.com"
@@ -164,12 +163,19 @@ type AWSCSIDriverConfigSpec struct {
 	// kmsKeyARN sets the cluster default storage class to encrypt volumes with a user-defined KMS key,
 	// rather than the default KMS key used by AWS.
 	// The value may be either the ARN or Alias ARN of a KMS key.
-	// +kubebuilder:validation:Pattern:=`^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b|aws-iso-e|aws-iso-f):kms:[a-z0-9-]+:[0-9]{12}:(key|alias)\/.*$`
+	//
+	// The ARN must follow the format: arn:<partition>:kms:<region>:<account-id>:(key|alias)/<key-id-or-alias>, where:
+	// <partition> is the AWS partition (aws, aws-cn, aws-us-gov, aws-iso, aws-iso-b, aws-iso-e, aws-iso-f, or aws-eusc),
+	// <region> is the AWS region,
+	// <account-id> is a 12-digit numeric identifier for the AWS account,
+	// <key-id-or-alias> is the KMS key ID or alias name.
+	//
+	// +openshift:validation:FeatureGateAwareXValidation:featureGate="",rule=`matches(self, '^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b|aws-iso-e|aws-iso-f):kms:[a-z0-9-]+:[0-9]{12}:(key|alias)/.*$')`,message=`kmsKeyARN must be a valid AWS KMS key ARN in the format: arn:<partition>:kms:<region>:<account-id>:(key|alias)/<key-id-or-alias>`
+	// +openshift:validation:FeatureGateAwareXValidation:featureGate=AWSEuropeanSovereignCloudInstall,rule=`matches(self, '^arn:(aws|aws-cn|aws-us-gov|aws-iso|aws-iso-b|aws-iso-e|aws-iso-f|aws-eusc):kms:[a-z0-9-]+:[0-9]{12}:(key|alias)/.*$')`,message=`kmsKeyARN must be a valid AWS KMS key ARN in the format: arn:<partition>:kms:<region>:<account-id>:(key|alias)/<key-id-or-alias>`
 	// +optional
 	KMSKeyARN string `json:"kmsKeyARN,omitempty"`
 
 	// efsVolumeMetrics sets the configuration for collecting metrics from EFS volumes used by the EFS CSI Driver.
-	// +openshift:enable:FeatureGate=AWSEFSDriverVolumeMetrics
 	// +optional
 	EFSVolumeMetrics *AWSEFSVolumeMetrics `json:"efsVolumeMetrics,omitempty"`
 }
@@ -348,7 +354,6 @@ type VSphereCSIDriverConfigSpec struct {
 	// Volume snapshot documentation: https://docs.vmware.com/en/VMware-vSphere-Container-Storage-Plug-in/3.0/vmware-vsphere-csp-getting-started/GUID-E0B41C69-7EEB-450F-A73D-5FD2FF39E891.html
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=32
-	// +openshift:enable:FeatureGate=VSphereDriverConfiguration
 	// +optional
 	GlobalMaxSnapshotsPerBlockVolume *uint32 `json:"globalMaxSnapshotsPerBlockVolume,omitempty"`
 
@@ -357,7 +362,6 @@ type VSphereCSIDriverConfigSpec struct {
 	// Snapshots for VSAN can not be disabled using this parameter.
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=32
-	// +openshift:enable:FeatureGate=VSphereDriverConfiguration
 	// +optional
 	GranularMaxSnapshotsPerBlockVolumeInVSAN *uint32 `json:"granularMaxSnapshotsPerBlockVolumeInVSAN,omitempty"`
 
@@ -366,7 +370,6 @@ type VSphereCSIDriverConfigSpec struct {
 	// Snapshots for VVOL can not be disabled using this parameter.
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=32
-	// +openshift:enable:FeatureGate=VSphereDriverConfiguration
 	// +optional
 	GranularMaxSnapshotsPerBlockVolumeInVVOL *uint32 `json:"granularMaxSnapshotsPerBlockVolumeInVVOL,omitempty"`
 

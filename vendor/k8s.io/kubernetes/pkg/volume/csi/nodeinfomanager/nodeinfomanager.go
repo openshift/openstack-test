@@ -16,7 +16,7 @@ limitations under the License.
 
 // Package nodeinfomanager includes internal functions used to add/delete labels to
 // kubernetes nodes for corresponding CSI drivers
-package nodeinfomanager // import "k8s.io/kubernetes/pkg/volume/csi/nodeinfomanager"
+package nodeinfomanager
 
 import (
 	"context"
@@ -63,6 +63,7 @@ var (
 // the Node and CSINode objects.
 type nodeInfoManager struct {
 	nodeName        types.NodeName
+	nodeID          types.UID
 	volumeHost      volume.VolumeHost
 	migratedPlugins map[string](func() bool)
 	// lock protects changes to node.
@@ -83,6 +84,9 @@ type Interface interface {
 	// Concurrent calls to InstallCSIDriver() is allowed, but they should not be intertwined with calls
 	// to other methods in this interface.
 	InstallCSIDriver(driverName string, driverNodeID string, maxVolumeLimit int64, topology map[string]string) error
+
+	// UpdateCSIDriver updates CSIDrivers field in the CSINode object.
+	UpdateCSIDriver(driverName string, driverNodeID string, maxAttachLimit int64, topology map[string]string) error
 
 	// Remove in the cluster node information from the CSI driver with the given name.
 	// Concurrent calls to UninstallCSIDriver() is allowed, but they should not be intertwined with calls
@@ -127,6 +131,15 @@ func (nim *nodeInfoManager) InstallCSIDriver(driverName string, driverNodeID str
 		return fmt.Errorf("error updating CSINode object with CSI driver node info: %v", err)
 	}
 
+	return nil
+}
+
+// UpdateCSIDriver updates CSIDrivers field in the CSINode object.
+func (nim *nodeInfoManager) UpdateCSIDriver(driverName string, driverNodeID string, maxAttachLimit int64, topology map[string]string) error {
+	err := nim.updateCSINode(driverName, driverNodeID, maxAttachLimit, topology)
+	if err != nil {
+		return fmt.Errorf("error updating CSINode object with CSI driver node info: %w", err)
+	}
 	return nil
 }
 
@@ -379,11 +392,18 @@ func (nim *nodeInfoManager) tryUpdateCSINode(
 	maxAttachLimit int64,
 	topology map[string]string) error {
 
+	nim.lock.Lock()
+	defer nim.lock.Unlock()
+
 	nodeInfo, err := csiKubeClient.StorageV1().CSINodes().Get(context.TODO(), string(nim.nodeName), metav1.GetOptions{})
 	if nodeInfo == nil || errors.IsNotFound(err) {
 		nodeInfo, err = nim.CreateCSINode()
 	}
 	if err != nil {
+		return err
+	}
+
+	if err = nim.ensureNodeOwnsCSINode(nodeInfo); err != nil {
 		return err
 	}
 
@@ -412,12 +432,25 @@ func (nim *nodeInfoManager) InitializeCSINodeWithAnnotation() error {
 }
 
 func (nim *nodeInfoManager) tryInitializeCSINodeWithAnnotation(csiKubeClient clientset.Interface) error {
+	nim.lock.Lock()
+	defer nim.lock.Unlock()
+
+	node, err := csiKubeClient.CoreV1().Nodes().Get(context.TODO(), string(nim.nodeName), metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	nim.nodeID = node.UID
+
 	nodeInfo, err := csiKubeClient.StorageV1().CSINodes().Get(context.TODO(), string(nim.nodeName), metav1.GetOptions{})
 	if nodeInfo == nil || errors.IsNotFound(err) {
 		// CreateCSINode will set the annotation
 		_, err = nim.CreateCSINode()
 		return err
 	} else if err != nil {
+		return err
+	}
+
+	if err = nim.ensureNodeOwnsCSINode(nodeInfo); err != nil {
 		return err
 	}
 
@@ -431,16 +464,49 @@ func (nim *nodeInfoManager) tryInitializeCSINodeWithAnnotation(csiKubeClient cli
 
 }
 
+// ensureNodeOwnsCSINode will ensure that the current CSINode object is owned by the node represented by this nodeInfoManager.
+// If not, it will delete the existing CSINode object and return an error.
+func (nim *nodeInfoManager) ensureNodeOwnsCSINode(nodeInfo *storagev1.CSINode) error {
+	if ok, csiNodeOwnerID := nim.nodeOwnsCSINode(nodeInfo); !ok {
+		klog.V(2).Infof("existing CSINode %q is owned by different node (oldNodeID=%q, newNodeID=%q), cleaning up...", nodeInfo.Name, csiNodeOwnerID, nim.nodeID)
+		err := nim.DeleteCSINode()
+		if err != nil {
+			return fmt.Errorf("error deleting existing CSINode %q: %w", nodeInfo.Name, err)
+		}
+		// Returning now so that the next attempt can create a new CSINode object
+		return fmt.Errorf("CSINode %q was owned by different node (oldNodeID=%q, newNodeID=%q), deleted it", nodeInfo.Name, csiNodeOwnerID, nim.nodeID)
+	}
+	return nil
+}
+
+// nodeOwnsCSINode checks if the CSINode object is owned by the node represented by this nodeInfoManager.
+// It also returns the current owner UID.
+func (nim *nodeInfoManager) nodeOwnsCSINode(nodeInfo *storagev1.CSINode) (bool, types.UID) {
+	var csiNodeOwnerID types.UID
+	var found bool
+	for _, ownerRef := range nodeInfo.OwnerReferences {
+		if ownerRef.Kind != nodeKind.Kind {
+			continue
+		}
+
+		csiNodeOwnerID = ownerRef.UID
+		if ownerRef.Name != string(nim.nodeName) {
+			continue
+		}
+
+		if csiNodeOwnerID == nim.nodeID {
+			found = true
+			break
+		}
+	}
+	return found, csiNodeOwnerID
+}
+
 func (nim *nodeInfoManager) CreateCSINode() (*storagev1.CSINode, error) {
 
 	csiKubeClient := nim.volumeHost.GetKubeClient()
 	if csiKubeClient == nil {
 		return nil, fmt.Errorf("error getting CSI client")
-	}
-
-	node, err := csiKubeClient.CoreV1().Nodes().Get(context.TODO(), string(nim.nodeName), metav1.GetOptions{})
-	if err != nil {
-		return nil, err
 	}
 
 	nodeInfo := &storagev1.CSINode{
@@ -450,8 +516,8 @@ func (nim *nodeInfoManager) CreateCSINode() (*storagev1.CSINode, error) {
 				{
 					APIVersion: nodeKind.Version,
 					Kind:       nodeKind.Kind,
-					Name:       node.Name,
-					UID:        node.UID,
+					Name:       string(nim.nodeName),
+					UID:        nim.nodeID,
 				},
 			},
 		},
@@ -463,6 +529,16 @@ func (nim *nodeInfoManager) CreateCSINode() (*storagev1.CSINode, error) {
 	setMigrationAnnotation(nim.migratedPlugins, nodeInfo)
 
 	return csiKubeClient.StorageV1().CSINodes().Create(context.TODO(), nodeInfo, metav1.CreateOptions{})
+}
+
+func (nim *nodeInfoManager) DeleteCSINode() error {
+
+	csiKubeClient := nim.volumeHost.GetKubeClient()
+	if csiKubeClient == nil {
+		return fmt.Errorf("error getting CSI client")
+	}
+
+	return csiKubeClient.StorageV1().CSINodes().Delete(context.TODO(), string(nim.nodeName), metav1.DeleteOptions{})
 }
 
 func setMigrationAnnotation(migratedPlugins map[string](func() bool), nodeInfo *storagev1.CSINode) (modified bool) {
@@ -601,6 +677,9 @@ func (nim *nodeInfoManager) uninstallDriverFromCSINode(
 func (nim *nodeInfoManager) tryUninstallDriverFromCSINode(
 	csiKubeClient clientset.Interface,
 	csiDriverName string) error {
+
+	nim.lock.Lock()
+	defer nim.lock.Unlock()
 
 	nodeInfoClient := csiKubeClient.StorageV1().CSINodes()
 	nodeInfo, err := nodeInfoClient.Get(context.TODO(), string(nim.nodeName), metav1.GetOptions{})

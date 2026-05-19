@@ -25,7 +25,7 @@ for easy mirroring by the `openshift-tests images` command.
 
 When adding a new image, first make the code changes and compile the `openshift-tests` binary. Then run `hack/update-generated-bindata.sh` to update `test/extended/util/image/zz_generated.txt`. Contact one of the OWNERS of this directory and have them review the image for inclusion into our suite (usually granted in the process above). Before merge and after review they will run the following command to mirror the content to quay:
 
-    openshift-tests images --upstream --to-repository quay.io/openshift/community-e2e-images | oc image mirror -f - --filter-by-os=.*
+    OPENSHIFT_SKIP_EXTERNAL_TESTS=1 ./openshift-tests images --upstream --to-repository quay.io/openshift/community-e2e-images | oc image mirror -f - --filter-by-os=.*
 
 Note: The `registry.k8s.io/pause:3.9` image (and possibly others) contains uncompressed layers which quay.io does not allow.  The `oc image mirror` command always
 mirrors the layers as is and thus fails to mirror that image.  You can use skopeo instead which will successfully mirror the image, but changes the 
@@ -34,6 +34,28 @@ digests due to switching the layer format.  This command will mirror the `regist
     skopeo copy --all --format oci docker://registry.k8s.io/pause:3.9 docker://quay.io/openshift/community-e2e-images:e2e-27-registry-k8s-io-pause-3-9-p9APyPDU5GsW02Rk
 
 To become an OWNER in this directory you must be given permission to push to this repo by another OWNER.
+
+## Multi-Architecture Manifest List Verification
+
+All images referenced in e2e tests must provide multi-architecture manifest lists to support testing across different architectures (amd64, arm64, ppc64le, s390x). The `openshift-tests images` command verifies that mirrored images include proper manifest lists when the `--verify-manifest-lists` flag is passed.
+
+**Requirements:**
+* Images must be published with manifest lists that include all required architectures
+* Single-architecture images will fail verification unless explicitly exempted
+* Teams adding images are responsible for ensuring multi-arch support
+
+**Exceptions:**
+Exceptions to the manifest list requirement can be configured in the `verify-manifest-lists` presubmit job in the [openshift/release](https://github.com/openshift/release) repository. The bar for granting exceptions requires:
+1. The team acknowledges they cannot test on multi-arch
+2. A documented reason for the limitation
+3. Protection is in place to prevent breaking multi-arch testing
+
+**Permanent exceptions:**
+* `e2e-22-registry-k8s-io-e2e-test-images-node-perf-tf-wide-deep` - TensorFlow image with limited architecture support
+* `registry-k8s-io-cloud-provider-gcp-gcp-compute-persistent-disk-csi-driver` - Upstream GCE PD CSI driver images are not available on ppc64le or s390x, because GCE does not support these architectures.
+* `e2e-quay-io-crio-artifact-subpath-8cuvQpZ0AoyNahYr` - This is an artifact, not an image. It's not runnable and thus it doesn't have to be multiarch.
+
+Additional permanent exceptions may be added to this list as needed with proper justification.
 
 ### Kube exceptions:
 
@@ -55,7 +77,7 @@ When a new version of Kubernetes is introduced new images will likely need to be
 2. Observe whether any tests fail due to missing images
 3. Notify an OWNER in this file, who will run:
 
-        openshift-tests images --upstream --to-repository quay.io/openshift/community-e2e-images | oc image mirror -f - --filter-by-os=.*
+        OPENSHIFT_SKIP_EXTERNAL_TESTS=1 ./openshift-tests images --upstream --to-repository quay.io/openshift/community-e2e-images | oc image mirror -f - --filter-by-os=.*
 
   Note: see above information about using skopeo to mirror images that contain uncompressed layers, such as the `pause` image.
 
@@ -94,10 +116,10 @@ When mirroring from a PR (granting access), you should check out the PR in quest
 
 Then run
 
-    openshift-tests images --upstream --to-repository quay.io/openshift/community-e2e-images
+    OPENSHIFT_SKIP_EXTERNAL_TESTS=1 ./openshift-tests images --upstream --to-repository quay.io/openshift/community-e2e-images
 
 to verify that all things check out. If everything looks good, run
 
-    openshift-tests images --upstream --to-repository quay.io/openshift/community-e2e-images | oc image mirror -f - --filter-by-os=.*
+    OPENSHIFT_SKIP_EXTERNAL_TESTS=1 ./openshift-tests images --upstream --to-repository quay.io/openshift/community-e2e-images | oc image mirror -f - --filter-by-os=.*
 
 You must be logged in (to docker, using `oc registry login --registry=quay.io` or `skopeo login` or `docker login`) to a quay account that has write permission to `quay.io/openshift/community-e2e-images` which every OWNER should have.

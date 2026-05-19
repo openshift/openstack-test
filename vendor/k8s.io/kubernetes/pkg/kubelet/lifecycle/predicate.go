@@ -17,20 +17,23 @@ limitations under the License.
 package lifecycle
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 
 	v1 "k8s.io/api/core/v1"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
+	"k8s.io/component-base/featuregate"
 	"k8s.io/component-helpers/scheduling/corev1"
 	"k8s.io/klog/v2"
-	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
 	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/types"
 	"k8s.io/kubernetes/pkg/scheduler"
 	schedulerframework "k8s.io/kubernetes/pkg/scheduler/framework"
+	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/nodeaffinity"
 	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/tainttoleration"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -51,6 +54,11 @@ const (
 	// rejected admission to the node because it uses a restart policy other
 	// than Always for some of its init containers.
 	InitContainerRestartPolicyForbidden = "InitContainerRestartPolicyForbidden"
+
+	// SupplementalGroupsPolicyNotSupported is used to denote that the pod was
+	// rejected admission to the node because the node does not support
+	// the pod's SupplementalGroupsPolicy.
+	SupplementalGroupsPolicyNotSupported = "SupplementalGroupsPolicyNotSupported"
 
 	// UnexpectedAdmissionError is used to denote that the pod was rejected
 	// admission to the node because of an error during admission that could not
@@ -79,14 +87,14 @@ const (
 	OutOfPods             = "OutOfpods"
 )
 
-type getNodeAnyWayFuncType func() (*v1.Node, error)
+type getNodeAnyWayFuncType func(ctx context.Context, useCache bool) (*v1.Node, error)
 
 type pluginResourceUpdateFuncType func(*schedulerframework.NodeInfo, *PodAdmitAttributes) error
 
 // AdmissionFailureHandler is an interface which defines how to deal with a failure to admit a pod.
 // This allows for the graceful handling of pod admission failure.
 type AdmissionFailureHandler interface {
-	HandleAdmissionFailure(admitPod *v1.Pod, failureReasons []PredicateFailureReason) ([]PredicateFailureReason, error)
+	HandleAdmissionFailure(ctx context.Context, admitPod *v1.Pod, failureReasons []PredicateFailureReason) ([]PredicateFailureReason, error)
 }
 
 type predicateAdmitHandler struct {
@@ -108,9 +116,13 @@ func NewPredicateAdmitHandler(getNodeAnyWayFunc getNodeAnyWayFuncType, admission
 }
 
 func (w *predicateAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult {
-	node, err := w.getNodeAnyWayFunc()
+	// TODO: pass context to Admit when migrating this component to
+	// contextual logging
+	ctx := context.TODO()
+	logger := klog.FromContext(ctx)
+	node, err := w.getNodeAnyWayFunc(ctx, true)
 	if err != nil {
-		klog.ErrorS(err, "Cannot get Node info")
+		logger.Error(err, "Cannot get Node info")
 		return PodAdmitResult{
 			Admit:   false,
 			Reason:  InvalidNodeInfo,
@@ -135,29 +147,24 @@ func (w *predicateAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult 
 		}
 	}
 
+	if rejectPodAdmissionBasedOnSupplementalGroupsPolicy(admitPod, node) {
+		message := fmt.Sprintf("SupplementalGroupsPolicy=%s is not supported in this node", v1.SupplementalGroupsPolicyStrict)
+		logger.Info("Failed to admit pod", "pod", klog.KObj(admitPod), "message", message)
+		return PodAdmitResult{
+			Admit:   false,
+			Reason:  SupplementalGroupsPolicyNotSupported,
+			Message: message,
+		}
+	}
+
 	pods := attrs.OtherPods
 	nodeInfo := schedulerframework.NewNodeInfo(pods...)
 	nodeInfo.SetNode(node)
 
-	// TODO: Remove this after the SidecarContainers feature gate graduates to GA.
-	if !utilfeature.DefaultFeatureGate.Enabled(features.SidecarContainers) {
-		for _, c := range admitPod.Spec.InitContainers {
-			if podutil.IsRestartableInitContainer(&c) {
-				message := fmt.Sprintf("Init container %q may not have a non-default restartPolicy", c.Name)
-				klog.InfoS("Failed to admit pod", "pod", klog.KObj(admitPod), "message", message)
-				return PodAdmitResult{
-					Admit:   false,
-					Reason:  InitContainerRestartPolicyForbidden,
-					Message: message,
-				}
-			}
-		}
-	}
-
 	// ensure the node has enough plugin resources for that required in pods
 	if err = w.pluginResourceUpdateFunc(nodeInfo, attrs); err != nil {
 		message := fmt.Sprintf("Update plugin resources failed due to %v, which is unexpected.", err)
-		klog.InfoS("Failed to admit pod", "pod", klog.KObj(admitPod), "message", message)
+		logger.Info("Failed to admit pod", "pod", klog.KObj(admitPod), "message", message)
 		return PodAdmitResult{
 			Admit:   false,
 			Reason:  UnexpectedAdmissionError,
@@ -167,7 +174,8 @@ func (w *predicateAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult 
 
 	// Remove the requests of the extended resources that are missing in the
 	// node info. This is required to support cluster-level resources, which
-	// are extended resources unknown to nodes.
+	// are extended resources unknown to nodes, and also extended resources
+	// backed by DRA.
 	//
 	// Caveat: If a pod was manually bound to a node (e.g., static pod) where a
 	// node-level extended resource it requires is not found, then kubelet will
@@ -175,14 +183,14 @@ func (w *predicateAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult 
 	// the Resource Class API in the future.
 	podWithoutMissingExtendedResources := removeMissingExtendedResources(admitPod, nodeInfo)
 
-	reasons := generalFilter(podWithoutMissingExtendedResources, nodeInfo)
+	reasons := w.generalFilter(ctx, podWithoutMissingExtendedResources, nodeInfo)
 	fit := len(reasons) == 0
 	if !fit {
-		reasons, err = w.admissionFailureHandler.HandleAdmissionFailure(admitPod, reasons)
+		reasons, err = w.admissionFailureHandler.HandleAdmissionFailure(ctx, admitPod, reasons)
 		fit = len(reasons) == 0 && err == nil
 		if err != nil {
 			message := fmt.Sprintf("Unexpected error while attempting to recover from admission failure: %v", err)
-			klog.InfoS("Failed to admit pod, unexpected error while attempting to recover from admission failure", "pod", klog.KObj(admitPod), "err", err)
+			logger.Info("Failed to admit pod, unexpected error while attempting to recover from admission failure", "pod", klog.KObj(admitPod), "err", err)
 			return PodAdmitResult{
 				Admit:   fit,
 				Reason:  UnexpectedAdmissionError,
@@ -195,7 +203,7 @@ func (w *predicateAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult 
 		var message string
 		if len(reasons) == 0 {
 			message = fmt.Sprint("GeneralPredicates failed due to unknown reason, which is unexpected.")
-			klog.InfoS("Failed to admit pod: GeneralPredicates failed due to unknown reason, which is unexpected", "pod", klog.KObj(admitPod))
+			logger.Info("Failed to admit pod: GeneralPredicates failed due to unknown reason, which is unexpected", "pod", klog.KObj(admitPod))
 			return PodAdmitResult{
 				Admit:   fit,
 				Reason:  UnknownReason,
@@ -208,7 +216,7 @@ func (w *predicateAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult 
 		case *PredicateFailureError:
 			reason = re.PredicateName
 			message = re.Error()
-			klog.V(2).InfoS("Predicate failed on Pod", "pod", klog.KObj(admitPod), "err", message)
+			logger.V(2).Info("Predicate failed on Pod", "pod", klog.KObj(admitPod), "err", message)
 		case *InsufficientResourceError:
 			switch re.ResourceName {
 			case v1.ResourceCPU:
@@ -223,11 +231,11 @@ func (w *predicateAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult 
 				reason = fmt.Sprintf("%s%s", InsufficientResourcePrefix, re.ResourceName)
 			}
 			message = re.Error()
-			klog.V(2).InfoS("Predicate failed on Pod", "pod", klog.KObj(admitPod), "err", message)
+			logger.V(2).Info("Predicate failed on Pod", "pod", klog.KObj(admitPod), "err", message)
 		default:
 			reason = UnexpectedPredicateFailureType
 			message = fmt.Sprintf("GeneralPredicates failed due to %v, which is unexpected.", r)
-			klog.InfoS("Failed to admit pod", "pod", klog.KObj(admitPod), "err", message)
+			logger.Info("Failed to admit pod", "pod", klog.KObj(admitPod), "err", message)
 		}
 		return PodAdmitResult{
 			Admit:   fit,
@@ -238,6 +246,32 @@ func (w *predicateAdmitHandler) Admit(attrs *PodAdmitAttributes) PodAdmitResult 
 	return PodAdmitResult{
 		Admit: true,
 	}
+}
+
+// generalFilter checks a group of filterings that the kubelet cares about.
+func (w *predicateAdmitHandler) generalFilter(ctx context.Context, pod *v1.Pod, nodeInfo *schedulerframework.NodeInfo) []PredicateFailureReason {
+	logger := klog.FromContext(ctx)
+
+	reasons := generalFilter(logger, pod, nodeInfo)
+	for _, r := range reasons {
+		if r.GetReason() != nodeaffinity.ErrReasonPod {
+			return reasons
+		}
+	}
+	if len(reasons) > 0 {
+		// If the only reason for failure is the node affinity labels, fetch the node synchronously
+		// and try again.
+
+		node, err := w.getNodeAnyWayFunc(ctx, false)
+		if err != nil {
+			logger.Error(err, "Failed to synchronously fetch node info")
+			return reasons
+		}
+		nodeInfo.SetNode(node)
+		reasons = generalFilter(logger, pod, nodeInfo)
+	}
+
+	return reasons
 }
 
 // rejectPodAdmissionBasedOnOSSelector rejects pod if it's nodeSelector doesn't match
@@ -270,6 +304,45 @@ func rejectPodAdmissionBasedOnOSField(pod *v1.Pod) bool {
 	}
 	// If the pod OS doesn't match runtime.GOOS return false
 	return string(pod.Spec.OS.Name) != runtime.GOOS
+}
+
+// rejectPodAdmissionBasedOnSupplementalGroupsPolicy rejects pod only if
+// - the feature is beta or above, and SupplementalPolicy=Strict is set in the pod
+// - but, the node does not support the feature
+//
+// Note: During the feature is alpha or before(not yet released) in emulated version,
+// it should admit for backward compatibility
+func rejectPodAdmissionBasedOnSupplementalGroupsPolicy(pod *v1.Pod, node *v1.Node) bool {
+	admit, reject := false, true // just for readability
+
+	inUse := (pod.Spec.SecurityContext != nil && pod.Spec.SecurityContext.SupplementalGroupsPolicy != nil)
+	if !inUse {
+		return admit
+	}
+
+	isBetaOrAbove := false
+	if featureSpec, ok := utilfeature.DefaultMutableFeatureGate.GetAll()[features.SupplementalGroupsPolicy]; ok {
+		isBetaOrAbove = (featureSpec.PreRelease == featuregate.Beta) || (featureSpec.PreRelease == featuregate.GA)
+	}
+
+	if !isBetaOrAbove {
+		return admit
+	}
+
+	featureSupportedOnNode := ptr.Deref(
+		ptr.Deref(node.Status.Features, v1.NodeFeatures{SupplementalGroupsPolicy: ptr.To(false)}).SupplementalGroupsPolicy,
+		false,
+	)
+	effectivePolicy := ptr.Deref(
+		pod.Spec.SecurityContext.SupplementalGroupsPolicy,
+		v1.SupplementalGroupsPolicyMerge,
+	)
+
+	if effectivePolicy == v1.SupplementalGroupsPolicyStrict && !featureSupportedOnNode {
+		return reject
+	}
+
+	return admit
 }
 
 func removeMissingExtendedResources(pod *v1.Pod, nodeInfo *schedulerframework.NodeInfo) *v1.Pod {
@@ -341,7 +414,7 @@ func (e *PredicateFailureError) GetReason() string {
 }
 
 // generalFilter checks a group of filterings that the kubelet cares about.
-func generalFilter(pod *v1.Pod, nodeInfo *schedulerframework.NodeInfo) []PredicateFailureReason {
+func generalFilter(logger klog.Logger, pod *v1.Pod, nodeInfo *schedulerframework.NodeInfo) []PredicateFailureReason {
 	admissionResults := scheduler.AdmissionCheck(pod, nodeInfo, true)
 	var reasons []PredicateFailureReason
 	for _, r := range admissionResults {
@@ -359,10 +432,10 @@ func generalFilter(pod *v1.Pod, nodeInfo *schedulerframework.NodeInfo) []Predica
 
 	// Check taint/toleration except for static pods
 	if !types.IsStaticPod(pod) {
-		_, isUntolerated := corev1.FindMatchingUntoleratedTaint(nodeInfo.Node().Spec.Taints, pod.Spec.Tolerations, func(t *v1.Taint) bool {
+		_, isUntolerated := corev1.FindMatchingUntoleratedTaint(logger, nodeInfo.Node().Spec.Taints, pod.Spec.Tolerations, func(t *v1.Taint) bool {
 			// Kubelet is only interested in the NoExecute taint.
 			return t.Effect == v1.TaintEffectNoExecute
-		})
+		}, utilfeature.DefaultFeatureGate.Enabled(features.TaintTolerationComparisonOperators))
 		if isUntolerated {
 			reasons = append(reasons, &PredicateFailureError{tainttoleration.Name, tainttoleration.ErrReasonNotMatch})
 		}

@@ -2,12 +2,27 @@ package util
 
 import (
 	"context"
+	"fmt"
+	"net"
 	"strings"
 	"time"
 
+	"github.com/openshift/origin/test/extended/util/image"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
+)
+
+// networkMode represents the networking mode for disruption pods
+type networkMode int
+
+const (
+	// hostNetworkMode enables host networking for the disruption pod
+	hostNetworkMode networkMode = iota
+	// podNetworkMode disables host networking for the disruption pod
+	podNetworkMode
 )
 
 // GetClusterNodesByRole returns the cluster nodes by role
@@ -86,4 +101,112 @@ func DebugSelectedNodesRetryWithOptionsAndChroot(oc *CLI, selector string, debug
 
 func DebugAllNodesRetryWithOptionsAndChroot(oc *CLI, debugNodeNamespace string, cmd ...string) (map[string]string, error) {
 	return DebugSelectedNodesRetryWithOptionsAndChroot(oc, "", debugNodeNamespace, cmd...)
+}
+
+// TriggerNodeRebootGraceful initiates a graceful node reboot which allows the system to terminate processes cleanly before rebooting.
+func TriggerNodeRebootGraceful(kubeClient kubernetes.Interface, nodeName string) error {
+	command := "echo 'reboot in 1 minute'; exec chroot /host shutdown -r 1"
+	return createNodeDisruptionPod(kubeClient, nodeName, 0, podNetworkMode, command)
+}
+
+// TriggerNodeRebootUngraceful initiates an ungraceful node reboot which does not allow the system to terminate processes cleanly before rebooting.
+func TriggerNodeRebootUngraceful(kubeClient kubernetes.Interface, nodeName string) error {
+	command := "echo 'reboot in 1 minute'; exec chroot /host sudo systemd-run sh -c 'sleep 60 && reboot --force --force'"
+	return createNodeDisruptionPod(kubeClient, nodeName, 0, podNetworkMode, command)
+}
+
+// TriggerKernelPanic triggers an immediate kernel panic on a node via sysrq trigger.
+func TriggerKernelPanic(kubeClient kubernetes.Interface, nodeName string) error {
+	command := "exec chroot /host sh -c 'echo c > /proc/sysrq-trigger'"
+	return createNodeDisruptionPod(kubeClient, nodeName, 0, podNetworkMode, command)
+}
+
+// TriggerNetworkDisruption blocks network traffic between the target and peer nodes for a given duration.
+func TriggerNetworkDisruption(kubeClient kubernetes.Interface, target, peer *corev1.Node, disruptionDuration time.Duration) (string, error) {
+	preambleCmd := fmt.Sprintf("echo 'temporarily disabling network connection between %s and %s for %v'; exec chroot /host sh -c ", target.Name, peer.Name, disruptionDuration)
+
+	peerIP := getNodeInternalAddress(peer)
+
+	// Use iptables for IPv4 addresses, ip6tables for IPv6.
+	ip := net.ParseIP(peerIP)
+	if ip == nil {
+		return "", fmt.Errorf("invalid peer IP: %s", peerIP)
+	}
+	ipTablesBin := "iptables"
+	if ip.To4() == nil {
+		ipTablesBin = "ip6tables"
+	}
+
+	blockTrafficCmd := fmt.Sprintf("sudo %s -I INPUT -j DROP -s %s && sudo %s -I OUTPUT -j DROP -d %s", ipTablesBin, peerIP, ipTablesBin, peerIP)
+	cleanupCmd := fmt.Sprintf("sudo %s -D INPUT -j DROP -s %s; sudo %s -D OUTPUT -j DROP -d %s", ipTablesBin, peerIP, ipTablesBin, peerIP)
+	sleepCmd := fmt.Sprintf("sleep %d", int(disruptionDuration.Seconds()))
+	disruptionCmd := fmt.Sprintf("%s 'trap \"%s\" EXIT; %s ; %s'", preambleCmd, cleanupCmd, blockTrafficCmd, sleepCmd)
+
+	return disruptionCmd, createNodeDisruptionPod(kubeClient, target.Name, 0, hostNetworkMode, disruptionCmd)
+}
+
+func getNodeInternalAddress(node *corev1.Node) string {
+	for _, addr := range node.Status.Addresses {
+		if addr.Type == corev1.NodeInternalIP {
+			return addr.Address
+		}
+	}
+	// fallback
+	return node.Status.Addresses[0].Address
+}
+
+func createNodeDisruptionPod(kubeClient kubernetes.Interface, nodeName string, attempt int, networkMode networkMode, command string) error {
+	isTrue := true
+	zero := int64(0)
+	name := fmt.Sprintf("disrupt-%s-%d", nodeName, attempt)
+	_, err := kubeClient.CoreV1().Pods("kube-system").Create(context.Background(), &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+			Annotations: map[string]string{
+				"test.openshift.io/disrupt-target": nodeName,
+			},
+		},
+		Spec: corev1.PodSpec{
+			HostNetwork:   networkMode == hostNetworkMode,
+			HostPID:       true,
+			RestartPolicy: corev1.RestartPolicyNever,
+			NodeName:      nodeName,
+			Volumes: []corev1.Volume{
+				{
+					Name: "host",
+					VolumeSource: corev1.VolumeSource{
+						HostPath: &corev1.HostPathVolumeSource{
+							Path: "/",
+						},
+					},
+				},
+			},
+			Containers: []corev1.Container{
+				{
+					Name: "disruption",
+					SecurityContext: &corev1.SecurityContext{
+						RunAsUser:  &zero,
+						Privileged: &isTrue,
+					},
+					Image: image.ShellImage(),
+					Command: []string{
+						"/bin/bash",
+						"-c",
+						command,
+					},
+					TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,
+					VolumeMounts: []corev1.VolumeMount{
+						{
+							MountPath: "/host",
+							Name:      "host",
+						},
+					},
+				},
+			},
+		},
+	}, metav1.CreateOptions{})
+	if errors.IsAlreadyExists(err) {
+		return createNodeDisruptionPod(kubeClient, nodeName, attempt+1, hostNetworkMode, command)
+	}
+	return err
 }
