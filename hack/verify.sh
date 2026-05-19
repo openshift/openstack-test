@@ -21,27 +21,11 @@ verify_govet() {
 	go vet ./...
 }
 
-verify_generated() {
-	declare old
-	old="$(mktemp)"
-	declare new='test/extended/util/annotate/generated/zz_generated.annotations.go'
-	cp "$new" "$old"
-	go generate ./test/extended
-	if ! diff "$old" "$new"; then
-            echo 'Generated files are out of date'
-            echo 'Run "make update"'
-            rm $old
-            return 1
-        fi
-        rm $old
-        return 0
-}
-
 declare run=0 failed=0 junit_testcases=''
 declare suite_start suite_stop
 suite_start="$(date +%s)"
 
-for tc in verify_gofmt verify_govet verify_generated; do
+for tc in verify_gofmt verify_govet; do
 	((run+=1))
 	declare tc_start tc_out tc_exit
 	tc_start="$(date +%s)"
