@@ -18,7 +18,7 @@ import (
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The Openshift", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The Openshift", func() {
 	defer g.GinkgoRecover()
 
 	var err error

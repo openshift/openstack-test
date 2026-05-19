@@ -22,7 +22,7 @@ import (
 	"github.com/gophercloud/gophercloud/v2/openstack/compute/v2/servers"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Bugfix", func() {
 	defer g.GinkgoRecover()
 
 	// returns the list of addresses

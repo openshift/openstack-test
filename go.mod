@@ -11,6 +11,7 @@ require (
 	github.com/gophercloud/gophercloud/v2 v2.7.0
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
+	github.com/openshift-eng/openshift-tests-extension v0.0.0-20260422120742-50dec0b5ecf3
 	github.com/openshift/api v0.0.0-20250513132935-9052dea86694
 	github.com/openshift/client-go v0.0.0-20250513150353-9ea84fa6431b
 	github.com/openshift/cluster-api-actuator-pkg v0.0.0-20250401133953-e7e157c4c1fe
@@ -324,6 +325,7 @@ replace (
 	k8s.io/dynamic-resource-allocation => github.com/openshift/kubernetes/staging/src/k8s.io/dynamic-resource-allocation v0.0.0-20250527023356-4cd5657aac98
 	k8s.io/endpointslice => github.com/openshift/kubernetes/staging/src/k8s.io/endpointslice v0.0.0-20250527023356-4cd5657aac98
 	k8s.io/externaljwt => github.com/openshift/kubernetes/staging/src/k8s.io/externaljwt v0.0.0-20250527023356-4cd5657aac98
+	k8s.io/kms => github.com/openshift/kubernetes/staging/src/k8s.io/kms v0.0.0-20250527023356-4cd5657aac98
 	k8s.io/kube-aggregator => github.com/openshift/kubernetes/staging/src/k8s.io/kube-aggregator v0.0.0-20250527023356-4cd5657aac98
 	k8s.io/kube-controller-manager => github.com/openshift/kubernetes/staging/src/k8s.io/kube-controller-manager v0.0.0-20250527023356-4cd5657aac98
 	k8s.io/kube-proxy => github.com/openshift/kubernetes/staging/src/k8s.io/kube-proxy v0.0.0-20250527023356-4cd5657aac98

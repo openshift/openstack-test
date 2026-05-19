@@ -26,7 +26,7 @@ import (
 	exutil "github.com/openshift/origin/test/extended/util"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenShift cluster", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenShift cluster", func() {
 	defer g.GinkgoRecover()
 
 	var dc dynamic.Interface
