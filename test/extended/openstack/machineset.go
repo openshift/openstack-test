@@ -22,7 +22,7 @@ const (
 	machineSetOwningLabel = "machine.openshift.io/cluster-api-machineset"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] MachineSet", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] MachineSet", func() {
 	defer g.GinkgoRecover()
 
 	var dc dynamic.Interface

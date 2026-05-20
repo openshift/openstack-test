@@ -31,7 +31,7 @@ import (
 	"github.com/gophercloud/gophercloud/v2/openstack/networking/v2/networks"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Machine", func() {
 	defer g.GinkgoRecover()
 
 	var dc dynamic.Interface
