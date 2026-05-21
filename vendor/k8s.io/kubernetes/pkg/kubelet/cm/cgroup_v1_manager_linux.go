@@ -22,10 +22,11 @@ import (
 	"strconv"
 	"strings"
 
-	libcontainercgroups "github.com/opencontainers/runc/libcontainer/cgroups"
-	"github.com/opencontainers/runc/libcontainer/cgroups/fscommon"
+	libcontainercgroups "github.com/opencontainers/cgroups"
+	"github.com/opencontainers/cgroups/fscommon"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/klog/v2"
 )
 
 const cgroupv1MemLimitFile string = "memory.limit_in_bytes"
@@ -39,9 +40,9 @@ type cgroupV1impl struct {
 	cgroupCommon
 }
 
-func NewCgroupV1Manager(cs *CgroupSubsystems, cgroupDriver string) CgroupManager {
+func NewCgroupV1Manager(logger klog.Logger, cs *CgroupSubsystems, cgroupDriver string) CgroupManager {
 	return &cgroupV1impl{
-		cgroupCommon: newCgroupCommon(cs, cgroupDriver),
+		cgroupCommon: newCgroupCommon(logger, cs, cgroupDriver),
 	}
 }
 

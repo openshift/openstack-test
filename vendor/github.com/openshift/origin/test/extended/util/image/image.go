@@ -38,9 +38,6 @@ var (
 		// used by open ldap tests
 		"quay.io/openshifttest/ldap:1.2": -1,
 
-		// used by multicast test
-		"quay.io/openshifttest/multicast:1.1": -1,
-
 		// used by oc mirror test, should be moved to publish to quay
 		"docker.io/library/registry:2.8.0-beta.1": -1,
 
@@ -53,11 +50,29 @@ var (
 
 		// allowed upstream kube images - index and value must match upstream or
 		// tests will fail (vendor/k8s.io/kubernetes/test/utils/image/manifest.go)
-		"registry.k8s.io/e2e-test-images/agnhost:2.53": 1,
-		"registry.k8s.io/e2e-test-images/nginx:1.15-4": 19,
+		"registry.k8s.io/e2e-test-images/agnhost:2.55":     1,
+		"registry.k8s.io/e2e-test-images/agnhost:2.59":     2,
+		"registry.k8s.io/e2e-test-images/busybox:1.37.0-1": 6,
+		"registry.k8s.io/e2e-test-images/nginx:1.15-4":     16,
+
+		// used by DRA tests and not present in the image manifest
+		// tracked here: https://github.com/kubernetes/kubernetes/issues/137520
+		"registry.k8s.io/e2e-test-images/sample-device-plugin:1.7": -1,
 
 		// used by KubeVirt test to start fedora VMs
 		"quay.io/kubevirt/fedora-with-test-tooling-container-disk:20241024_891122a6fc": -1,
+
+		// used by external OIDC tests to simulate an external IdP
+		"quay.io/keycloak/keycloak:25.0": -1,
+
+		// image required for OLMv1 tests in https://github.com/openshift/operator-framework-operator-controller/tree/main/openshift/tests-extension
+		"quay.io/olmtest/webhook-operator:v0.0.5": -1,
+
+		// used by zstd:chunked image tests
+		"quay.io/crio/zstd-chunked:2": -1,
+
+		// used by artifact volume tests
+		"quay.io/crio/artifact:subpath": -1,
 	}
 )
 
@@ -221,6 +236,9 @@ var Exceptions = sets.NewString(
 	// ie. application/vnd.docker.image.rootfs.diff.tar which are not accepted
 	// by quay.io, this has to be manually mirrored with --filter-by-os=linux.*
 	"registry.k8s.io/pause:3.10",
+	// These images are intentionally invalid or require authentication and cannot be mirrored
+	"invalid.registry.k8s.io/invalid",
+	"gcr.io/k8s-authenticated-test",
 )
 
 // GetMappedImages returns the images if they were mapped to the provided

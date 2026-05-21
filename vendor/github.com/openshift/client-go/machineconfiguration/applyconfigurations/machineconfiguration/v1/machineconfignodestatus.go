@@ -8,11 +8,42 @@ import (
 
 // MachineConfigNodeStatusApplyConfiguration represents a declarative configuration of the MachineConfigNodeStatus type for use
 // with apply.
+//
+// MachineConfigNodeStatus holds the reported information on a particular machine config node.
 type MachineConfigNodeStatusApplyConfiguration struct {
-	Conditions         []metav1.ConditionApplyConfiguration                           `json:"conditions,omitempty"`
-	ObservedGeneration *int64                                                         `json:"observedGeneration,omitempty"`
-	ConfigVersion      *MachineConfigNodeStatusMachineConfigVersionApplyConfiguration `json:"configVersion,omitempty"`
-	PinnedImageSets    []MachineConfigNodeStatusPinnedImageSetApplyConfiguration      `json:"pinnedImageSets,omitempty"`
+	// conditions represent the observations of a machine config node's current state. Valid types are:
+	// UpdatePrepared, UpdateExecuted, UpdatePostActionComplete, UpdateComplete, Updated, Resumed,
+	// Drained, AppliedFilesAndOS, Cordoned, Uncordoned, RebootedNode, NodeDegraded, PinnedImageSetsProgressing,
+	// and PinnedImageSetsDegraded.
+	// The following types are only available when the ImageModeStatusReporting feature gate is enabled: ImagePulledFromRegistry,
+	// AppliedOSImage, AppliedFiles
+	// The following types are only available when the NoRegistryClusterInstall feature gate is enabled: InternalReleaseImageDegraded
+	Conditions []metav1.ConditionApplyConfiguration `json:"conditions,omitempty"`
+	// observedGeneration represents the generation of the MachineConfigNode object observed by the Machine Config Operator's controller.
+	// This field is updated when the controller observes a change to the desiredConfig in the configVersion of the machine config node spec.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+	// configVersion describes the current and desired machine config version for this node.
+	ConfigVersion *MachineConfigNodeStatusMachineConfigVersionApplyConfiguration `json:"configVersion,omitempty"`
+	// configImage is an optional field for configuring the OS image to be used for this node. This field will only exist if the node belongs to a pool opted into on-cluster image builds, and will override any MachineConfig referenced OSImageURL fields.
+	// When omitted, this means that the Image Mode feature is not being used and the node will be up to date with the specific current rendered config version for the nodes MachinePool.
+	// When specified, the Image Mode feature is enabled and the contents of this field show the observed state of the node image.
+	// When Image Mode is enabled and a new MachineConfig is applied such that a new OS image build is not created, only the configVersion field will change.
+	// When Image Mode is enabled and a new MachineConfig is applied such that a new OS image build is created, then only the configImage field will change. It is also possible that both the configImage
+	// and configVersion change during the same update.
+	ConfigImage *MachineConfigNodeStatusConfigImageApplyConfiguration `json:"configImage,omitempty"`
+	// pinnedImageSets describes the current and desired pinned image sets for this node.
+	PinnedImageSets []MachineConfigNodeStatusPinnedImageSetApplyConfiguration `json:"pinnedImageSets,omitempty"`
+	// irreconcilableChanges is an optional field that contains the observed differences between this nodes
+	// configuration and the target rendered MachineConfig.
+	// This field will be set when there are changes to the target rendered MachineConfig that can only be applied to
+	// new nodes joining the cluster.
+	// Entries must be unique, keyed on the fieldPath field.
+	// Must not exceed 32 entries.
+	IrreconcilableChanges []IrreconcilableChangeDiffApplyConfiguration `json:"irreconcilableChanges,omitempty"`
+	// internalReleaseImage describes the status of the release payloads stored in the node.
+	// When specified, an internalReleaseImage custom resource exists on the cluster, and the specified images will be made available on the control plane nodes.
+	// This field will reflect the actual on-disk state of those release images.
+	InternalReleaseImage *MachineConfigNodeStatusInternalReleaseImageApplyConfiguration `json:"internalReleaseImage,omitempty"`
 }
 
 // MachineConfigNodeStatusApplyConfiguration constructs a declarative configuration of the MachineConfigNodeStatus type for use with
@@ -50,6 +81,14 @@ func (b *MachineConfigNodeStatusApplyConfiguration) WithConfigVersion(value *Mac
 	return b
 }
 
+// WithConfigImage sets the ConfigImage field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the ConfigImage field is set to the value of the last call.
+func (b *MachineConfigNodeStatusApplyConfiguration) WithConfigImage(value *MachineConfigNodeStatusConfigImageApplyConfiguration) *MachineConfigNodeStatusApplyConfiguration {
+	b.ConfigImage = value
+	return b
+}
+
 // WithPinnedImageSets adds the given value to the PinnedImageSets field in the declarative configuration
 // and returns the receiver, so that objects can be build by chaining "With" function invocations.
 // If called multiple times, values provided by each call will be appended to the PinnedImageSets field.
@@ -60,5 +99,26 @@ func (b *MachineConfigNodeStatusApplyConfiguration) WithPinnedImageSets(values .
 		}
 		b.PinnedImageSets = append(b.PinnedImageSets, *values[i])
 	}
+	return b
+}
+
+// WithIrreconcilableChanges adds the given value to the IrreconcilableChanges field in the declarative configuration
+// and returns the receiver, so that objects can be build by chaining "With" function invocations.
+// If called multiple times, values provided by each call will be appended to the IrreconcilableChanges field.
+func (b *MachineConfigNodeStatusApplyConfiguration) WithIrreconcilableChanges(values ...*IrreconcilableChangeDiffApplyConfiguration) *MachineConfigNodeStatusApplyConfiguration {
+	for i := range values {
+		if values[i] == nil {
+			panic("nil value passed to WithIrreconcilableChanges")
+		}
+		b.IrreconcilableChanges = append(b.IrreconcilableChanges, *values[i])
+	}
+	return b
+}
+
+// WithInternalReleaseImage sets the InternalReleaseImage field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the InternalReleaseImage field is set to the value of the last call.
+func (b *MachineConfigNodeStatusApplyConfiguration) WithInternalReleaseImage(value *MachineConfigNodeStatusInternalReleaseImageApplyConfiguration) *MachineConfigNodeStatusApplyConfiguration {
+	b.InternalReleaseImage = value
 	return b
 }

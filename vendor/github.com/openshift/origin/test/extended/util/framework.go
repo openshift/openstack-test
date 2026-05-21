@@ -62,6 +62,7 @@ import (
 	"github.com/openshift/library-go/pkg/git"
 	"github.com/openshift/library-go/pkg/image/imageutil"
 
+	"github.com/openshift/origin/pkg/test/preconditions"
 	"github.com/openshift/origin/test/extended/testdata"
 	utilimage "github.com/openshift/origin/test/extended/util/image"
 )
@@ -235,8 +236,8 @@ func WaitForInternalRegistryHostname(oc *CLI) (string, error) {
 }
 
 func processScanError(log string) error {
-	e2e.Logf(log)
-	return fmt.Errorf(log)
+	e2e.Logf("%s", log)
+	return fmt.Errorf("%s", log)
 }
 
 // getImageStreamObj returns the updated spec for imageStream object
@@ -327,7 +328,6 @@ func WaitForOpenShiftNamespaceImageStreams(oc *CLI) error {
 
 	// Check to see if SamplesOperator managementState is Removed
 	out, err := oc.AsAdmin().Run("get").Args("configs.samples.operator.openshift.io", "cluster", "-o", "yaml").Output()
-
 	if err != nil {
 		e2e.Logf("\n  error on getting samples operator CR: %+v\n%#v\n", err, out)
 	}
@@ -394,7 +394,7 @@ func WaitForSamplesImagestream(ctx context.Context, oc *CLI, imagestream string,
 		strbuf.WriteString(" - check status at https://status.redhat.com (catalog.redhat.com) for reported outages\n")
 		strbuf.WriteString(" - if no outages are reported there, email Terms-Based-Registry-Team@redhat.com with a report of the error\n")
 		strbuf.WriteString("   and prepare to work with the test platform team to get the current set of tokens for CI\n")
-		e2e.Logf(strbuf.String())
+		e2e.Logf("%s", strbuf.String())
 	}
 	return pollErr
 }
@@ -585,7 +585,7 @@ func DumpPodStates(oc *CLI) {
 		e2e.Logf("Error dumping pod states: %v", err)
 		return
 	}
-	e2e.Logf(out)
+	e2e.Logf("%s", out)
 }
 
 // DumpPodStatesInNamespace dumps the state of all pods in the provided namespace.
@@ -596,7 +596,7 @@ func DumpPodStatesInNamespace(namespace string, oc *CLI) {
 		e2e.Logf("Error dumping pod states: %v", err)
 		return
 	}
-	e2e.Logf(out)
+	e2e.Logf("%s", out)
 }
 
 // DumpPodLogsStartingWith will dump any pod starting with the name prefix provided
@@ -680,7 +680,7 @@ func DumpPodsCommand(c kubernetes.Interface, ns string, selector labels.Selector
 	}
 	for name, stdout := range values {
 		stdout = strings.TrimSuffix(stdout, "\n")
-		e2e.Logf(name + ": " + strings.Join(strings.Split(stdout, "\n"), fmt.Sprintf("\n%s: ", name)))
+		e2e.Logf("%s: %s", name, strings.Join(strings.Split(stdout, "\n"), fmt.Sprintf("\n%s: ", name)))
 	}
 }
 
@@ -692,7 +692,7 @@ func DumpConfigMapStates(oc *CLI) {
 		e2e.Logf("Error dumping configMap states: %v", err)
 		return
 	}
-	e2e.Logf(out)
+	e2e.Logf("%s", out)
 }
 
 // GetMasterThreadDump will get a golang thread stack dump
@@ -781,7 +781,7 @@ func VarSubOnFile(srcFile string, destFile string, vars map[string]string) error
 			k = "${" + k + "}"
 			srcString = strings.Replace(srcString, k, v, -1) // -1 means unlimited replacements
 		}
-		err = ioutil.WriteFile(destFile, []byte(srcString), 0644)
+		err = ioutil.WriteFile(destFile, []byte(srcString), 0o644)
 	}
 	return err
 }
@@ -1030,7 +1030,7 @@ func StartBuildAndWait(oc *CLI, args ...string) (result *BuildResult, err error)
 	return result, WaitForBuildResult(oc.BuildClient().BuildV1().Builds(oc.Namespace()), result)
 }
 
-// WaitForBuildResult updates result wit the state of the build
+// WaitForBuildResult updates result with the state of the build
 func WaitForBuildResult(c buildv1clienttyped.BuildInterface, result *BuildResult) error {
 	e2e.Logf("Waiting for %s to complete\n", result.BuildName)
 	err := WaitForABuild(c, result.BuildName,
@@ -1065,7 +1065,7 @@ func WaitForBuildResult(c buildv1clienttyped.BuildInterface, result *BuildResult
 
 // WaitForABuild waits for a Build object to match either isOK or isFailed conditions.
 func WaitForABuild(c buildv1clienttyped.BuildInterface, name string, isOK, isFailed, isCanceled func(*buildv1.Build) bool) error {
-	return WaitForABuildWithTimeout(c, name, 2*time.Minute, 10*time.Minute, isOK, isFailed, isCanceled)
+	return WaitForABuildWithTimeout(c, name, 2*time.Minute, 30*time.Minute, isOK, isFailed, isCanceled)
 }
 
 // WaitForABuild waits for a Build object to match either isOK or isFailed conditions.
@@ -1654,11 +1654,11 @@ func restoreFixtureAsset(dir, name string) error {
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(assetFilePath(dir, filepath.Dir(name)), os.FileMode(0755))
+	err = os.MkdirAll(assetFilePath(dir, filepath.Dir(name)), os.FileMode(0o755))
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(assetFilePath(dir, name), data, 0640)
+	err = ioutil.WriteFile(assetFilePath(dir, name), data, 0o640)
 	if err != nil {
 		return err
 	}
@@ -1990,10 +1990,10 @@ type GitRepo struct {
 // AddAndCommit commits a file with its content to local repo
 func (r GitRepo) AddAndCommit(file, content string) error {
 	dir := filepath.Dir(file)
-	if err := os.MkdirAll(filepath.Join(r.RepoPath, dir), 0777); err != nil {
+	if err := os.MkdirAll(filepath.Join(r.RepoPath, dir), 0o777); err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(filepath.Join(r.RepoPath, file), []byte(content), 0666); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(r.RepoPath, file), []byte(content), 0o666); err != nil {
 		return err
 	}
 	if err := r.repo.Add(r.RepoPath, file); err != nil {
@@ -2190,7 +2190,7 @@ func SkipIfExternalControlplaneTopology(oc *CLI, reason string) {
 	controlPlaneTopology, err := GetControlPlaneTopology(oc)
 	o.ExpectWithOffset(1, err).NotTo(o.HaveOccurred())
 	if *controlPlaneTopology == configv1.ExternalTopologyMode {
-		skipper.Skipf(reason)
+		skipper.Skip(reason)
 	}
 }
 
@@ -2233,6 +2233,12 @@ func DoesApiResourceExist(config *rest.Config, apiResourceName, group string) (b
 	if errors.As(err, &groupFailed) {
 		for gv, err := range groupFailed.Groups {
 			if gv.Group == group {
+				if errors.As(err, &discovery.StaleGroupVersionError{}) {
+					// Group is registered but discovery is transiently stale.
+					// This can happen immediately after a restart and should resolve itself.
+					// For now, treat as "exists" since the APIService is known to the aggregator.
+					return true, nil
+				}
 				return false, err
 			}
 		}
@@ -2309,23 +2315,56 @@ func IsHypershift(ctx context.Context, configClient clientconfigv1.Interface) (b
 
 // IsMicroShiftCluster returns "true" if a cluster is MicroShift,
 // "false" otherwise. It needs kube-admin client as input.
+//
+// This function checks for the presence of the microshift-version configmap
+// in the kube-public namespace. MicroShift clusters have this configmap,
+// standard OpenShift clusters do not.
+//
+// If the configmap cannot be accessed after polling for 5 minutes, the test
+// is skipped with a precondition failure marker. This ensures consistent
+// handling across all callers and surfaces the issue via synthetic test
+// results.
 func IsMicroShiftCluster(kubeClient k8sclient.Interface) (bool, error) {
-	// MicroShift cluster contains "microshift-version" configmap in "kube-public" namespace
-	cm, err := kubeClient.CoreV1().ConfigMaps("kube-public").Get(context.Background(), "microshift-version", metav1.GetOptions{})
-	if err != nil {
-		if kapierrs.IsNotFound(err) {
-			e2e.Logf("microshift-version configmap not found")
-			return false, nil
+	ctx := context.Background()
+
+	e2e.Logf("%s", preconditions.RecordCheck("checking if cluster is MicroShift"))
+
+	// Check for the microshift-version configmap.
+	// Poll every 10 seconds for up to 5 minutes to handle transient API failures.
+	var cm *corev1.ConfigMap
+	duration := 5 * time.Minute
+	if err := wait.PollUntilContextTimeout(ctx, 10*time.Second, duration, true, func(ctx context.Context) (bool, error) {
+		// MicroShift cluster contains "microshift-version" configmap in "kube-public" namespace
+		var err error
+		cm, err = kubeClient.CoreV1().ConfigMaps("kube-public").Get(ctx, "microshift-version", metav1.GetOptions{})
+		if err == nil {
+			return true, nil
 		}
-		e2e.Logf("error accessing microshift-version configmap: %v", err)
-		return false, err
+		if kapierrs.IsNotFound(err) {
+			cm = nil
+			return true, nil
+		}
+		e2e.Logf("IsMicroShiftCluster: error accessing microshift-version configmap: %v", err)
+		return false, nil
+	}); err != nil {
+		e2e.Logf("IsMicroShiftCluster: timed out after %s: %v (assuming not MicroShift)", duration, err)
 	}
 	if cm == nil {
-		e2e.Logf("microshift-version configmap is nil")
+		e2e.Logf("IsMicroShiftCluster: microshift-version configmap not found, not MicroShift")
 		return false, nil
 	}
-	e2e.Logf("MicroShift cluster with version: %s", cm.Data["version"])
+	e2e.Logf("IsMicroShiftCluster: MicroShift cluster with version: %s", cm.Data["version"])
 	return true, nil
+}
+
+// IsRosaCluster returns "true" if a cluster is ROSA,
+// "false" otherwise.
+func IsRosaCluster(oc *CLI) (bool, error) {
+	product, err := oc.WithoutNamespace().AsAdmin().Run("get").Args("clusterclaims/product.open-cluster-management.io", "-o=jsonpath={.spec.value}").Output()
+	if err != nil {
+		return false, nil
+	}
+	return strings.Compare(product, "ROSA") == 0, nil
 }
 
 func IsTwoNodeFencing(ctx context.Context, configClient clientconfigv1.Interface) bool {
@@ -2336,6 +2375,8 @@ func IsTwoNodeFencing(ctx context.Context, configClient clientconfigv1.Interface
 
 	return infrastructure.Status.ControlPlaneTopology == configv1.DualReplicaTopologyMode
 }
+
+var ClusterDegraded bool
 
 func groupName(groupVersionName string) string {
 	return strings.Split(groupVersionName, "/")[0]

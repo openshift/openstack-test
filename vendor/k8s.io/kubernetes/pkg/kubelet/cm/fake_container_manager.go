@@ -21,6 +21,7 @@ import (
 	"sync"
 
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/klog/v2"
 
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/types"
@@ -44,6 +45,9 @@ type FakeContainerManager struct {
 	CalledFunctions                     []string
 	PodContainerManager                 *FakePodContainerManager
 	shouldResetExtendedResourceCapacity bool
+	nodeConfig                          NodeConfig
+	cpuManager                          cpumanager.Manager
+	memoryManager                       memorymanager.Manager
 }
 
 var _ ContainerManager = &FakeContainerManager{}
@@ -51,6 +55,16 @@ var _ ContainerManager = &FakeContainerManager{}
 func NewFakeContainerManager() *FakeContainerManager {
 	return &FakeContainerManager{
 		PodContainerManager: NewFakePodContainerManager(),
+		// Using klog.Background() for fake/test implementations where no real context is available
+		cpuManager:    cpumanager.NewFakeManager(klog.Background()),
+		memoryManager: memorymanager.NewFakeManager(klog.Background()),
+	}
+}
+
+func NewFakeContainerManagerWithNodeConfig(nodeConfig NodeConfig) *FakeContainerManager {
+	return &FakeContainerManager{
+		PodContainerManager: NewFakePodContainerManager(),
+		nodeConfig:          nodeConfig,
 	}
 }
 
@@ -72,7 +86,7 @@ func (cm *FakeContainerManager) GetNodeConfig() NodeConfig {
 	cm.Lock()
 	defer cm.Unlock()
 	cm.CalledFunctions = append(cm.CalledFunctions, "GetNodeConfig")
-	return NodeConfig{}
+	return cm.nodeConfig
 }
 
 func (cm *FakeContainerManager) GetMountedSubsystems() *CgroupSubsystems {
@@ -89,7 +103,7 @@ func (cm *FakeContainerManager) GetQOSContainersInfo() QOSContainersInfo {
 	return QOSContainersInfo{}
 }
 
-func (cm *FakeContainerManager) UpdateQOSCgroups() error {
+func (cm *FakeContainerManager) UpdateQOSCgroups(logger klog.Logger) error {
 	cm.Lock()
 	defer cm.Unlock()
 	cm.CalledFunctions = append(cm.CalledFunctions, "UpdateQOSCgroups")
@@ -171,7 +185,7 @@ func (cm *FakeContainerManager) InternalContainerLifecycle() InternalContainerLi
 	cm.Lock()
 	defer cm.Unlock()
 	cm.CalledFunctions = append(cm.CalledFunctions, "InternalContainerLifecycle")
-	return &internalContainerLifecycleImpl{cpumanager.NewFakeManager(), memorymanager.NewFakeManager(), topologymanager.NewFakeManager()}
+	return &internalContainerLifecycleImpl{cm.cpuManager, cm.memoryManager, topologymanager.NewFakeManager()}
 }
 
 func (cm *FakeContainerManager) GetPodCgroupRoot() string {
@@ -249,7 +263,11 @@ func (cm *FakeContainerManager) GetDynamicResources(pod *v1.Pod, container *v1.C
 func (cm *FakeContainerManager) GetNodeAllocatableAbsolute() v1.ResourceList {
 	cm.Lock()
 	defer cm.Unlock()
-	return nil
+	return v1.ResourceList{
+		v1.ResourceCPU:    resource.MustParse("4"),
+		v1.ResourceMemory: resource.MustParse("4Gi"),
+		v1.ResourcePods:   *resource.NewQuantity(40, resource.DecimalSI),
+	}
 }
 
 func (cm *FakeContainerManager) PrepareDynamicResources(ctx context.Context, pod *v1.Pod) error {
@@ -267,4 +285,12 @@ func (cm *FakeContainerManager) UpdateAllocatedResourcesStatus(pod *v1.Pod, stat
 }
 func (cm *FakeContainerManager) Updates() <-chan resourceupdates.Update {
 	return nil
+}
+
+func (cm *FakeContainerManager) PodHasExclusiveCPUs(pod *v1.Pod) bool {
+	return false
+}
+
+func (cm *FakeContainerManager) ContainerHasExclusiveCPUs(pod *v1.Pod, container *v1.Container) bool {
+	return false
 }

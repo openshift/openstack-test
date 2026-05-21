@@ -24,13 +24,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/opencontainers/runc/libcontainer/cgroups/fscommon"
+	"github.com/opencontainers/cgroups/fscommon"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/klog/v2"
 	cmutil "k8s.io/kubernetes/pkg/kubelet/cm/util"
 )
 
-const cgroupv2MemLimitFile string = "memory.max"
+const (
+	cgroupv2MemLimitFile  = "memory.max"
+	cgroupv2CpuMaxFile    = "cpu.max"
+	cgroupv2CpuWeightFile = "cpu.weight"
+)
 
 // cgroupV2impl implements the CgroupManager interface
 // for cgroup v2.
@@ -41,9 +46,9 @@ type cgroupV2impl struct {
 	cgroupCommon
 }
 
-func NewCgroupV2Manager(cs *CgroupSubsystems, cgroupDriver string) CgroupManager {
+func NewCgroupV2Manager(logger klog.Logger, cs *CgroupSubsystems, cgroupDriver string) CgroupManager {
 	return &cgroupV2impl{
-		cgroupCommon: newCgroupCommon(cs, cgroupDriver),
+		cgroupCommon: newCgroupCommon(logger, cs, cgroupDriver),
 	}
 }
 
@@ -100,14 +105,14 @@ func (c *cgroupV2impl) GetCgroupConfig(name CgroupName, resource v1.ResourceName
 
 func (c *cgroupV2impl) getCgroupCPUConfig(cgroupPath string) (*ResourceConfig, error) {
 	var cpuLimitStr, cpuPeriodStr string
-	cpuLimitAndPeriod, err := fscommon.GetCgroupParamString(cgroupPath, "cpu.max")
+	cpuLimitAndPeriod, err := fscommon.GetCgroupParamString(cgroupPath, cgroupv2CpuMaxFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read cpu.max file for cgroup %v: %w", cgroupPath, err)
+		return nil, fmt.Errorf("failed to read %s file for cgroup %v: %w", cgroupv2CpuMaxFile, cgroupPath, err)
 	}
 	numItems, errScan := fmt.Sscanf(cpuLimitAndPeriod, "%s %s", &cpuLimitStr, &cpuPeriodStr)
 	if errScan != nil || numItems != 2 {
-		return nil, fmt.Errorf("failed to correctly parse content of cpu.max file ('%s') for cgroup %v: %w",
-			cpuLimitAndPeriod, cgroupPath, errScan)
+		return nil, fmt.Errorf("failed to correctly parse content of %s file ('%s') for cgroup %v: %w",
+			cgroupv2CpuMaxFile, cpuLimitAndPeriod, cgroupPath, errScan)
 	}
 	cpuLimit := int64(-1)
 	if cpuLimitStr != Cgroup2MaxCpuLimit {
@@ -120,7 +125,7 @@ func (c *cgroupV2impl) getCgroupCPUConfig(cgroupPath string) (*ResourceConfig, e
 	if errPeriod != nil {
 		return nil, fmt.Errorf("failed to convert CPU period as integer for cgroup %v: %w", cgroupPath, errPeriod)
 	}
-	cpuWeight, errWeight := fscommon.GetCgroupParamUint(cgroupPath, "cpu.weight")
+	cpuWeight, errWeight := fscommon.GetCgroupParamUint(cgroupPath, cgroupv2CpuWeightFile)
 	if errWeight != nil {
 		return nil, fmt.Errorf("failed to read CPU weight for cgroup %v: %w", cgroupPath, errWeight)
 	}
@@ -162,12 +167,6 @@ func readUnifiedControllers(path string) (sets.Set[string], error) {
 func (c *cgroupV2impl) buildCgroupUnifiedPath(name CgroupName) string {
 	cgroupFsAdaptedName := c.Name(name)
 	return path.Join(cmutil.CgroupRoot, cgroupFsAdaptedName)
-}
-
-// Convert cgroup v1 cpu.shares value to cgroup v2 cpu.weight
-// https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/2254-cgroup-v2#phase-1-convert-from-cgroups-v1-settings-to-v2
-func cpuSharesToCPUWeight(cpuShares uint64) uint64 {
-	return uint64((((cpuShares - 2) * 9999) / 262142) + 1)
 }
 
 // Convert cgroup v2 cpu.weight value to cgroup v1 cpu.shares

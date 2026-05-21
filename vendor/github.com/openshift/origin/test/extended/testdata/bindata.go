@@ -302,9 +302,10 @@
 // test/extended/testdata/deployments/tag-images-deployment.yaml
 // test/extended/testdata/deployments/test-deployment-broken.yaml
 // test/extended/testdata/deployments/test-deployment-test.yaml
+// test/extended/testdata/edge_topologies/baremetalhost-template.yaml
+// test/extended/testdata/edge_topologies/machine-template.yaml
 // test/extended/testdata/egress-firewall/ovnk-egressfirewall-test.yaml
 // test/extended/testdata/egress-firewall/ovnk-egressfirewall-wildcard-test.yaml
-// test/extended/testdata/egress-firewall/sdn-egressnetworkpolicy-test.yaml
 // test/extended/testdata/egress-router-cni/egress-router-cni-v4-cr.yaml
 // test/extended/testdata/egress-router-cni/egress-router-cni-v6-cr.yaml
 // test/extended/testdata/forcepull-test.json
@@ -426,10 +427,7 @@
 // test/extended/testdata/machine_config/machineconfig/1-worker-invalid-mc.yaml
 // test/extended/testdata/machine_config/machineconfigpool/customMCP.yaml
 // test/extended/testdata/machine_config/machineconfigpool/infra-mcp.yaml
-// test/extended/testdata/machine_config/machineconfigurations/managedbootimages-all.yaml
 // test/extended/testdata/machine_config/machineconfigurations/managedbootimages-empty.yaml
-// test/extended/testdata/machine_config/machineconfigurations/managedbootimages-none.yaml
-// test/extended/testdata/machine_config/machineconfigurations/managedbootimages-partial.yaml
 // test/extended/testdata/machine_config/machineconfigurations/nodedisruptionpolicy-rebootless-path.yaml
 // test/extended/testdata/machine_config/pinnedimage/customGCMCPpis.yaml
 // test/extended/testdata/machine_config/pinnedimage/customInvalidPis.yaml
@@ -449,14 +447,19 @@
 // test/extended/testdata/net-attach-defs/whereabouts-nad.yml
 // test/extended/testdata/net-attach-defs/whereabouts-race-awake.yml
 // test/extended/testdata/net-attach-defs/whereabouts-race-sleepy.yml
+// test/extended/testdata/node/cnv-swap/cnv-hyperconverged.yaml
+// test/extended/testdata/node/cnv-swap/cnv-namespace.yaml
+// test/extended/testdata/node/cnv-swap/cnv-operatorgroup.yaml
+// test/extended/testdata/node/cnv-swap/cnv-subscription.yaml
+// test/extended/testdata/node/cnv-swap/kubelet-limitedswap-dropin.yaml
+// test/extended/testdata/node/cnv-swap/kubelet-noswap-dropin.yaml
+// test/extended/testdata/node/kubeletconfig/loggingKC.yaml
+// test/extended/testdata/node/machineconfigpool/customMCP.yaml
 // test/extended/testdata/node/nested_container/Dockerfile
 // test/extended/testdata/node/nested_container/containers.conf
 // test/extended/testdata/node/nested_container/run_tests.sh
 // test/extended/testdata/node/nested_container/skip_tests.sh
-// test/extended/testdata/node/zstd-chunked/Dockerfile
-// test/extended/testdata/node/zstd-chunked/Dockerfile.sample
-// test/extended/testdata/node/zstd-chunked/build.sh
-// test/extended/testdata/node/zstd-chunked/test-custom-build.yaml
+// test/extended/testdata/node/node_e2e/pod-dev-fuse.yaml
 // test/extended/testdata/node_tuning/nto-stalld.yaml
 // test/extended/testdata/oauthserver/cabundle-cm.yaml
 // test/extended/testdata/oauthserver/oauth-network.yaml
@@ -464,16 +467,6 @@
 // test/extended/testdata/oauthserver/oauth-sa.yaml
 // test/extended/testdata/olm/operatorgroup.yaml
 // test/extended/testdata/olm/subscription.yaml
-// test/extended/testdata/olmv1/install-catalog.yaml
-// test/extended/testdata/olmv1/install-operator.yaml
-// test/extended/testdata/olmv1/install-pipeline-operator-0.yaml
-// test/extended/testdata/olmv1/install-pipeline-operator-1.yaml
-// test/extended/testdata/olmv1/install-pipeline-operator-2.yaml
-// test/extended/testdata/olmv1/install-pipeline-operator-3.yaml
-// test/extended/testdata/olmv1/install-pipeline-operator-4.yaml
-// test/extended/testdata/olmv1/install-pipeline-operator-5.yaml
-// test/extended/testdata/olmv1/install-pipeline-operator-6.yaml
-// test/extended/testdata/olmv1/install-pipeline-operator-base.yaml
 // test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml
 // test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml
 // test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml
@@ -500,6 +493,7 @@
 // test/extended/testdata/sample-image-stream.json
 // test/extended/testdata/samplepipeline-withenvs.yaml
 // test/extended/testdata/service-serving-cert/nginx-serving-cert.conf
+// test/extended/testdata/servicecidr.yaml
 // test/extended/testdata/signer-buildconfig.yaml
 // test/extended/testdata/stable-busybox.yaml
 // test/extended/testdata/templates/crunchydata-pod.json
@@ -2858,18 +2852,18 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
           {
             "name": "latest",
             "annotations": {
-              "description": "Build and run .NET applications. For more information about using this builder image, including OpenShift considerations, see https://github.com/redhat-developer/s2i-dotnetcore/tree/master/6.0/build/README.md.\n\nWARNING: By selecting this tag, your application will automatically update to use the latest version of .NET available on OpenShift, including major versions updates.",
+              "description": "Build and run .NET applications. For more information about using this builder image, including OpenShift considerations, see https://github.com/redhat-developer/s2i-dotnetcore/tree/master/9.0/build/README.md.\n\nWARNING: By selecting this tag, your application will automatically update to use the latest version of .NET available on OpenShift, including major versions updates.",
               "iconClass": "icon-dotnet",
               "openshift.io/display-name": ".NET (Latest)",
               "sampleContextDir": "app",
-              "sampleRef": "dotnet-6.0",
+              "sampleRef": "dotnet-9.0",
               "sampleRepo": "https://github.com/redhat-developer/s2i-dotnetcore-ex",
               "supports": "dotnet",
               "tags": "builder,.net,dotnet,dotnetcore,hidden"
             },
             "from": {
               "kind": "ImageStreamTag",
-              "name": "6.0-ubi8"
+              "name": "9.0-ubi8"
             },
             "generation": null,
             "importPolicy": {},
@@ -2916,6 +2910,52 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             "from": {
               "kind": "DockerImage",
               "name": "registry.access.redhat.com/ubi8/dotnet-60:6.0"
+            },
+            "generation": null,
+            "importPolicy": {},
+            "referencePolicy": {
+              "type": "Local"
+            }
+          },
+          {
+            "name": "9.0-ubi8",
+            "annotations": {
+              "description": "Build and run .NET 9 applications on UBI 8. For more information about using this builder image, including OpenShift considerations, see https://github.com/redhat-developer/s2i-dotnetcore/tree/master/9.0/build/README.md.",
+              "iconClass": "icon-dotnet",
+              "openshift.io/display-name": ".NET 9 (UBI 8)",
+              "sampleContextDir": "app",
+              "sampleRef": "dotnet-9.0",
+              "sampleRepo": "https://github.com/redhat-developer/s2i-dotnetcore-ex",
+              "supports": "dotnet:9.0,dotnet",
+              "tags": "builder,.net,dotnet,dotnetcore,dotnet90",
+              "version": "9.0"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "registry.access.redhat.com/ubi8/dotnet-90:9.0"
+            },
+            "generation": null,
+            "importPolicy": {},
+            "referencePolicy": {
+              "type": "Local"
+            }
+          },
+          {
+            "name": "9.0",
+            "annotations": {
+              "description": "Build and run .NET 9 applications on UBI 8. For more information about using this builder image, including OpenShift considerations, see https://github.com/redhat-developer/s2i-dotnetcore/tree/master/9.0/build/README.md.",
+              "iconClass": "icon-dotnet",
+              "openshift.io/display-name": ".NET 9 (UBI 8)",
+              "sampleContextDir": "app",
+              "sampleRef": "dotnetcore-9.0",
+              "sampleRepo": "https://github.com/redhat-developer/s2i-dotnetcore-ex",
+              "supports": "dotnet:9.0,dotnet",
+              "tags": "builder,.net,dotnet,dotnetcore,dotnet90,hidden",
+              "version": "9.0"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "registry.access.redhat.com/ubi8/dotnet-90:9.0"
             },
             "generation": null,
             "importPolicy": {},
@@ -3752,7 +3792,7 @@ var _examplesImageStreamsImageStreamsCentos7Json = []byte(`{
             },
             "from": {
               "kind": "ImageStreamTag",
-              "name": "5.32-ubi8"
+              "name": "5.32-ubi9"
             },
             "generation": null,
             "importPolicy": {},
@@ -9294,7 +9334,8 @@ var _examplesQuickstartsDjangoPostgresqlPersistentJson = []byte(`{
 		{
 			"name": "SOURCE_REPOSITORY_REF",
 			"displayName": "Git Reference",
-			"description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
+			"description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch.",
+			"value": "4.2.x"
 		},
 		{
 			"name": "CONTEXT_DIR",
@@ -9843,7 +9884,8 @@ var _examplesQuickstartsDjangoPostgresqlJson = []byte(`{
 		{
 			"name": "SOURCE_REPOSITORY_REF",
 			"displayName": "Git Reference",
-			"description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
+			"description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch.",
+			"value": "4.2.x"
 		},
 		{
 			"name": "CONTEXT_DIR",
@@ -28918,7 +28960,8 @@ var _testExtendedTestdataClusterQuickstartsDjangoPostgresqlJson = []byte(`{
 		{
 			"name": "SOURCE_REPOSITORY_REF",
 			"displayName": "Git Reference",
-			"description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch."
+			"description": "Set this to a branch name, tag or other ref of your repository if you are not using the default branch.",
+			"value": "4.2.x"
 		},
 		{
 			"name": "CONTEXT_DIR",
@@ -34212,13 +34255,13 @@ os::cmd::expect_success_and_text 'oc create -f ${TEST_DATA}/simple-deployment.ya
 os::cmd::expect_success_and_text 'oc status --suggest' 'dc/simple-deployment has no liveness probe'
 
 # test --local flag
-os::cmd::expect_failure_and_text 'oc set probe dc/simple-deployment --liveness --get-url=http://google.com:80 --local' 'You must provide one or more resources by argument or filename'
+os::cmd::expect_failure_and_text 'oc set probe dc/simple-deployment --liveness --get-url=http://:8081/ --local' 'You must provide one or more resources by argument or filename'
 # test --dry-run flag with -o formats
-os::cmd::expect_success_and_text 'oc set probe dc/simple-deployment --liveness --get-url=http://google.com:80 --dry-run' 'simple-deployment'
-os::cmd::expect_success_and_text 'oc set probe dc/simple-deployment --liveness --get-url=http://google.com:80 --dry-run -o name' 'deploymentconfig.apps.openshift.io/simple-deployment'
+os::cmd::expect_success_and_text 'oc set probe dc/simple-deployment --liveness --get-url=http://:8081/ --dry-run' 'simple-deployment'
+os::cmd::expect_success_and_text 'oc set probe dc/simple-deployment --liveness --get-url=http://:8081/ --dry-run -o name' 'deploymentconfig.apps.openshift.io/simple-deployment'
 
 os::cmd::expect_success_and_not_text 'oc status --suggest' 'rc/simple-deployment-1 has no liveness probe'
-os::cmd::expect_success_and_text 'oc set probe dc/simple-deployment --liveness --get-url=http://google.com:80' 'deploymentconfig.apps.openshift.io/simple-deployment probes updated'
+os::cmd::expect_success_and_text 'oc set probe dc/simple-deployment --liveness --get-url=http://:8081/' 'deploymentconfig.apps.openshift.io/simple-deployment probes updated'
 os::cmd::expect_success_and_not_text 'oc status --suggest' 'dc/simple-deployment has no liveness probe'
 echo "set-probe-liveness: ok"
 os::test::junit::declare_suite_end
@@ -36456,7 +36499,7 @@ var _testExtendedTestdataCmdTestCmdTestdataHelloOpenshiftHelloPodJson = []byte(`
     "containers": [
       {
         "name": "hello-openshift",
-        "image": "registry.k8s.io/e2e-test-images/agnhost:2.53",
+        "image": "registry.k8s.io/e2e-test-images/agnhost:2.59",
         "args": ["netexec"],
         "ports": [
           {
@@ -40674,7 +40717,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.53
+                image: registry.k8s.io/e2e-test-images/agnhost:2.59
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -43515,6 +43558,95 @@ func testExtendedTestdataDeploymentsTestDeploymentTestYaml() (*asset, error) {
 	return a, nil
 }
 
+var _testExtendedTestdataEdge_topologiesBaremetalhostTemplateYaml = []byte(`apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  finalizers:
+  - baremetalhost.metal3.io
+  labels:
+    installer.openshift.io/role: control-plane
+  name: {BMH_NAME}
+  namespace: openshift-machine-api
+spec:
+  architecture: x86_64
+  automatedCleaningMode: metadata
+  bmc:
+    address: redfish+https://{REDFISH_AUTHORITY}/redfish/v1/Systems/{UUID}
+    credentialsName: {CREDENTIALS_NAME}
+    disableCertificateVerification: true
+  bootMACAddress: {BOOT_MAC_ADDRESS}
+  bootMode: UEFI
+  customDeploy:
+    method: install_coreos
+  hardwareProfile: unknown
+  online: true
+  rootDeviceHints:
+    deviceName: /dev/sda
+  userData:
+    name: master-user-data-managed
+    namespace: openshift-machine-api`)
+
+func testExtendedTestdataEdge_topologiesBaremetalhostTemplateYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataEdge_topologiesBaremetalhostTemplateYaml, nil
+}
+
+func testExtendedTestdataEdge_topologiesBaremetalhostTemplateYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataEdge_topologiesBaremetalhostTemplateYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/edge_topologies/baremetalhost-template.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataEdge_topologiesMachineTemplateYaml = []byte(`apiVersion: machine.openshift.io/v1beta1
+kind: Machine
+metadata:
+  annotations:
+    metal3.io/BareMetalHost: openshift-machine-api/{BMH_NAME}
+  finalizers:
+  - machine.machine.openshift.io
+  labels:
+    machine.openshift.io/cluster-api-cluster: ostest-{MACHINE_HASH}
+    machine.openshift.io/cluster-api-machine-role: master
+    machine.openshift.io/cluster-api-machine-type: master
+  name: {MACHINE_NAME}
+  namespace: openshift-machine-api
+spec:
+  authoritativeAPI: MachineAPI
+  metadata: {}
+  providerSpec:
+    value:
+      apiVersion: baremetal.cluster.k8s.io/v1alpha1
+      customDeploy:
+        method: install_coreos
+      hostSelector: {}
+      image:
+        checksum: ""
+        url: ""
+      kind: BareMetalMachineProviderSpec
+      metadata:
+        creationTimestamp: null
+      userData:
+        name: master-user-data-managed`)
+
+func testExtendedTestdataEdge_topologiesMachineTemplateYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataEdge_topologiesMachineTemplateYaml, nil
+}
+
+func testExtendedTestdataEdge_topologiesMachineTemplateYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataEdge_topologiesMachineTemplateYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/edge_topologies/machine-template.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataEgressFirewallOvnkEgressfirewallTestYaml = []byte(`apiVersion: k8s.ovn.org/v1
 kind: EgressFirewall
 metadata:
@@ -43600,41 +43732,6 @@ func testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYaml() (*as
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/egress-firewall/ovnk-egressfirewall-wildcard-test.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYaml = []byte(`apiVersion: network.openshift.io/v1
-kind: EgressNetworkPolicy
-metadata:
-  name: default
-spec:
-  egress:
-  - type: Allow
-    to:
-      dnsName: redhat.com
-  - type: Allow
-    to:
-      dnsName: amazon.com
-  - type: Allow
-    to:
-      cidrSelector: 8.8.8.8/32
-  - type: Deny
-    to:
-      cidrSelector: 0.0.0.0/0
-`)
-
-func testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYaml, nil
-}
-
-func testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/egress-firewall/sdn-egressnetworkpolicy-test.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -45024,7 +45121,7 @@ items:
           deployment: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.53
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.59
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -45127,7 +45224,7 @@ items:
           replicationcontroller: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.53
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.59
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675" ]
           ports:
@@ -45193,7 +45290,7 @@ items:
           deploymentconfig: idling-echo
       spec:
         containers:
-        - image: registry.k8s.io/e2e-test-images/agnhost:2.53
+        - image: registry.k8s.io/e2e-test-images/agnhost:2.59
           name: idling-echo-server
           args: [ "netexec", "--http-port", "8675", "--udp-port", "3090" ]
           ports:
@@ -45673,7 +45770,7 @@ var _testExtendedTestdataImage_ecosystemPerlHotdeployPerlJson = []byte(`{
             "from": {
               "kind": "ImageStreamTag",
               "namespace": "openshift",
-              "name": "perl:5.32-ubi8"
+              "name": "perl:5.32-ubi9"
             }
           }
         },
@@ -46230,7 +46327,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group2
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -46261,7 +46357,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group1
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -46277,7 +46372,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group2
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -46291,7 +46385,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group3
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group3
@@ -46321,7 +46414,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group1
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -46337,7 +46429,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group2
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -46351,7 +46442,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group3
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group3
@@ -46381,7 +46471,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group1
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: firstgroup
@@ -46397,7 +46486,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group2
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -46411,7 +46499,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group3
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: thirdgroup
@@ -46441,7 +46528,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group1
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -46457,7 +46543,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group3
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group3
@@ -46487,7 +46572,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group1
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: firstgroup
@@ -46503,7 +46587,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group2
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: secondgroup
@@ -46517,7 +46600,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group3
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: thirdgroup
@@ -46547,7 +46629,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group1
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -46558,7 +46639,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group2
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -46572,7 +46652,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group3
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group3
@@ -46600,7 +46679,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group1
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -46633,7 +46711,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group1
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -46649,7 +46726,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: group2
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -46979,7 +47055,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group2
@@ -47010,7 +47085,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group1
@@ -47026,7 +47100,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group2
@@ -47040,7 +47113,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group3
@@ -47070,7 +47142,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group2
@@ -47084,7 +47155,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group3
@@ -47114,7 +47184,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: cn=group1,ou=groups,ou=adextended,dc=example,dc=com
@@ -47130,7 +47199,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: cn=group2,ou=groups,ou=adextended,dc=example,dc=com
@@ -47144,7 +47212,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: cn=group3,ou=groups,ou=adextended,dc=example,dc=com
@@ -47174,7 +47241,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group2
@@ -47188,7 +47254,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: firstgroup
@@ -47204,7 +47269,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: thirdgroup
@@ -47234,7 +47298,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group1
@@ -47250,7 +47313,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group3
@@ -47280,7 +47342,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: firstgroup
@@ -47296,7 +47357,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: secondgroup
@@ -47310,7 +47370,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: thirdgroup
@@ -47340,7 +47399,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group1
@@ -47351,7 +47409,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group2
@@ -47365,7 +47422,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group3
@@ -47393,7 +47449,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group1
@@ -47426,7 +47481,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group1
@@ -47442,7 +47496,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=adextended,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: extended-group2
@@ -47810,7 +47863,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -47841,7 +47893,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -47857,7 +47908,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -47871,7 +47921,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group3
@@ -47901,7 +47950,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: cn=group1,ou=groups,ou=rfc2307,dc=example,dc=com
@@ -47917,7 +47965,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: cn=group2,ou=groups,ou=rfc2307,dc=example,dc=com
@@ -47931,7 +47978,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: cn=group3,ou=groups,ou=rfc2307,dc=example,dc=com
@@ -47961,7 +48007,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: firstgroup
@@ -47977,7 +48022,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -47991,7 +48035,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: thirdgroup
@@ -48021,7 +48064,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -48037,7 +48079,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group3
@@ -48067,7 +48108,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=incomplete-rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -48083,7 +48123,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=incomplete-rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -48097,7 +48136,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=incomplete-rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group3
@@ -48127,7 +48165,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: firstgroup
@@ -48143,7 +48180,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: secondgroup
@@ -48157,7 +48193,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: thirdgroup
@@ -48187,7 +48222,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -48198,7 +48232,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -48212,7 +48245,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group3,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group3
@@ -48240,7 +48272,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -48273,7 +48304,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group1,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group1
@@ -48289,7 +48319,6 @@ metadata:
   annotations:
     openshift.io/ldap.uid: cn=group2,ou=groups,ou=rfc2307,dc=example,dc=com
     openshift.io/ldap.url: LDAP_SERVICE_IP:389
-  creationTimestamp: null
   labels:
     openshift.io/ldap.host: LDAP_SERVICE_IP
   name: group2
@@ -49069,7 +49098,7 @@ spec:
     matchLabels:
       pools.operator.machineconfiguration.openshift.io/custom: ""
   kubeletConfig:
-    imageMinimumGCAge: 0s
+    imageMinimumGCAge: 1s
     imageGCHighThresholdPercent: 2
     imageGCLowThresholdPercent: 1
 `)
@@ -49279,37 +49308,6 @@ func testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYaml() (*asset, 
 	return a, nil
 }
 
-var _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml = []byte(`apiVersion: operator.openshift.io/v1
-kind: MachineConfiguration
-metadata:
-  name: cluster
-  namespace: openshift-machine-config-operator
-spec:
-  logLevel: Normal
-  operatorLogLevel: Normal
-  managedBootImages:
-    machineManagers:
-      - resource: machinesets
-        apiGroup: machine.openshift.io
-        selection:
-          mode: All
-`)
-
-func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml, nil
-}
-
-func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfigurations/managedbootimages-all.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
 var _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml = []byte(`apiVersion: operator.openshift.io/v1
 kind: MachineConfiguration
 metadata:
@@ -49331,72 +49329,6 @@ func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmp
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfigurations/managedbootimages-empty.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml = []byte(`apiVersion: operator.openshift.io/v1
-kind: MachineConfiguration
-metadata:
-  name: cluster
-  namespace: openshift-machine-config-operator
-spec:
-  logLevel: Normal
-  operatorLogLevel: Normal
-  managedBootImages:
-    machineManagers:
-      - resource: machinesets
-        apiGroup: machine.openshift.io
-        selection:
-          mode: None
-`)
-
-func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml, nil
-}
-
-func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfigurations/managedbootimages-none.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml = []byte(`apiVersion: operator.openshift.io/v1
-kind: MachineConfiguration
-metadata:
-  name: cluster
-  namespace: openshift-machine-config-operator
-spec:
-  logLevel: Normal
-  operatorLogLevel: Normal
-  managedBootImages:
-    machineManagers:
-    - resource: machinesets
-      apiGroup: machine.openshift.io
-      selection:
-        mode: Partial
-        partial:
-          machineResourceSelector:
-            matchLabels:
-              test: boot
-`)
-
-func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml, nil
-}
-
-func testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/machine_config/machineconfigurations/managedbootimages-partial.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -50276,6 +50208,214 @@ func testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml() (*asset, error)
 	return a, nil
 }
 
+var _testExtendedTestdataNodeCnvSwapCnvHyperconvergedYaml = []byte(`apiVersion: hco.kubevirt.io/v1beta1
+kind: HyperConverged
+metadata:
+  name: kubevirt-hyperconverged
+  namespace: openshift-cnv
+spec:
+  BareMetalPlatform: true
+  infra: {}
+  workloads: {}
+`)
+
+func testExtendedTestdataNodeCnvSwapCnvHyperconvergedYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeCnvSwapCnvHyperconvergedYaml, nil
+}
+
+func testExtendedTestdataNodeCnvSwapCnvHyperconvergedYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeCnvSwapCnvHyperconvergedYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/cnv-swap/cnv-hyperconverged.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeCnvSwapCnvNamespaceYaml = []byte(`apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-cnv
+  labels:
+    openshift.io/cluster-monitoring: "true"
+`)
+
+func testExtendedTestdataNodeCnvSwapCnvNamespaceYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeCnvSwapCnvNamespaceYaml, nil
+}
+
+func testExtendedTestdataNodeCnvSwapCnvNamespaceYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeCnvSwapCnvNamespaceYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/cnv-swap/cnv-namespace.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeCnvSwapCnvOperatorgroupYaml = []byte(`apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: kubevirt-hyperconverged-group
+  namespace: openshift-cnv
+spec:
+  targetNamespaces:
+  - openshift-cnv
+`)
+
+func testExtendedTestdataNodeCnvSwapCnvOperatorgroupYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeCnvSwapCnvOperatorgroupYaml, nil
+}
+
+func testExtendedTestdataNodeCnvSwapCnvOperatorgroupYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeCnvSwapCnvOperatorgroupYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/cnv-swap/cnv-operatorgroup.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeCnvSwapCnvSubscriptionYaml = []byte(`apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: hco-operatorhub
+  namespace: openshift-cnv
+spec:
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  name: kubevirt-hyperconverged
+  channel: "stable"
+  installPlanApproval: Automatic
+  # Uncomment to pin to a specific version:
+  # startingCSV: kubevirt-hyperconverged-operator.v4.17.0
+`)
+
+func testExtendedTestdataNodeCnvSwapCnvSubscriptionYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeCnvSwapCnvSubscriptionYaml, nil
+}
+
+func testExtendedTestdataNodeCnvSwapCnvSubscriptionYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeCnvSwapCnvSubscriptionYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/cnv-swap/cnv-subscription.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeCnvSwapKubeletLimitedswapDropinYaml = []byte(`# Kubelet drop-in configuration for LimitedSwap
+# Place this file at: /etc/openshift/kubelet.conf.d/99-kubelet-limited-swap.conf
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+memorySwap:
+  swapBehavior: LimitedSwap
+`)
+
+func testExtendedTestdataNodeCnvSwapKubeletLimitedswapDropinYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeCnvSwapKubeletLimitedswapDropinYaml, nil
+}
+
+func testExtendedTestdataNodeCnvSwapKubeletLimitedswapDropinYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeCnvSwapKubeletLimitedswapDropinYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/cnv-swap/kubelet-limitedswap-dropin.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeCnvSwapKubeletNoswapDropinYaml = []byte(`# Kubelet drop-in configuration for NoSwap (default behavior)
+# Place this file at: /etc/openshift/kubelet.conf.d/99-kubelet-no-swap.conf
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+memorySwap:
+  swapBehavior: NoSwap
+`)
+
+func testExtendedTestdataNodeCnvSwapKubeletNoswapDropinYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeCnvSwapKubeletNoswapDropinYaml, nil
+}
+
+func testExtendedTestdataNodeCnvSwapKubeletNoswapDropinYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeCnvSwapKubeletNoswapDropinYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/cnv-swap/kubelet-noswap-dropin.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeKubeletconfigLoggingkcYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  name: custom-logging-config
+spec:
+  machineConfigPoolSelector:
+    matchLabels:
+      pools.operator.machineconfiguration.openshift.io/custom: ""
+  kubeletConfig:
+    logging:
+      verbosity: 4
+`)
+
+func testExtendedTestdataNodeKubeletconfigLoggingkcYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeKubeletconfigLoggingkcYaml, nil
+}
+
+func testExtendedTestdataNodeKubeletconfigLoggingkcYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeKubeletconfigLoggingkcYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/kubeletconfig/loggingKC.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
+var _testExtendedTestdataNodeMachineconfigpoolCustommcpYaml = []byte(`apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: custom
+  labels:
+    pools.operator.machineconfiguration.openshift.io/custom: ""
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      - {key: machineconfiguration.openshift.io/role, operator: In, values: [worker,custom]}
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/custom: ""
+`)
+
+func testExtendedTestdataNodeMachineconfigpoolCustommcpYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeMachineconfigpoolCustommcpYaml, nil
+}
+
+func testExtendedTestdataNodeMachineconfigpoolCustommcpYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeMachineconfigpoolCustommcpYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/node/machineconfigpool/customMCP.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataNodeNested_containerDockerfile = []byte(`FROM registry.fedoraproject.org/fedora:41
 ARG VERSION=v5.4.0
 
@@ -50461,6 +50601,8 @@ insert_skip 030-run.bats 'podman run --privileged as rootless will not mount /de
 insert_skip 030-run.bats "podman run - /run must not be world-writable in systemd containers"
 # Error: OCI runtime error: crun: write to ` + "`" + `/proc/self/oom_score_adj` + "`" + `: Invalid argument
 insert_skip 030-run.bats "podman run doesn't override oom-score-adj"
+# flaky https://issues.redhat.com/browse/OCPBUGS-77991?focusedId=29224925&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-29224925
+insert_skip 070-build.bats "podman build - URLs"
 # flaky
 insert_skip 090-events.bats "image events"
 # mount not shown
@@ -50541,133 +50683,39 @@ func testExtendedTestdataNodeNested_containerSkip_testsSh() (*asset, error) {
 	return a, nil
 }
 
-var _testExtendedTestdataNodeZstdChunkedDockerfile = []byte(`FROM registry.redhat.io/rhel8/buildah:latest
-# For simplicity, /tmp/build contains the inputs we’ll be building when we
-# run this custom builder image. Normally the custom builder image would
-# fetch this content from some location at build time. (e.g. via git clone).
-ADD Dockerfile.sample /tmp/input/Dockerfile
-ADD build.sh /usr/bin
-RUN chmod a+x /usr/bin/build.sh
-# /usr/build/build.sh contains the actual custom build logic that will be executed when
-# this custom builder image is executed.
-ENTRYPOINT ["/usr/bin/build.sh"]
+var _testExtendedTestdataNodeNode_e2ePodDevFuseYaml = []byte(`apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-devfuse
+  annotations:
+    io.kubernetes.cri-o.Devices: "/dev/fuse"
+spec:
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+  - name: pod-devfuse
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    command: ["sleep", "infinity"]
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
 `)
 
-func testExtendedTestdataNodeZstdChunkedDockerfileBytes() ([]byte, error) {
-	return _testExtendedTestdataNodeZstdChunkedDockerfile, nil
+func testExtendedTestdataNodeNode_e2ePodDevFuseYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataNodeNode_e2ePodDevFuseYaml, nil
 }
 
-func testExtendedTestdataNodeZstdChunkedDockerfile() (*asset, error) {
-	bytes, err := testExtendedTestdataNodeZstdChunkedDockerfileBytes()
+func testExtendedTestdataNodeNode_e2ePodDevFuseYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataNodeNode_e2ePodDevFuseYamlBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "test/extended/testdata/node/zstd-chunked/Dockerfile", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataNodeZstdChunkedDockerfileSample = []byte(`FROM image-registry.openshift-image-registry.svc:5000/openshift/tools:latest
-CMD ["date"]
-`)
-
-func testExtendedTestdataNodeZstdChunkedDockerfileSampleBytes() ([]byte, error) {
-	return _testExtendedTestdataNodeZstdChunkedDockerfileSample, nil
-}
-
-func testExtendedTestdataNodeZstdChunkedDockerfileSample() (*asset, error) {
-	bytes, err := testExtendedTestdataNodeZstdChunkedDockerfileSampleBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/node/zstd-chunked/Dockerfile.sample", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataNodeZstdChunkedBuildSh = []byte(`#!/bin/sh
-
-set -euo pipefail
-
-# Note that in this case the build inputs are part of the custom builder image, but normally this
-# would be retrieved from an external source.
-cd /tmp/input
-# OUTPUT_REGISTRY and OUTPUT_IMAGE are env variables provided by the custom
-# build framework
-TAG="${OUTPUT_REGISTRY}/${OUTPUT_IMAGE}"
-
-cp -R /var/run/configs/openshift.io/certs/certs.d/* /etc/containers/certs.d/
-
-# buildah requires a slight modification to the push secret provided by the service account in order to use it for pushing the image
-echo "{ \"auths\": $(cat /var/run/secrets/openshift.io/pull/.dockercfg)}" > /tmp/.pull
-echo "{ \"auths\": $(cat /var/run/secrets/openshift.io/push/.dockercfg)}" > /tmp/.push
-
-# performs the build of the new image defined by Dockerfile.sample
-buildah --authfile /tmp/.pull --storage-driver vfs bud --isolation chroot -t ${TAG} .
-# push the new image to the target for the build
-buildah --authfile /tmp/.push --storage-driver vfs push --compression-format zstd:chunked ${TAG}
-`)
-
-func testExtendedTestdataNodeZstdChunkedBuildShBytes() ([]byte, error) {
-	return _testExtendedTestdataNodeZstdChunkedBuildSh, nil
-}
-
-func testExtendedTestdataNodeZstdChunkedBuildSh() (*asset, error) {
-	bytes, err := testExtendedTestdataNodeZstdChunkedBuildShBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/node/zstd-chunked/build.sh", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml = []byte(`kind: List
-apiVersion: v1
-items:
-- kind: ImageStream
-  apiVersion: image.openshift.io/v1
-  metadata:
-    name: sample-custom
-- kind: BuildConfig
-  apiVersion: build.openshift.io/v1
-  metadata:
-    name: sample-custom-build
-    labels:
-      name: sample-custom-build
-    annotations:
-      template.alpha.openshift.io/wait-for-ready: 'true'
-  spec:
-    strategy:
-      type: Custom
-      customStrategy:
-        env:
-          - name: "BUILD_LOGLEVEL"
-            value: "2"
-        forcePull: true
-        from:
-          kind: ImageStreamTag
-          name: custom-builder-image:latest
-    output:
-      to:
-        kind: ImageStreamTag
-        name: sample-custom:latest
-`)
-
-func testExtendedTestdataNodeZstdChunkedTestCustomBuildYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml, nil
-}
-
-func testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataNodeZstdChunkedTestCustomBuildYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/node/zstd-chunked/test-custom-build.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	info := bindataFileInfo{name: "test/extended/testdata/node/node_e2e/pod-dev-fuse.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -50990,2572 +51038,6 @@ func testExtendedTestdataOlmSubscriptionYaml() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "test/extended/testdata/olm/subscription.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallCatalogYaml = []byte(`apiVersion: olm.operatorframework.io/v1
-kind: ClusterCatalog
-metadata:
-  name: bad-catalog
-spec:
-  source:
-   type: Image
-   image:
-     ref: example.com/does-not-exist:latest
-`)
-
-func testExtendedTestdataOlmv1InstallCatalogYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallCatalogYaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallCatalogYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallCatalogYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-catalog.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallOperatorYaml = []byte(`apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: install-test-sa-{UNIQUE}
-  namespace: {NAMESPACE}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: install-test-crb-{UNIQUE}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-- kind: ServiceAccount
-  name: install-test-sa-{UNIQUE}
-  namespace: {NAMESPACE}
----
-apiVersion: olm.operatorframework.io/v1
-kind: ClusterExtension
-metadata:
-  name: install-test-ce-{UNIQUE}
-spec:
-  namespace: {NAMESPACE}
-  serviceAccount:
-    name: install-test-sa-{UNIQUE}
-  source:
-    catalog:
-      packageName: {PACKAGENAME}
-      version: {VERSION}
-      selector: {}
-      upgradeConstraintPolicy: CatalogProvided
-    sourceType: Catalog
-`)
-
-func testExtendedTestdataOlmv1InstallOperatorYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallOperatorYaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallOperatorYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallOperatorYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-operator.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallPipelineOperator0Yaml = []byte(`# This is the baseline RBAC needed to install the operator.
-# Other versions of install-pipeline-operator-X.yaml have had something removed
-# So, diff against this version to know exactly what has been removed (even though
-# there is a comment at the top of the file).
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: install-test-cr-{UNIQUE}
-rules:
-- apiGroups:
-  - olm.operatorframework.io
-  resources:
-  - clusterextensions/finalizers
-  verbs:
-  - update
-  # Scoped to the name of the ClusterExtension
-  resourceNames:
-  - install-test-ce-{UNIQUE}
-- apiGroups:
-    - ''
-  resources:
-    - nodes
-  verbs:
-    - list
-- apiGroups:
-    - ''
-  resources:
-    - pods
-    - pods/finalizers
-    - services
-    - services/finalizers
-    - endpoints
-    - endpoints/finalizers
-    - persistentvolumeclaims
-    - persistentvolumeclaims/finalizers
-    - events
-    - events/finalizers
-    - configmaps
-    - configmaps/finalizers
-    - secrets
-    - secrets/finalizers
-    - pods/log
-    - limitranges
-    - limitranges/finalizers
-    - namespaces
-    - namespaces/finalizers
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - extensions
-    - apps
-  resources:
-    - ingresses
-    - ingresses/finalizers
-    - ingresses/status
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - apps
-  resources:
-    - deployments
-    - deployments/finalizers
-    - daemonsets
-    - daemonsets/finalizers
-    - replicasets
-    - replicasets/finalizers
-    - statefulsets
-    - statefulsets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - rbac.authorization.k8s.io
-  resources:
-    - clusterroles
-    - clusterroles/finalizers
-    - roles
-    - roles/finalizers
-    - clusterrolebindings
-    - clusterrolebindings/finalizers
-    - rolebindings
-    - rolebindings/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-    - bind
-    - escalate
-- apiGroups:
-    - ''
-  resources:
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - impersonate
-- apiGroups:
-    - apiextensions.k8s.io
-  resources:
-    - customresourcedefinitions
-    - customresourcedefinitions/finalizers
-    - customresourcedefinitions/status
-  verbs:
-    - get
-    - create
-    - update
-    - delete
-    - list
-    - patch
-    - watch
-- apiGroups:
-    - admissionregistration.k8s.io
-  resources:
-    - mutatingwebhookconfigurations
-    - mutatingwebhookconfigurations/finalizers
-    - validatingwebhookconfigurations
-    - validatingwebhookconfigurations/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - build.knative.dev
-  resources:
-    - builds
-    - builds/finalizers
-    - buildtemplates
-    - buildtemplates/finalizers
-    - clusterbuildtemplates
-    - clusterbuildtemplates/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - extensions
-  resources:
-    - deployments
-    - deployments/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - tekton.dev
-    - resolution.tekton.dev
-    - triggers.tekton.dev
-    - operator.tekton.dev
-    - pipelinesascode.tekton.dev
-    - dashboard.tekton.dev
-  resources:
-    - '*'
-  verbs:
-    - add
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - security.openshift.io
-  resources:
-    - securitycontextconstraints
-    - securitycontextconstraints/finalizers
-  verbs:
-    - use
-    - get
-    - list
-    - create
-    - update
-    - delete
-- apiGroups:
-    - events.k8s.io
-  resources:
-    - events
-  verbs:
-    - create
-- apiGroups:
-    - route.openshift.io
-  resources:
-    - routes
-    - routes/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - coordination.k8s.io
-  resources:
-    - leases
-    - leases/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleyamlsamples
-    - consoleyamlsamples/finalizers
-    - consoleclidownloads
-    - consoleclidownloads/finalizers
-    - consolequickstarts
-    - consolequickstarts/finalizers
-    - consolelinks
-    - consolelinks/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - autoscaling
-  resources:
-    - horizontalpodautoscalers
-    - horizontalpodautoscalers/finalizers
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - policy
-  resources:
-    - poddisruptionbudgets
-    - poddisruptionbudgets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - monitoring.coreos.com
-  resources:
-    - servicemonitors
-    - servicemonitors/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - batch
-  resources:
-    - jobs
-    - jobs/finalizers
-    - cronjobs
-    - cronjobs/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleplugins
-    - consoleplugins/finalizers
-  verbs:
-    - get
-    - list
-    - watch
-    - create
-    - delete
-    - update
-    - patch
-`)
-
-func testExtendedTestdataOlmv1InstallPipelineOperator0YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallPipelineOperator0Yaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallPipelineOperator0Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator0YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-0.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallPipelineOperator1Yaml = []byte(`# Remove (namespace-scoped) services from resources
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: install-test-cr-{UNIQUE}
-rules:
-- apiGroups:
-  - olm.operatorframework.io
-  resources:
-  - clusterextensions/finalizers
-  verbs:
-  - update
-  # Scoped to the name of the ClusterExtension
-  resourceNames:
-  - install-test-ce-{UNIQUE}
-- apiGroups:
-    - ''
-  resources:
-    - nodes
-  verbs:
-    - list
-- apiGroups:
-    - ''
-  resources:
-    - pods
-    - pods/finalizers
-    - endpoints
-    - endpoints/finalizers
-    - persistentvolumeclaims
-    - persistentvolumeclaims/finalizers
-    - events
-    - events/finalizers
-    - configmaps
-    - configmaps/finalizers
-    - secrets
-    - secrets/finalizers
-    - pods/log
-    - limitranges
-    - limitranges/finalizers
-    - namespaces
-    - namespaces/finalizers
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - extensions
-    - apps
-  resources:
-    - ingresses
-    - ingresses/finalizers
-    - ingresses/status
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - apps
-  resources:
-    - deployments
-    - deployments/finalizers
-    - daemonsets
-    - daemonsets/finalizers
-    - replicasets
-    - replicasets/finalizers
-    - statefulsets
-    - statefulsets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - rbac.authorization.k8s.io
-  resources:
-    - clusterroles
-    - clusterroles/finalizers
-    - roles
-    - roles/finalizers
-    - clusterrolebindings
-    - clusterrolebindings/finalizers
-    - rolebindings
-    - rolebindings/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-    - bind
-    - escalate
-- apiGroups:
-    - ''
-  resources:
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - impersonate
-- apiGroups:
-    - apiextensions.k8s.io
-  resources:
-    - customresourcedefinitions
-    - customresourcedefinitions/finalizers
-    - customresourcedefinitions/status
-  verbs:
-    - get
-    - create
-    - update
-    - delete
-    - list
-    - patch
-    - watch
-- apiGroups:
-    - admissionregistration.k8s.io
-  resources:
-    - mutatingwebhookconfigurations
-    - mutatingwebhookconfigurations/finalizers
-    - validatingwebhookconfigurations
-    - validatingwebhookconfigurations/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - build.knative.dev
-  resources:
-    - builds
-    - builds/finalizers
-    - buildtemplates
-    - buildtemplates/finalizers
-    - clusterbuildtemplates
-    - clusterbuildtemplates/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - extensions
-  resources:
-    - deployments
-    - deployments/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - tekton.dev
-    - resolution.tekton.dev
-    - triggers.tekton.dev
-    - operator.tekton.dev
-    - pipelinesascode.tekton.dev
-    - dashboard.tekton.dev
-  resources:
-    - '*'
-  verbs:
-    - add
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - security.openshift.io
-  resources:
-    - securitycontextconstraints
-    - securitycontextconstraints/finalizers
-  verbs:
-    - use
-    - get
-    - list
-    - create
-    - update
-    - delete
-- apiGroups:
-    - events.k8s.io
-  resources:
-    - events
-  verbs:
-    - create
-- apiGroups:
-    - route.openshift.io
-  resources:
-    - routes
-    - routes/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - coordination.k8s.io
-  resources:
-    - leases
-    - leases/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleyamlsamples
-    - consoleyamlsamples/finalizers
-    - consoleclidownloads
-    - consoleclidownloads/finalizers
-    - consolequickstarts
-    - consolequickstarts/finalizers
-    - consolelinks
-    - consolelinks/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - autoscaling
-  resources:
-    - horizontalpodautoscalers
-    - horizontalpodautoscalers/finalizers
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - policy
-  resources:
-    - poddisruptionbudgets
-    - poddisruptionbudgets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - monitoring.coreos.com
-  resources:
-    - servicemonitors
-    - servicemonitors/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - batch
-  resources:
-    - jobs
-    - jobs/finalizers
-    - cronjobs
-    - cronjobs/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleplugins
-    - consoleplugins/finalizers
-  verbs:
-    - get
-    - list
-    - watch
-    - create
-    - delete
-    - update
-    - patch
-`)
-
-func testExtendedTestdataOlmv1InstallPipelineOperator1YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallPipelineOperator1Yaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallPipelineOperator1Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator1YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-1.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallPipelineOperator2Yaml = []byte(`# Remove create verb from '' API group
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: install-test-cr-{UNIQUE}
-rules:
-- apiGroups:
-  - olm.operatorframework.io
-  resources:
-  - clusterextensions/finalizers
-  verbs:
-  - update
-  # Scoped to the name of the ClusterExtension
-  resourceNames:
-  - install-test-ce-{UNIQUE}
-- apiGroups:
-    - ''
-  resources:
-    - nodes
-  verbs:
-    - list
-- apiGroups:
-    - ''
-  resources:
-    - pods
-    - pods/finalizers
-    - services
-    - services/finalizers
-    - endpoints
-    - endpoints/finalizers
-    - persistentvolumeclaims
-    - persistentvolumeclaims/finalizers
-    - events
-    - events/finalizers
-    - configmaps
-    - configmaps/finalizers
-    - secrets
-    - secrets/finalizers
-    - pods/log
-    - limitranges
-    - limitranges/finalizers
-    - namespaces
-    - namespaces/finalizers
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - extensions
-    - apps
-  resources:
-    - ingresses
-    - ingresses/finalizers
-    - ingresses/status
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - apps
-  resources:
-    - deployments
-    - deployments/finalizers
-    - daemonsets
-    - daemonsets/finalizers
-    - replicasets
-    - replicasets/finalizers
-    - statefulsets
-    - statefulsets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - rbac.authorization.k8s.io
-  resources:
-    - clusterroles
-    - clusterroles/finalizers
-    - roles
-    - roles/finalizers
-    - clusterrolebindings
-    - clusterrolebindings/finalizers
-    - rolebindings
-    - rolebindings/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-    - bind
-    - escalate
-- apiGroups:
-    - ''
-  resources:
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - impersonate
-- apiGroups:
-    - apiextensions.k8s.io
-  resources:
-    - customresourcedefinitions
-    - customresourcedefinitions/finalizers
-    - customresourcedefinitions/status
-  verbs:
-    - get
-    - create
-    - update
-    - delete
-    - list
-    - patch
-    - watch
-- apiGroups:
-    - admissionregistration.k8s.io
-  resources:
-    - mutatingwebhookconfigurations
-    - mutatingwebhookconfigurations/finalizers
-    - validatingwebhookconfigurations
-    - validatingwebhookconfigurations/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - build.knative.dev
-  resources:
-    - builds
-    - builds/finalizers
-    - buildtemplates
-    - buildtemplates/finalizers
-    - clusterbuildtemplates
-    - clusterbuildtemplates/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - extensions
-  resources:
-    - deployments
-    - deployments/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - tekton.dev
-    - resolution.tekton.dev
-    - triggers.tekton.dev
-    - operator.tekton.dev
-    - pipelinesascode.tekton.dev
-    - dashboard.tekton.dev
-  resources:
-    - '*'
-  verbs:
-    - add
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - security.openshift.io
-  resources:
-    - securitycontextconstraints
-    - securitycontextconstraints/finalizers
-  verbs:
-    - use
-    - get
-    - list
-    - create
-    - update
-    - delete
-- apiGroups:
-    - events.k8s.io
-  resources:
-    - events
-  verbs:
-    - create
-- apiGroups:
-    - route.openshift.io
-  resources:
-    - routes
-    - routes/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - coordination.k8s.io
-  resources:
-    - leases
-    - leases/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleyamlsamples
-    - consoleyamlsamples/finalizers
-    - consoleclidownloads
-    - consoleclidownloads/finalizers
-    - consolequickstarts
-    - consolequickstarts/finalizers
-    - consolelinks
-    - consolelinks/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - autoscaling
-  resources:
-    - horizontalpodautoscalers
-    - horizontalpodautoscalers/finalizers
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - policy
-  resources:
-    - poddisruptionbudgets
-    - poddisruptionbudgets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - monitoring.coreos.com
-  resources:
-    - servicemonitors
-    - servicemonitors/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - batch
-  resources:
-    - jobs
-    - jobs/finalizers
-    - cronjobs
-    - cronjobs/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleplugins
-    - consoleplugins/finalizers
-  verbs:
-    - get
-    - list
-    - watch
-    - create
-    - delete
-    - update
-    - patch
-`)
-
-func testExtendedTestdataOlmv1InstallPipelineOperator2YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallPipelineOperator2Yaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallPipelineOperator2Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator2YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-2.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallPipelineOperator3Yaml = []byte(`# Remove CRB from list of resources
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: install-test-cr-{UNIQUE}
-rules:
-- apiGroups:
-  - olm.operatorframework.io
-  resources:
-  - clusterextensions/finalizers
-  verbs:
-  - update
-  # Scoped to the name of the ClusterExtension
-  resourceNames:
-  - install-test-ce-{UNIQUE}
-- apiGroups:
-    - ''
-  resources:
-    - nodes
-  verbs:
-    - list
-- apiGroups:
-    - ''
-  resources:
-    - pods
-    - pods/finalizers
-    - services
-    - services/finalizers
-    - endpoints
-    - endpoints/finalizers
-    - persistentvolumeclaims
-    - persistentvolumeclaims/finalizers
-    - events
-    - events/finalizers
-    - configmaps
-    - configmaps/finalizers
-    - secrets
-    - secrets/finalizers
-    - pods/log
-    - limitranges
-    - limitranges/finalizers
-    - namespaces
-    - namespaces/finalizers
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - extensions
-    - apps
-  resources:
-    - ingresses
-    - ingresses/finalizers
-    - ingresses/status
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - apps
-  resources:
-    - deployments
-    - deployments/finalizers
-    - daemonsets
-    - daemonsets/finalizers
-    - replicasets
-    - replicasets/finalizers
-    - statefulsets
-    - statefulsets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - rbac.authorization.k8s.io
-  resources:
-    - clusterroles
-    - clusterroles/finalizers
-    - roles
-    - roles/finalizers
-    - rolebindings
-    - rolebindings/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-    - bind
-    - escalate
-- apiGroups:
-    - ''
-  resources:
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - impersonate
-- apiGroups:
-    - apiextensions.k8s.io
-  resources:
-    - customresourcedefinitions
-    - customresourcedefinitions/finalizers
-    - customresourcedefinitions/status
-  verbs:
-    - get
-    - create
-    - update
-    - delete
-    - list
-    - patch
-    - watch
-- apiGroups:
-    - admissionregistration.k8s.io
-  resources:
-    - mutatingwebhookconfigurations
-    - mutatingwebhookconfigurations/finalizers
-    - validatingwebhookconfigurations
-    - validatingwebhookconfigurations/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - build.knative.dev
-  resources:
-    - builds
-    - builds/finalizers
-    - buildtemplates
-    - buildtemplates/finalizers
-    - clusterbuildtemplates
-    - clusterbuildtemplates/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - extensions
-  resources:
-    - deployments
-    - deployments/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - tekton.dev
-    - resolution.tekton.dev
-    - triggers.tekton.dev
-    - operator.tekton.dev
-    - pipelinesascode.tekton.dev
-    - dashboard.tekton.dev
-  resources:
-    - '*'
-  verbs:
-    - add
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - security.openshift.io
-  resources:
-    - securitycontextconstraints
-    - securitycontextconstraints/finalizers
-  verbs:
-    - use
-    - get
-    - list
-    - create
-    - update
-    - delete
-- apiGroups:
-    - events.k8s.io
-  resources:
-    - events
-  verbs:
-    - create
-- apiGroups:
-    - route.openshift.io
-  resources:
-    - routes
-    - routes/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - coordination.k8s.io
-  resources:
-    - leases
-    - leases/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleyamlsamples
-    - consoleyamlsamples/finalizers
-    - consoleclidownloads
-    - consoleclidownloads/finalizers
-    - consolequickstarts
-    - consolequickstarts/finalizers
-    - consolelinks
-    - consolelinks/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - autoscaling
-  resources:
-    - horizontalpodautoscalers
-    - horizontalpodautoscalers/finalizers
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - policy
-  resources:
-    - poddisruptionbudgets
-    - poddisruptionbudgets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - monitoring.coreos.com
-  resources:
-    - servicemonitors
-    - servicemonitors/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - batch
-  resources:
-    - jobs
-    - jobs/finalizers
-    - cronjobs
-    - cronjobs/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleplugins
-    - consoleplugins/finalizers
-  verbs:
-    - get
-    - list
-    - watch
-    - create
-    - delete
-    - update
-    - patch
-`)
-
-func testExtendedTestdataOlmv1InstallPipelineOperator3YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallPipelineOperator3Yaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallPipelineOperator3Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator3YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-3.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallPipelineOperator4Yaml = []byte(`# Be explicit about configmap resource names
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: install-test-cr-{UNIQUE}
-rules:
-- apiGroups:
-  - olm.operatorframework.io
-  resources:
-  - clusterextensions/finalizers
-  verbs:
-  - update
-  # Scoped to the name of the ClusterExtension
-  resourceNames:
-  - install-test-ce-{UNIQUE}
-- apiGroups:
-    - ''
-  resources:
-    - nodes
-  verbs:
-    - list
-- apiGroups:
-    - ''
-  resources:
-    - configmaps
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-  resourceNames:
-    - config-logging
-    - tekton-config-defaults
-    - tekton-config-observability
-- apiGroups:
-    - ''
-  resources:
-    - pods
-    - pods/finalizers
-    - services
-    - services/finalizers
-    - endpoints
-    - endpoints/finalizers
-    - persistentvolumeclaims
-    - persistentvolumeclaims/finalizers
-    - events
-    - events/finalizers
-    - configmaps/finalizers
-    - secrets
-    - secrets/finalizers
-    - pods/log
-    - limitranges
-    - limitranges/finalizers
-    - namespaces
-    - namespaces/finalizers
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - extensions
-    - apps
-  resources:
-    - ingresses
-    - ingresses/finalizers
-    - ingresses/status
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - apps
-  resources:
-    - deployments
-    - deployments/finalizers
-    - daemonsets
-    - daemonsets/finalizers
-    - replicasets
-    - replicasets/finalizers
-    - statefulsets
-    - statefulsets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - rbac.authorization.k8s.io
-  resources:
-    - clusterroles
-    - clusterroles/finalizers
-    - roles
-    - roles/finalizers
-    - clusterrolebindings
-    - clusterrolebindings/finalizers
-    - rolebindings
-    - rolebindings/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-    - bind
-    - escalate
-- apiGroups:
-    - ''
-  resources:
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - impersonate
-- apiGroups:
-    - apiextensions.k8s.io
-  resources:
-    - customresourcedefinitions
-    - customresourcedefinitions/finalizers
-    - customresourcedefinitions/status
-  verbs:
-    - get
-    - create
-    - update
-    - delete
-    - list
-    - patch
-    - watch
-- apiGroups:
-    - admissionregistration.k8s.io
-  resources:
-    - mutatingwebhookconfigurations
-    - mutatingwebhookconfigurations/finalizers
-    - validatingwebhookconfigurations
-    - validatingwebhookconfigurations/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - build.knative.dev
-  resources:
-    - builds
-    - builds/finalizers
-    - buildtemplates
-    - buildtemplates/finalizers
-    - clusterbuildtemplates
-    - clusterbuildtemplates/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - extensions
-  resources:
-    - deployments
-    - deployments/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - tekton.dev
-    - resolution.tekton.dev
-    - triggers.tekton.dev
-    - operator.tekton.dev
-    - pipelinesascode.tekton.dev
-    - dashboard.tekton.dev
-  resources:
-    - '*'
-  verbs:
-    - add
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - security.openshift.io
-  resources:
-    - securitycontextconstraints
-    - securitycontextconstraints/finalizers
-  verbs:
-    - use
-    - get
-    - list
-    - create
-    - update
-    - delete
-- apiGroups:
-    - events.k8s.io
-  resources:
-    - events
-  verbs:
-    - create
-- apiGroups:
-    - route.openshift.io
-  resources:
-    - routes
-    - routes/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - coordination.k8s.io
-  resources:
-    - leases
-    - leases/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleyamlsamples
-    - consoleyamlsamples/finalizers
-    - consoleclidownloads
-    - consoleclidownloads/finalizers
-    - consolequickstarts
-    - consolequickstarts/finalizers
-    - consolelinks
-    - consolelinks/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - autoscaling
-  resources:
-    - horizontalpodautoscalers
-    - horizontalpodautoscalers/finalizers
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - policy
-  resources:
-    - poddisruptionbudgets
-    - poddisruptionbudgets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - monitoring.coreos.com
-  resources:
-    - servicemonitors
-    - servicemonitors/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - batch
-  resources:
-    - jobs
-    - jobs/finalizers
-    - cronjobs
-    - cronjobs/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleplugins
-    - consoleplugins/finalizers
-  verbs:
-    - get
-    - list
-    - watch
-    - create
-    - delete
-    - update
-    - patch
-`)
-
-func testExtendedTestdataOlmv1InstallPipelineOperator4YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallPipelineOperator4Yaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallPipelineOperator4Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator4YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-4.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallPipelineOperator5Yaml = []byte(`# Remove clusterextensions/finalizers
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: install-test-cr-{UNIQUE}
-rules:
-- apiGroups:
-    - ''
-  resources:
-    - nodes
-  verbs:
-    - list
-- apiGroups:
-    - ''
-  resources:
-    - pods
-    - pods/finalizers
-    - services
-    - services/finalizers
-    - endpoints
-    - endpoints/finalizers
-    - persistentvolumeclaims
-    - persistentvolumeclaims/finalizers
-    - events
-    - events/finalizers
-    - configmaps
-    - configmaps/finalizers
-    - secrets
-    - secrets/finalizers
-    - pods/log
-    - limitranges
-    - limitranges/finalizers
-    - namespaces
-    - namespaces/finalizers
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - extensions
-    - apps
-  resources:
-    - ingresses
-    - ingresses/finalizers
-    - ingresses/status
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - apps
-  resources:
-    - deployments
-    - deployments/finalizers
-    - daemonsets
-    - daemonsets/finalizers
-    - replicasets
-    - replicasets/finalizers
-    - statefulsets
-    - statefulsets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - rbac.authorization.k8s.io
-  resources:
-    - clusterroles
-    - clusterroles/finalizers
-    - roles
-    - roles/finalizers
-    - clusterrolebindings
-    - clusterrolebindings/finalizers
-    - rolebindings
-    - rolebindings/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-    - bind
-    - escalate
-- apiGroups:
-    - ''
-  resources:
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - impersonate
-- apiGroups:
-    - apiextensions.k8s.io
-  resources:
-    - customresourcedefinitions
-    - customresourcedefinitions/finalizers
-    - customresourcedefinitions/status
-  verbs:
-    - get
-    - create
-    - update
-    - delete
-    - list
-    - patch
-    - watch
-- apiGroups:
-    - admissionregistration.k8s.io
-  resources:
-    - mutatingwebhookconfigurations
-    - mutatingwebhookconfigurations/finalizers
-    - validatingwebhookconfigurations
-    - validatingwebhookconfigurations/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - build.knative.dev
-  resources:
-    - builds
-    - builds/finalizers
-    - buildtemplates
-    - buildtemplates/finalizers
-    - clusterbuildtemplates
-    - clusterbuildtemplates/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - extensions
-  resources:
-    - deployments
-    - deployments/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - tekton.dev
-    - resolution.tekton.dev
-    - triggers.tekton.dev
-    - operator.tekton.dev
-    - pipelinesascode.tekton.dev
-    - dashboard.tekton.dev
-  resources:
-    - '*'
-  verbs:
-    - add
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - security.openshift.io
-  resources:
-    - securitycontextconstraints
-    - securitycontextconstraints/finalizers
-  verbs:
-    - use
-    - get
-    - list
-    - create
-    - update
-    - delete
-- apiGroups:
-    - events.k8s.io
-  resources:
-    - events
-  verbs:
-    - create
-- apiGroups:
-    - route.openshift.io
-  resources:
-    - routes
-    - routes/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - coordination.k8s.io
-  resources:
-    - leases
-    - leases/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleyamlsamples
-    - consoleyamlsamples/finalizers
-    - consoleclidownloads
-    - consoleclidownloads/finalizers
-    - consolequickstarts
-    - consolequickstarts/finalizers
-    - consolelinks
-    - consolelinks/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - autoscaling
-  resources:
-    - horizontalpodautoscalers
-    - horizontalpodautoscalers/finalizers
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - policy
-  resources:
-    - poddisruptionbudgets
-    - poddisruptionbudgets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - monitoring.coreos.com
-  resources:
-    - servicemonitors
-    - servicemonitors/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - batch
-  resources:
-    - jobs
-    - jobs/finalizers
-    - cronjobs
-    - cronjobs/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleplugins
-    - consoleplugins/finalizers
-  verbs:
-    - get
-    - list
-    - watch
-    - create
-    - delete
-    - update
-    - patch
-`)
-
-func testExtendedTestdataOlmv1InstallPipelineOperator5YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallPipelineOperator5Yaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallPipelineOperator5Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator5YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-5.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallPipelineOperator6Yaml = []byte(`apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: install-test-cr-{UNIQUE}
-rules:
-- apiGroups:
-  - olm.operatorframework.io
-  resources:
-  - clusterextensions/finalizers
-  verbs:
-  - update
-  # Scoped to the name of the ClusterExtension
-  resourceNames:
-  - install-test-ce-{UNIQUE}
-- apiGroups:
-    - ''
-  resources:
-    - nodes
-  verbs:
-    - list
-- apiGroups:
-    - ''
-  resources:
-    - pods
-    - pods/finalizers
-    - services
-    - services/finalizers
-    - endpoints
-    - endpoints/finalizers
-    - persistentvolumeclaims
-    - persistentvolumeclaims/finalizers
-    - events
-    - events/finalizers
-    - configmaps
-    - configmaps/finalizers
-    - secrets
-    - secrets/finalizers
-    - pods/log
-    - limitranges
-    - limitranges/finalizers
-    - namespaces
-    - namespaces/finalizers
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - extensions
-    - apps
-  resources:
-    - ingresses
-    - ingresses/finalizers
-    - ingresses/status
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - apps
-  resources:
-    - deployments
-    - deployments/finalizers
-    - daemonsets
-    - daemonsets/finalizers
-    - replicasets
-    - replicasets/finalizers
-    - statefulsets
-    - statefulsets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - rbac.authorization.k8s.io
-  resources:
-    - clusterroles
-    - clusterroles/finalizers
-    - roles
-    - roles/finalizers
-    - clusterrolebindings
-    - clusterrolebindings/finalizers
-    - rolebindings
-    - rolebindings/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - ''
-  resources:
-    - serviceaccounts
-    - serviceaccounts/finalizers
-  verbs:
-    - impersonate
-- apiGroups:
-    - apiextensions.k8s.io
-  resources:
-    - customresourcedefinitions
-    - customresourcedefinitions/finalizers
-    - customresourcedefinitions/status
-  verbs:
-    - get
-    - create
-    - update
-    - delete
-    - list
-    - patch
-    - watch
-- apiGroups:
-    - admissionregistration.k8s.io
-  resources:
-    - mutatingwebhookconfigurations
-    - mutatingwebhookconfigurations/finalizers
-    - validatingwebhookconfigurations
-    - validatingwebhookconfigurations/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - build.knative.dev
-  resources:
-    - builds
-    - builds/finalizers
-    - buildtemplates
-    - buildtemplates/finalizers
-    - clusterbuildtemplates
-    - clusterbuildtemplates/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - extensions
-  resources:
-    - deployments
-    - deployments/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - tekton.dev
-    - resolution.tekton.dev
-    - triggers.tekton.dev
-    - operator.tekton.dev
-    - pipelinesascode.tekton.dev
-    - dashboard.tekton.dev
-  resources:
-    - '*'
-  verbs:
-    - add
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - security.openshift.io
-  resources:
-    - securitycontextconstraints
-    - securitycontextconstraints/finalizers
-  verbs:
-    - use
-    - get
-    - list
-    - create
-    - update
-    - delete
-- apiGroups:
-    - events.k8s.io
-  resources:
-    - events
-  verbs:
-    - create
-- apiGroups:
-    - route.openshift.io
-  resources:
-    - routes
-    - routes/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - coordination.k8s.io
-  resources:
-    - leases
-    - leases/finalizers
-  verbs:
-    - get
-    - list
-    - create
-    - update
-    - delete
-    - patch
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleyamlsamples
-    - consoleyamlsamples/finalizers
-    - consoleclidownloads
-    - consoleclidownloads/finalizers
-    - consolequickstarts
-    - consolequickstarts/finalizers
-    - consolelinks
-    - consolelinks/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - autoscaling
-  resources:
-    - horizontalpodautoscalers
-    - horizontalpodautoscalers/finalizers
-  verbs:
-    - delete
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - policy
-  resources:
-    - poddisruptionbudgets
-    - poddisruptionbudgets/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - monitoring.coreos.com
-  resources:
-    - servicemonitors
-    - servicemonitors/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - batch
-  resources:
-    - jobs
-    - jobs/finalizers
-    - cronjobs
-    - cronjobs/finalizers
-  verbs:
-    - delete
-    - deletecollection
-    - create
-    - patch
-    - get
-    - list
-    - update
-    - watch
-- apiGroups:
-    - console.openshift.io
-  resources:
-    - consoleplugins
-    - consoleplugins/finalizers
-  verbs:
-    - get
-    - list
-    - watch
-    - create
-    - delete
-    - update
-    - patch
-`)
-
-func testExtendedTestdataOlmv1InstallPipelineOperator6YamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallPipelineOperator6Yaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallPipelineOperator6Yaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperator6YamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-6.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info}
-	return a, nil
-}
-
-var _testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml = []byte(`apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: install-test-sa-{UNIQUE}
-  namespace: {NAMESPACE}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: install-test-crb-{UNIQUE}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: install-test-cr-{UNIQUE}
-subjects:
-- kind: ServiceAccount
-  name: install-test-sa-{UNIQUE}
-  namespace: {NAMESPACE}
----
-apiVersion: olm.operatorframework.io/v1
-kind: ClusterExtension
-metadata:
-  name: install-test-ce-{UNIQUE}
-spec:
-  namespace: {NAMESPACE}
-  serviceAccount:
-    name: install-test-sa-{UNIQUE}
-  source:
-    catalog:
-      packageName: "openshift-pipelines-operator-rh"
-      version: "1.17.1"
-      selector: {}
-      upgradeConstraintPolicy: CatalogProvided
-    sourceType: Catalog
-`)
-
-func testExtendedTestdataOlmv1InstallPipelineOperatorBaseYamlBytes() ([]byte, error) {
-	return _testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml, nil
-}
-
-func testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml() (*asset, error) {
-	bytes, err := testExtendedTestdataOlmv1InstallPipelineOperatorBaseYamlBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "test/extended/testdata/olmv1/install-pipeline-operator-base.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -54136,7 +51618,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.53
+      image: registry.k8s.io/e2e-test-images/agnhost:2.59
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -54154,7 +51636,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.53
+      image: registry.k8s.io/e2e-test-images/agnhost:2.59
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -54394,7 +51876,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.53
+      image: registry.k8s.io/e2e-test-images/agnhost:2.59
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -54570,7 +52052,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.53
+      image: registry.k8s.io/e2e-test-images/agnhost:2.59
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -54588,7 +52070,7 @@ items:
     terminationGracePeriodSeconds: 1
     containers:
     - name: test
-      image: registry.k8s.io/e2e-test-images/agnhost:2.53
+      image: registry.k8s.io/e2e-test-images/agnhost:2.59
       args: ["netexec"]
       ports:
       - containerPort: 8080
@@ -55049,6 +52531,30 @@ func testExtendedTestdataServiceServingCertNginxServingCertConf() (*asset, error
 	return a, nil
 }
 
+var _testExtendedTestdataServicecidrYaml = []byte(`apiVersion: networking.k8s.io/v1beta1
+kind: ServiceCIDR
+metadata:
+  name: newcidr1
+spec:
+  cidrs:
+  - 10.96.0.0/24
+`)
+
+func testExtendedTestdataServicecidrYamlBytes() ([]byte, error) {
+	return _testExtendedTestdataServicecidrYaml, nil
+}
+
+func testExtendedTestdataServicecidrYaml() (*asset, error) {
+	bytes, err := testExtendedTestdataServicecidrYamlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "test/extended/testdata/servicecidr.yaml", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _testExtendedTestdataSignerBuildconfigYaml = []byte(`kind: List
 apiVersion: v1
 items:
@@ -55069,13 +52575,17 @@ items:
       dockerfile: |
         FROM quay.io/openshift/origin-cli:latest
         WORKDIR /var/lib/origin
+        ENV ART_DNF_WRAPPER_POLICY=skip
         RUN source /etc/os-release \
             && rhel_major=${VERSION_ID%.*} \
-            && yum config-manager \
-            --add-repo "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi${rhel_major}/${rhel_major}/\$basearch/baseos/os/" \
-            --add-repo "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi${rhel_major}/${rhel_major}/\$basearch/appstream/os/"
-        RUN yum install -y skopeo && \
-            yum clean all && mkdir -p gnupg && chmod -R 0777 /var/lib/origin
+            && if ! yum install -y skopeo; then \
+                echo "Unable to install skopeo; adding UBI repositories and retrying" && \
+                yum config-manager \
+                --add-repo "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi${rhel_major}/${rhel_major}/\$basearch/baseos/os/" \
+                --add-repo "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi${rhel_major}/${rhel_major}/\$basearch/appstream/os/" && \
+                yum install -y skopeo ; \
+              fi  
+        RUN yum clean all && mkdir -p gnupg && chmod -R 0777 /var/lib/origin
         RUN echo $'%echo Generating openpgp key ...\n\
             Key-Type: RSA \n\
             Key-Length: 2048 \n\
@@ -55993,7 +53503,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.53
+                image: registry.k8s.io/e2e-test-images/agnhost:2.59
 `)
 
 func testExtendedTestdataTemplatesTemplateinstance_badobjectYamlBytes() ([]byte, error) {
@@ -56053,7 +53563,7 @@ items:
             spec:
               containers:
               - name: hello-openshift
-                image: registry.k8s.io/e2e-test-images/agnhost:2.53
+                image: registry.k8s.io/e2e-test-images/agnhost:2.59
       - kind: Route
         apiVersion: route.openshift.io/v1
         metadata:
@@ -57073,6 +54583,19 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         return eventInterval.source === "Alert"
     }
 
+    function isHighCPU(eventInterval) {
+      return eventInterval.source === "CPUMonitor" && eventInterval.message.reason === "HighCPUUsage"
+    }
+
+    function isTestBucket(eventInterval) {
+        return eventInterval.source === "TestBucket"
+    }
+
+    function testBucketValue(item) {
+        const bucketName = item.locator.keys['test-bucket'] || 'Unknown'
+        return [bucketName, "", "TestBucket"]
+    }
+
     function pathologicalEvents(item) {
         if (item.message.annotations["pathological"] === "true") {
             if (item.message.annotations["interesting"] === "true") {
@@ -57368,6 +54891,9 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         var loc = window.location.href;
 
         var timelineGroups = []
+        timelineGroups.push({group: "test-buckets", data: []})
+        createTimelineData(testBucketValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isTestBucket, regex)
+
         timelineGroups.push({group: "operator-unavailable", data: []})
         createTimelineData("OperatorUnavailable", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isOperatorAvailable, regex)
 
@@ -57383,6 +54909,9 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         timelineGroups[timelineGroups.length - 1].data.sort(function (e1 ,e2){
             return e1.label < e2.label ? -1 : e1.label > e2.label;
         })
+
+        timelineGroups.push({group: "high-cpu", data: []})
+        createTimelineData("HighCPU", timelineGroups[timelineGroups.length - 1].data, eventIntervals, isHighCPU, regex)
 
         timelineGroups.push({group: "disruption", data: []})
         createTimelineData(disruptionValue, timelineGroups[timelineGroups.length - 1].data, eventIntervals, isEndpointConnectivity, regex)
@@ -57459,6 +54988,7 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
         const myChart = TimelinesChart();
         var ordinalScale = d3.scaleOrdinal()
             .domain([
+                'TestBucket', // test bucket intervals
                 'InterestingEvent', 'PathologicalKnown', "PathologicalNew", "PodSandbox", // interesting and pathological events
                 'AlertInfo', 'AlertPending', 'AlertWarning', 'AlertCritical', // alerts
                 'OperatorUnavailable', 'OperatorDegraded', 'OperatorProgressing', // operators
@@ -57470,6 +55000,7 @@ var _e2echartE2eChartTemplateHtml = []byte(`<html lang="en">
                 'PodLogInfo', 'PodLogWarning', 'PodLogError',
                 'EtcdOther', 'EtcdLeaderFound', 'EtcdLeaderLost', 'EtcdLeaderElected', 'EtcdLeaderMissing'])
             .range([
+                '#9370DB', // test bucket intervals - medium purple
                 '#6E6E6E', '#0000ff', '#d0312d', '#ffa500', // pathological and interesting events
                 '#fada5e','#fada5e','#ffa500', '#d0312d',  // alerts
                 '#d0312d', '#ffa500', '#fada5e', // operators
@@ -57765,6 +55296,7 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
     categoryInputTemplate = ` + "`" + `
                     <select class="positive-selection-fields form-control form-control-sm" type="text" id="category_INPUT_NUMBER">
                         <option value="" selected=true ></option>
+                        <option value="test_buckets">Test Buckets</option>
                         <option value="operator_unavailable">Operator Unavailable</option>
                         <option value="operator_degraded">Operator Degraded</option>
                         <option value="operator_progressing">Operator Progressing</option>
@@ -57777,6 +55309,7 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
                         <option value="e2e_test_failed">e2e Test Failed</option>
                         <option value="e2e_test_flaked">e2e Test Flaked</option>
                         <option value="interesting_events">Interesting Events</option>
+                        <option value="certificate_rotation">Certificate Rotation</option>
                     </select>
 ` + "`" + `
 
@@ -57819,6 +55352,8 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         eventInterval.categories.e2e_test_flaked = isE2EFlaked(eventInterval);
         eventInterval.categories.e2e_test_passed = isE2EPassed(eventInterval);
         eventInterval.categories.endpoint_availability = isEndpointConnectivity(eventInterval);
+        eventInterval.categories.certificate_rotation = isCertificateRotation(eventInterval);
+        eventInterval.categories.test_buckets = isTestBucket(eventInterval);
         eventInterval.categories.uncategorized = !_.some(eventInterval.categories); // will save time later during filtering and re-rendering since we don't render any uncategorized events
     });
 
@@ -57847,6 +55382,15 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         }
         return eventInterval.source === 'EtcdLog';
 
+    }
+
+    function isTestBucket(eventInterval) {
+        return eventInterval.source === "TestBucket"
+    }
+
+    function testBucketValue(item) {
+        const bucketName = item.locator.keys['test-bucket'] || 'Unknown'
+        return [bucketName, "", "TestBucket"]
     }
 
     function isInterestingOrPathological(eventInterval) {
@@ -57959,6 +55503,52 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
 
     function isAlert(eventInterval) {
         return eventInterval.source === "Alert"
+    }
+
+
+    function isCertificateRotation(eventInterval) {
+        if (eventInterval.source != 'KubeEvent') {
+            return false
+        }
+        if (eventInterval.message.reason === "CertificateUpdated") {
+            return true
+        };
+        if (eventInterval.message.reason === "CertificateRemoved") {
+            return true
+        };
+        if (eventInterval.message.reason === "CertificateUpdateFailed") {
+            return true
+        };
+        if (eventInterval.message.reason === "ConfigMapUpdated") {
+            return true
+        };
+        if (eventInterval.message.reason === "SignerUpdateRequired") {
+            return true
+        };
+        if (eventInterval.message.reason === "CABundleUpdateRequired") {
+            return true
+        };
+        if (eventInterval.message.reason === "TargetUpdateRequired") {
+            return true
+        };
+        if (eventInterval.message.reason === "CSRCreated") {
+            return true
+        };
+        if (eventInterval.message.reason === "CSRApproved") {
+            return true
+        };
+        if (eventInterval.message.reason === "CertificateRotationStarted") {
+            return true
+        };
+        if (eventInterval.message.reason === "ClientCertificateCreated") {
+            return true
+        };
+        if (eventInterval.message.reason === "NoValidCertificateFound") {
+            return true
+        };
+        
+                
+        return false;
     }
 
     function interestingEvents(item) {
@@ -58336,6 +55926,9 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         }
 
         var timelineGroups = [];
+        timelineGroups.push({group: "test-buckets", data: []});
+        createTimelineData(testBucketValue, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "test_buckets");
+
         timelineGroups.push({group: "operator-unavailable", data: []});
         createTimelineData("OperatorUnavailable", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "operator_unavailable");
 
@@ -58389,6 +55982,9 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         timelineGroups.push({group: "interesting-events", data: []});
         createTimelineData(interestingEvents, timelineGroups[timelineGroups.length - 1].data, filteredEvents, "interesting_events");
 
+        timelineGroups.push({group: "certificate-rotation", data: []})
+        createTimelineData("CertificateRotation", timelineGroups[timelineGroups.length - 1].data, filteredEvents, "certificate_rotation")
+
         var segmentFunc = function (segment) {
             // Copy label to clipboard
             navigator.clipboard.writeText(segment.labelVal);
@@ -58417,6 +56013,7 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
         const myChart = TimelinesChart();
         var ordinalScale = d3.scaleOrdinal()
             .domain([
+                'TestBucket', // test bucket intervals
                 'InterestingEvent', 'PathologicalKnown', "PathologicalNew", // interesting and pathological events
                 'AlertInfo', 'AlertPending', 'AlertWarning', 'AlertCritical', // alerts
                 'OperatorUnavailable', 'OperatorDegraded', 'OperatorProgressing', // operators
@@ -58427,6 +56024,7 @@ var _e2echartNonSpyglassE2eChartTemplateHtml = []byte(`<html lang="en">
                 'Degraded', 'Upgradeable', 'False', 'Unknown',
                 'PodLogInfo', 'PodLogWarning', 'PodLogError'])
             .range([
+                '#9370DB', // test bucket intervals - medium purple
                 '#6E6E6E', '#0000ff', '#d0312d', // pathological and interesting events
                 '#fada5e','#fada5e','#ffa500', '#d0312d',  // alerts
                 '#d0312d', '#ffa500', '#fada5e', // operators
@@ -59011,9 +56609,10 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/deployments/tag-images-deployment.yaml":                                          testExtendedTestdataDeploymentsTagImagesDeploymentYaml,
 	"test/extended/testdata/deployments/test-deployment-broken.yaml":                                         testExtendedTestdataDeploymentsTestDeploymentBrokenYaml,
 	"test/extended/testdata/deployments/test-deployment-test.yaml":                                           testExtendedTestdataDeploymentsTestDeploymentTestYaml,
+	"test/extended/testdata/edge_topologies/baremetalhost-template.yaml":                                     testExtendedTestdataEdge_topologiesBaremetalhostTemplateYaml,
+	"test/extended/testdata/edge_topologies/machine-template.yaml":                                           testExtendedTestdataEdge_topologiesMachineTemplateYaml,
 	"test/extended/testdata/egress-firewall/ovnk-egressfirewall-test.yaml":                                   testExtendedTestdataEgressFirewallOvnkEgressfirewallTestYaml,
 	"test/extended/testdata/egress-firewall/ovnk-egressfirewall-wildcard-test.yaml":                          testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYaml,
-	"test/extended/testdata/egress-firewall/sdn-egressnetworkpolicy-test.yaml":                               testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYaml,
 	"test/extended/testdata/egress-router-cni/egress-router-cni-v4-cr.yaml":                                  testExtendedTestdataEgressRouterCniEgressRouterCniV4CrYaml,
 	"test/extended/testdata/egress-router-cni/egress-router-cni-v6-cr.yaml":                                  testExtendedTestdataEgressRouterCniEgressRouterCniV6CrYaml,
 	"test/extended/testdata/forcepull-test.json":                                                             testExtendedTestdataForcepullTestJson,
@@ -59135,10 +56734,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/machine_config/machineconfig/1-worker-invalid-mc.yaml":                           testExtendedTestdataMachine_configMachineconfig1WorkerInvalidMcYaml,
 	"test/extended/testdata/machine_config/machineconfigpool/customMCP.yaml":                                 testExtendedTestdataMachine_configMachineconfigpoolCustommcpYaml,
 	"test/extended/testdata/machine_config/machineconfigpool/infra-mcp.yaml":                                 testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYaml,
-	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-all.yaml":                 testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml,
 	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-empty.yaml":               testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml,
-	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-none.yaml":                testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml,
-	"test/extended/testdata/machine_config/machineconfigurations/managedbootimages-partial.yaml":             testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml,
 	"test/extended/testdata/machine_config/machineconfigurations/nodedisruptionpolicy-rebootless-path.yaml":  testExtendedTestdataMachine_configMachineconfigurationsNodedisruptionpolicyRebootlessPathYaml,
 	"test/extended/testdata/machine_config/pinnedimage/customGCMCPpis.yaml":                                  testExtendedTestdataMachine_configPinnedimageCustomgcmcppisYaml,
 	"test/extended/testdata/machine_config/pinnedimage/customInvalidPis.yaml":                                testExtendedTestdataMachine_configPinnedimageCustominvalidpisYaml,
@@ -59158,14 +56754,19 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/net-attach-defs/whereabouts-nad.yml":                                             testExtendedTestdataNetAttachDefsWhereaboutsNadYml,
 	"test/extended/testdata/net-attach-defs/whereabouts-race-awake.yml":                                      testExtendedTestdataNetAttachDefsWhereaboutsRaceAwakeYml,
 	"test/extended/testdata/net-attach-defs/whereabouts-race-sleepy.yml":                                     testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml,
+	"test/extended/testdata/node/cnv-swap/cnv-hyperconverged.yaml":                                           testExtendedTestdataNodeCnvSwapCnvHyperconvergedYaml,
+	"test/extended/testdata/node/cnv-swap/cnv-namespace.yaml":                                                testExtendedTestdataNodeCnvSwapCnvNamespaceYaml,
+	"test/extended/testdata/node/cnv-swap/cnv-operatorgroup.yaml":                                            testExtendedTestdataNodeCnvSwapCnvOperatorgroupYaml,
+	"test/extended/testdata/node/cnv-swap/cnv-subscription.yaml":                                             testExtendedTestdataNodeCnvSwapCnvSubscriptionYaml,
+	"test/extended/testdata/node/cnv-swap/kubelet-limitedswap-dropin.yaml":                                   testExtendedTestdataNodeCnvSwapKubeletLimitedswapDropinYaml,
+	"test/extended/testdata/node/cnv-swap/kubelet-noswap-dropin.yaml":                                        testExtendedTestdataNodeCnvSwapKubeletNoswapDropinYaml,
+	"test/extended/testdata/node/kubeletconfig/loggingKC.yaml":                                               testExtendedTestdataNodeKubeletconfigLoggingkcYaml,
+	"test/extended/testdata/node/machineconfigpool/customMCP.yaml":                                           testExtendedTestdataNodeMachineconfigpoolCustommcpYaml,
 	"test/extended/testdata/node/nested_container/Dockerfile":                                                testExtendedTestdataNodeNested_containerDockerfile,
 	"test/extended/testdata/node/nested_container/containers.conf":                                           testExtendedTestdataNodeNested_containerContainersConf,
 	"test/extended/testdata/node/nested_container/run_tests.sh":                                              testExtendedTestdataNodeNested_containerRun_testsSh,
 	"test/extended/testdata/node/nested_container/skip_tests.sh":                                             testExtendedTestdataNodeNested_containerSkip_testsSh,
-	"test/extended/testdata/node/zstd-chunked/Dockerfile":                                                    testExtendedTestdataNodeZstdChunkedDockerfile,
-	"test/extended/testdata/node/zstd-chunked/Dockerfile.sample":                                             testExtendedTestdataNodeZstdChunkedDockerfileSample,
-	"test/extended/testdata/node/zstd-chunked/build.sh":                                                      testExtendedTestdataNodeZstdChunkedBuildSh,
-	"test/extended/testdata/node/zstd-chunked/test-custom-build.yaml":                                        testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml,
+	"test/extended/testdata/node/node_e2e/pod-dev-fuse.yaml":                                                 testExtendedTestdataNodeNode_e2ePodDevFuseYaml,
 	"test/extended/testdata/node_tuning/nto-stalld.yaml":                                                     testExtendedTestdataNode_tuningNtoStalldYaml,
 	"test/extended/testdata/oauthserver/cabundle-cm.yaml":                                                    testExtendedTestdataOauthserverCabundleCmYaml,
 	"test/extended/testdata/oauthserver/oauth-network.yaml":                                                  testExtendedTestdataOauthserverOauthNetworkYaml,
@@ -59173,16 +56774,6 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/oauthserver/oauth-sa.yaml":                                                       testExtendedTestdataOauthserverOauthSaYaml,
 	"test/extended/testdata/olm/operatorgroup.yaml":                                                          testExtendedTestdataOlmOperatorgroupYaml,
 	"test/extended/testdata/olm/subscription.yaml":                                                           testExtendedTestdataOlmSubscriptionYaml,
-	"test/extended/testdata/olmv1/install-catalog.yaml":                                                      testExtendedTestdataOlmv1InstallCatalogYaml,
-	"test/extended/testdata/olmv1/install-operator.yaml":                                                     testExtendedTestdataOlmv1InstallOperatorYaml,
-	"test/extended/testdata/olmv1/install-pipeline-operator-0.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator0Yaml,
-	"test/extended/testdata/olmv1/install-pipeline-operator-1.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator1Yaml,
-	"test/extended/testdata/olmv1/install-pipeline-operator-2.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator2Yaml,
-	"test/extended/testdata/olmv1/install-pipeline-operator-3.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator3Yaml,
-	"test/extended/testdata/olmv1/install-pipeline-operator-4.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator4Yaml,
-	"test/extended/testdata/olmv1/install-pipeline-operator-5.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator5Yaml,
-	"test/extended/testdata/olmv1/install-pipeline-operator-6.yaml":                                          testExtendedTestdataOlmv1InstallPipelineOperator6Yaml,
-	"test/extended/testdata/olmv1/install-pipeline-operator-base.yaml":                                       testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml,
 	"test/extended/testdata/poddisruptionbudgets/always-allow-policy-pdb.yaml":                               testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml,
 	"test/extended/testdata/poddisruptionbudgets/if-healthy-budget-policy-pdb.yaml":                          testExtendedTestdataPoddisruptionbudgetsIfHealthyBudgetPolicyPdbYaml,
 	"test/extended/testdata/poddisruptionbudgets/nginx-with-delayed-ready-deployment.yaml":                   testExtendedTestdataPoddisruptionbudgetsNginxWithDelayedReadyDeploymentYaml,
@@ -59209,6 +56800,7 @@ var _bindata = map[string]func() (*asset, error){
 	"test/extended/testdata/sample-image-stream.json":                                                        testExtendedTestdataSampleImageStreamJson,
 	"test/extended/testdata/samplepipeline-withenvs.yaml":                                                    testExtendedTestdataSamplepipelineWithenvsYaml,
 	"test/extended/testdata/service-serving-cert/nginx-serving-cert.conf":                                    testExtendedTestdataServiceServingCertNginxServingCertConf,
+	"test/extended/testdata/servicecidr.yaml":                                                                testExtendedTestdataServicecidrYaml,
 	"test/extended/testdata/signer-buildconfig.yaml":                                                         testExtendedTestdataSignerBuildconfigYaml,
 	"test/extended/testdata/stable-busybox.yaml":                                                             testExtendedTestdataStableBusyboxYaml,
 	"test/extended/testdata/templates/crunchydata-pod.json":                                                  testExtendedTestdataTemplatesCrunchydataPodJson,
@@ -59727,10 +57319,13 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"test-deployment-broken.yaml":         {testExtendedTestdataDeploymentsTestDeploymentBrokenYaml, map[string]*bintree{}},
 					"test-deployment-test.yaml":           {testExtendedTestdataDeploymentsTestDeploymentTestYaml, map[string]*bintree{}},
 				}},
+				"edge_topologies": {nil, map[string]*bintree{
+					"baremetalhost-template.yaml": {testExtendedTestdataEdge_topologiesBaremetalhostTemplateYaml, map[string]*bintree{}},
+					"machine-template.yaml":       {testExtendedTestdataEdge_topologiesMachineTemplateYaml, map[string]*bintree{}},
+				}},
 				"egress-firewall": {nil, map[string]*bintree{
 					"ovnk-egressfirewall-test.yaml":          {testExtendedTestdataEgressFirewallOvnkEgressfirewallTestYaml, map[string]*bintree{}},
 					"ovnk-egressfirewall-wildcard-test.yaml": {testExtendedTestdataEgressFirewallOvnkEgressfirewallWildcardTestYaml, map[string]*bintree{}},
-					"sdn-egressnetworkpolicy-test.yaml":      {testExtendedTestdataEgressFirewallSdnEgressnetworkpolicyTestYaml, map[string]*bintree{}},
 				}},
 				"egress-router-cni": {nil, map[string]*bintree{
 					"egress-router-cni-v4-cr.yaml": {testExtendedTestdataEgressRouterCniEgressRouterCniV4CrYaml, map[string]*bintree{}},
@@ -59919,10 +57514,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"infra-mcp.yaml": {testExtendedTestdataMachine_configMachineconfigpoolInfraMcpYaml, map[string]*bintree{}},
 					}},
 					"machineconfigurations": {nil, map[string]*bintree{
-						"managedbootimages-all.yaml":                {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesAllYaml, map[string]*bintree{}},
 						"managedbootimages-empty.yaml":              {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesEmptyYaml, map[string]*bintree{}},
-						"managedbootimages-none.yaml":               {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesNoneYaml, map[string]*bintree{}},
-						"managedbootimages-partial.yaml":            {testExtendedTestdataMachine_configMachineconfigurationsManagedbootimagesPartialYaml, map[string]*bintree{}},
 						"nodedisruptionpolicy-rebootless-path.yaml": {testExtendedTestdataMachine_configMachineconfigurationsNodedisruptionpolicyRebootlessPathYaml, map[string]*bintree{}},
 					}},
 					"pinnedimage": {nil, map[string]*bintree{
@@ -59957,17 +57549,28 @@ var _bintree = &bintree{nil, map[string]*bintree{
 					"whereabouts-race-sleepy.yml": {testExtendedTestdataNetAttachDefsWhereaboutsRaceSleepyYml, map[string]*bintree{}},
 				}},
 				"node": {nil, map[string]*bintree{
+					"cnv-swap": {nil, map[string]*bintree{
+						"cnv-hyperconverged.yaml":         {testExtendedTestdataNodeCnvSwapCnvHyperconvergedYaml, map[string]*bintree{}},
+						"cnv-namespace.yaml":              {testExtendedTestdataNodeCnvSwapCnvNamespaceYaml, map[string]*bintree{}},
+						"cnv-operatorgroup.yaml":          {testExtendedTestdataNodeCnvSwapCnvOperatorgroupYaml, map[string]*bintree{}},
+						"cnv-subscription.yaml":           {testExtendedTestdataNodeCnvSwapCnvSubscriptionYaml, map[string]*bintree{}},
+						"kubelet-limitedswap-dropin.yaml": {testExtendedTestdataNodeCnvSwapKubeletLimitedswapDropinYaml, map[string]*bintree{}},
+						"kubelet-noswap-dropin.yaml":      {testExtendedTestdataNodeCnvSwapKubeletNoswapDropinYaml, map[string]*bintree{}},
+					}},
+					"kubeletconfig": {nil, map[string]*bintree{
+						"loggingKC.yaml": {testExtendedTestdataNodeKubeletconfigLoggingkcYaml, map[string]*bintree{}},
+					}},
+					"machineconfigpool": {nil, map[string]*bintree{
+						"customMCP.yaml": {testExtendedTestdataNodeMachineconfigpoolCustommcpYaml, map[string]*bintree{}},
+					}},
 					"nested_container": {nil, map[string]*bintree{
 						"Dockerfile":      {testExtendedTestdataNodeNested_containerDockerfile, map[string]*bintree{}},
 						"containers.conf": {testExtendedTestdataNodeNested_containerContainersConf, map[string]*bintree{}},
 						"run_tests.sh":    {testExtendedTestdataNodeNested_containerRun_testsSh, map[string]*bintree{}},
 						"skip_tests.sh":   {testExtendedTestdataNodeNested_containerSkip_testsSh, map[string]*bintree{}},
 					}},
-					"zstd-chunked": {nil, map[string]*bintree{
-						"Dockerfile":             {testExtendedTestdataNodeZstdChunkedDockerfile, map[string]*bintree{}},
-						"Dockerfile.sample":      {testExtendedTestdataNodeZstdChunkedDockerfileSample, map[string]*bintree{}},
-						"build.sh":               {testExtendedTestdataNodeZstdChunkedBuildSh, map[string]*bintree{}},
-						"test-custom-build.yaml": {testExtendedTestdataNodeZstdChunkedTestCustomBuildYaml, map[string]*bintree{}},
+					"node_e2e": {nil, map[string]*bintree{
+						"pod-dev-fuse.yaml": {testExtendedTestdataNodeNode_e2ePodDevFuseYaml, map[string]*bintree{}},
 					}},
 				}},
 				"node_tuning": {nil, map[string]*bintree{
@@ -59982,18 +57585,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 				"olm": {nil, map[string]*bintree{
 					"operatorgroup.yaml": {testExtendedTestdataOlmOperatorgroupYaml, map[string]*bintree{}},
 					"subscription.yaml":  {testExtendedTestdataOlmSubscriptionYaml, map[string]*bintree{}},
-				}},
-				"olmv1": {nil, map[string]*bintree{
-					"install-catalog.yaml":                {testExtendedTestdataOlmv1InstallCatalogYaml, map[string]*bintree{}},
-					"install-operator.yaml":               {testExtendedTestdataOlmv1InstallOperatorYaml, map[string]*bintree{}},
-					"install-pipeline-operator-0.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator0Yaml, map[string]*bintree{}},
-					"install-pipeline-operator-1.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator1Yaml, map[string]*bintree{}},
-					"install-pipeline-operator-2.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator2Yaml, map[string]*bintree{}},
-					"install-pipeline-operator-3.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator3Yaml, map[string]*bintree{}},
-					"install-pipeline-operator-4.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator4Yaml, map[string]*bintree{}},
-					"install-pipeline-operator-5.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator5Yaml, map[string]*bintree{}},
-					"install-pipeline-operator-6.yaml":    {testExtendedTestdataOlmv1InstallPipelineOperator6Yaml, map[string]*bintree{}},
-					"install-pipeline-operator-base.yaml": {testExtendedTestdataOlmv1InstallPipelineOperatorBaseYaml, map[string]*bintree{}},
 				}},
 				"poddisruptionbudgets": {nil, map[string]*bintree{
 					"always-allow-policy-pdb.yaml":             {testExtendedTestdataPoddisruptionbudgetsAlwaysAllowPolicyPdbYaml, map[string]*bintree{}},
@@ -60043,6 +57634,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 				"service-serving-cert": {nil, map[string]*bintree{
 					"nginx-serving-cert.conf": {testExtendedTestdataServiceServingCertNginxServingCertConf, map[string]*bintree{}},
 				}},
+				"servicecidr.yaml":        {testExtendedTestdataServicecidrYaml, map[string]*bintree{}},
 				"signer-buildconfig.yaml": {testExtendedTestdataSignerBuildconfigYaml, map[string]*bintree{}},
 				"stable-busybox.yaml":     {testExtendedTestdataStableBusyboxYaml, map[string]*bintree{}},
 				"templates": {nil, map[string]*bintree{

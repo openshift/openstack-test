@@ -10,7 +10,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
-	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/kubernetes/test/e2e/framework"
@@ -158,8 +157,8 @@ func (h *groupSnapshotHostpathCSIDriver) GetSnapshotClass(ctx context.Context, c
 	return utils.GenerateSnapshotClassSpec(snapshotter, parameters, ns)
 }
 
-func (h *groupSnapshotHostpathCSIDriver) GetVolumeAttributesClass(_ context.Context, config *storageframework.PerTestConfig) *storagev1beta1.VolumeAttributesClass {
-	return storageframework.CopyVolumeAttributesClass(&storagev1beta1.VolumeAttributesClass{
+func (h *groupSnapshotHostpathCSIDriver) GetVolumeAttributesClass(_ context.Context, config *storageframework.PerTestConfig) *storagev1.VolumeAttributesClass {
+	return storageframework.CopyVolumeAttributesClass(&storagev1.VolumeAttributesClass{
 		DriverName: config.GetUniqueDriverName(),
 		Parameters: map[string]string{
 			hostpathCSIDriverMutableParameterName: hostpathCSIDriverMutableParameterValue,
@@ -177,7 +176,6 @@ func (h *groupSnapshotHostpathCSIDriver) PrepareTest(ctx context.Context, f *fra
 	// Create secondary namespace which will be used for creating driver
 	driverNamespace := utils.CreateDriverNamespace(ctx, f)
 	driverns := driverNamespace.Name
-	testns := f.Namespace.Name
 
 	ginkgo.By(fmt.Sprintf("deploying %s driver", h.driverInfo.Name))
 	cancelLogging := utils.StartPodLogs(ctx, f, driverNamespace)
@@ -276,7 +274,6 @@ func (h *groupSnapshotHostpathCSIDriver) PrepareTest(ctx context.Context, f *fra
 	cleanupFunc := generateDriverCleanupFunc(
 		f,
 		h.driverInfo.Name,
-		testns,
 		driverns,
 		cancelLogging)
 	ginkgo.DeferCleanup(cleanupFunc)
