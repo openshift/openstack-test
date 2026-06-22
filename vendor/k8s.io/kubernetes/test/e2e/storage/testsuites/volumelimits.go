@@ -18,6 +18,7 @@ package testsuites
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -113,7 +114,7 @@ func (t *volumeLimitsTestSuite) DefineTests(driver storageframework.TestDriver, 
 	// Beware that it also registers an AfterEach which renders f unusable. Any code using
 	// f must run inside an It or Context callback.
 	f := framework.NewFrameworkWithCustomTimeouts("volumelimits", storageframework.GetDriverTimeouts(driver))
-	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+	f.NamespacePodSecurityLevel = admissionapi.LevelPrivileged
 
 	// This checks that CSIMaxVolumeLimitChecker works as expected.
 	// A randomly chosen node should be able to handle as many CSI volumes as
@@ -123,7 +124,7 @@ func (t *volumeLimitsTestSuite) DefineTests(driver storageframework.TestDriver, 
 	// And one extra pod with a CSI volume should get Pending with a condition
 	// that says it's unschedulable because of volume limit.
 	// BEWARE: the test may create lot of volumes and it's really slow.
-	ginkgo.It("should support volume limits [Serial]", func(ctx context.Context) {
+	f.It("should support volume limits", f.WithSerial(), func(ctx context.Context) {
 		driverInfo := driver.GetDriverInfo()
 		if !driverInfo.Capabilities[storageframework.CapVolumeLimits] {
 			ginkgo.Skip(fmt.Sprintf("driver %s does not support volume limits", driverInfo.Name))
@@ -314,7 +315,7 @@ func cleanupTest(ctx context.Context, cs clientset.Interface, ns string, podName
 		cleanupErrors = append(cleanupErrors, fmt.Sprintf("timed out waiting for PVs to be deleted: %s", err))
 	}
 	if len(cleanupErrors) != 0 {
-		return fmt.Errorf("test cleanup failed: " + strings.Join(cleanupErrors, "; "))
+		return errors.New("test cleanup failed: " + strings.Join(cleanupErrors, "; "))
 	}
 	return nil
 }

@@ -104,24 +104,24 @@ func NewReconciler(
 	volumePluginMgr *volumepkg.VolumePluginMgr,
 	kubeletPodsDir string) Reconciler {
 	return &reconciler{
-		kubeClient:                    kubeClient,
-		controllerAttachDetachEnabled: controllerAttachDetachEnabled,
-		loopSleepDuration:             loopSleepDuration,
-		waitForAttachTimeout:          waitForAttachTimeout,
-		nodeName:                      nodeName,
-		desiredStateOfWorld:           desiredStateOfWorld,
-		actualStateOfWorld:            actualStateOfWorld,
-		populatorHasAddedPods:         populatorHasAddedPods,
-		operationExecutor:             operationExecutor,
-		mounter:                       mounter,
-		hostutil:                      hostutil,
-		skippedDuringReconstruction:   map[v1.UniqueVolumeName]*globalVolumeInfo{},
-		volumePluginMgr:               volumePluginMgr,
-		kubeletPodsDir:                kubeletPodsDir,
-		timeOfLastSync:                time.Time{},
-		volumesFailedReconstruction:   make([]podVolume, 0),
-		volumesNeedDevicePath:         make([]v1.UniqueVolumeName, 0),
-		volumesNeedReportedInUse:      make([]v1.UniqueVolumeName, 0),
+		kubeClient:                      kubeClient,
+		controllerAttachDetachEnabled:   controllerAttachDetachEnabled,
+		loopSleepDuration:               loopSleepDuration,
+		waitForAttachTimeout:            waitForAttachTimeout,
+		nodeName:                        nodeName,
+		desiredStateOfWorld:             desiredStateOfWorld,
+		actualStateOfWorld:              actualStateOfWorld,
+		populatorHasAddedPods:           populatorHasAddedPods,
+		operationExecutor:               operationExecutor,
+		mounter:                         mounter,
+		hostutil:                        hostutil,
+		skippedDuringReconstruction:     map[v1.UniqueVolumeName]*globalVolumeInfo{},
+		volumePluginMgr:                 volumePluginMgr,
+		kubeletPodsDir:                  kubeletPodsDir,
+		timeOfLastSync:                  time.Time{},
+		volumesFailedReconstruction:     make([]podVolume, 0),
+		volumesNeedUpdateFromNodeStatus: make([]v1.UniqueVolumeName, 0),
+		volumesNeedReportedInUse:        make([]v1.UniqueVolumeName, 0),
 	}
 }
 
@@ -141,11 +141,11 @@ type reconciler struct {
 	skippedDuringReconstruction   map[v1.UniqueVolumeName]*globalVolumeInfo
 	kubeletPodsDir                string
 	// lock protects timeOfLastSync for updating and checking
-	timeOfLastSyncLock          sync.Mutex
-	timeOfLastSync              time.Time
-	volumesFailedReconstruction []podVolume
-	volumesNeedDevicePath       []v1.UniqueVolumeName
-	volumesNeedReportedInUse    []v1.UniqueVolumeName
+	timeOfLastSyncLock              sync.Mutex
+	timeOfLastSync                  time.Time
+	volumesFailedReconstruction     []podVolume
+	volumesNeedUpdateFromNodeStatus []v1.UniqueVolumeName
+	volumesNeedReportedInUse        []v1.UniqueVolumeName
 }
 
 func (rc *reconciler) Run(stopCh <-chan struct{}) {
@@ -178,7 +178,7 @@ func (rc *reconciler) unmountVolumes() {
 func (rc *reconciler) mountOrAttachVolumes() {
 	// Ensure volumes that should be attached/mounted are attached/mounted.
 	for _, volumeToMount := range rc.desiredStateOfWorld.GetVolumesToMount() {
-		volMounted, devicePath, err := rc.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName, volumeToMount.PersistentVolumeSize, volumeToMount.SELinuxLabel)
+		volMounted, devicePath, err := rc.actualStateOfWorld.PodExistsInVolume(volumeToMount.PodName, volumeToMount.VolumeName, volumeToMount.DesiredPersistentVolumeSize, volumeToMount.SELinuxLabel)
 		volumeToMount.DevicePath = devicePath
 		if cache.IsSELinuxMountMismatchError(err) {
 			// The volume is mounted, but with an unexpected SELinux context.
@@ -281,6 +281,11 @@ func (rc *reconciler) unmountDetachDevices() {
 		// Check IsOperationPending to avoid marking a volume as detached if it's in the process of mounting.
 		if !rc.desiredStateOfWorld.VolumeExists(attachedVolume.VolumeName, attachedVolume.SELinuxMountContext) &&
 			!rc.operationExecutor.IsOperationPending(attachedVolume.VolumeName, nestedpendingoperations.EmptyUniquePodName, nestedpendingoperations.EmptyNodeName) {
+
+			// Re-read the actual state of the world, maybe the volume got mounted in the meantime.
+			// This is safe, because there is no pending operation (checked above) and no new operation
+			// could start in the meantime. The only goroutine that adds new operations is this reconciler.
+			attachedVolume, _ = rc.actualStateOfWorld.GetAttachedVolume(attachedVolume.VolumeName)
 			if attachedVolume.DeviceMayBeMounted() {
 				// Volume is globally mounted to device, unmount it
 				klog.V(5).InfoS(attachedVolume.GenerateMsgDetailed("Starting operationExecutor.UnmountDevice", ""))

@@ -10,13 +10,13 @@ var (
 		// alpha features that are not gated
 		"[Disabled:Alpha]": {
 			`\[Feature:StorageVersionAPI\]`,
-			`\[Feature:StatefulSetAutoDeletePVC\]`,
-			`\[Feature:ProxyTerminatingEndpoints\]`,
-			`\[Feature:UserNamespacesStatelessPodsSupport\]`,
-			`\[Feature:ReadWriteOncePod\]`,
-			`\[Feature:SELinuxMountReadWriteOncePod\]`,
-			`\[Feature:PodSchedulingReadiness\]`,
+			`\[Feature:UserNamespacesSupport\]`,
 			`\[Feature:InPlacePodVerticalScaling\]`,
+			`\[Feature:RecoverVolumeExpansionFailure\]`,
+			`\[Feature:WatchList\]`,
+			`\[Feature:ServiceCIDRs\]`,
+			`\[Feature:PodLifecycleSleepAction\]`,
+			`\[Feature:ClusterTrustBundle\]`,
 		},
 		// tests for features that are not implemented in openshift
 		"[Disabled:Unimplemented]": {
@@ -48,6 +48,11 @@ var (
 
 			// https://bugzilla.redhat.com/show_bug.cgi?id=2079958
 			`\[sig-network\] \[Feature:Topology Hints\] should distribute endpoints evenly`,
+
+			// Tests require SSH configuration and is part of the parallel suite, which does not create the bastion
+			// host. Enabling the test would result in the  bastion being created for every parallel test execution.
+			// Given that we have existing oc and WMCO tests that cover this functionality, we can safely disable it.
+			`\[Feature:NodeLogQuery\]`,
 		},
 		// tests that are known broken and need to be fixed upstream or in openshift
 		// always add an issue here
@@ -134,17 +139,26 @@ var (
 
 			// https://bugzilla.redhat.com/show_bug.cgi?id=1953478
 			`\[sig-storage\] Dynamic Provisioning Invalid AWS KMS key should report an error and create no PV`,
+
+			// https://issues.redhat.com/browse/OCPBUGS-36773
+			`\[sig-storage\] In-tree Volumes \[Driver: vsphere\] \[Testpattern: Pre-provisioned`,
+			`\[sig-storage\] In-tree Volumes \[Driver: vsphere\] \[Testpattern: Inline-volume`,
+
+			// https://issues.redhat.com/browse/OCPBUGS-72531
+			`\[sig-storage\] Pod Disks \[Feature:StorageProvider\] \[Serial\] attach on previously attached volumes should work`,
 		},
 		// tests that need to be temporarily disabled while the rebase is in progress.
 		"[Disabled:RebaseInProgress]": {
-			// https://issues.redhat.com/browse/OCPBUGS-12870
+			// https://issues.redhat.com/browse/OCPBUGS-7297
 			`DNS HostNetwork should resolve DNS of partial qualified names for services on hostNetwork pods with dnsPolicy`,
 			`\[sig-network\] Connectivity Pod Lifecycle should be able to connect to other Pod from a terminating Pod`, // TODO(network): simple test in k8s 1.27, needs investigation
 			`\[sig-cli\] Kubectl client Kubectl prune with applyset should apply and prune objects`,                    // TODO(workloads): alpha feature in k8s 1.27. It's failing with `error: unknown flag: --applyset`. Needs investigation
 
-			// https://issues.redhat.com/browse/OCPBUGS-13392
-			`\[sig-network\] NetworkPolicyLegacy \[LinuxOnly\] NetworkPolicy between server and client should enforce policy to allow traffic only from a pod in a different namespace based on PodSelector and NamespaceSelector`,
-			`\[sig-network\] NetworkPolicyLegacy \[LinuxOnly\] NetworkPolicy between server and client should enforce updated policy`,
+			// https://issues.redhat.com/browse/OCPBUGS-17194
+			`\[sig-node\] ImageCredentialProvider \[Feature:KubeletCredentialProviders\] should be able to create pod with image credentials fetched from external credential provider`,
+
+			// https://issues.redhat.com/browse/OCPBUGS-17202
+			`\[sig-apps\] StatefulSet Scaling StatefulSetStartOrdinal \[Feature:StatefulSetStartOrdinal\] Removing \.start\.ordinal`,
 		},
 		// tests that may work, but we don't support them
 		"[Disabled:Unsupported]": {
@@ -153,7 +167,11 @@ var (
 			`\[Driver: gluster\]`,       // OpenShift 4.x does not support Gluster
 			`Volumes GlusterFS`,         // OpenShift 4.x does not support Gluster
 			`GlusterDynamicProvisioner`, // OpenShift 4.x does not support Gluster
-
+			// OCP 4.16 and newer does not support PersistentVolumeLabel admission plugin and thus
+			// the test can's create in-tree PVs.
+			`Multi-AZ Cluster Volumes should schedule pods in the same zones as statically provisioned PVs`,
+			`PersistentVolumes GCEPD`,
+			`\[Driver: azure-disk\] \[Testpattern: Pre-provisioned PV`,
 			// Skip vSphere-specific storage tests. The standard in-tree storage tests for vSphere
 			// (prefixed with `In-tree Volumes [Driver: vsphere]`) are enough for testing this plugin.
 			// https://bugzilla.redhat.com/show_bug.cgi?id=2019115
@@ -226,7 +244,7 @@ var (
 			`\[sig-api-machinery\] AdmissionWebhook should be able to deny pod and configmap creation`,
 
 			// https://bugzilla.redhat.com/show_bug.cgi?id=1745720
-			`\[sig-storage\] CSI Volumes \[Driver: pd.csi.storage.gke.io\]\[Serial\]`,
+			`\[sig-storage\] CSI Volumes \[Driver: pd.csi.storage.gke.io\]`,
 
 			// https://bugzilla.redhat.com/show_bug.cgi?id=1749882
 			`\[sig-storage\] CSI Volumes CSI Topology test using GCE PD driver \[Serial\]`,

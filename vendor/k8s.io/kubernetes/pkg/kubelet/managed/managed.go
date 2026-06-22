@@ -27,15 +27,21 @@ import (
 )
 
 var (
-	pinnedManagementEnabled   bool
-	pinnedManagementFilename  = "/etc/kubernetes/openshift-workload-pinning"
+	pinnedManagementEnabled  bool
+	pinnedManagementFilename = "/etc/kubernetes/openshift-workload-pinning"
+)
+
+const (
+	qosWarning                = "skipping pod CPUs requests modifications because it has guaranteed QoS class"
 	WorkloadsAnnotationPrefix = "target.workload.openshift.io/"
 	WorkloadsCapacitySuffix   = "workload.openshift.io/cores"
-	ContainerAnnotationFormat = "resources.workload.openshift.io/%v"
+	ContainerAnnotationPrefix = "resources.workload.openshift.io/"
+	WorkloadAnnotationWarning = "workload.openshift.io/warning"
 )
 
 type WorkloadContainerAnnotation struct {
 	CpuShares uint64 `json:"cpushares"`
+	CpuLimit  int64  `json:"cpulimit,omitempty"`
 }
 
 func NewWorkloadContainerAnnotation(cpushares uint64) WorkloadContainerAnnotation {
@@ -56,6 +62,12 @@ func readEnablementFile() {
 	if _, err := os.Stat(pinnedManagementFilename); err == nil {
 		pinnedManagementEnabled = true
 	}
+}
+
+// TestOnlySetEnabled allows changing the state of management partition enablement
+// This method MUST NOT be used outside of test code
+func TestOnlySetEnabled(enabled bool) {
+	pinnedManagementEnabled = enabled
 }
 
 func IsEnabled() bool {
@@ -86,6 +98,11 @@ func ModifyStaticPodForPinnedManagement(pod *v1.Pod) (*v1.Pod, string, error) {
 	if pod.Annotations == nil {
 		pod.Annotations = make(map[string]string)
 	}
+	if isPodGuaranteed(pod) {
+		stripWorkloadAnnotations(pod.Annotations)
+		pod.Annotations[WorkloadAnnotationWarning] = qosWarning
+		return pod, "", nil
+	}
 	pod.Annotations[fmt.Sprintf("%v%v", WorkloadsAnnotationPrefix, workloadName)] = value
 	if err := updateContainers(workloadName, pod); err != nil {
 		return nil, "", err
@@ -115,8 +132,12 @@ func updateContainers(workloadName string, pod *v1.Pod) error {
 		cpuRequestInMilli := cpuRequest.MilliValue()
 
 		containerAnnotation := NewWorkloadContainerAnnotation(MilliCPUToShares(cpuRequestInMilli))
+		if value, ok := container.Resources.Limits[v1.ResourceCPU]; ok {
+			containerAnnotation.CpuLimit = value.MilliValue()
+		}
+
 		jsonAnnotation, _ := containerAnnotation.Serialize()
-		containerNameKey := fmt.Sprintf(ContainerAnnotationFormat, container.Name)
+		containerNameKey := fmt.Sprintf("%v%v", ContainerAnnotationPrefix, container.Name)
 
 		newCPURequest := resource.NewMilliQuantity(cpuRequestInMilli*1000, cpuRequest.Format)
 
@@ -125,6 +146,7 @@ func updateContainers(workloadName string, pod *v1.Pod) error {
 		container.Resources.Limits[GenerateResourceName(workloadName)] = *newCPURequest
 
 		delete(container.Resources.Requests, v1.ResourceCPU)
+		delete(container.Resources.Limits, v1.ResourceCPU)
 		return nil
 	}
 	for idx := range pod.Spec.Containers {
@@ -138,4 +160,51 @@ func updateContainers(workloadName string, pod *v1.Pod) error {
 		}
 	}
 	return nil
+}
+
+// isPodGuaranteed checks if the pod has a guaranteed QoS.
+// This QoS check is different from the library versions that check QoS,
+// this is because of the order at which changes get observed.
+// (i.e. the library assumes the defaulter has ran on the pod resource before calculating QoS).
+//
+// The files will get interpreted before they reach the API server and before the defaulter applies changes,
+// this function takes into account the case where only `limits.cpu` are provided but no `requests.cpu` are since that
+// counts as a Guaranteed QoS after the defaulter runs.
+func isPodGuaranteed(pod *v1.Pod) bool {
+	isGuaranteed := func(containers []v1.Container) bool {
+		for _, c := range containers {
+			// only memory and CPU resources are relevant to decide pod QoS class
+			for _, r := range []v1.ResourceName{v1.ResourceMemory, v1.ResourceCPU} {
+				limit := c.Resources.Limits[r]
+				request, requestExist := c.Resources.Requests[r]
+				if limit.IsZero() {
+					return false
+				}
+				if !requestExist {
+					continue
+				}
+				// In some corner case, when you set CPU requests to 0 the k8s defaulter will change it to the value
+				// specified under the limit.
+				if r == v1.ResourceCPU && request.IsZero() {
+					continue
+				}
+				if !limit.Equal(request) {
+					return false
+				}
+			}
+		}
+		return true
+	}
+	return isGuaranteed(pod.Spec.InitContainers) && isGuaranteed(pod.Spec.Containers)
+}
+
+func stripWorkloadAnnotations(annotations map[string]string) {
+	for k := range annotations {
+		if strings.HasPrefix(k, WorkloadsAnnotationPrefix) {
+			delete(annotations, k)
+		}
+		if strings.HasPrefix(k, ContainerAnnotationPrefix) {
+			delete(annotations, k)
+		}
+	}
 }

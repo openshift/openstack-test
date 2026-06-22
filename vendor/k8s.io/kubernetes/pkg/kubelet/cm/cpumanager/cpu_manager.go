@@ -32,12 +32,12 @@ import (
 	"k8s.io/kubernetes/pkg/kubelet/cm/containermap"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpumanager/state"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpumanager/topology"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/kubernetes/pkg/kubelet/cm/topologymanager"
 	"k8s.io/kubernetes/pkg/kubelet/config"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	"k8s.io/kubernetes/pkg/kubelet/managed"
 	"k8s.io/kubernetes/pkg/kubelet/status"
+	"k8s.io/utils/cpuset"
 )
 
 // ActivePodsFunc is a function that returns a list of pods to reconcile.
@@ -94,6 +94,10 @@ type Manager interface {
 	// GetCPUAffinity returns cpuset which includes cpus from shared pools
 	// as well as exclusively allocated cpus
 	GetCPUAffinity(podUID, containerName string) cpuset.CPUSet
+
+	// GetAllCPUs returns all the CPUs known by cpumanager, as reported by the
+	// hardware discovery. Maps to the CPU capacity.
+	GetAllCPUs() cpuset.CPUSet
 }
 
 type manager struct {
@@ -137,7 +141,11 @@ type manager struct {
 	// stateFileDirectory holds the directory where the state file for checkpoints is held.
 	stateFileDirectory string
 
-	// allocatableCPUs is the set of online CPUs as reported by the system
+	// allCPUs is the set of online CPUs as reported by the system
+	allCPUs cpuset.CPUSet
+
+	// allocatableCPUs is the set of online CPUs as reported by the system,
+	// and available for allocation, minus the reserved set
 	allocatableCPUs cpuset.CPUSet
 
 	// pendingAdmissionPod contain the pod during the admission phase
@@ -157,6 +165,11 @@ func NewManager(cpuPolicyName string, cpuPolicyOptions map[string]string, reconc
 	var policy Policy
 	var err error
 
+	topo, err = topology.Discover(machineInfo)
+	if err != nil {
+		return nil, err
+	}
+
 	switch policyName(cpuPolicyName) {
 
 	case PolicyNone:
@@ -166,10 +179,6 @@ func NewManager(cpuPolicyName string, cpuPolicyOptions map[string]string, reconc
 		}
 
 	case PolicyStatic:
-		topo, err = topology.Discover(machineInfo)
-		if err != nil {
-			return nil, err
-		}
 		klog.InfoS("Detected CPU topology", "topology", topo)
 
 		reservedCPUs, ok := nodeAllocatableReservation[v1.ResourceCPU]
@@ -206,6 +215,7 @@ func NewManager(cpuPolicyName string, cpuPolicyOptions map[string]string, reconc
 		topology:                   topo,
 		nodeAllocatableReservation: nodeAllocatableReservation,
 		stateFileDirectory:         stateFileDirectory,
+		allCPUs:                    topo.CPUDetails.CPUs(),
 	}
 	manager.sourcesReady = &sourcesReadyStub{}
 	return manager, nil
@@ -338,6 +348,10 @@ func (m *manager) GetPodTopologyHints(pod *v1.Pod) map[string][]topologymanager.
 
 func (m *manager) GetAllocatableCPUs() cpuset.CPUSet {
 	return m.allocatableCPUs.Clone()
+}
+
+func (m *manager) GetAllCPUs() cpuset.CPUSet {
+	return m.allCPUs.Clone()
 }
 
 type reconciledContainer struct {

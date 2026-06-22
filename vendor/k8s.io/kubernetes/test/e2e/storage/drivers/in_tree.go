@@ -18,10 +18,10 @@ limitations under the License.
  * This file defines various in-tree volume test drivers for TestSuites.
  *
  * There are two ways, how to prepare test drivers:
- * 1) With containerized server (NFS, Ceph, Gluster, iSCSI, ...)
+ * 1) With containerized server (NFS, Ceph, iSCSI, ...)
  * It creates a server pod which defines one volume for the tests.
  * These tests work only when privileged containers are allowed, exporting
- * various filesystems (NFS, GlusterFS, ...) usually needs some mounting or
+ * various filesystems (like NFS) usually needs some mounting or
  * other privileged magic in the server pod.
  *
  * Note that the server containers are for testing purposes only and should not
@@ -51,6 +51,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apiserver/pkg/authentication/serviceaccount"
 	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/kubernetes/test/e2e/feature"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2eauth "k8s.io/kubernetes/test/e2e/framework/auth"
 	e2enode "k8s.io/kubernetes/test/e2e/framework/node"
@@ -103,7 +104,7 @@ func InitNFSDriver() storageframework.TestDriver {
 				"", // Default fsType
 			),
 			SupportedMountOption: sets.NewString("relatime"),
-			RequiredMountOption:  sets.NewString("vers=4.1"),
+			RequiredMountOption:  sets.NewString("vers=4.0"),
 			Capabilities: map[storageframework.Capability]bool{
 				storageframework.CapPersistence:       true,
 				storageframework.CapExec:              true,
@@ -152,7 +153,7 @@ func (n *nfsDriver) GetPersistentVolumeSource(readOnly bool, fsType string, e2ev
 
 func (n *nfsDriver) GetDynamicProvisionStorageClass(ctx context.Context, config *storageframework.PerTestConfig, fsType string) *storagev1.StorageClass {
 	provisioner := n.externalPluginName
-	parameters := map[string]string{"mountOptions": "vers=4.1"}
+	parameters := map[string]string{"mountOptions": "vers=4.0"}
 	ns := config.Framework.Namespace.Name
 
 	return storageframework.GetStorageClass(provisioner, parameters, nil, ns)
@@ -240,7 +241,7 @@ func InitISCSIDriver() storageframework.TestDriver {
 		driverInfo: storageframework.DriverInfo{
 			Name:             "iscsi",
 			InTreePluginName: "kubernetes.io/iscsi",
-			FeatureTag:       "[Feature:Volumes]",
+			TestTags:         []interface{}{feature.Volumes},
 			MaxFileSize:      storageframework.FileSizeMedium,
 			SupportedFsType: sets.NewString(
 				"", // Default fsType
@@ -347,6 +348,8 @@ func newISCSIServer(ctx context.Context, cs clientset.Interface, namespace strin
 			"/sys/kernel": "/sys/kernel",
 			// iSCSI source "block devices" must be available on the host
 			"/srv/iscsi": "/srv/iscsi",
+			// targetcli uses dbus
+			"/run/dbus": "/run/dbus",
 		},
 		ServerReadyMessage: "iscsi target started",
 		ServerHostNetwork:  true,
@@ -421,7 +424,7 @@ func InitRbdDriver() storageframework.TestDriver {
 		driverInfo: storageframework.DriverInfo{
 			Name:             "rbd",
 			InTreePluginName: "kubernetes.io/rbd",
-			FeatureTag:       "[Feature:Volumes][Serial]",
+			TestTags:         []interface{}{feature.Volumes, framework.WithSerial()},
 			MaxFileSize:      storageframework.FileSizeMedium,
 			SupportedSizeRange: e2evolume.SizeRange{
 				Min: "1Gi",
@@ -551,7 +554,7 @@ func InitCephFSDriver() storageframework.TestDriver {
 		driverInfo: storageframework.DriverInfo{
 			Name:             "ceph",
 			InTreePluginName: "kubernetes.io/cephfs",
-			FeatureTag:       "[Feature:Volumes][Serial]",
+			TestTags:         []interface{}{feature.Volumes, framework.WithSerial()},
 			MaxFileSize:      storageframework.FileSizeMedium,
 			SupportedSizeRange: e2evolume.SizeRange{
 				Min: "1Gi",
@@ -1081,8 +1084,10 @@ func (g *gcePdDriver) GetDriverInfo() *storageframework.DriverInfo {
 
 func (g *gcePdDriver) SkipUnsupportedTest(pattern storageframework.TestPattern) {
 	e2eskipper.SkipUnlessProviderIs("gce", "gke")
-	if pattern.FeatureTag == "[Feature:Windows]" {
-		e2eskipper.SkipUnlessNodeOSDistroIs("windows")
+	for _, tag := range pattern.TestTags {
+		if tag == feature.Windows {
+			e2eskipper.SkipUnlessNodeOSDistroIs("windows")
+		}
 	}
 }
 
@@ -1281,6 +1286,7 @@ func (v *vSphereDriver) GetDynamicProvisionStorageClass(ctx context.Context, con
 }
 
 func (v *vSphereDriver) PrepareTest(ctx context.Context, f *framework.Framework) *storageframework.PerTestConfig {
+	vspheretest.Bootstrap(f)
 	ginkgo.DeferCleanup(func(ctx context.Context) {
 		// Driver Cleanup function
 		// Logout each vSphere client connection to prevent session leakage
@@ -1300,7 +1306,6 @@ func (v *vSphereDriver) PrepareTest(ctx context.Context, f *framework.Framework)
 
 func (v *vSphereDriver) CreateVolume(ctx context.Context, config *storageframework.PerTestConfig, volType storageframework.TestVolType) storageframework.TestVolume {
 	f := config.Framework
-	vspheretest.Bootstrap(f)
 	nodeInfo := vspheretest.GetReadySchedulableRandomNodeInfo(ctx, f.ClientSet)
 	volumePath, err := nodeInfo.VSphere.CreateVolume(&vspheretest.VolumeOptions{}, nodeInfo.DataCenterRef)
 	framework.ExpectNoError(err)
@@ -1613,16 +1618,16 @@ func InitLocalDriverWithVolumeType(volumeType utils.LocalVolumeType) func() stor
 	}
 	return func() storageframework.TestDriver {
 		// custom tag to distinguish from tests of other volume types
-		featureTag := fmt.Sprintf("[LocalVolumeType: %s]", volumeType)
+		testTags := []interface{}{fmt.Sprintf("[LocalVolumeType: %s]", volumeType)}
 		// For GCE Local SSD volumes, we must run serially
 		if volumeType == utils.LocalVolumeGCELocalSSD {
-			featureTag += " [Serial]"
+			testTags = append(testTags, framework.WithSerial())
 		}
 		return &localDriver{
 			driverInfo: storageframework.DriverInfo{
 				Name:             "local",
 				InTreePluginName: "kubernetes.io/local-volume",
-				FeatureTag:       featureTag,
+				TestTags:         testTags,
 				MaxFileSize:      maxFileSize,
 				SupportedFsType:  supportedFsTypes,
 				Capabilities:     capabilities,

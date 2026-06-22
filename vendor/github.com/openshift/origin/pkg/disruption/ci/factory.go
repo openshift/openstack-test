@@ -29,7 +29,7 @@ const (
 // Factory creates a new instance of a Disruption test from
 // the user specified configuration.
 type Factory interface {
-	New(TestConfiguration) (*BackendSampler, error)
+	New(TestConfiguration) (Sampler, error)
 }
 
 // NewDisruptionTestFactory returns a shared disruption test factory that uses
@@ -91,13 +91,19 @@ func (t TestDescriptor) Name() string {
 	return fmt.Sprintf("%s-%s-%s-%s-connections", t.TargetServer, t.Protocol, t.LoadBalancerType, t.ConnectionType)
 }
 
-func (t TestDescriptor) DisruptionLocator() string {
-	return fmt.Sprintf("disruption/%s load-balancer/%s connection/%s protocol/%s target/%s",
-		t.Name(), t.LoadBalancerType, t.ConnectionType, t.Protocol, t.TargetServer)
+func (t TestDescriptor) DisruptionLocator() monitorapi.Locator {
+	return monitorapi.NewLocator().Disruption(
+		t.Name(),
+		fmt.Sprintf("%v-%v-%v", t.TargetServer, t.Protocol, t.LoadBalancerType),
+		string(t.LoadBalancerType),
+		string(t.Protocol),
+		string(t.TargetServer),
+		t.ConnectionType,
+	)
 }
 
-func (t TestDescriptor) ShutdownLocator() string {
-	return fmt.Sprintf("shutdown/graceful server/kube-apiserver load-balancer/%s", t.LoadBalancerType)
+func (t TestDescriptor) ShutdownLocator() monitorapi.Locator {
+	return monitorapi.NewLocator().KubeAPIServerWithLB(string(t.LoadBalancerType))
 }
 
 func (t TestDescriptor) Validate() error {
@@ -132,6 +138,9 @@ type dependency interface {
 
 	// GetHostNameDecoder returns the appropriate HostNameDecoder instance.
 	GetHostNameDecoder() (backend.HostNameDecoderWithRunner, error)
+
+	// GetRestConfig returns kubeconfig
+	GetRestConfig() *rest.Config
 }
 
 type testFactory struct {
@@ -140,11 +149,11 @@ type testFactory struct {
 	once                   sync.Once
 	err                    error
 	sharedShutdownInterval backendsampler.SampleCollector
-	wantMonitorAndRecorder backend.WantEventRecorderAndMonitor
+	wantMonitorAndRecorder backend.WantEventRecorderAndMonitorRecorder
 	hostNameDecoder        backend.HostNameDecoderWithRunner
 }
 
-func (b *testFactory) New(c TestConfiguration) (*BackendSampler, error) {
+func (b *testFactory) New(c TestConfiguration) (Sampler, error) {
 	if b.err != nil {
 		return nil, b.err
 	}
@@ -183,7 +192,7 @@ func (b *testFactory) New(c TestConfiguration) (*BackendSampler, error) {
 	backendSampler := &BackendSampler{
 		TestConfiguration:           c,
 		SampleRunner:                runner,
-		wantEventRecorderAndMonitor: []backend.WantEventRecorderAndMonitor{b.wantMonitorAndRecorder, want},
+		wantEventRecorderAndMonitor: []backend.WantEventRecorderAndMonitorRecorder{b.wantMonitorAndRecorder, want},
 		baseURL:                     requestor.GetBaseURL(),
 		hostNameDecoder:             b.hostNameDecoder,
 	}
@@ -215,4 +224,7 @@ func (r *restConfigDependency) NewTransport(tc TestConfiguration) (http.RoundTri
 func (r *restConfigDependency) HostName() string { return r.config.Host }
 func (r *restConfigDependency) GetHostNameDecoder() (backend.HostNameDecoderWithRunner, error) {
 	return NewAPIServerIdentityToHostNameDecoder(r.config)
+}
+func (r *restConfigDependency) GetRestConfig() *rest.Config {
+	return r.config
 }

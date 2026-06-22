@@ -101,10 +101,12 @@ func (c *csiMountMgr) SetUp(mounterArgs volume.MounterArgs) error {
 }
 
 func (c *csiMountMgr) SetUpAt(dir string, mounterArgs volume.MounterArgs) error {
-	klog.V(4).Infof(log("Mounter.SetUpAt(%s)", dir))
+	klog.V(4).Info(log("Mounter.SetUpAt(%s)", dir))
 
 	csi, err := c.csiClientGetter.Get()
 	if err != nil {
+		// Treat the absence of the CSI driver as a transient error
+		// See https://github.com/kubernetes/kubernetes/issues/120268
 		return volumetypes.NewTransientOperationFailure(log("mounter.SetUpAt failed to get CSI client: %v", err))
 	}
 
@@ -344,7 +346,7 @@ func (c *csiMountMgr) SetUpAt(dir string, mounterArgs volume.MounterArgs) error 
 		klog.V(4).Info(log("mounter.SetupAt fsGroup [%d] applied successfully to %s", *mounterArgs.FsGroup, c.volumeID))
 	}
 
-	klog.V(4).Infof(log("mounter.SetUp successfully requested NodePublish [%s]", dir))
+	klog.V(4).Info(log("mounter.SetUp successfully requested NodePublish [%s]", dir))
 	return nil
 }
 
@@ -356,7 +358,7 @@ func (c *csiMountMgr) podServiceAccountTokenAttrs() (map[string]string, error) {
 	csiDriver, err := c.plugin.csiDriverLister.Get(string(c.driverName))
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			klog.V(5).Infof(log("CSIDriver %q not found, not adding service account token information", c.driverName))
+			klog.V(5).Info(log("CSIDriver %q not found, not adding service account token information", c.driverName))
 			return nil, nil
 		}
 		return nil, err
@@ -392,7 +394,7 @@ func (c *csiMountMgr) podServiceAccountTokenAttrs() (map[string]string, error) {
 		outputs[audience] = tr.Status
 	}
 
-	klog.V(4).Infof(log("Fetched service account token attrs for CSIDriver %q", c.driverName))
+	klog.V(4).Info(log("Fetched service account token attrs for CSIDriver %q", c.driverName))
 	tokens, _ := json.Marshal(outputs)
 	return map[string]string{
 		"csi.storage.k8s.io/serviceAccount.tokens": string(tokens),
@@ -414,12 +416,14 @@ func (c *csiMountMgr) TearDown() error {
 	return c.TearDownAt(c.GetPath())
 }
 func (c *csiMountMgr) TearDownAt(dir string) error {
-	klog.V(4).Infof(log("Unmounter.TearDownAt(%s)", dir))
+	klog.V(4).Info(log("Unmounter.TearDownAt(%s)", dir))
 
 	volID := c.volumeID
 	csi, err := c.csiClientGetter.Get()
 	if err != nil {
-		return errors.New(log("Unmounter.TearDownAt failed to get CSI client: %v", err))
+		// Treat the absence of the CSI driver as a transient error
+		// See https://github.com/kubernetes/kubernetes/issues/120268
+		return volumetypes.NewTransientOperationFailure(log("Unmounter.TearDownAt failed to get CSI client: %v", err))
 	}
 
 	// Could not get spec info on whether this is a migrated operation because c.spec is nil
@@ -438,7 +442,7 @@ func (c *csiMountMgr) TearDownAt(dir string) error {
 	if err := removeMountDir(c.plugin, dir); err != nil {
 		return errors.New(log("Unmounter.TearDownAt failed to clean mount dir [%s]: %v", dir, err))
 	}
-	klog.V(4).Infof(log("Unmounter.TearDownAt successfully unmounted dir [%s]", dir))
+	klog.V(4).Info(log("Unmounter.TearDownAt successfully unmounted dir [%s]", dir))
 
 	return nil
 }

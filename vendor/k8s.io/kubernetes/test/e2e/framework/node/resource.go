@@ -128,7 +128,7 @@ func isNodeConditionSetAsExpected(node *v1.Node, conditionType v1.NodeConditionT
 							conditionType, node.Name, cond.Status == v1.ConditionTrue, taints)
 					}
 					if !silent {
-						framework.Logf(msg)
+						framework.Logf("%s", msg)
 					}
 					return false
 				}
@@ -536,7 +536,7 @@ func GetClusterZones(ctx context.Context, c clientset.Interface) (sets.String, e
 }
 
 // GetSchedulableClusterZones returns the values of zone label collected from all nodes which are schedulable.
-func GetSchedulableClusterZones(ctx context.Context, c clientset.Interface) (sets.String, error) {
+func GetSchedulableClusterZones(ctx context.Context, c clientset.Interface) (sets.Set[string], error) {
 	// GetReadySchedulableNodes already filters our tainted and unschedulable nodes.
 	nodes, err := GetReadySchedulableNodes(ctx, c)
 	if err != nil {
@@ -544,7 +544,7 @@ func GetSchedulableClusterZones(ctx context.Context, c clientset.Interface) (set
 	}
 
 	// collect values of zone label from all nodes
-	zones := sets.NewString()
+	zones := sets.New[string]()
 	for _, node := range nodes.Items {
 		if zone, found := node.Labels[v1.LabelFailureDomainBetaZone]; found {
 			zones.Insert(zone)
@@ -822,6 +822,6 @@ func verifyThatTaintIsGone(ctx context.Context, c clientset.Interface, nodeName 
 	// TODO use wrapper methods in expect.go after removing core e2e dependency on node
 	gomega.ExpectWithOffset(2, err).NotTo(gomega.HaveOccurred())
 	if taintExists(nodeUpdated.Spec.Taints, taint) {
-		framework.Failf("Failed removing taint " + taint.ToString() + " of the node " + nodeName)
+		framework.Fail("Failed removing taint " + taint.ToString() + " of the node " + nodeName)
 	}
 }

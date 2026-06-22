@@ -19,6 +19,7 @@ package scheduler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -48,7 +49,7 @@ type HTTPExtender struct {
 	weight           int64
 	client           *http.Client
 	nodeCacheCapable bool
-	managedResources sets.String
+	managedResources sets.Set[string]
 	ignorable        bool
 }
 
@@ -96,7 +97,7 @@ func NewHTTPExtender(config *schedulerapi.Extender) (framework.Extender, error) 
 		Transport: transport,
 		Timeout:   config.HTTPTimeout.Duration,
 	}
-	managedResources := sets.NewString()
+	managedResources := sets.New[string]()
 	for _, r := range config.ManagedResources {
 		managedResources.Insert(string(r.Name))
 	}
@@ -287,7 +288,7 @@ func (h *HTTPExtender) Filter(
 		return nil, nil, nil, err
 	}
 	if result.Error != "" {
-		return nil, nil, nil, fmt.Errorf(result.Error)
+		return nil, nil, nil, errors.New(result.Error)
 	}
 
 	if h.nodeCacheCapable && result.NodeNames != nil {
@@ -372,7 +373,7 @@ func (h *HTTPExtender) Bind(binding *v1.Binding) error {
 		return err
 	}
 	if result.Error != "" {
-		return fmt.Errorf(result.Error)
+		return errors.New(result.Error)
 	}
 	return nil
 }
