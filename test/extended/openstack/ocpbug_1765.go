@@ -30,7 +30,7 @@ import (
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Bugfix", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Bugfix", func() {
 	defer g.GinkgoRecover()
 
 	var dc dynamic.Interface
