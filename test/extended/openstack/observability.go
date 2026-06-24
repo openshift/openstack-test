@@ -60,7 +60,7 @@ const (
 	  )`
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Check shift-on-stack", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Check shift-on-stack", func() {
 
 	defer g.GinkgoRecover()
 

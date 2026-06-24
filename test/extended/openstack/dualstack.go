@@ -24,7 +24,7 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform", func() {
 	oc := exutil.NewCLI("openstack")
 	var loadBalancerClient *gophercloud.ServiceClient
 	var networkClient *gophercloud.ServiceClient

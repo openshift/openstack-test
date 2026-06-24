@@ -11,6 +11,7 @@ require (
 	github.com/gophercloud/gophercloud/v2 v2.0.0
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
+	github.com/openshift-eng/openshift-tests-extension v0.0.0-20260616194104-220cea40cb1c
 	github.com/openshift/api v0.0.0-20250131155403-30a036067514
 	github.com/openshift/client-go v0.0.0-20250131180035-f7ec47e2d87a
 	github.com/openshift/cluster-api-actuator-pkg v0.0.0-20250401133953-e7e157c4c1fe
