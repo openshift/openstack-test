@@ -55,6 +55,7 @@ import (
 	operatorv1 "github.com/openshift/api/operator/v1"
 	securityv1 "github.com/openshift/api/security/v1"
 	buildv1clienttyped "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
+	clientconfigv1 "github.com/openshift/client-go/config/clientset/versioned"
 	configclient "github.com/openshift/client-go/config/clientset/versioned/typed/config/v1"
 	imagev1typedclient "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	"github.com/openshift/library-go/pkg/build/naming"
@@ -237,13 +238,99 @@ func processScanError(log string) error {
 	return fmt.Errorf(log)
 }
 
+// getImageStreamObj returns the updated spec for imageStream object
+func getImageStreamObj(imageStreamName, imageRef string) *imagev1.ImageStream {
+	imageStream := &imagev1.ImageStream{
+		ObjectMeta: metav1.ObjectMeta{Name: imageStreamName},
+		Spec: imagev1.ImageStreamSpec{
+			LookupPolicy:          imagev1.ImageLookupPolicy{Local: true},
+			DockerImageRepository: imageRef,
+			Tags: []imagev1.TagReference{{
+				Name: "latest",
+				ImportPolicy: imagev1.TagImportPolicy{
+					ImportMode: imagev1.ImportModePreserveOriginal,
+				},
+			}},
+		},
+		Status: imagev1.ImageStreamStatus{
+			DockerImageRepository: imageRef,
+			Tags: []imagev1.NamedTagEventList{{
+				Tag: "latest",
+			}},
+		},
+	}
+	return imageStream
+}
+
+// WaitForImageStreamImport creates & waits for custom ruby imageStream to be available in current namespace
+// TODO: To eliminate the dependency on OpenShift Samples Operator in future,
+// WaitForImageStreamImport should be a replacement of WaitForOpenShiftNamespaceImageStreams func
+func WaitForImageStreamImport(oc *CLI) error {
+	ctx := context.Background()
+	var registryHostname string
+
+	// TODO: Reference an image from registry.redhat.io
+	images := map[string]string{
+		"ruby": "registry.access.redhat.com/ubi8/ruby-33",
+	}
+
+	// Check to see if we have ImageRegistry enabled
+	hasImageRegistry, err := IsCapabilityEnabled(oc, configv1.ClusterVersionCapabilityImageRegistry)
+	if err != nil {
+		return err
+	}
+	if hasImageRegistry {
+		registryHostname, err = WaitForInternalRegistryHostname(oc)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Create custom imageStream using `oc import-image`
+	e2e.Logf("waiting for imagestreams to be imported")
+	for imageStreamName, imageRef := range images {
+		err := CustomImageStream(oc, getImageStreamObj(imageStreamName, imageRef))
+		if err != nil {
+			e2e.Logf("failed while creating custom imageStream")
+			return err
+		}
+
+		// Wait for imageRegistry to be ready
+		pollErr := wait.PollUntilContextTimeout(ctx, 10*time.Second, 150*time.Second, false, func(context.Context) (bool, error) {
+			return checkNamespaceImageStreamImported(ctx, oc, imageStreamName, registryHostname, oc.Namespace())
+		})
+		// pollErr will be not nil if there was an immediate error, or we timed out.
+		if pollErr == nil {
+			return nil
+		}
+		DumpImageStream(oc, oc.Namespace(), imageStreamName)
+		return pollErr
+	}
+	return nil
+}
+
 // WaitForOpenShiftNamespaceImageStreams waits for the standard set of imagestreams to be imported
 func WaitForOpenShiftNamespaceImageStreams(oc *CLI) error {
 	ctx := context.Background()
-	langs := []string{"ruby", "nodejs", "perl", "php", "python", "mysql", "postgresql", "jenkins"}
+	images := []string{"nodejs", "perl", "php", "python", "mysql", "postgresql", "jenkins"}
+
+	hasSamplesOperator, err := IsCapabilityEnabled(oc, configv1.ClusterVersionCapabilityOpenShiftSamples)
+	if err != nil {
+		return err
+	}
+	// Check to see if we have ImageRegistry and SamplesOperator enabled
+	hasImageRegistry, err := IsCapabilityEnabled(oc, configv1.ClusterVersionCapabilityImageRegistry)
+	if err != nil {
+		return err
+	}
+
+	if !hasSamplesOperator {
+		images = []string{"cli", "tools", "tests", "installer"}
+	}
+
 	e2e.Logf("waiting for image ecoystem imagestreams to be imported")
-	for _, lang := range langs {
-		err := WaitForSamplesImagestream(ctx, oc, lang)
+	for _, image := range images {
+		err := WaitForSamplesImagestream(ctx, oc, image, hasImageRegistry, hasSamplesOperator)
 		if err != nil {
 			DumpSampleOperator(oc)
 			return err
@@ -258,11 +345,15 @@ func WaitForOpenShiftNamespaceImageStreams(oc *CLI) error {
 // managed by the samples operator, and therefore will not be retried.
 //
 // This will wait up to 150 seconds for the referenced imagestream to finish importing.
-func WaitForSamplesImagestream(ctx context.Context, oc *CLI, imagestream string) error {
-	// First wait for the internal registry hostname to be published
-	registryHostname, err := WaitForInternalRegistryHostname(oc)
-	if err != nil {
-		return err
+func WaitForSamplesImagestream(ctx context.Context, oc *CLI, imagestream string, imageRegistryEnabled, openshiftSamplesEnabled bool) error {
+	var registryHostname string
+	var err error
+
+	if imageRegistryEnabled {
+		registryHostname, err = WaitForInternalRegistryHostname(oc)
+		if err != nil {
+			return err
+		}
 	}
 
 	var retried bool
@@ -271,14 +362,16 @@ func WaitForSamplesImagestream(ctx context.Context, oc *CLI, imagestream string)
 	// Based on a sampling of CI tests, imagestream imports from registry.redhat.io can take up to 2 minutes to complete.
 	// Imports which take longer generally indicate that there is a performance regression or outage in the container registry.
 	pollErr := wait.Poll(10*time.Second, 150*time.Second, func() (bool, error) {
-		retried, err = retrySamplesImagestreamImportIfNeeded(ctx, oc, imagestream)
-		if err != nil {
-			return false, err
+		if openshiftSamplesEnabled {
+			retried, err = retrySamplesImagestreamImportIfNeeded(ctx, oc, imagestream)
+			if err != nil {
+				return false, err
+			}
+			if retried {
+				return false, nil
+			}
 		}
-		if retried {
-			return false, nil
-		}
-		return checkOpenShiftNamespaceImageStreamImported(ctx, oc, imagestream, registryHostname)
+		return checkNamespaceImageStreamImported(ctx, oc, imagestream, registryHostname, "openshift")
 	})
 	// pollErr will be not nil if there was an immediate error, or we timed out.
 	if pollErr == nil {
@@ -296,6 +389,12 @@ func WaitForSamplesImagestream(ctx context.Context, oc *CLI, imagestream string)
 		e2e.Logf(strbuf.String())
 	}
 	return pollErr
+}
+
+// CustomImageStream uses the provided imageStreamObj reference to create an imagestream with the given name in the given namespace.
+func CustomImageStream(oc *CLI, imageStream *imagev1.ImageStream) error {
+	_, err := oc.ImageClient().ImageV1().ImageStreams(oc.Namespace()).Create(context.Background(), imageStream, metav1.CreateOptions{})
+	return err
 }
 
 // retrySamplesImagestreamImportIfNeeded immediately retries an import for the provided imagestream if:
@@ -364,11 +463,11 @@ func retrySamplesImagestreamImportIfNeeded(ctx context.Context, oc *CLI, imagest
 	return false, nil
 }
 
-// checkOpenShiftNamespaceImageStreamImported checks if the provided imagestream has been imported into the openshift namespace.
+// checkNamespaceImageStreamImported checks if the provided imagestream has been imported into the specified namespace.
 // Returns true if status has been reported on all tags for the imagestream.
-func checkOpenShiftNamespaceImageStreamImported(ctx context.Context, oc *CLI, imagestream string, registryHostname string) (bool, error) {
-	e2e.Logf("checking imagestream %s/%s", "openshift", imagestream)
-	is, err := oc.ImageClient().ImageV1().ImageStreams("openshift").Get(ctx, imagestream, metav1.GetOptions{})
+func checkNamespaceImageStreamImported(ctx context.Context, oc *CLI, imagestream, registryHostname, namespace string) (bool, error) {
+	e2e.Logf("checking imagestream %s/%s", namespace, imagestream)
+	is, err := oc.ImageClient().ImageV1().ImageStreams(namespace).Get(ctx, imagestream, metav1.GetOptions{})
 	if err != nil {
 		return false, processScanError(fmt.Sprintf("failed to get imagestream: %v", err))
 	}
@@ -377,9 +476,9 @@ func checkOpenShiftNamespaceImageStreamImported(ctx context.Context, oc *CLI, im
 		return false, nil
 	}
 	for _, tag := range is.Spec.Tags {
-		e2e.Logf("checking tag %s for imagestream %s/%s", tag.Name, "openshift", imagestream)
+		e2e.Logf("checking tag %s for imagestream %s/%s", tag.Name, namespace, imagestream)
 		if _, found := imageutil.StatusHasTag(is, tag.Name); !found {
-			e2e.Logf("no status for imagestreamtag %s/%s:%s", "openshift", imagestream, tag.Name)
+			e2e.Logf("no status for imagestreamtag %s/%s:%s", namespace, imagestream, tag.Name)
 			return false, nil
 		}
 	}
@@ -428,7 +527,6 @@ func DumpSampleOperator(oc *CLI) {
 		e2e.Logf("\n  error on getting samples operator CR: %+v\n%#v\n", err, out)
 	}
 	DumpPodLogsStartingWithInNamespace("cluster-samples-operator", "openshift-cluster-samples-operator", oc)
-
 }
 
 // DumpBuildLogs will dump the latest build logs for a BuildConfig for debug purposes
@@ -533,6 +631,11 @@ func DumpPodLogs(pods []corev1.Pod, oc *CLI) {
 	for _, pod := range pods {
 		descOutput, err := oc.AsAdmin().Run("describe").WithoutNamespace().Args("pod/"+pod.Name, "-n", pod.Namespace).Output()
 		if err == nil {
+			if strings.Contains(descOutput, "BEGIN PRIVATE KEY") {
+				// replace private key with XXXXX string
+				re := regexp.MustCompile(`BEGIN\s+PRIVATE\s+KEY[\s\S]*END\s+PRIVATE\s+KEY`)
+				descOutput = re.ReplaceAllString(descOutput, "XXXXXXXXXXXXXX")
+			}
 			e2e.Logf("Describing pod %q\n%s\n\n", pod.Name, descOutput)
 		} else {
 			e2e.Logf("Error retrieving description for pod %q: %v\n\n", pod.Name, err)
@@ -954,6 +1057,11 @@ func WaitForBuildResult(c buildv1clienttyped.BuildInterface, result *BuildResult
 
 // WaitForABuild waits for a Build object to match either isOK or isFailed conditions.
 func WaitForABuild(c buildv1clienttyped.BuildInterface, name string, isOK, isFailed, isCanceled func(*buildv1.Build) bool) error {
+	return WaitForABuildWithTimeout(c, name, 2*time.Minute, 10*time.Minute, isOK, isFailed, isCanceled)
+}
+
+// WaitForABuild waits for a Build object to match either isOK or isFailed conditions.
+func WaitForABuildWithTimeout(c buildv1clienttyped.BuildInterface, name string, createTimeout, completeTimeout time.Duration, isOK, isFailed, isCanceled func(*buildv1.Build) bool) error {
 	if isOK == nil {
 		isOK = CheckBuildSuccess
 	}
@@ -965,8 +1073,9 @@ func WaitForABuild(c buildv1clienttyped.BuildInterface, name string, isOK, isFai
 	}
 
 	// wait 2 minutes for build to exist
-	err := wait.Poll(1*time.Second, 2*time.Minute, func() (bool, error) {
+	err := wait.Poll(1*time.Second, createTimeout, func() (bool, error) {
 		if _, err := c.Get(context.Background(), name, metav1.GetOptions{}); err != nil {
+			e2e.Logf("attempt to get buildconfig %s failed with error: %s", name, err.Error())
 			return false, nil
 		}
 		return true, nil
@@ -978,7 +1087,7 @@ func WaitForABuild(c buildv1clienttyped.BuildInterface, name string, isOK, isFai
 		return err
 	}
 	// wait longer for the build to run to completion
-	err = wait.Poll(5*time.Second, 10*time.Minute, func() (bool, error) {
+	err = wait.Poll(5*time.Second, completeTimeout, func() (bool, error) {
 		list, err := c.List(context.Background(), metav1.ListOptions{FieldSelector: fields.Set{"metadata.name": name}.AsSelector().String()})
 		if err != nil {
 			e2e.Logf("error listing builds: %v", err)
@@ -1041,8 +1150,24 @@ func WaitForServiceAccount(c corev1client.ServiceAccountInterface, name string) 
 }
 
 // WaitForServiceAccountWithSecret waits until the named service account gets fully
-// provisioned, including dockercfg secrets
-func WaitForServiceAccountWithSecret(c corev1client.ServiceAccountInterface, name string) error {
+// provisioned, including dockercfg secrets. We also check if image registry is not enabled,
+// the SA will not contain the docker secret and we simply return nil.
+func WaitForServiceAccountWithSecret(config configclient.ClusterVersionInterface, c corev1client.ServiceAccountInterface, name string) error {
+	cv, err := config.Get(context.Background(), "version", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	var found bool
+	for _, capability := range cv.Status.Capabilities.EnabledCapabilities {
+		if capability == configv1.ClusterVersionCapabilityImageRegistry {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil
+	}
+
 	waitFn := func() (bool, error) {
 		sa, err := c.Get(context.Background(), name, metav1.GetOptions{})
 		if err != nil {
@@ -1100,7 +1225,8 @@ func WaitForNamespaceSCCAnnotations(c corev1client.CoreV1Interface, name string)
 // WaitForAnImageStream waits for an ImageStream to fulfill the isOK function
 func WaitForAnImageStream(client imagev1typedclient.ImageStreamInterface,
 	name string,
-	isOK, isFailed func(*imagev1.ImageStream) bool) error {
+	isOK, isFailed func(*imagev1.ImageStream) bool,
+) error {
 	for {
 		list, err := client.List(context.Background(), metav1.ListOptions{FieldSelector: fields.Set{"metadata.name": name}.AsSelector().String()})
 		if err != nil {
@@ -1216,7 +1342,6 @@ func WaitForResourceQuotaSync(
 	expectedIsUpperLimit bool,
 	timeout time.Duration,
 ) (corev1.ResourceList, error) {
-
 	startTime := time.Now()
 	endTime := startTime.Add(timeout)
 
@@ -1490,7 +1615,6 @@ func FixturePath(elem ...string) string {
 		if err := restoreFixtureAssets(fixtureDir, relativePath); err != nil {
 			panic(err)
 		}
-
 	} else {
 		// defer extraction of content to a BeforeEach when called before tests start
 		g.BeforeEach(func() {
@@ -1569,7 +1693,7 @@ func FetchURL(oc *CLI, url string, retryTimeout time.Duration) (string, error) {
 	var response string
 	waitFn := func() (bool, error) {
 		e2e.Logf("Waiting up to %v to wget %s", retryTimeout, url)
-		//cmd := fmt.Sprintf("wget -T 30 -O- %s", url)
+		// cmd := fmt.Sprintf("wget -T 30 -O- %s", url)
 		cmd := fmt.Sprintf("curl -vvv %s", url)
 		response, err = e2eoutput.RunHostCmd(execPod.Namespace, execPod.Name, cmd)
 		if err != nil {
@@ -1817,7 +1941,8 @@ func getPodLogs(oc *CLI, pod *corev1.Pod) (string, error) {
 }
 
 func newCommandPod(name, image, command string, args []string, volumeMounts []corev1.VolumeMount,
-	volumes []corev1.Volume, env []corev1.EnvVar) *corev1.Pod {
+	volumes []corev1.Volume, env []corev1.EnvVar,
+) *corev1.Pod {
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
@@ -1904,7 +2029,7 @@ func WaitForUserBeAuthorized(oc *CLI, user string, attributes *authorizationapi.
 		},
 	}
 	return wait.PollImmediate(1*time.Second, 1*time.Minute, func() (bool, error) {
-		e2e.Logf("Waiting for user '%q' to be authorized for %v", user, attributes, oc.Namespace())
+		e2e.Logf("Waiting for user '%s' to be authorized for %v in ns '%s'", user, attributes, oc.Namespace())
 		resp, err := oc.AdminKubeClient().AuthorizationV1().SubjectAccessReviews().Create(context.Background(), sar, metav1.CreateOptions{})
 		if err == nil && resp != nil && resp.Status.Allowed {
 			return true, nil
@@ -2069,19 +2194,41 @@ func IsTechPreviewNoUpgrade(oc *CLI) bool {
 	return featureGate.Spec.FeatureSet == configv1.TechPreviewNoUpgrade
 }
 
+// IsNoUpgradeFeatureSet checks if a cluster has a non-upgradeable featureset
+// such as TechPreviewNoUpgrade or CustomNoUpgrade.
+func IsNoUpgradeFeatureSet(oc *CLI) bool {
+	featureGate, err := oc.AdminConfigClient().ConfigV1().FeatureGates().Get(context.Background(), "cluster", metav1.GetOptions{})
+	if err != nil {
+		if kapierrs.IsNotFound(err) {
+			return false
+		}
+		e2e.Failf("could not retrieve feature-gate: %v", err)
+	}
+	featureSet := featureGate.Spec.FeatureSet
+	return (featureSet == configv1.TechPreviewNoUpgrade || featureSet == configv1.CustomNoUpgrade)
+}
+
 // DoesApiResourceExist searches the list of ApiResources and returns "true" if a given
 // apiResourceName Exists. Valid search strings are for example "cloudprivateipconfigs" or "machines".
-func DoesApiResourceExist(config *rest.Config, apiResourceName, groupVersionName string) (bool, error) {
+func DoesApiResourceExist(config *rest.Config, apiResourceName, group string) (bool, error) {
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return false, err
 	}
 	_, allResourceList, err := discoveryClient.ServerGroupsAndResources()
-	if err != nil {
+	var groupFailed *discovery.ErrGroupDiscoveryFailed
+	if errors.As(err, &groupFailed) {
+		for gv, err := range groupFailed.Groups {
+			if gv.Group == group {
+				return false, err
+			}
+		}
+	} else if err != nil {
 		return false, err
 	}
+
 	for _, apiResourceList := range allResourceList {
-		if groupName(groupVersionName) != groupName(apiResourceList.GroupVersion) {
+		if groupName(group) != groupName(apiResourceList.GroupVersion) {
 			continue
 		}
 		for _, apiResource := range apiResourceList.APIResources {
@@ -2092,6 +2239,67 @@ func DoesApiResourceExist(config *rest.Config, apiResourceName, groupVersionName
 	}
 
 	return false, nil
+}
+
+func IsNamespaceExist(kubeClient *kubernetes.Clientset, namespace string) (bool, error) {
+	_, err := kubeClient.CoreV1().Namespaces().Get(context.Background(), namespace, metav1.GetOptions{})
+	if err != nil {
+		if kapierrs.IsNotFound(err) {
+			e2e.Logf("%s namespace not found", namespace)
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
+func IsSelfManagedHA(ctx context.Context, configClient clientconfigv1.Interface) (bool, error) {
+	infrastructure, err := configClient.ConfigV1().Infrastructures().Get(ctx, "cluster", metav1.GetOptions{})
+	if err != nil {
+		return false, nil
+	}
+
+	return infrastructure.Status.ControlPlaneTopology == configv1.HighlyAvailableTopologyMode, nil
+}
+
+func IsSingleNode(ctx context.Context, configClient clientconfigv1.Interface) (bool, error) {
+	infrastructure, err := configClient.ConfigV1().Infrastructures().Get(ctx, "cluster", metav1.GetOptions{})
+	if err != nil {
+		return false, nil
+	}
+
+	return infrastructure.Status.ControlPlaneTopology == configv1.SingleReplicaTopologyMode, nil
+}
+
+func IsHypershift(ctx context.Context, configClient clientconfigv1.Interface) (bool, error) {
+	infrastructure, err := configClient.ConfigV1().Infrastructures().Get(ctx, "cluster", metav1.GetOptions{})
+	if err != nil {
+		return false, nil
+	}
+
+	return infrastructure.Status.ControlPlaneTopology == configv1.ExternalTopologyMode, nil
+}
+
+// IsMicroShiftCluster returns "true" if a cluster is MicroShift,
+// "false" otherwise. It needs kube-admin client as input.
+func IsMicroShiftCluster(kubeClient k8sclient.Interface) (bool, error) {
+	// MicroShift cluster contains "microshift-version" configmap in "kube-public" namespace
+	cm, err := kubeClient.CoreV1().ConfigMaps("kube-public").Get(context.Background(), "microshift-version", metav1.GetOptions{})
+	if err != nil {
+		if kapierrs.IsNotFound(err) {
+			e2e.Logf("microshift-version configmap not found")
+			return false, nil
+		}
+		e2e.Logf("error accessing microshift-version configmap: %v", err)
+		return false, err
+	}
+	if cm == nil {
+		e2e.Logf("microshift-version configmap is nil")
+		return false, nil
+	}
+	e2e.Logf("MicroShift cluster with version: %s", cm.Data["version"])
+	return true, nil
 }
 
 func groupName(groupVersionName string) string {
@@ -2162,4 +2370,17 @@ func collectConfigManifestsFromDir(configManifestsDir string) (error, []runtime.
 	})
 
 	return err, objects
+}
+
+func IsCapabilityEnabled(oc *CLI, cap configv1.ClusterVersionCapability) (bool, error) {
+	cv, err := oc.AdminConfigClient().ConfigV1().ClusterVersions().Get(context.Background(), "version", metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+	for _, capability := range cv.Status.Capabilities.EnabledCapabilities {
+		if capability == cap {
+			return true, nil
+		}
+	}
+	return false, nil
 }

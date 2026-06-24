@@ -31,12 +31,13 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/errors"
-	utilnet "k8s.io/apimachinery/pkg/util/net"
+	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	cloudprovider "k8s.io/cloud-provider"
 	cloudproviderapi "k8s.io/cloud-provider/api"
 	cloudprovidernodeutil "k8s.io/cloud-provider/node/helpers"
 	"k8s.io/component-base/version"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
+	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/cadvisor"
 	"k8s.io/kubernetes/pkg/kubelet/cm"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
@@ -65,6 +66,7 @@ func NodeAddress(nodeIPs []net.IP, // typically Kubelet.nodeIPs
 	externalCloudProvider bool, // typically Kubelet.externalCloudProvider
 	cloud cloudprovider.Interface, // typically Kubelet.cloud
 	nodeAddressesFunc func() ([]v1.NodeAddress, error), // typically Kubelet.cloudResourceSyncManager.NodeAddresses
+	resolveAddressFunc func(net.IP) (net.IP, error), // typically k8s.io/apimachinery/pkg/util/net.ResolveBindAddress
 ) Setter {
 	var nodeIP, secondaryNodeIP net.IP
 	if len(nodeIPs) > 0 {
@@ -109,7 +111,11 @@ func NodeAddress(nodeIPs []net.IP, // typically Kubelet.nodeIPs
 			if node.ObjectMeta.Annotations == nil {
 				node.ObjectMeta.Annotations = make(map[string]string)
 			}
-			node.ObjectMeta.Annotations[cloudproviderapi.AnnotationAlphaProvidedIPAddr] = nodeIP.String()
+			annotation := nodeIP.String()
+			if secondaryNodeIPSpecified {
+				annotation += "," + secondaryNodeIP.String()
+			}
+			node.ObjectMeta.Annotations[cloudproviderapi.AnnotationAlphaProvidedIPAddr] = annotation
 		} else if node.ObjectMeta.Annotations != nil {
 			// Clean up stale annotations if no longer using a cloud provider or
 			// no longer overriding node IP.
@@ -119,9 +125,23 @@ func NodeAddress(nodeIPs []net.IP, // typically Kubelet.nodeIPs
 		if externalCloudProvider {
 			// If --cloud-provider=external and node address is already set,
 			// then we return early because provider set addresses should take precedence.
-			// Otherwise, we try to look up the node IP and let the cloud provider override it later
+			// Otherwise, we try to use the node IP defined via flags and let the cloud provider override it later
 			// This should alleviate a lot of the bootstrapping issues with out-of-tree providers
 			if len(node.Status.Addresses) > 0 {
+				return nil
+			}
+			// If nodeIPs are not set wait for the external cloud-provider to set the node addresses.
+			// If the nodeIP is the unspecified address 0.0.0.0 or ::, then use the IP of the default gateway of
+			// the corresponding IP family to bootstrap the node until the out-of-tree provider overrides it later.
+			// xref: https://github.com/kubernetes/kubernetes/issues/125348
+			// Otherwise uses them on the assumption that the installer/administrator has the previous knowledge
+			// required to ensure the external cloud provider will use the same addresses to avoid the issues explained
+			// in https://github.com/kubernetes/kubernetes/issues/120720.
+			// We are already hinting the external cloud provider via the annotation AnnotationAlphaProvidedIPAddr.
+			if nodeIP == nil {
+				node.Status.Addresses = []v1.NodeAddress{
+					{Type: v1.NodeHostName, Address: hostname},
+				}
 				return nil
 			}
 		}
@@ -206,7 +226,7 @@ func NodeAddress(nodeIPs []net.IP, // typically Kubelet.nodeIPs
 				}
 
 				if ipAddr == nil {
-					ipAddr, err = utilnet.ResolveBindAddress(nodeIP)
+					ipAddr, err = resolveAddressFunc(nodeIP)
 				}
 			}
 
@@ -398,8 +418,14 @@ func VersionInfo(versionInfoFunc func() (*cadvisorapiv1.VersionInfo, error), // 
 		node.Status.NodeInfo.ContainerRuntimeVersion = fmt.Sprintf("%s://%s", runtimeTypeFunc(), runtimeVersion)
 
 		node.Status.NodeInfo.KubeletVersion = version.Get().String()
-		// TODO: kube-proxy might be different version from kubelet in the future
-		node.Status.NodeInfo.KubeProxyVersion = version.Get().String()
+
+		if utilfeature.DefaultFeatureGate.Enabled(features.DisableNodeKubeProxyVersion) {
+			// This field is deprecated and should be cleared if it was previously set.
+			node.Status.NodeInfo.KubeProxyVersion = ""
+		} else {
+			node.Status.NodeInfo.KubeProxyVersion = version.Get().String()
+		}
+
 		return nil
 	}
 }
@@ -460,13 +486,32 @@ func GoRuntime() Setter {
 	}
 }
 
+// RuntimeHandlers returns a Setter that sets RuntimeHandlers on the node.
+func RuntimeHandlers(fn func() []kubecontainer.RuntimeHandler) Setter {
+	return func(ctx context.Context, node *v1.Node) error {
+		if !utilfeature.DefaultFeatureGate.Enabled(features.RecursiveReadOnlyMounts) {
+			return nil
+		}
+		handlers := fn()
+		node.Status.RuntimeHandlers = make([]v1.NodeRuntimeHandler, len(handlers))
+		for i, h := range handlers {
+			node.Status.RuntimeHandlers[i] = v1.NodeRuntimeHandler{
+				Name: h.Name,
+				Features: &v1.NodeRuntimeHandlerFeatures{
+					RecursiveReadOnlyMounts: &h.SupportsRecursiveReadOnlyMounts,
+				},
+			}
+		}
+		return nil
+	}
+}
+
 // ReadyCondition returns a Setter that updates the v1.NodeReady condition on the node.
 func ReadyCondition(
 	nowFunc func() time.Time, // typically Kubelet.clock.Now
 	runtimeErrorsFunc func() error, // typically Kubelet.runtimeState.runtimeErrors
 	networkErrorsFunc func() error, // typically Kubelet.runtimeState.networkErrors
 	storageErrorsFunc func() error, // typically Kubelet.runtimeState.storageErrors
-	appArmorValidateHostFunc func() error, // typically Kubelet.appArmorValidator.ValidateHost, might be nil depending on whether there was an appArmorValidator
 	cmStatusFunc func() cm.Status, // typically Kubelet.containerManager.Status
 	nodeShutdownManagerErrorsFunc func() error, // typically kubelet.shutdownManager.errors.
 	recordEventFunc func(eventType, event string), // typically Kubelet.recordNodeStatusEvent
@@ -505,13 +550,6 @@ func ReadyCondition(
 				Reason:            "KubeletNotReady",
 				Message:           aggregatedErr.Error(),
 				LastHeartbeatTime: currentTime,
-			}
-		}
-		// Append AppArmor status if it's enabled.
-		// TODO(tallclair): This is a temporary message until node feature reporting is added.
-		if appArmorValidateHostFunc != nil && newNodeReadyCondition.Status == v1.ConditionTrue {
-			if err := appArmorValidateHostFunc(); err == nil {
-				newNodeReadyCondition.Message = fmt.Sprintf("%s. AppArmor enabled", newNodeReadyCondition.Message)
 			}
 		}
 

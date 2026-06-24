@@ -31,10 +31,11 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
+	imageutils "k8s.io/kubernetes/test/utils/image"
 	admissionapi "k8s.io/pod-security-admission/api"
 
 	"github.com/onsi/ginkgo/v2"
-	imageutils "k8s.io/kubernetes/test/utils/image"
+	"github.com/onsi/gomega"
 )
 
 func testingPod(name, value string) v1.Pod {
@@ -56,7 +57,7 @@ func testingPod(name, value string) v1.Pod {
 						ProbeHandler: v1.ProbeHandler{
 							HTTPGet: &v1.HTTPGetAction{
 								Path: "/index.html",
-								Port: intstr.FromInt(8080),
+								Port: intstr.FromInt32(8080),
 							},
 						},
 						InitialDelaySeconds: 30,
@@ -101,7 +102,7 @@ func observerUpdate(w watch.Interface, expectedUpdate func(runtime.Object) bool)
 
 var _ = SIGDescribe("Generated clientset", func() {
 	f := framework.NewDefaultFramework("clientset")
-	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelBaseline
+	f.NamespacePodSecurityLevel = admissionapi.LevelBaseline
 	ginkgo.It("should create pods, set the deletionTimestamp and deletionGracePeriodSeconds of the pod", func(ctx context.Context) {
 		podClient := f.ClientSet.CoreV1().Pods(f.Namespace.Name)
 		ginkgo.By("constructing the pod")
@@ -116,7 +117,7 @@ var _ = SIGDescribe("Generated clientset", func() {
 		if err != nil {
 			framework.Failf("Failed to query for pods: %v", err)
 		}
-		framework.ExpectEqual(len(pods.Items), 0)
+		gomega.Expect(pods.Items).To(gomega.BeEmpty())
 		options = metav1.ListOptions{
 			LabelSelector:   selector,
 			ResourceVersion: pods.ListMeta.ResourceVersion,
@@ -141,7 +142,7 @@ var _ = SIGDescribe("Generated clientset", func() {
 		if err != nil {
 			framework.Failf("Failed to query for pods: %v", err)
 		}
-		framework.ExpectEqual(len(pods.Items), 1)
+		gomega.Expect(pods.Items).To(gomega.HaveLen(1))
 
 		ginkgo.By("verifying pod creation was observed")
 		observeCreation(w)
@@ -214,7 +215,7 @@ func newTestingCronJob(name string, value string) *batchv1.CronJob {
 
 var _ = SIGDescribe("Generated clientset", func() {
 	f := framework.NewDefaultFramework("clientset")
-	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+	f.NamespacePodSecurityLevel = admissionapi.LevelPrivileged
 
 	ginkgo.It("should create v1 cronJobs, delete cronJobs, watch cronJobs", func(ctx context.Context) {
 		cronJobClient := f.ClientSet.BatchV1().CronJobs(f.Namespace.Name)
@@ -229,7 +230,7 @@ var _ = SIGDescribe("Generated clientset", func() {
 		if err != nil {
 			framework.Failf("Failed to query for cronJobs: %v", err)
 		}
-		framework.ExpectEqual(len(cronJobs.Items), 0)
+		gomega.Expect(cronJobs.Items).To(gomega.BeEmpty())
 		options = metav1.ListOptions{
 			LabelSelector:   selector,
 			ResourceVersion: cronJobs.ListMeta.ResourceVersion,
@@ -254,7 +255,7 @@ var _ = SIGDescribe("Generated clientset", func() {
 		if err != nil {
 			framework.Failf("Failed to query for cronJobs: %v", err)
 		}
-		framework.ExpectEqual(len(cronJobs.Items), 1)
+		gomega.Expect(cronJobs.Items).To(gomega.HaveLen(1))
 
 		ginkgo.By("verifying cronJob creation was observed")
 		observeCreation(w)
@@ -271,6 +272,6 @@ var _ = SIGDescribe("Generated clientset", func() {
 		if err != nil {
 			framework.Failf("Failed to list cronJobs to verify deletion: %v", err)
 		}
-		framework.ExpectEqual(len(cronJobs.Items), 0)
+		gomega.Expect(cronJobs.Items).To(gomega.BeEmpty())
 	})
 })

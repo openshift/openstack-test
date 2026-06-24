@@ -3,16 +3,34 @@ package image
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 
+	imageapi "github.com/openshift/api/image/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	k8simage "k8s.io/kubernetes/test/utils/image"
 )
 
-func init() {
+var (
+	initializationLock sync.RWMutex
+	initialized        bool
+	fromRepository     string
+	images             map[string]string
+
+	releasePullSpecInitializationLock sync.RWMutex
+	releasePullSpecInitialized        bool
+	availablePullSpecs                = map[string]string{
+		"cli":         "image-registry.openshift-image-registry.svc:5000/openshift/cli:latest",
+		"must-gather": "image-registry.openshift-image-registry.svc:5000/openshift/must-gather:latest",
+		// tools during transition period, can be on a different rhel level
+		"tools": "image-registry.openshift-image-registry.svc:5000/openshift/tools:latest",
+	}
+	imageRegistryPullSpecRegex = regexp.MustCompile(`image-registry\.openshift-image-registry\.svc:5000\/openshift\/([A-Za-z0-9._-]+)[@:A-Za-z0-9._-]*`)
+
 	allowedImages = map[string]k8simage.ImageID{
 		// used by jenkins tests
 		"quay.io/redhat-developer/nfs-server:1.1": -1,
@@ -35,17 +53,54 @@ func init() {
 
 		// allowed upstream kube images - index and value must match upstream or
 		// tests will fail (vendor/k8s.io/kubernetes/test/utils/image/manifest.go)
-		"registry.k8s.io/e2e-test-images/agnhost:2.43": 1,
-		"registry.k8s.io/e2e-test-images/nginx:1.15-4": 22,
+		"registry.k8s.io/e2e-test-images/agnhost:2.47": 1,
+		"registry.k8s.io/e2e-test-images/nginx:1.15-4": 21,
 	}
+)
 
-	images = GetMappedImages(allowedImages, os.Getenv("KUBE_TEST_REPO"))
+func getImages() map[string]string {
+	initializationLock.RLock()
+	if !initialized {
+		fmt.Printf("Called getImages before initialization, starting wait.\n")
+		initializationLock.RUnlock()
+
+		for {
+			time.Sleep(5 * time.Second)
+
+			done := func() bool {
+				initializationLock.RLock()
+				defer initializationLock.RUnlock()
+
+				if initialized {
+					return true
+				}
+				return false
+			}()
+			if done {
+				break
+			}
+
+			fmt.Printf("getImages still not initialized, waiting more.")
+		}
+	}
+	return images
 }
 
-var (
-	images        map[string]string
-	allowedImages map[string]k8simage.ImageID
-)
+func InitializeImages(repo string) {
+	initializationLock.Lock()
+	defer initializationLock.Unlock()
+
+	if initialized {
+		panic(fmt.Sprintf("attempt to double initialize from %q to %q", fromRepository, repo))
+	}
+	initialized = true
+	fromRepository = repo
+	images = GetMappedImages(allowedImages, repo)
+}
+
+func GetGlobalFromRepository() string {
+	return fromRepository
+}
 
 // ReplaceContents ensures that the provided yaml or json has the
 // correct embedded image content.
@@ -54,8 +109,29 @@ func ReplaceContents(data []byte) ([]byte, error) {
 	const exactImageFormat = `\b%s\b`
 
 	patterns := make(map[string]*regexp.Regexp)
-	for from, to := range images {
+	for from, to := range getImages() {
 		pattern := fmt.Sprintf(exactImageFormat, regexp.QuoteMeta(from))
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			return nil, err
+		}
+		patterns[to] = re
+	}
+
+	// find any references to image-registry.openshift-image-registry.svc:5000/openshift/<image>:<tag>
+	// append pattern match for appropriate PullSpec if one exists
+	allMatches := imageRegistryPullSpecRegex.FindAllStringSubmatch(string(data), -1)
+	for _, match := range allMatches {
+		if len(match) != 2 {
+			continue
+		}
+		exactMatchedPullSpec := match[0]
+		tagMatchedPullSpec := match[1]
+		to, found := GetPullSpecFor(tagMatchedPullSpec)
+		if !found || to == exactMatchedPullSpec {
+			continue
+		}
+		pattern := fmt.Sprintf(exactImageFormat, regexp.QuoteMeta(exactMatchedPullSpec))
 		re, err := regexp.Compile(pattern)
 		if err != nil {
 			return nil, err
@@ -82,7 +158,7 @@ func MustReplaceContents(data []byte) []byte {
 
 // LocationFor returns the appropriate URL for the provided image.
 func LocationFor(image string) string {
-	pull, ok := images[image]
+	pull, ok := getImages()[image]
 	if !ok {
 		panic(fmt.Sprintf(`The image %q is not one of the pre-approved test images.
 
@@ -103,18 +179,22 @@ the test/extended/util/image/README.md file.`, image))
 // to avoid the need to add packages by using simpler concepts or consider
 // extending an existing image.
 func ShellImage() string {
-	return "image-registry.openshift-image-registry.svc:5000/openshift/tools:latest"
+	return GetPullSpecForOrPanic("tools")
+}
+
+// MustGatherImage returns a docker pull spec that any pod on the cluster
+// has access to that contains bash and standard commandline tools.
+// This image has oc and must-gather scripts.
+func MustGatherImage() string {
+	return GetPullSpecForOrPanic("must-gather")
 }
 
 // LimitedShellImage returns a docker pull spec that any pod on the cluster
 // has access to that contains bash and standard commandline tools.
 // This image should be used when you only need oc and can't use the shell image.
 // This image has oc.
-//
-// TODO: this will be removed when https://bugzilla.redhat.com/show_bug.cgi?id=1843232
-// is fixed
 func LimitedShellImage() string {
-	return "image-registry.openshift-image-registry.svc:5000/openshift/cli:latest"
+	return GetPullSpecForOrPanic("cli")
 }
 
 // OpenLDAPTestImage returns the LDAP test image.
@@ -134,21 +214,11 @@ func OriginalImages() map[string]k8simage.ImageID {
 // Exceptions is a list of images we don't mirror temporarily due to various
 // problems. This list should ideally be empty.
 var Exceptions = sets.NewString(
-	"mcr.microsoft.com/windows:1809", // https://issues.redhat.com/browse/PROJQUAY-1874
-	// this image has 3 windows/amd64 manifests, where layers are not compressed,
+	// this image has 2 windows/amd64 manifests, where layers are not compressed,
 	// ie. application/vnd.docker.image.rootfs.diff.tar which are not accepted
 	// by quay.io, this has to be manually mirrored with --filter-by-os=linux.*
-	"registry.k8s.io/pause:3.8",
+	"registry.k8s.io/pause:3.9",
 )
-
-// Images returns a map of all images known to the test package.
-func Images() map[string]struct{} {
-	copied := make(map[string]struct{})
-	for k := range images {
-		copied[k] = struct{}{}
-	}
-	return copied
-}
 
 // GetMappedImages returns the images if they were mapped to the provided
 // image repository. The keys of the returned map are the same as the keys
@@ -202,4 +272,55 @@ func GetMappedImages(originalImages map[string]k8simage.ImageID, repo string) ma
 		configs[pullSpec] = fmt.Sprintf("%s/%s:%s", registry, destination, newTag)
 	}
 	return configs
+}
+
+func GetPullSpecFor(image string) (string, bool) {
+	if spec, found := availablePullSpecs[image]; found {
+		return spec, true
+	}
+	return "", false
+}
+
+func GetPullSpecForOrPanic(image string) string {
+	spec, found := GetPullSpecFor(image)
+	if !found {
+		panic(fmt.Sprintf("could not find PullSpec for (%s)", image))
+	}
+	return spec
+}
+
+// InitializeReleasePullSpecString initializes a mapping with the PullSpec ImageStream string from
+// the release payload
+//
+// When running in clusters that do not have ImageRegistry installed it is necessary to use the full
+// PullSpec for ImageRegistry containers such as `cli` or `tools`, Pass in an imageStreamString of
+// the discovered PullSpec (ex. oc adm release info `-ojsonpath='{.references}'). This method will then
+// initialize the package with the PullSpec for that release.
+//
+// Using GetPullSpecFor(), ShellImage() and LimitedShellImage() will return the appropriate
+// PullSpec, either the ReleasePayload or ImageRegistry.
+func InitializeReleasePullSpecString(imageStreamString string, hasNoImageRegistry bool) error {
+	releasePullSpecInitializationLock.Lock()
+	defer releasePullSpecInitializationLock.Unlock()
+	if releasePullSpecInitialized {
+		panic("attempt to double initialize ReleasePullSpec")
+	}
+	images := &imageapi.ImageStream{}
+	err := json.Unmarshal([]byte(imageStreamString), images)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal release ImageStream string: %w", err)
+	}
+
+	for _, tag := range images.Spec.Tags {
+		if tag.From.Kind != "DockerImage" {
+			continue
+		}
+		// If an available pullthrough spec is already defined, and we do have an ImageRegistry
+		// we leave it alone
+		if _, available := availablePullSpecs[tag.Name]; available && !hasNoImageRegistry {
+			continue
+		}
+		availablePullSpecs[tag.Name] = tag.From.Name
+	}
+	return nil
 }

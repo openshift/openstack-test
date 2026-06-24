@@ -9,7 +9,6 @@ import (
 	"time"
 
 	configv1 "github.com/openshift/api/config/v1"
-	configv1client "github.com/openshift/client-go/config/clientset/versioned"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -69,7 +68,9 @@ func (t *AdminAckTest) Test(ctx context.Context) {
 	// the version was bumped).
 	postUpdateCtx, postUpdateCtxCancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer postUpdateCtxCancel()
-	if current := getCurrentVersion(postUpdateCtx, t.Config); current != "" && !exercisedVersions.Has(current) {
+	if current, err := exutil.GetCurrentVersion(postUpdateCtx, t.Config); err != nil {
+		framework.Fail(err.Error())
+	} else if current != "" && !exercisedVersions.Has(current) {
 		// We never saw the current version while polling, so lets check it now
 		if err := t.test(postUpdateCtx, exercisedGates, exercisedVersions); err != nil {
 			framework.Fail(err.Error())
@@ -91,7 +92,10 @@ func (t *AdminAckTest) test(ctx context.Context, exercisedGates, exercisedVersio
 	if err != nil {
 		return err
 	}
-	currentVersion := getCurrentVersion(ctx, t.Config)
+	currentVersion, err := exutil.GetCurrentVersion(ctx, t.Config)
+	if err != nil {
+		return err
+	}
 	if exercisedVersions != nil {
 		exercisedVersions.Insert(currentVersion)
 	}
@@ -101,38 +105,42 @@ func (t *AdminAckTest) test(ctx context.Context, exercisedGates, exercisedVersio
 		}
 		ackVersion := adminAckGateRegexp.FindString(k)
 		if ackVersion == "" {
-			framework.Failf("Configmap openshift-config-managed/admin-gates gate %s has invalid format; must comply with %q.", k, adminAckGateFmt)
+			return fmt.Errorf("configmap openshift-config-managed/admin-gates gate %s has invalid format; must comply with %q.", k, adminAckGateFmt)
 		}
 		if v == "" {
-			framework.Failf("Configmap openshift-config-managed/admin-gates gate %s does not contain description.", k)
+			return fmt.Errorf("Configmap openshift-config-managed/admin-gates gate %s does not contain description.", k)
 		}
 		if !gateApplicableToCurrentVersion(ackVersion, currentVersion) {
 			framework.Logf("Gate %s not applicable to current version %s", ackVersion, currentVersion)
 			continue
 		}
 		if ackCm.Data[k] == "true" {
-			if upgradeableExplicitlyFalse(ctx, t.Config) {
-				if adminAckRequiredWithMessage(ctx, t.Config, v) {
-					framework.Failf("Gate %s has been ack'ed but Upgradeable is "+
-						"false with reason AdminAckRequired and message %q.", k, v)
+			if setFalse, err := upgradeableExplicitlyFalse(ctx, t.Config); err != nil {
+				return fmt.Errorf("unable to check Upgradeable condition: %w", err)
+			} else if setFalse {
+				upgradeableMessage, match, err := adminAckRequiredWithMessage(ctx, t.Config, v)
+				if err != nil {
+					return fmt.Errorf("gate %s has been ack'ed but unable to determine Upgradeable message: %w", k, err)
+				} else if match {
+					return fmt.Errorf("gate %s has been ack'ed but Upgradeable is false with reason AdminAckRequired and message %q", k, v)
 				}
 				framework.Logf("Gate %s has been ack'ed. Upgradeable is "+
-					"false but not due to this gate which would set reason AdminAckRequired or MultipleReasons with message %s. %s", k, v, getUpgradeable(ctx, t.Config))
+					"false but not due to this gate which would set reason AdminAckRequired or MultipleReasons with message %s. %s", k, v, upgradeableMessage)
 			}
 			// Clear admin ack configmap gate ack
 			if err := setAdminGate(ctx, k, "", t.Oc); err != nil {
-				framework.Fail(err.Error())
+				return err
 			}
 		}
 		if err := waitForAdminAckRequired(ctx, t.Config, v); err != nil {
-			framework.Fail(err.Error())
+			return err
 		}
 		// Update admin ack configmap with ack
 		if err := setAdminGate(ctx, k, "true", t.Oc); err != nil {
-			framework.Fail(err.Error())
+			return err
 		}
 		if err = waitForAdminAckNotRequired(ctx, t.Config, v); err != nil {
-			framework.Fail(err.Error())
+			return err
 		}
 		if exercisedGates != nil {
 			exercisedGates.Insert(k)
@@ -140,37 +148,6 @@ func (t *AdminAckTest) test(ctx context.Context, exercisedGates, exercisedVersio
 	}
 	framework.Logf("Admin Ack verified")
 	return nil
-}
-
-// getClusterVersion returns the ClusterVersion object.
-func getClusterVersion(ctx context.Context, config *restclient.Config) *configv1.ClusterVersion {
-	c, err := configv1client.NewForConfig(config)
-	if err != nil {
-		framework.Failf("Error getting config, err=%v", err)
-	}
-	cv, err := c.ConfigV1().ClusterVersions().Get(ctx, "version", metav1.GetOptions{})
-	if err != nil {
-		framework.Failf("Error getting custer version, err=%v", err)
-	}
-	return cv
-}
-
-// getCurrentVersion determines and returns the cluster's current version by iterating through the
-// provided update history until it finds the first version with update State of Completed. If a
-// Completed version is not found the version of the oldest history entry, which is the originally
-// installed version, is returned. If history is empty the empty string is returned.
-func getCurrentVersion(ctx context.Context, config *restclient.Config) string {
-	cv := getClusterVersion(ctx, config)
-	for _, h := range cv.Status.History {
-		if h.State == configv1.CompletedUpdate {
-			return h.Version
-		}
-	}
-	// Empty history should only occur if method is called early in startup before history is populated.
-	if len(cv.Status.History) != 0 {
-		return cv.Status.History[len(cv.Status.History)-1].Version
-	}
-	return ""
 }
 
 // getEffectiveMinor attempts to do a simple parse of the version provided.  If it does not parse, the value is considered
@@ -215,23 +192,33 @@ func getAdminAcksConfigMap(ctx context.Context, oc *exutil.CLI) (*corev1.ConfigM
 
 // adminAckRequiredWithMessage returns true if Upgradeable condition reason is AdminAckRequired
 // or MultipleReasons and message contains given message.
-func adminAckRequiredWithMessage(ctx context.Context, config *restclient.Config, message string) bool {
-	clusterVersion := getClusterVersion(ctx, config)
-	cond := getUpgradeableStatusCondition(clusterVersion.Status.Conditions)
-	if cond != nil && (cond.Reason == "AdminAckRequired" || cond.Reason == "MultipleReasons") && strings.Contains(cond.Message, message) {
-		return true
+func adminAckRequiredWithMessage(ctx context.Context, config *restclient.Config, message string) (string, bool, error) {
+	clusterVersion, err := exutil.GetClusterVersion(ctx, config)
+	if err != nil {
+		return "", false, err
 	}
-	return false
+	cond := getUpgradeableStatusCondition(clusterVersion.Status.Conditions)
+	if cond == nil {
+		return "", false, nil
+	}
+	if (cond.Reason == "AdminAckRequired" || cond.Reason == "MultipleReasons") && strings.Contains(cond.Message, message) {
+		return cond.Message, true, nil
+	}
+	return cond.Message, false, nil
 }
 
 // upgradeableExplicitlyFalse returns true if the Upgradeable condition status is set to false.
-func upgradeableExplicitlyFalse(ctx context.Context, config *restclient.Config) bool {
-	clusterVersion := getClusterVersion(ctx, config)
+func upgradeableExplicitlyFalse(ctx context.Context, config *restclient.Config) (bool, error) {
+	clusterVersion, err := exutil.GetClusterVersion(ctx, config)
+	if err != nil {
+		return false, err
+	}
+
 	cond := getUpgradeableStatusCondition(clusterVersion.Status.Conditions)
 	if cond != nil && cond.Status == configv1.ConditionFalse {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
 // setAdminGate gets the admin ack configmap and then updates it with given gate name and given value.
@@ -257,26 +244,36 @@ const adminAckDeadline = 4*time.Minute + 5*time.Second
 
 func waitForAdminAckRequired(ctx context.Context, config *restclient.Config, message string) error {
 	framework.Logf("Waiting for Upgradeable to be AdminAckRequired for %q ...", message)
+	var lastUpgradeableMessage string
+	var lastError error
 	if err := wait.PollImmediate(10*time.Second, adminAckDeadline, func() (bool, error) {
-		if adminAckRequiredWithMessage(ctx, config, message) {
-			return true, nil
+		upgradeableMessage, match, err := adminAckRequiredWithMessage(ctx, config, message)
+		lastError = err
+		if err != nil {
+			return false, nil
 		}
-		return false, nil
+		lastUpgradeableMessage = upgradeableMessage
+		return match, nil
 	}); err != nil {
-		return fmt.Errorf("Error while waiting for Upgradeable to complain about AdminAckRequired with message %q: %w\n%s", message, err, getUpgradeable(ctx, config))
+		return fmt.Errorf("Error while waiting for Upgradeable to complain about AdminAckRequired with message %q: %w (last error %w)\n%s", message, err, lastError, lastUpgradeableMessage)
 	}
 	return nil
 }
 
 func waitForAdminAckNotRequired(ctx context.Context, config *restclient.Config, message string) error {
 	framework.Logf("Waiting for Upgradeable to not complain about AdminAckRequired for %q ...", message)
-	if err := wait.PollImmediate(10*time.Second, 3*time.Minute, func() (bool, error) {
-		if !adminAckRequiredWithMessage(ctx, config, message) {
-			return true, nil
+	var lastUpgradeableMessage string
+	var lastError error
+	if err := wait.PollImmediate(10*time.Second, adminAckDeadline, func() (bool, error) {
+		upgradeableMessage, match, err := adminAckRequiredWithMessage(ctx, config, message)
+		lastError = err
+		if err != nil {
+			return false, nil
 		}
-		return false, nil
+		lastUpgradeableMessage = upgradeableMessage
+		return !match, nil
 	}); err != nil {
-		return fmt.Errorf("Error while waiting for Upgradeable to not complain about AdminAckRequired with message %q: %w\n%s", message, err, getUpgradeable(ctx, config))
+		return fmt.Errorf("Error while waiting for Upgradeable to not complain about AdminAckRequired with message %q: %w (last error %w)\n%s", message, err, lastError, lastUpgradeableMessage)
 	}
 	return nil
 }
@@ -288,13 +285,4 @@ func getUpgradeableStatusCondition(conditions []configv1.ClusterOperatorStatusCo
 		}
 	}
 	return nil
-}
-
-func getUpgradeable(ctx context.Context, config *restclient.Config) string {
-	clusterVersion := getClusterVersion(ctx, config)
-	cond := getUpgradeableStatusCondition(clusterVersion.Status.Conditions)
-	if cond != nil {
-		return fmt.Sprintf("Upgradeable: Status=%s, Reason=%s, Message=%q.", cond.Status, cond.Reason, cond.Message)
-	}
-	return "Upgradeable nil"
 }
