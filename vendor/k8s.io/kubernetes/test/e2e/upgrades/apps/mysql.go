@@ -19,6 +19,7 @@ package apps
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -103,7 +104,7 @@ func (t *MySQLUpgradeTest) Setup(ctx context.Context, f *framework.Framework) {
 	mysqlKubectlCreate(ns, "tester.yaml")
 
 	ginkgo.By("Getting the ingress IPs from the test-service")
-	err := wait.PollImmediateWithContext(ctx, statefulsetPoll, statefulsetTimeout, func(ctx context.Context) (bool, error) {
+	err := wait.PollUntilContextTimeout(ctx, statefulsetPoll, statefulsetTimeout, true, func(ctx context.Context) (bool, error) {
 		if t.ip = t.getServiceIP(ctx, f, ns, "test-server"); t.ip == "" {
 			return false, nil
 		}
@@ -125,7 +126,7 @@ func (t *MySQLUpgradeTest) Setup(ctx context.Context, f *framework.Framework) {
 	ginkgo.By("Verifying that the 2 names have been inserted")
 	count, err := t.countNames()
 	framework.ExpectNoError(err)
-	framework.ExpectEqual(count, 2)
+	gomega.Expect(count).To(gomega.Equal(2))
 }
 
 // Test continually polls the db using the read and write connections, inserting data, and checking
@@ -194,7 +195,7 @@ func (t *MySQLUpgradeTest) addName(name string) error {
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf(string(b))
+		return errors.New(string(b))
 	}
 	return nil
 }
@@ -212,7 +213,7 @@ func (t *MySQLUpgradeTest) countNames() (int, error) {
 		if err != nil {
 			return 0, err
 		}
-		return 0, fmt.Errorf(string(b))
+		return 0, errors.New(string(b))
 	}
 	var count int
 	if err := json.NewDecoder(r.Body).Decode(&count); err != nil {

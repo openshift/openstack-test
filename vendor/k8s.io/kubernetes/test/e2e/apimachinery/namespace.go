@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"k8s.io/kubernetes/pkg/features"
 	"strings"
 	"sync"
 	"time"
@@ -29,19 +30,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	utilrand "k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/util/retry"
+	"k8s.io/kubernetes/test/e2e/feature"
 	"k8s.io/kubernetes/test/e2e/framework"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
 	imageutils "k8s.io/kubernetes/test/utils/image"
 	admissionapi "k8s.io/pod-security-admission/api"
 
 	"github.com/onsi/ginkgo/v2"
-	"k8s.io/apimachinery/pkg/types"
+	"github.com/onsi/gomega"
 )
 
 func extinguish(ctx context.Context, f *framework.Framework, totalNS int, maxAllowedAfterDel int, maxSeconds int) {
@@ -65,7 +68,7 @@ func extinguish(ctx context.Context, f *framework.Framework, totalNS int, maxAll
 	deleteFilter := []string{"nslifetest"}
 	deleted, err := framework.DeleteNamespaces(ctx, f.ClientSet, deleteFilter, nil /* skipFilter */)
 	framework.ExpectNoError(err, "failed to delete namespace(s) containing: %s", deleteFilter)
-	framework.ExpectEqual(len(deleted), totalNS)
+	gomega.Expect(deleted).To(gomega.HaveLen(totalNS))
 
 	ginkgo.By("Waiting for namespaces to vanish")
 	//Now POLL until all namespaces have been eradicated.
@@ -141,7 +144,7 @@ func ensurePodsAreRemovedWhenNamespaceIsDeleted(ctx context.Context, f *framewor
 
 	ginkgo.By("Verifying there are no pods in the namespace")
 	_, err = f.ClientSet.CoreV1().Pods(namespace.Name).Get(ctx, pod.Name, metav1.GetOptions{})
-	framework.ExpectError(err, "failed to get pod %s in namespace: %s", pod.Name, namespace.Name)
+	gomega.Expect(err).To(gomega.HaveOccurred(), "failed to get pod %s in namespace: %s", pod.Name, namespace.Name)
 }
 
 func ensureServicesAreRemovedWhenNamespaceIsDeleted(ctx context.Context, f *framework.Framework) {
@@ -170,7 +173,7 @@ func ensureServicesAreRemovedWhenNamespaceIsDeleted(ctx context.Context, f *fram
 			Selector: labels,
 			Ports: []v1.ServicePort{{
 				Port:       80,
-				TargetPort: intstr.FromInt(80),
+				TargetPort: intstr.FromInt32(80),
 			}},
 		},
 	}
@@ -198,7 +201,7 @@ func ensureServicesAreRemovedWhenNamespaceIsDeleted(ctx context.Context, f *fram
 
 	ginkgo.By("Verifying there is no service in the namespace")
 	_, err = f.ClientSet.CoreV1().Services(namespace.Name).Get(ctx, service.Name, metav1.GetOptions{})
-	framework.ExpectError(err, "failed to get service %s in namespace: %s", service.Name, namespace.Name)
+	gomega.Expect(err).To(gomega.HaveOccurred(), "failed to get service %s in namespace: %s", service.Name, namespace.Name)
 }
 
 // This test must run [Serial] due to the impact of running other parallel
@@ -230,10 +233,10 @@ func ensureServicesAreRemovedWhenNamespaceIsDeleted(ctx context.Context, f *fram
 // that each have a variable amount of content in the associated Namespace.
 // When run in [Serial] this test appears to delete Namespace objects at a
 // rate of approximately 1 per second.
-var _ = SIGDescribe("Namespaces [Serial]", func() {
+var _ = SIGDescribe("Namespaces", framework.WithSerial(), func() {
 
 	f := framework.NewDefaultFramework("namespaces")
-	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelBaseline
+	f.NamespacePodSecurityLevel = admissionapi.LevelBaseline
 
 	/*
 		Release: v1.11
@@ -258,7 +261,7 @@ var _ = SIGDescribe("Namespaces [Serial]", func() {
 	})
 
 	// On hold until etcd3; see #7372
-	ginkgo.It("should always delete fast (ALL of 100 namespaces in 150 seconds) [Feature:ComprehensiveNamespaceDraining]", func(ctx context.Context) {
+	f.It("should always delete fast (ALL of 100 namespaces in 150 seconds)", feature.ComprehensiveNamespaceDraining, func(ctx context.Context) {
 		extinguish(ctx, f, 100, 0, 150)
 	})
 
@@ -289,7 +292,7 @@ var _ = SIGDescribe("Namespaces [Serial]", func() {
 		ginkgo.By("get the Namespace and ensuring it has the label")
 		namespace, err := f.ClientSet.CoreV1().Namespaces().Get(ctx, namespaceName, metav1.GetOptions{})
 		framework.ExpectNoError(err, "failed to get Namespace")
-		framework.ExpectEqual(namespace.ObjectMeta.Labels["testLabel"], "testValue", "namespace not patched")
+		gomega.Expect(namespace.ObjectMeta.Labels).To(gomega.HaveKeyWithValue("testLabel", "testValue"), "namespace not patched")
 	})
 
 	/*
@@ -312,7 +315,7 @@ var _ = SIGDescribe("Namespaces [Serial]", func() {
 		framework.ExpectNoError(err, "failed to fetch NamespaceStatus %s", ns)
 		nsStatus, err := unstructuredToNamespace(unstruct)
 		framework.ExpectNoError(err, "Getting the status of the namespace %s", ns)
-		framework.ExpectEqual(nsStatus.Status.Phase, v1.NamespaceActive, "The phase returned was %v", nsStatus.Status.Phase)
+		gomega.Expect(nsStatus.Status.Phase).To(gomega.Equal(v1.NamespaceActive), "The phase returned was %v", nsStatus.Status.Phase)
 		framework.Logf("Status: %#v", nsStatus.Status)
 
 		ginkgo.By("Patch namespace status")
@@ -330,9 +333,9 @@ var _ = SIGDescribe("Namespaces [Serial]", func() {
 			[]byte(`{"metadata":{"annotations":{"e2e-patched-ns-status":"`+ns+`"}},"status":{"conditions":[`+string(nsConditionJSON)+`]}}`),
 			metav1.PatchOptions{}, "status")
 		framework.ExpectNoError(err, "Failed to patch status. err: %v ", err)
-		framework.ExpectEqual(patchedStatus.Annotations["e2e-patched-ns-status"], ns, "patched object should have the applied annotation")
-		framework.ExpectEqual(patchedStatus.Status.Conditions[len(patchedStatus.Status.Conditions)-1].Reason, "E2E", "The Reason returned was %v", patchedStatus.Status.Conditions[0].Reason)
-		framework.ExpectEqual(patchedStatus.Status.Conditions[len(patchedStatus.Status.Conditions)-1].Message, "Patched by an e2e test", "The Message returned was %v", patchedStatus.Status.Conditions[0].Message)
+		gomega.Expect(patchedStatus.Annotations).To(gomega.HaveKeyWithValue("e2e-patched-ns-status", ns), "patched object should have the applied annotation")
+		gomega.Expect(string(patchedStatus.Status.Conditions[len(patchedStatus.Status.Conditions)-1].Reason)).To(gomega.Equal("E2E"), "The Reason returned was %v", patchedStatus.Status.Conditions[0].Reason)
+		gomega.Expect(string(patchedStatus.Status.Conditions[len(patchedStatus.Status.Conditions)-1].Message)).To(gomega.Equal("Patched by an e2e test"), "The Message returned was %v", patchedStatus.Status.Conditions[0].Reason)
 		framework.Logf("Status.Condition: %#v", patchedStatus.Status.Conditions[len(patchedStatus.Status.Conditions)-1])
 
 		ginkgo.By("Update namespace status")
@@ -355,9 +358,9 @@ var _ = SIGDescribe("Namespaces [Serial]", func() {
 			return err
 		})
 		framework.ExpectNoError(err, "failed to update namespace status %s", ns)
-		framework.ExpectEqual(len(statusUpdated.Status.Conditions), len(statusUpdated.Status.Conditions), fmt.Sprintf("updated object should have the applied condition, got %#v", statusUpdated.Status.Conditions))
-		framework.ExpectEqual(string(statusUpdated.Status.Conditions[len(statusUpdated.Status.Conditions)-1].Type), "StatusUpdate", fmt.Sprintf("updated object should have the approved condition, got %#v", statusUpdated.Status.Conditions))
-		framework.ExpectEqual(statusUpdated.Status.Conditions[len(statusUpdated.Status.Conditions)-1].Message, "Updated by an e2e test", "The Message returned was %v", statusUpdated.Status.Conditions[0].Message)
+		gomega.Expect(statusUpdated.Status.Conditions).To(gomega.HaveLen(len(statusUpdated.Status.Conditions)), "updated object should have the applied condition, got %#v", statusUpdated.Status.Conditions)
+		gomega.Expect(statusUpdated.Status.Conditions[len(statusUpdated.Status.Conditions)-1].Type).To(gomega.Equal(v1.NamespaceConditionType("StatusUpdate")), "updated object should have the approved condition, got %#v", statusUpdated.Status.Conditions)
+		gomega.Expect(statusUpdated.Status.Conditions[len(statusUpdated.Status.Conditions)-1].Message).To(gomega.Equal("Updated by an e2e test"), "The Message returned was %v", statusUpdated.Status.Conditions[0].Message)
 		framework.Logf("Status.Condition: %#v", statusUpdated.Status.Conditions[len(statusUpdated.Status.Conditions)-1])
 	})
 
@@ -383,7 +386,7 @@ var _ = SIGDescribe("Namespaces [Serial]", func() {
 			return err
 		})
 		framework.ExpectNoError(err, "failed to update Namespace: %q", ns)
-		framework.ExpectEqual(updatedNamespace.ObjectMeta.Labels[ns], "updated", "Failed to update namespace %q. Current Labels: %#v", ns, updatedNamespace.Labels)
+		gomega.Expect(updatedNamespace.ObjectMeta.Labels).To(gomega.HaveKeyWithValue(ns, "updated"), "Failed to update namespace %q. Current Labels: %#v", ns, updatedNamespace.Labels)
 		framework.Logf("Namespace %q now has labels, %#v", ns, updatedNamespace.Labels)
 	})
 
@@ -472,4 +475,125 @@ func unstructuredToNamespace(obj *unstructured.Unstructured) (*v1.Namespace, err
 	err = runtime.DecodeInto(clientscheme.Codecs.LegacyCodec(v1.SchemeGroupVersion), json, ns)
 
 	return ns, err
+}
+
+var _ = SIGDescribe("OrderedNamespaceDeletion", func() {
+	f := framework.NewDefaultFramework("namespacedeletion")
+	f.NamespacePodSecurityLevel = admissionapi.LevelBaseline
+
+	f.It("namespace deletion should delete pod first", feature.OrderedNamespaceDeletion, framework.WithFeatureGate(features.OrderedNamespaceDeletion), func(ctx context.Context) {
+		ensurePodsAreRemovedFirstInOrderedNamespaceDeletion(ctx, f)
+	})
+})
+
+func ensurePodsAreRemovedFirstInOrderedNamespaceDeletion(ctx context.Context, f *framework.Framework) {
+	ginkgo.By("Creating a test namespace")
+	namespaceName := "nsdeletetest"
+	namespace, err := f.CreateNamespace(ctx, namespaceName, nil)
+	framework.ExpectNoError(err, "failed to create namespace: %s", namespaceName)
+	nsName := namespace.Name
+
+	ginkgo.By("Waiting for a default service account to be provisioned in namespace")
+	err = framework.WaitForDefaultServiceAccountInNamespace(ctx, f.ClientSet, nsName)
+	framework.ExpectNoError(err, "failure while waiting for a default service account to be provisioned in namespace: %s", nsName)
+
+	ginkgo.By("Creating a pod with finalizer in the namespace")
+	podName := "test-pod"
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: podName,
+			Finalizers: []string{
+				"e2e.example.com/finalizer",
+			},
+		},
+		Spec: v1.PodSpec{
+			Containers: []v1.Container{
+				{
+					Name:  "nginx",
+					Image: imageutils.GetPauseImageName(),
+				},
+			},
+		},
+	}
+	pod, err = f.ClientSet.CoreV1().Pods(nsName).Create(ctx, pod, metav1.CreateOptions{})
+	framework.ExpectNoError(err, "failed to create pod %s in namespace: %s", podName, nsName)
+
+	ginkgo.By("Waiting for the pod to have running status")
+	framework.ExpectNoError(e2epod.WaitForPodRunningInNamespace(ctx, f.ClientSet, pod))
+
+	configMapName := "test-configmap"
+	ginkgo.By(fmt.Sprintf("Creating a configmap %q in namespace %q", configMapName, nsName))
+	configMap := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      configMapName,
+			Namespace: nsName,
+		},
+		Data: map[string]string{
+			"key": "value",
+		},
+	}
+	_, err = f.ClientSet.CoreV1().ConfigMaps(nsName).Create(ctx, configMap, metav1.CreateOptions{})
+	framework.ExpectNoError(err, "failed to create configmap %q in namespace %q", configMapName, nsName)
+
+	ginkgo.By("Deleting the namespace")
+	err = f.ClientSet.CoreV1().Namespaces().Delete(ctx, nsName, metav1.DeleteOptions{})
+	framework.ExpectNoError(err, "failed to delete namespace: %s", nsName)
+	// wait 10 seconds to allow the namespace controller to process
+	time.Sleep(10 * time.Second)
+	ginkgo.By("the pod should be deleted before processing deletion for other resources")
+	framework.ExpectNoError(wait.PollUntilContextTimeout(ctx, 2*time.Second, 60*time.Second, true,
+		func(ctx context.Context) (bool, error) {
+			_, err = f.ClientSet.CoreV1().ConfigMaps(nsName).Get(ctx, configMapName, metav1.GetOptions{})
+			framework.ExpectNoError(err, "configmap %q should still exist in namespace %q", configMapName, nsName)
+			// the pod should exist and has a deletionTimestamp set
+			pod, err = f.ClientSet.CoreV1().Pods(nsName).Get(ctx, pod.Name, metav1.GetOptions{})
+			framework.ExpectNoError(err, "failed to get pod %q in namespace %q", pod.Name, nsName)
+			if pod.DeletionTimestamp == nil {
+				framework.Logf("Pod %q in namespace %q does not yet have a metadata.deletionTimestamp set, retrying...", pod.Name, nsName)
+				return false, nil
+			}
+			ns, err := f.ClientSet.CoreV1().Namespaces().Get(ctx, nsName, metav1.GetOptions{})
+			if err != nil && apierrors.IsNotFound(err) {
+				return false, fmt.Errorf("namespace %s was deleted unexpectedly", nsName)
+			}
+			ginkgo.By("Read namespace status")
+			nsResource := v1.SchemeGroupVersion.WithResource("namespaces")
+			unstruct, err := f.DynamicClient.Resource(nsResource).Get(ctx, ns.Name, metav1.GetOptions{}, "status")
+			framework.ExpectNoError(err, "failed to fetch NamespaceStatus %s", ns)
+			nsStatus, err := unstructuredToNamespace(unstruct)
+			framework.ExpectNoError(err, "Getting the status of the namespace %s", ns)
+			gomega.Expect(nsStatus.Status.Phase).To(gomega.Equal(v1.NamespaceTerminating), "The phase returned was %v", nsStatus.Status.Phase)
+			hasContextFailure := false
+			for _, cond := range nsStatus.Status.Conditions {
+				if cond.Type == v1.NamespaceDeletionContentFailure {
+					hasContextFailure = true
+				}
+			}
+			if !hasContextFailure {
+				framework.Logf("Namespace %q does not yet have a NamespaceDeletionContentFailure condition, retrying...", nsName)
+				return false, nil
+			}
+			return true, nil
+		}))
+
+	ginkgo.By(fmt.Sprintf("Removing finalizer from pod %q in namespace %q", podName, nsName))
+	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		pod, err = f.ClientSet.CoreV1().Pods(nsName).Get(ctx, podName, metav1.GetOptions{})
+		framework.ExpectNoError(err, "failed to get pod %q in namespace %q", pod.Name, nsName)
+		pod.Finalizers = []string{}
+		_, err = f.ClientSet.CoreV1().Pods(nsName).Update(ctx, pod, metav1.UpdateOptions{})
+		return err
+	})
+	framework.ExpectNoError(err, "failed to update pod %q and remove finalizer in namespace %q", podName, nsName)
+
+	ginkgo.By("Waiting for the namespace to be removed.")
+	maxWaitSeconds := int64(60) + *pod.Spec.TerminationGracePeriodSeconds
+	framework.ExpectNoError(wait.PollUntilContextTimeout(ctx, 1*time.Second, time.Duration(maxWaitSeconds)*time.Second, true,
+		func(ctx context.Context) (bool, error) {
+			_, err = f.ClientSet.CoreV1().Namespaces().Get(ctx, namespace.Name, metav1.GetOptions{})
+			if err != nil && apierrors.IsNotFound(err) {
+				return true, nil
+			}
+			return false, nil
+		}))
 }

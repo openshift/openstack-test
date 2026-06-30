@@ -27,11 +27,12 @@ import (
 	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpumanager/state"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpumanager/topology"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/kubernetes/pkg/kubelet/cm/topologymanager"
 	"k8s.io/kubernetes/pkg/kubelet/cm/topologymanager/bitmask"
 	"k8s.io/kubernetes/pkg/kubelet/managed"
 	"k8s.io/kubernetes/pkg/kubelet/metrics"
+	"k8s.io/kubernetes/pkg/kubelet/types"
+	"k8s.io/utils/cpuset"
 )
 
 const (
@@ -214,7 +215,9 @@ func (p *staticPolicy) validateState(s state.State) error {
 	// 1. Check if the reserved cpuset is not part of default cpuset because:
 	// - kube/system reserved have changed (increased) - may lead to some containers not being able to start
 	// - user tampered with file
-	if !p.reservedCPUs.Intersection(tmpDefaultCPUset).Equals(p.reservedCPUs) {
+	// 2. This only applies when managed mode is disabled. Active workload partitioning feature
+	//    removes the reserved cpus from the default cpu mask on purpose.
+	if !managed.IsEnabled() && !p.reservedCPUs.Intersection(tmpDefaultCPUset).Equals(p.reservedCPUs) {
 		return fmt.Errorf("not all reserved cpus: \"%s\" are present in defaultCpuSet: \"%s\"",
 			p.reservedCPUs.String(), tmpDefaultCPUset.String())
 	}
@@ -245,9 +248,17 @@ func (p *staticPolicy) validateState(s state.State) error {
 		}
 	}
 	totalKnownCPUs = totalKnownCPUs.Union(tmpCPUSets...)
-	if !totalKnownCPUs.Equals(p.topology.CPUDetails.CPUs()) {
+	availableCPUs := p.topology.CPUDetails.CPUs()
+
+	// CPU (workload) partitioning removes reserved cpus
+	// from the default mask intentionally
+	if managed.IsEnabled() {
+		availableCPUs = availableCPUs.Difference(p.reservedCPUs)
+	}
+
+	if !totalKnownCPUs.Equals(availableCPUs) {
 		return fmt.Errorf("current set of available CPUs \"%s\" doesn't match with CPUs in state \"%s\"",
-			p.topology.CPUDetails.CPUs().String(), totalKnownCPUs.String())
+			availableCPUs.String(), totalKnownCPUs.String())
 	}
 
 	return nil
@@ -282,6 +293,12 @@ func (p *staticPolicy) updateCPUsToReuse(pod *v1.Pod, container *v1.Container, c
 	// If so, add its cpuset to the cpuset of reusable CPUs for any new allocations.
 	for _, initContainer := range pod.Spec.InitContainers {
 		if container.Name == initContainer.Name {
+			if types.IsRestartableInitContainer(&initContainer) {
+				// If the container is a restartable init container, we should not
+				// reuse its cpuset, as a restartable init container can run with
+				// regular containers.
+				break
+			}
 			p.cpusToReuse[string(pod.UID)] = p.cpusToReuse[string(pod.UID)].Union(cset)
 			return
 		}
@@ -449,15 +466,21 @@ func (p *staticPolicy) guaranteedCPUs(pod *v1.Pod, container *v1.Container) int 
 func (p *staticPolicy) podGuaranteedCPUs(pod *v1.Pod) int {
 	// The maximum of requested CPUs by init containers.
 	requestedByInitContainers := 0
+	requestedByRestartableInitContainers := 0
 	for _, container := range pod.Spec.InitContainers {
 		if _, ok := container.Resources.Requests[v1.ResourceCPU]; !ok {
 			continue
 		}
 		requestedCPU := p.guaranteedCPUs(pod, &container)
-		if requestedCPU > requestedByInitContainers {
-			requestedByInitContainers = requestedCPU
+		// See https://github.com/kubernetes/enhancements/tree/master/keps/sig-node/753-sidecar-containers#resources-calculation-for-scheduling-and-pod-admission
+		// for the detail.
+		if types.IsRestartableInitContainer(&container) {
+			requestedByRestartableInitContainers += requestedCPU
+		} else if requestedByRestartableInitContainers+requestedCPU > requestedByInitContainers {
+			requestedByInitContainers = requestedByRestartableInitContainers + requestedCPU
 		}
 	}
+
 	// The sum of requested CPUs by app containers.
 	requestedByAppContainers := 0
 	for _, container := range pod.Spec.Containers {
@@ -467,10 +490,11 @@ func (p *staticPolicy) podGuaranteedCPUs(pod *v1.Pod) int {
 		requestedByAppContainers += p.guaranteedCPUs(pod, &container)
 	}
 
-	if requestedByInitContainers > requestedByAppContainers {
+	requestedByLongRunningContainers := requestedByAppContainers + requestedByRestartableInitContainers
+	if requestedByInitContainers > requestedByLongRunningContainers {
 		return requestedByInitContainers
 	}
-	return requestedByAppContainers
+	return requestedByLongRunningContainers
 }
 
 func (p *staticPolicy) takeByTopology(availableCPUs cpuset.CPUSet, numCPUs int) (cpuset.CPUSet, error) {
@@ -589,7 +613,7 @@ func (p *staticPolicy) GetPodTopologyHints(s state.State, pod *v1.Pod) map[strin
 	}
 }
 
-// generateCPUtopologyHints generates a set of TopologyHints given the set of
+// generateCPUTopologyHints generates a set of TopologyHints given the set of
 // available CPUs and the number of CPUs being requested.
 //
 // It follows the convention of marking all hints that have the same number of

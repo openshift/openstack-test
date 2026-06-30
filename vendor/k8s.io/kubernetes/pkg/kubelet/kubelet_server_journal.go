@@ -53,7 +53,7 @@ var (
 	// The set of known safe characters to pass to journalctl / GetWinEvent flags - only add to this list if the
 	// character cannot be used to create invalid sequences. This is intended as a broad defense against malformed
 	// input that could cause an escape.
-	reServiceNameUnsafeCharacters = regexp.MustCompile(`[^a-zA-Z\-_0-9@]+`)
+	reServiceNameUnsafeCharacters = regexp.MustCompile(`[^a-zA-Z\-_.:0-9@]+`)
 	reRelativeDate                = regexp.MustCompile(`^(\+|\-)?[\d]+(s|m|h|d)$`)
 )
 
@@ -334,7 +334,7 @@ func (n *nodeLogQuery) Copy(w io.Writer) {
 	// set the deadline to the maximum across both runs
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(30*time.Second))
 	defer cancel()
-	boot := int(0)
+	boot := 0
 	if n.Boot != nil {
 		boot = *n.Boot
 	}
@@ -384,7 +384,7 @@ func (n *nodeLogQuery) splitNativeVsFileLoggers(ctx context.Context) ([]string, 
 // copyServiceLogs invokes journalctl or Get-WinEvent with the provided args. Note that
 // services are explicitly passed here to account for the heuristics.
 func (n *nodeLogQuery) copyServiceLogs(ctx context.Context, w io.Writer, services []string, previousBoot int) {
-	cmdStr, args, err := getLoggingCmd(n, services)
+	cmdStr, args, cmdEnv, err := getLoggingCmd(n, services)
 	if err != nil {
 		fmt.Fprintf(w, "\nfailed to get logging cmd: %v\n", err)
 		return
@@ -392,6 +392,7 @@ func (n *nodeLogQuery) copyServiceLogs(ctx context.Context, w io.Writer, service
 	cmd := exec.CommandContext(ctx, cmdStr, args...)
 	cmd.Stdout = w
 	cmd.Stderr = w
+	cmd.Env = append(os.Environ(), cmdEnv...)
 
 	if err := cmd.Run(); err != nil {
 		if _, ok := err.(*exec.ExitError); ok {
@@ -422,7 +423,7 @@ func copyFileLogs(ctx context.Context, w io.Writer, services []string) {
 // in that order stopping on first success.
 func heuristicsCopyFileLogs(ctx context.Context, w io.Writer, service string) {
 	logFileNames := [3]string{
-		fmt.Sprintf("%s", service),
+		service,
 		fmt.Sprintf("%s.log", service),
 		fmt.Sprintf("%s/%s.log", service, service),
 	}

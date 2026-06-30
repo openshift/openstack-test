@@ -5,11 +5,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func NewWorkLoad(njobs int32, memoryRequest resource.Quantity, workloadJobName string,
-	testLabel string, nodeSelector string, podLabel string) *batchv1.Job {
+	testLabel string, podLabel string, nodeSelectorReqs ...corev1.NodeSelectorRequirement) *batchv1.Job {
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workloadJobName,
@@ -48,15 +48,24 @@ func NewWorkLoad(njobs int32, memoryRequest resource.Quantity, workloadJobName s
 					},
 				},
 			},
-			BackoffLimit: pointer.Int32(4),
-			Completions:  pointer.Int32(njobs),
-			Parallelism:  pointer.Int32(njobs),
+			BackoffLimit: ptr.To[int32](4),
+			Completions:  ptr.To[int32](njobs),
+			Parallelism:  ptr.To[int32](njobs),
 		},
 	}
 
-	if nodeSelector != "" {
-		job.Spec.Template.Spec.NodeSelector = map[string]string{
-			nodeSelector: "",
+	if len(nodeSelectorReqs) > 0 {
+		// Create the empty node selector terms in the spec
+		job.Spec.Template.Spec.Affinity = &corev1.Affinity{
+			NodeAffinity: &corev1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{
+						{
+							MatchExpressions: nodeSelectorReqs,
+						},
+					},
+				},
+			},
 		}
 	}
 

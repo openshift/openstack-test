@@ -41,6 +41,7 @@ import (
 	storagelisters "k8s.io/client-go/listers/storage/v1"
 	csitranslationplugins "k8s.io/csi-translation-lib/plugins"
 	"k8s.io/kubernetes/pkg/features"
+	"k8s.io/kubernetes/pkg/kubelet/util"
 	"k8s.io/kubernetes/pkg/volume"
 	"k8s.io/kubernetes/pkg/volume/csi/nodeinfomanager"
 	volumetypes "k8s.io/kubernetes/pkg/volume/util/types"
@@ -96,7 +97,7 @@ var PluginHandler = &RegistrationHandler{}
 // ValidatePlugin is called by kubelet's plugin watcher upon detection
 // of a new registration socket opened by CSI Driver registrar side car.
 func (h *RegistrationHandler) ValidatePlugin(pluginName string, endpoint string, versions []string) error {
-	klog.Infof(log("Trying to validate a new CSI Driver with name: %s endpoint: %s versions: %s",
+	klog.Info(log("Trying to validate a new CSI Driver with name: %s endpoint: %s versions: %s",
 		pluginName, endpoint, strings.Join(versions, ",")))
 
 	_, err := h.validateVersions("ValidatePlugin", pluginName, endpoint, versions)
@@ -108,8 +109,8 @@ func (h *RegistrationHandler) ValidatePlugin(pluginName string, endpoint string,
 }
 
 // RegisterPlugin is called when a plugin can be registered
-func (h *RegistrationHandler) RegisterPlugin(pluginName string, endpoint string, versions []string) error {
-	klog.Infof(log("Register new plugin with name: %s at endpoint: %s", pluginName, endpoint))
+func (h *RegistrationHandler) RegisterPlugin(pluginName string, endpoint string, versions []string, pluginClientTimeout *time.Duration) error {
+	klog.Info(log("Register new plugin with name: %s at endpoint: %s", pluginName, endpoint))
 
 	highestSupportedVersion, err := h.validateVersions("RegisterPlugin", pluginName, endpoint, versions)
 	if err != nil {
@@ -129,7 +130,14 @@ func (h *RegistrationHandler) RegisterPlugin(pluginName string, endpoint string,
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), csiTimeout)
+	var timeout time.Duration
+	if pluginClientTimeout == nil {
+		timeout = csiTimeout
+	} else {
+		timeout = *pluginClientTimeout
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	driverNodeID, maxVolumePerNode, accessibleTopology, err := csi.NodeGetInfo(ctx)
@@ -157,7 +165,12 @@ func (h *RegistrationHandler) validateVersions(callerName, pluginName string, en
 	}
 
 	// Validate version
-	newDriverHighestVersion, err := highestSupportedVersion(versions)
+	// CSI currently only has version 0.x and 1.x (see https://github.com/container-storage-interface/spec/releases).
+	// Therefore any driver claiming version 2.x+ is ignored as an unsupported versions.
+	// Future 1.x versions of CSI are supposed to be backwards compatible so this version of Kubernetes will work with any 1.x driver
+	// (or 0.x), but it may not work with 2.x drivers (because 2.x does not have to be backwards compatible with 1.x).
+	// CSI v0.x is no longer supported as of Kubernetes v1.17 in accordance with deprecation policy set out in Kubernetes v1.13.
+	newDriverHighestVersion, err := utilversion.HighestSupportedVersion(versions)
 	if err != nil {
 		return nil, errors.New(log("%s for CSI driver %q failed. None of the versions specified %q are supported. err=%v", callerName, pluginName, versions, err))
 	}
@@ -217,7 +230,7 @@ func (p *csiPlugin) Init(host volume.VolumeHost) error {
 
 	var migratedPlugins = map[string](func() bool){
 		csitranslationplugins.GCEPDInTreePluginName: func() bool {
-			return utilfeature.DefaultFeatureGate.Enabled(features.CSIMigrationGCE)
+			return true
 		},
 		csitranslationplugins.AWSEBSInTreePluginName: func() bool {
 			return true
@@ -229,10 +242,10 @@ func (p *csiPlugin) Init(host volume.VolumeHost) error {
 			return true
 		},
 		csitranslationplugins.AzureFileInTreePluginName: func() bool {
-			return utilfeature.DefaultFeatureGate.Enabled(features.CSIMigrationAzureFile)
+			return true
 		},
 		csitranslationplugins.VSphereInTreePluginName: func() bool {
-			return utilfeature.DefaultFeatureGate.Enabled(features.CSIMigrationvSphere)
+			return true
 		},
 		csitranslationplugins.PortworxVolumePluginName: func() bool {
 			return utilfeature.DefaultFeatureGate.Enabled(features.CSIMigrationPortworx)
@@ -423,7 +436,7 @@ func (p *csiPlugin) NewMounter(
 }
 
 func (p *csiPlugin) NewUnmounter(specName string, podUID types.UID) (volume.Unmounter, error) {
-	klog.V(4).Infof(log("setting up unmounter for [name=%v, podUID=%v]", specName, podUID))
+	klog.V(4).Info(log("setting up unmounter for [name=%v, podUID=%v]", specName, podUID))
 
 	kvh, ok := p.host.(volume.KubeletVolumeHost)
 	if !ok {
@@ -692,7 +705,7 @@ func (p *csiPlugin) NewBlockVolumeMapper(spec *volume.Spec, podRef *api.Pod, opt
 }
 
 func (p *csiPlugin) NewBlockVolumeUnmapper(volName string, podUID types.UID) (volume.BlockVolumeUnmapper, error) {
-	klog.V(4).Infof(log("setting up block unmapper for [Spec=%v, podUID=%v]", volName, podUID))
+	klog.V(4).Info(log("setting up block unmapper for [Spec=%v, podUID=%v]", volName, podUID))
 	unmapper := &csiBlockMapper{
 		plugin:   p,
 		podUID:   podUID,
@@ -834,7 +847,7 @@ func (p *csiPlugin) podInfoEnabled(driverName string) (bool, error) {
 	csiDriver, err := p.getCSIDriver(driverName)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			klog.V(4).Infof(log("CSIDriver %q not found, not adding pod information", driverName))
+			klog.V(4).Info(log("CSIDriver %q not found, not adding pod information", driverName))
 			return false, nil
 		}
 		return false, err
@@ -842,7 +855,7 @@ func (p *csiPlugin) podInfoEnabled(driverName string) (bool, error) {
 
 	// if PodInfoOnMount is not set or false we do not set pod attributes
 	if csiDriver.Spec.PodInfoOnMount == nil || *csiDriver.Spec.PodInfoOnMount == false {
-		klog.V(4).Infof(log("CSIDriver %q does not require pod information", driverName))
+		klog.V(4).Info(log("CSIDriver %q does not require pod information", driverName))
 		return false, nil
 	}
 	return true, nil
@@ -858,54 +871,20 @@ func unregisterDriver(driverName string) error {
 	return nil
 }
 
-// Return the highest supported version
-func highestSupportedVersion(versions []string) (*utilversion.Version, error) {
-	if len(versions) == 0 {
-		return nil, errors.New(log("CSI driver reporting empty array for supported versions"))
-	}
-
-	var highestSupportedVersion *utilversion.Version
-	var theErr error
-	for i := len(versions) - 1; i >= 0; i-- {
-		currentHighestVer, err := utilversion.ParseGeneric(versions[i])
-		if err != nil {
-			theErr = err
-			continue
-		}
-		if currentHighestVer.Major() > 1 {
-			// CSI currently only has version 0.x and 1.x (see https://github.com/container-storage-interface/spec/releases).
-			// Therefore any driver claiming version 2.x+ is ignored as an unsupported versions.
-			// Future 1.x versions of CSI are supposed to be backwards compatible so this version of Kubernetes will work with any 1.x driver
-			// (or 0.x), but it may not work with 2.x drivers (because 2.x does not have to be backwards compatible with 1.x).
-			continue
-		}
-		if highestSupportedVersion == nil || highestSupportedVersion.LessThan(currentHighestVer) {
-			highestSupportedVersion = currentHighestVer
-		}
-	}
-
-	if highestSupportedVersion == nil {
-		return nil, fmt.Errorf("could not find a highest supported version from versions (%v) reported by this driver: %v", versions, theErr)
-	}
-
-	if highestSupportedVersion.Major() != 1 {
-		// CSI v0.x is no longer supported as of Kubernetes v1.17 in
-		// accordance with deprecation policy set out in Kubernetes v1.13
-		return nil, fmt.Errorf("highest supported version reported by driver is %v, must be v1.x", highestSupportedVersion)
-	}
-	return highestSupportedVersion, nil
-}
-
 // waitForAPIServerForever waits forever to get a CSINode instance as a proxy
 // for a healthy APIServer
 func waitForAPIServerForever(client clientset.Interface, nodeName types.NodeName) error {
 	var lastErr error
+	// Served object is discarded so no risk to have stale object with benefit to
+	// reduce the load on APIServer and etcd.
+	opts := meta.GetOptions{}
+	util.FromApiserverCache(&opts)
 	err := wait.PollImmediateInfinite(time.Second, func() (bool, error) {
 		// Get a CSINode from API server to make sure 1) kubelet can reach API server
 		// and 2) it has enough permissions. Kubelet may have restricted permissions
 		// when it's bootstrapping TLS.
 		// https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet-tls-bootstrapping/
-		_, lastErr = client.StorageV1().CSINodes().Get(context.TODO(), string(nodeName), meta.GetOptions{})
+		_, lastErr = client.StorageV1().CSINodes().Get(context.TODO(), string(nodeName), opts)
 		if lastErr == nil || apierrors.IsNotFound(lastErr) {
 			// API server contacted
 			return true, nil
