@@ -19,7 +19,6 @@ package util
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -327,7 +326,7 @@ func shouldWriteFile(path string, content []byte) (bool, error) {
 		return true, nil
 	}
 
-	contentOnFs, err := ioutil.ReadFile(path)
+	contentOnFs, err := os.ReadFile(path)
 	if err != nil {
 		return false, err
 	}
@@ -379,7 +378,7 @@ func (w *AtomicWriter) pathsToRemove(payload map[string]FileProjection, oldTsDir
 
 // newTimestampDir creates a new timestamp directory
 func (w *AtomicWriter) newTimestampDir() (string, error) {
-	tsDir, err := ioutil.TempDir(w.targetDir, time.Now().UTC().Format("..2006_01_02_15_04_05."))
+	tsDir, err := os.MkdirTemp(w.targetDir, time.Now().UTC().Format("..2006_01_02_15_04_05."))
 	if err != nil {
 		klog.Errorf("%s: unable to create new temp directory: %v", w.logContext, err)
 		return "", err
@@ -400,7 +399,6 @@ func (w *AtomicWriter) newTimestampDir() (string, error) {
 // writePayloadToDir writes the given payload to the given directory.  The
 // directory must exist.
 func (w *AtomicWriter) writePayloadToDir(payload map[string]FileProjection, dir string) error {
-	isNotWindows := runtime.GOOS != "windows"
 	for userVisiblePath, fileProjection := range payload {
 		content := fileProjection.Data
 		mode := os.FileMode(fileProjection.Mode)
@@ -412,11 +410,11 @@ func (w *AtomicWriter) writePayloadToDir(payload map[string]FileProjection, dir 
 			return err
 		}
 
-		if err := ioutil.WriteFile(fullPath, content, mode); err != nil {
+		if err := os.WriteFile(fullPath, content, mode); err != nil {
 			klog.Errorf("%s: unable to write file %s with mode %v: %v", w.logContext, fullPath, mode, err)
 			return err
 		}
-		// Chmod is needed because ioutil.WriteFile() ends up calling
+		// Chmod is needed because os.WriteFile() ends up calling
 		// open(2) to create the file, so the final mode used is "mode &
 		// ~umask". But we want to make sure the specified mode is used
 		// in the file no matter what the umask is.
@@ -428,11 +426,10 @@ func (w *AtomicWriter) writePayloadToDir(payload map[string]FileProjection, dir 
 		if fileProjection.FsUser == nil {
 			continue
 		}
-		if isNotWindows {
-			if err := os.Chown(fullPath, int(*fileProjection.FsUser), -1); err != nil {
-				klog.Errorf("%s: unable to change file %s with owner %v: %v", w.logContext, fullPath, int(*fileProjection.FsUser), err)
-				return err
-			}
+
+		if err := w.chown(fullPath, int(*fileProjection.FsUser), -1); err != nil {
+			klog.Errorf("%s: unable to change file %s with owner %v: %v", w.logContext, fullPath, int(*fileProjection.FsUser), err)
+			return err
 		}
 	}
 

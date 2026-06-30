@@ -89,6 +89,12 @@ var (
 
 // Framework supports common operations used by e2e tests; it will keep a client & a namespace for you.
 // Eventual goal is to merge this with integration test framework.
+//
+// You can configure the pod security level for your test by setting the `NamespacePodSecurityLevel`
+// which will set all three of pod security admission enforce, warn and audit labels on the namespace.
+// The default pod security profile is "restricted".
+// Each of the labels can be overridden by using more specific NamespacePodSecurity* attributes of this
+// struct.
 type Framework struct {
 	BaseName string
 
@@ -111,6 +117,9 @@ type Framework struct {
 	namespacesToDelete               []*v1.Namespace // Some tests have more than one.
 	NamespaceDeletionTimeout         time.Duration
 	NamespacePodSecurityEnforceLevel admissionapi.Level // The pod security enforcement level for namespaces to be applied.
+	NamespacePodSecurityWarnLevel    admissionapi.Level // The pod security warn (client logging) level for namespaces to be applied.
+	NamespacePodSecurityAuditLevel   admissionapi.Level // The pod security audit (server logging) level for namespaces to be applied.
+	NamespacePodSecurityLevel        admissionapi.Level // The pod security level to be used for all of enforcement, warn and audit. Can be rewritten by more specific configuration attributes.
 
 	// Flaky operation failures in an e2e test can be captured through this.
 	flakeReport *FlakeReport
@@ -302,7 +311,7 @@ func printSummaries(summaries []TestDataSummary, testBaseName string) {
 		switch TestContext.OutputPrintType {
 		case "hr":
 			if TestContext.ReportDir == "" {
-				Logf(summaries[i].PrintHumanReadable())
+				Logf("%s", summaries[i].PrintHumanReadable())
 			} else {
 				// TODO: learn to extract test name and append it to the kind instead of timestamp.
 				filePath := path.Join(TestContext.ReportDir, summaries[i].SummaryKind()+"_"+testBaseName+"_"+now.Format(time.RFC3339)+".txt")
@@ -384,7 +393,7 @@ func (f *Framework) AfterEach(ctx context.Context) {
 			for namespaceKey, namespaceErr := range nsDeletionErrors {
 				messages = append(messages, fmt.Sprintf("Couldn't delete ns: %q: %s (%#v)", namespaceKey, namespaceErr, namespaceErr))
 			}
-			Failf(strings.Join(messages, ","))
+			Fail(strings.Join(messages, ","))
 		}
 	}()
 
@@ -448,14 +457,9 @@ func (f *Framework) CreateNamespace(ctx context.Context, baseName string, labels
 		labels = labelsCopy
 	}
 
-	enforceLevel := admissionapi.LevelRestricted
-	if f.NamespacePodSecurityEnforceLevel != "" {
-		enforceLevel = f.NamespacePodSecurityEnforceLevel
-	}
-	labels[admissionapi.EnforceLevelLabel] = string(enforceLevel)
-	// turn off the OpenShift label syncer so that it does not attempt to sync
-	// the PodSecurity admission labels
-	labels["security.openshift.io/scc.podSecurityLabelSync"] = "false"
+	labels[admissionapi.EnforceLevelLabel] = firstNonEmptyPSaLevelOrRestricted(f.NamespacePodSecurityEnforceLevel, f.NamespacePodSecurityLevel)
+	labels[admissionapi.WarnLevelLabel] = firstNonEmptyPSaLevelOrRestricted(f.NamespacePodSecurityWarnLevel, f.NamespacePodSecurityLevel)
+	labels[admissionapi.AuditLevelLabel] = firstNonEmptyPSaLevelOrRestricted(f.NamespacePodSecurityAuditLevel, f.NamespacePodSecurityLevel)
 
 	ns, err := createTestingNS(ctx, baseName, f.ClientSet, labels)
 	// check ns instead of err to see if it's nil as we may
@@ -482,6 +486,15 @@ func (f *Framework) CreateNamespace(ctx context.Context, baseName string, labels
 	}
 
 	return ns, err
+}
+
+func firstNonEmptyPSaLevelOrRestricted(levelConfig ...admissionapi.Level) string {
+	for _, l := range levelConfig {
+		if len(l) > 0 {
+			return string(l)
+		}
+	}
+	return string(admissionapi.LevelRestricted)
 }
 
 // createSecretFromDockerConfig creates a secret using the private image registry credentials.

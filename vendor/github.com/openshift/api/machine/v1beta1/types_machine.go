@@ -19,6 +19,11 @@ const (
 	// MachineClusterIDLabel is the label that a machine must have to identify the
 	// cluster to which it belongs.
 	MachineClusterIDLabel = "machine.openshift.io/cluster-api-cluster"
+
+	// IPClaimProtectionFinalizer is placed on an IPAddressClaim by the machine reconciler
+	// when an IPAddressClaim associated with a machine is created. This finalizer is removed
+	// from the IPAddressClaim when the associated machine is deleted.
+	IPClaimProtectionFinalizer = "machine.openshift.io/ip-claim-protection"
 )
 
 type MachineStatusError string
@@ -89,6 +94,9 @@ const (
 	// not result in a Node joining the cluster within a given timeout
 	// and that are managed by a MachineSet
 	JoinClusterTimeoutMachineError = "JoinClusterTimeoutError"
+
+	// IPAddressInvalidReason is set to indicate that the claimed IP address is not valid.
+	IPAddressInvalidReason MachineStatusError = "IPAddressInvalid"
 )
 
 type ClusterStatusError string
@@ -168,7 +176,14 @@ const (
 
 // Machine is the Schema for the machines API
 // +k8s:openapi-gen=true
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:path=machines,scope=Namespaced
 // +kubebuilder:subresource:status
+// +openshift:api-approved.openshift.io=https://github.com/openshift/api/pull/948
+// +openshift:file-pattern=cvoRunLevel=0000_10,operatorName=machine-api,operatorOrdering=01
+// +openshift:capability=MachineAPI
+// +kubebuilder:metadata:annotations="exclude.release.openshift.io/internal-openshift-hosted=true"
+// +kubebuilder:metadata:annotations="include.release.openshift.io/self-managed-high-availability=true"
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=".status.phase",description="Phase of machine"
 // +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".metadata.labels['machine\\.openshift\\.io/instance-type']",description="Type of instance"
 // +kubebuilder:printcolumn:name="Region",type="string",JSONPath=".metadata.labels['machine\\.openshift\\.io/region']",description="Region associated with machine"

@@ -24,7 +24,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -37,7 +36,6 @@ import (
 
 	"k8s.io/klog/v2"
 	utilexec "k8s.io/utils/exec"
-	utilio "k8s.io/utils/io"
 )
 
 const (
@@ -271,7 +269,7 @@ func detectSafeNotMountedBehavior() bool {
 // detectSafeNotMountedBehaviorWithExec is for testing with FakeExec.
 func detectSafeNotMountedBehaviorWithExec(exec utilexec.Interface) bool {
 	// create a temp dir and try to umount it
-	path, err := ioutil.TempDir("", "kubelet-detect-safe-umount")
+	path, err := os.MkdirTemp("", "kubelet-detect-safe-umount")
 	if err != nil {
 		klog.V(4).Infof("Cannot create temp dir to detect safe 'not mounted' behavior: %v", err)
 		return false
@@ -522,7 +520,7 @@ func (mounter *SafeFormatAndMount) formatAndMountSensitive(source string, target
 			sensitiveOptionsLog := sanitizedOptionsForLogging(options, sensitiveOptions)
 			detailedErr := fmt.Sprintf("format of disk %q failed: type:(%q) target:(%q) options:(%q) errcode:(%v) output:(%v) ", source, fstype, target, sensitiveOptionsLog, err, string(output))
 			klog.Error(detailedErr)
-			return NewMountError(FormatFailed, detailedErr)
+			return NewMountError(FormatFailed, "%s", detailedErr)
 		}
 
 		klog.Infof("Disk successfully formatted (mkfs): %s - %s %s", fstype, source, target)
@@ -545,7 +543,7 @@ func (mounter *SafeFormatAndMount) formatAndMountSensitive(source string, target
 	// Mount the disk
 	klog.V(4).Infof("Attempting to mount disk %s in %s format at %s", source, fstype, target)
 	if err := mounter.MountSensitive(source, target, fstype, options, sensitiveOptions); err != nil {
-		return NewMountError(mountErrorValue, err.Error())
+		return NewMountError(mountErrorValue, "%s", err.Error())
 	}
 
 	return nil
@@ -633,7 +631,7 @@ func (mounter *SafeFormatAndMount) GetDiskFormat(disk string) (string, error) {
 
 // ListProcMounts is shared with NsEnterMounter
 func ListProcMounts(mountFilePath string) ([]MountPoint, error) {
-	content, err := utilio.ConsistentRead(mountFilePath, maxListTries)
+	content, err := readMountInfo(mountFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -766,7 +764,7 @@ func (mounter *Mounter) IsMountPoint(file string) (bool, error) {
 	// Resolve any symlinks in file, kernel would do the same and use the resolved path in /proc/mounts.
 	resolvedFile, err := filepath.EvalSymlinks(file)
 	if err != nil {
-		if errors.Is(isMntErr, fs.ErrNotExist) {
+		if errors.Is(err, fs.ErrNotExist) {
 			return false, fs.ErrNotExist
 		}
 		return false, err
@@ -810,7 +808,6 @@ func tryUnmount(target string, withSafeNotMountedBehavior bool, unmountTimeout t
 func forceUmount(target string, withSafeNotMountedBehavior bool) error {
 	command := exec.Command("umount", "-f", target)
 	output, err := command.CombinedOutput()
-
 	if err != nil {
 		return checkUmountError(target, command, output, err, withSafeNotMountedBehavior)
 	}

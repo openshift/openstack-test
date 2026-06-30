@@ -19,6 +19,7 @@ package apps
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -88,7 +89,7 @@ func (t *EtcdUpgradeTest) Setup(ctx context.Context, f *framework.Framework) {
 	kubectlCreate(ns, "tester.yaml")
 
 	ginkgo.By("Getting the ingress IPs from the services")
-	err := wait.PollImmediateWithContext(ctx, statefulsetPoll, statefulsetTimeout, func(ctx context.Context) (bool, error) {
+	err := wait.PollUntilContextTimeout(ctx, statefulsetPoll, statefulsetTimeout, true, func(ctx context.Context) (bool, error) {
 		if t.ip = t.getServiceIP(ctx, f, ns, "test-server"); t.ip == "" {
 			return false, nil
 		}
@@ -111,7 +112,7 @@ func (t *EtcdUpgradeTest) Setup(ctx context.Context, f *framework.Framework) {
 	ginkgo.By("Verifying that the users exist")
 	users, err := t.listUsers()
 	framework.ExpectNoError(err)
-	framework.ExpectEqual(len(users), 2)
+	gomega.Expect(users).To(gomega.HaveLen(2))
 }
 
 func (t *EtcdUpgradeTest) listUsers() ([]string, error) {
@@ -125,7 +126,7 @@ func (t *EtcdUpgradeTest) listUsers() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf(string(b))
+		return nil, errors.New(string(b))
 	}
 	var names []string
 	if err := json.NewDecoder(r.Body).Decode(&names); err != nil {
@@ -146,7 +147,7 @@ func (t *EtcdUpgradeTest) addUser(name string) error {
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf(string(b))
+		return errors.New(string(b))
 	}
 	return nil
 }

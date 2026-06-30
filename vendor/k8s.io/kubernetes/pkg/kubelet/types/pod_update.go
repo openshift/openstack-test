@@ -192,3 +192,24 @@ func IsCriticalPodBasedOnPriority(priority int32) bool {
 func IsNodeCriticalPod(pod *v1.Pod) bool {
 	return IsCriticalPod(pod) && (pod.Spec.PriorityClassName == scheduling.SystemNodeCritical)
 }
+
+// IsRestartableInitContainer returns true if the initContainer has
+// ContainerRestartPolicyAlways.
+func IsRestartableInitContainer(initContainer *v1.Container) bool {
+	if initContainer.RestartPolicy == nil {
+		return false
+	}
+
+	return *initContainer.RestartPolicy == v1.ContainerRestartPolicyAlways
+}
+
+// HasRestartableInitContainer returns true if the pod has any restartable init
+// container
+func HasRestartableInitContainer(pod *v1.Pod) bool {
+	for _, container := range pod.Spec.InitContainers {
+		if IsRestartableInitContainer(&container) {
+			return true
+		}
+	}
+	return false
+}
