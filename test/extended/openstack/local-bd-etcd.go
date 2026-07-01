@@ -18,7 +18,7 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] The OpenShift cluster", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenShift cluster", func() {
 	defer g.GinkgoRecover()
 
 	const minEtcdDiskSizeGiB = 10
