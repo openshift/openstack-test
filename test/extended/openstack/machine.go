@@ -136,6 +136,11 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Machine", fu
 				instanceSecurityGroups := make(map[string]struct{})
 				for i := range instance.SecurityGroups {
 					securityGroupName := instance.SecurityGroups[i]["name"].(string)
+					if strings.HasPrefix(securityGroupName, "lb-sg-") {
+						// skip any load balancer security groups: these won't have Machine equivalents
+						// https://github.com/kubernetes/cloud-provider-openstack/blob/v1.36.0/pkg/openstack/loadbalancer_sg.go#L43
+						continue
+					}
 					instanceSecurityGroups[securityGroupName] = struct{}{}
 				}
 
