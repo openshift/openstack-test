@@ -116,7 +116,15 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Machine", fu
 				if instance.Image["id"] != nil {
 					instanceImage, err := images.Get(ctx, imageClient, fmt.Sprintf("%v", instance.Image["id"])).Extract()
 					o.Expect(err).NotTo(o.HaveOccurred())
-					o.Expect(instanceImage.Name).To(o.Equal(machineImage), "Image not matching for instance %q", instance.Name)
+					// The RHCOS image in Glance may have been renamed to <name>-old by
+					// refresh_rhcos.sh or the openstack-conf-rhcosimage CI step during
+					// the image update swap. The instance still references the correct
+					// image by ID; only the Glance name changed.
+					o.Expect(instanceImage.Name).To(
+						o.Or(o.Equal(machineImage), o.Equal(machineImage+"-old")),
+						"Image not matching for instance %q: Glance image name %q does not match Machine spec %q",
+						instance.Name, instanceImage.Name, machineImage,
+					)
 				}
 			})
 
