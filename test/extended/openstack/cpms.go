@@ -18,7 +18,7 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] ControlPlane MachineSet", func() {
 	defer g.GinkgoRecover()
 
 	var dc dynamic.Interface

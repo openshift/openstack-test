@@ -35,7 +35,7 @@ const (
 	egressAssignableLabelKey    = "k8s.ovn.org/egress-assignable"
 )
 
-var _ = g.Describe("[sig-installer][Suite:openshift/openstack][egressip] An egressIP", func() {
+var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack][egressip] An egressIP", func() {
 	var networkClient *gophercloud.ServiceClient
 	var clientSet *kubernetes.Clientset
 	var err error

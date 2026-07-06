@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC.
+// Copyright 2024 Google LLC.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -90,7 +90,9 @@ const apiId = "container:v1"
 const apiName = "container"
 const apiVersion = "v1"
 const basePath = "https://container.googleapis.com/"
+const basePathTemplate = "https://container.UNIVERSE_DOMAIN/"
 const mtlsBasePath = "https://container.mtls.googleapis.com/"
+const defaultUniverseDomain = "googleapis.com"
 
 // OAuth2 scopes used by this API.
 const (
@@ -107,7 +109,9 @@ func NewService(ctx context.Context, opts ...option.ClientOption) (*Service, err
 	// NOTE: prepend, so we don't override user-specified scopes.
 	opts = append([]option.ClientOption{scopesOption}, opts...)
 	opts = append(opts, internaloption.WithDefaultEndpoint(basePath))
+	opts = append(opts, internaloption.WithDefaultEndpointTemplate(basePathTemplate))
 	opts = append(opts, internaloption.WithDefaultMTLSEndpoint(mtlsBasePath))
+	opts = append(opts, internaloption.WithDefaultUniverseDomain(defaultUniverseDomain))
 	client, endpoint, err := htransport.NewClient(ctx, opts...)
 	if err != nil {
 		return nil, err
@@ -504,6 +508,9 @@ type AddonsConfig struct {
 	// track whether network policy is enabled for the nodes.
 	NetworkPolicyConfig *NetworkPolicyConfig `json:"networkPolicyConfig,omitempty"`
 
+	// StatefulHaConfig: Optional. Configuration for the StatefulHA add-on.
+	StatefulHaConfig *StatefulHAConfig `json:"statefulHaConfig,omitempty"`
+
 	// ForceSendFields is a list of field names (e.g. "CloudRunConfig") to
 	// unconditionally include in API requests. By default, fields with
 	// empty or default values are omitted from API requests. However, any
@@ -534,6 +541,9 @@ func (s *AddonsConfig) MarshalJSON() ([]byte, error) {
 type AdvancedDatapathObservabilityConfig struct {
 	// EnableMetrics: Expose flow metrics on nodes
 	EnableMetrics bool `json:"enableMetrics,omitempty"`
+
+	// EnableRelay: Enable Relay component
+	EnableRelay bool `json:"enableRelay,omitempty"`
 
 	// RelayMode: Method used to make Relay available
 	//
@@ -1324,6 +1334,9 @@ type Cluster struct {
 	// of this resource for username and password information.
 	Endpoint string `json:"endpoint,omitempty"`
 
+	// EnterpriseConfig: GKE Enterprise Configuration.
+	EnterpriseConfig *EnterpriseConfig `json:"enterpriseConfig,omitempty"`
+
 	// Etag: This checksum is computed by the server based on the value of
 	// cluster fields, and may be sent on update requests to ensure the
 	// client has an up-to-date value before proceeding.
@@ -1498,6 +1511,12 @@ type Cluster struct {
 
 	// NotificationConfig: Notification configuration of the cluster.
 	NotificationConfig *NotificationConfig `json:"notificationConfig,omitempty"`
+
+	// ParentProductConfig: The configuration of the parent product of the
+	// cluster. This field is used by Google internal products that are
+	// built on top of the GKE cluster and take the ownership of the
+	// cluster.
+	ParentProductConfig *ParentProductConfig `json:"parentProductConfig,omitempty"`
 
 	// PrivateClusterConfig: Configuration for private cluster.
 	PrivateClusterConfig *PrivateClusterConfig `json:"privateClusterConfig,omitempty"`
@@ -1787,6 +1806,18 @@ type ClusterUpdate struct {
 	// the "desired_node_pool" field as well.
 	DesiredImageType string `json:"desiredImageType,omitempty"`
 
+	// DesiredInTransitEncryptionConfig: Specify the details of in-transit
+	// encryption.
+	//
+	// Possible values:
+	//   "IN_TRANSIT_ENCRYPTION_CONFIG_UNSPECIFIED" - Unspecified, will be
+	// inferred as default - IN_TRANSIT_ENCRYPTION_UNSPECIFIED.
+	//   "IN_TRANSIT_ENCRYPTION_DISABLED" - In-transit encryption is
+	// disabled.
+	//   "IN_TRANSIT_ENCRYPTION_INTER_NODE_TRANSPARENT" - Data in-transit is
+	// encrypted using inter-node transparent encryption.
+	DesiredInTransitEncryptionConfig string `json:"desiredInTransitEncryptionConfig,omitempty"`
+
 	// DesiredIntraNodeVisibilityConfig: The desired config of Intra-node
 	// visibility.
 	DesiredIntraNodeVisibilityConfig *IntraNodeVisibilityConfig `json:"desiredIntraNodeVisibilityConfig,omitempty"`
@@ -1860,6 +1891,11 @@ type ClusterUpdate struct {
 	// node auto-provisioning enabled clusters.
 	DesiredNodePoolAutoConfigNetworkTags *NetworkTags `json:"desiredNodePoolAutoConfigNetworkTags,omitempty"`
 
+	// DesiredNodePoolAutoConfigResourceManagerTags: The desired resource
+	// manager tags that apply to all auto-provisioned node pools in
+	// autopilot clusters and node auto-provisioning enabled clusters.
+	DesiredNodePoolAutoConfigResourceManagerTags *ResourceManagerTags `json:"desiredNodePoolAutoConfigResourceManagerTags,omitempty"`
+
 	// DesiredNodePoolAutoscaling: Autoscaler configuration for the node
 	// pool specified in desired_node_pool_id. If there is only one pool in
 	// the cluster and desired_node_pool_id is not provided then the change
@@ -1888,6 +1924,10 @@ type ClusterUpdate struct {
 
 	// DesiredNotificationConfig: The desired notification configuration.
 	DesiredNotificationConfig *NotificationConfig `json:"desiredNotificationConfig,omitempty"`
+
+	// DesiredParentProductConfig: The desired parent product config for the
+	// cluster.
+	DesiredParentProductConfig *ParentProductConfig `json:"desiredParentProductConfig,omitempty"`
 
 	// DesiredPrivateClusterConfig: The desired private cluster
 	// configuration.
@@ -2449,17 +2489,62 @@ type Empty struct {
 	googleapi.ServerResponse `json:"-"`
 }
 
+// EnterpriseConfig: EnterpriseConfig is the cluster enterprise
+// configuration.
+type EnterpriseConfig struct {
+	// ClusterTier: Output only. [Output only] cluster_tier specifies the
+	// premium tier of the cluster.
+	//
+	// Possible values:
+	//   "CLUSTER_TIER_UNSPECIFIED" - CLUSTER_TIER_UNSPECIFIED is when
+	// cluster_tier is not set.
+	//   "STANDARD" - STANDARD indicates a standard GKE cluster.
+	//   "ENTERPRISE" - ENTERPRISE indicates a GKE Enterprise cluster.
+	ClusterTier string `json:"clusterTier,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "ClusterTier") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "ClusterTier") to include
+	// in API requests with the JSON null value. By default, fields with
+	// empty values are omitted from API requests. However, any field with
+	// an empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *EnterpriseConfig) MarshalJSON() ([]byte, error) {
+	type NoMethod EnterpriseConfig
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // EphemeralStorageLocalSsdConfig: EphemeralStorageLocalSsdConfig
 // contains configuration for the node ephemeral storage using Local
-// SSD.
+// SSDs.
 type EphemeralStorageLocalSsdConfig struct {
 	// LocalSsdCount: Number of local SSDs to use to back ephemeral storage.
-	// Uses NVMe interfaces. Each local SSD is 375 GB in size. If zero, it
-	// means to disable using local SSDs as ephemeral storage. The limit for
-	// this value is dependent upon the maximum number of disks available on
-	// a machine per zone. See:
+	// Uses NVMe interfaces. A zero (or unset) value has different meanings
+	// depending on machine type being used: 1. For pre-Gen3 machines, which
+	// support flexible numbers of local ssds, zero (or unset) means to
+	// disable using local SSDs as ephemeral storage. The limit for this
+	// value is dependent upon the maximum number of disk available on a
+	// machine per zone. See:
 	// https://cloud.google.com/compute/docs/disks/local-ssd for more
-	// information.
+	// information. 2. For Gen3 machines which dictate a specific number of
+	// local ssds, zero (or unset) means to use the default number of local
+	// ssds that goes with that machine type. For example, for a
+	// c3-standard-8-lssd machine, 2 local ssds would be provisioned. For
+	// c3-standard-8 (which doesn't support local ssds), 0 will be
+	// provisioned. See
+	// https://cloud.google.com/compute/docs/disks/local-ssd#choose_number_local_ssds
+	// for more info.
 	LocalSsdCount int64 `json:"localSsdCount,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "LocalSsdCount") to
@@ -3661,15 +3746,23 @@ func (s *ListUsableSubnetworksResponse) MarshalJSON() ([]byte, error) {
 }
 
 // LocalNvmeSsdBlockConfig: LocalNvmeSsdBlockConfig contains
-// configuration for using raw-block local NVMe SSD.
+// configuration for using raw-block local NVMe SSDs
 type LocalNvmeSsdBlockConfig struct {
-	// LocalSsdCount: The number of raw-block local NVMe SSD disks to be
-	// attached to the node. Each local SSD is 375 GB in size. If zero, it
-	// means no raw-block local NVMe SSD disks to be attached to the node.
-	// The limit for this value is dependent upon the maximum number of
-	// disks available on a machine per zone. See:
+	// LocalSsdCount: Number of local NVMe SSDs to use. The limit for this
+	// value is dependent upon the maximum number of disk available on a
+	// machine per zone. See:
 	// https://cloud.google.com/compute/docs/disks/local-ssd for more
-	// information.
+	// information. A zero (or unset) value has different meanings depending
+	// on machine type being used: 1. For pre-Gen3 machines, which support
+	// flexible numbers of local ssds, zero (or unset) means to disable
+	// using local SSDs as ephemeral storage. 2. For Gen3 machines which
+	// dictate a specific number of local ssds, zero (or unset) means to use
+	// the default number of local ssds that goes with that machine type.
+	// For example, for a c3-standard-8-lssd machine, 2 local ssds would be
+	// provisioned. For c3-standard-8 (which doesn't support local ssds), 0
+	// will be provisioned. See
+	// https://cloud.google.com/compute/docs/disks/local-ssd#choose_number_local_ssds
+	// for more info.
 	LocalSsdCount int64 `json:"localSsdCount,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "LocalSsdCount") to
@@ -4297,6 +4390,18 @@ type NetworkConfig struct {
 	// Gateway API on this cluster.
 	GatewayApiConfig *GatewayAPIConfig `json:"gatewayApiConfig,omitempty"`
 
+	// InTransitEncryptionConfig: Specify the details of in-transit
+	// encryption.
+	//
+	// Possible values:
+	//   "IN_TRANSIT_ENCRYPTION_CONFIG_UNSPECIFIED" - Unspecified, will be
+	// inferred as default - IN_TRANSIT_ENCRYPTION_UNSPECIFIED.
+	//   "IN_TRANSIT_ENCRYPTION_DISABLED" - In-transit encryption is
+	// disabled.
+	//   "IN_TRANSIT_ENCRYPTION_INTER_NODE_TRANSPARENT" - Data in-transit is
+	// encrypted using inter-node transparent encryption.
+	InTransitEncryptionConfig string `json:"inTransitEncryptionConfig,omitempty"`
+
 	// Network: Output only. The relative name of the Google Compute Engine
 	// network(https://cloud.google.com/compute/docs/networks-and-firewalls#n
 	// etworks) to which the cluster is connected. Example:
@@ -4562,6 +4667,9 @@ type NodeConfig struct {
 	// 'pd-standard'
 	DiskType string `json:"diskType,omitempty"`
 
+	// EnableConfidentialStorage: Optional. Reserved for future use.
+	EnableConfidentialStorage bool `json:"enableConfidentialStorage,omitempty"`
+
 	// EphemeralStorageLocalSsdConfig: Parameters for the node ephemeral
 	// storage using Local SSDs. If unspecified, ephemeral storage is backed
 	// by the boot disk.
@@ -4677,8 +4785,16 @@ type NodeConfig struct {
 	// annotate any related Google Compute Engine resources.
 	ResourceLabels map[string]string `json:"resourceLabels,omitempty"`
 
+	// ResourceManagerTags: A map of resource manager tag keys and values to
+	// be attached to the nodes.
+	ResourceManagerTags *ResourceManagerTags `json:"resourceManagerTags,omitempty"`
+
 	// SandboxConfig: Sandbox configuration for this node.
 	SandboxConfig *SandboxConfig `json:"sandboxConfig,omitempty"`
+
+	// SecondaryBootDisks: List of secondary boot disks attached to the
+	// nodes.
+	SecondaryBootDisks []*SecondaryBootDisk `json:"secondaryBootDisks,omitempty"`
 
 	// ServiceAccount: The Google Cloud Platform Service Account to be used
 	// by the node VMs. Specify the email address of the Service Account;
@@ -5074,6 +5190,10 @@ type NodePool struct {
 	// this node pool.
 	PodIpv4CidrSize int64 `json:"podIpv4CidrSize,omitempty"`
 
+	// QueuedProvisioning: Specifies the configuration of queued
+	// provisioning.
+	QueuedProvisioning *QueuedProvisioning `json:"queuedProvisioning,omitempty"`
+
 	// SelfLink: [Output only] Server-defined URL for the resource.
 	SelfLink string `json:"selfLink,omitempty"`
 
@@ -5152,6 +5272,11 @@ type NodePoolAutoConfig struct {
 	// are specified by the client during cluster creation. Each tag within
 	// the list must comply with RFC1035.
 	NetworkTags *NetworkTags `json:"networkTags,omitempty"`
+
+	// ResourceManagerTags: Resource manager tag keys and values to be
+	// attached to the nodes for managing Compute Engine firewalls using
+	// Network Firewall Policies.
+	ResourceManagerTags *ResourceManagerTags `json:"resourceManagerTags,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "NetworkTags") to
 	// unconditionally include in API requests. By default, fields with
@@ -5516,6 +5641,9 @@ type Operation struct {
 	// For more details, see [documentation on
 	// resizes](https://cloud.google.com/kubernetes-engine/docs/concepts/main
 	// tenance-windows-and-exclusions#repairs).
+	//   "FLEET_FEATURE_UPGRADE" - Fleet features of GKE Enterprise are
+	// being upgraded. The cluster should be assumed to be blocked for other
+	// upgrades until the operation finishes.
 	OperationType string `json:"operationType,omitempty"`
 
 	// Progress: Output only. [Output only] Progress information for an
@@ -5638,6 +5766,40 @@ type OperationProgress struct {
 
 func (s *OperationProgress) MarshalJSON() ([]byte, error) {
 	type NoMethod OperationProgress
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// ParentProductConfig: ParentProductConfig is the configuration of the
+// parent product of the cluster. This field is used by Google internal
+// products that are built on top of a GKE cluster and take the
+// ownership of the cluster.
+type ParentProductConfig struct {
+	// Labels: Labels contain the configuration of the parent product.
+	Labels map[string]string `json:"labels,omitempty"`
+
+	// ProductName: Name of the parent product associated with the cluster.
+	ProductName string `json:"productName,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Labels") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Labels") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *ParentProductConfig) MarshalJSON() ([]byte, error) {
+	type NoMethod ParentProductConfig
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -5843,6 +6005,37 @@ type PubSub struct {
 
 func (s *PubSub) MarshalJSON() ([]byte, error) {
 	type NoMethod PubSub
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
+// QueuedProvisioning: QueuedProvisioning defines the queued
+// provisioning used by the node pool.
+type QueuedProvisioning struct {
+	// Enabled: Denotes that this nodepool is QRM specific, meaning nodes
+	// can be only obtained through queuing via the Cluster Autoscaler
+	// ProvisioningRequest API.
+	Enabled bool `json:"enabled,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Enabled") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Enabled") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *QueuedProvisioning) MarshalJSON() ([]byte, error) {
+	type NoMethod QueuedProvisioning
 	raw := NoMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
@@ -6150,6 +6343,43 @@ func (s *ResourceLimit) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// ResourceManagerTags: A map of resource manager tag keys and values to
+// be attached to the nodes for managing Compute Engine firewalls using
+// Network Firewall Policies. Tags must be according to specifications
+// in
+// https://cloud.google.com/vpc/docs/tags-firewalls-overview#specifications.
+// A maximum of 5 tag key-value pairs can be specified. Existing tags
+// will be replaced with new values.
+type ResourceManagerTags struct {
+	// Tags: TagKeyValue must be in one of the following formats
+	// ([KEY]=[VALUE]) 1. `tagKeys/{tag_key_id}=tagValues/{tag_value_id}` 2.
+	// `{org_id}/{tag_key_name}={tag_value_name}` 3.
+	// `{project_id}/{tag_key_name}={tag_value_name}`
+	Tags map[string]string `json:"tags,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Tags") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Tags") to include in API
+	// requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *ResourceManagerTags) MarshalJSON() ([]byte, error) {
+	type NoMethod ResourceManagerTags
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // ResourceUsageExportConfig: Configuration for exporting cluster
 // resource usages.
 type ResourceUsageExportConfig struct {
@@ -6279,6 +6509,43 @@ func (s *SandboxConfig) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// SecondaryBootDisk: SecondaryBootDisk represents a persistent disk
+// attached to a node with special configurations based on its mode.
+type SecondaryBootDisk struct {
+	// DiskImage: Fully-qualified resource ID for an existing disk image.
+	DiskImage string `json:"diskImage,omitempty"`
+
+	// Mode: Disk mode (container image cache, etc.)
+	//
+	// Possible values:
+	//   "MODE_UNSPECIFIED" - MODE_UNSPECIFIED is when mode is not set.
+	//   "CONTAINER_IMAGE_CACHE" - CONTAINER_IMAGE_CACHE is for using the
+	// secondary boot disk as a container image cache.
+	Mode string `json:"mode,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "DiskImage") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "DiskImage") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *SecondaryBootDisk) MarshalJSON() ([]byte, error) {
+	type NoMethod SecondaryBootDisk
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // SecurityBulletinEvent: SecurityBulletinEvent is a notification sent
 // to customers when a security bulletin has been posted that they are
 // vulnerable to.
@@ -6372,6 +6639,8 @@ type SecurityPostureConfig struct {
 	// cluster.
 	//   "VULNERABILITY_BASIC" - Applies basic vulnerability scanning on the
 	// cluster.
+	//   "VULNERABILITY_ENTERPRISE" - Applies the Security Posture's
+	// vulnerability on cluster Enterprise level features.
 	VulnerabilityMode string `json:"vulnerabilityMode,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Mode") to
@@ -7332,6 +7601,34 @@ func (s *StartIPRotationRequest) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
 }
 
+// StatefulHAConfig: Configuration for the Stateful HA add-on.
+type StatefulHAConfig struct {
+	// Enabled: Whether the Stateful HA add-on is enabled for this cluster.
+	Enabled bool `json:"enabled,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Enabled") to
+	// unconditionally include in API requests. By default, fields with
+	// empty or default values are omitted from API requests. However, any
+	// non-pointer, non-interface field appearing in ForceSendFields will be
+	// sent to the server regardless of whether the field is empty or not.
+	// This may be used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+
+	// NullFields is a list of field names (e.g. "Enabled") to include in
+	// API requests with the JSON null value. By default, fields with empty
+	// values are omitted from API requests. However, any field with an
+	// empty value appearing in NullFields will be sent to the server as
+	// null. It is an error if a field in this list has a non-empty value.
+	// This may be used to include null fields in Patch requests.
+	NullFields []string `json:"-"`
+}
+
+func (s *StatefulHAConfig) MarshalJSON() ([]byte, error) {
+	type NoMethod StatefulHAConfig
+	raw := NoMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields, s.NullFields)
+}
+
 // Status: The `Status` type defines a logical error model that is
 // suitable for different programming environments, including REST APIs
 // and RPC APIs. It is used by gRPC (https://github.com/grpc). Each
@@ -7785,9 +8082,19 @@ type UpdateNodePoolRequest struct {
 	// This field has been deprecated and replaced by the name field.
 	ProjectId string `json:"projectId,omitempty"`
 
+	// QueuedProvisioning: Specifies the configuration of queued
+	// provisioning.
+	QueuedProvisioning *QueuedProvisioning `json:"queuedProvisioning,omitempty"`
+
 	// ResourceLabels: The resource labels for the node pool to use to
 	// annotate any related Google Compute Engine resources.
 	ResourceLabels *ResourceLabels `json:"resourceLabels,omitempty"`
+
+	// ResourceManagerTags: Desired resource manager tag keys and values to
+	// be attached to the nodes for managing Compute Engine firewalls using
+	// Network Firewall Policies. Existing tags will be replaced with new
+	// values.
+	ResourceManagerTags *ResourceManagerTags `json:"resourceManagerTags,omitempty"`
 
 	// Tags: The desired network tags to be applied to all nodes in the node
 	// pool. If this field is not present, the tags will not be changed.
@@ -9548,8 +9855,7 @@ type ProjectsLocationsClustersGetJwksCall struct {
 }
 
 // GetJwks: Gets the public component of the cluster signing keys in
-// JSON Web Key format. This API is not yet intended for general use,
-// and is not available for all clusters.
+// JSON Web Key format.
 //
 //   - parent: The cluster (project, location, cluster name) to get keys
 //     for. Specified in the format `projects/*/locations/*/clusters/*`.
@@ -9658,7 +9964,7 @@ func (c *ProjectsLocationsClustersGetJwksCall) Do(opts ...googleapi.CallOption) 
 	}
 	return ret, nil
 	// {
-	//   "description": "Gets the public component of the cluster signing keys in JSON Web Key format. This API is not yet intended for general use, and is not available for all clusters.",
+	//   "description": "Gets the public component of the cluster signing keys in JSON Web Key format.",
 	//   "flatPath": "v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/jwks",
 	//   "httpMethod": "GET",
 	//   "id": "container.projects.locations.clusters.getJwks",
@@ -13217,8 +13523,7 @@ type ProjectsLocationsClustersWellKnownGetOpenidConfigurationCall struct {
 // GetOpenidConfiguration: Gets the OIDC discovery document for the
 // cluster. See the OpenID Connect Discovery 1.0 specification
 // (https://openid.net/specs/openid-connect-discovery-1_0.html) for
-// details. This API is not yet intended for general use, and is not
-// available for all clusters.
+// details.
 //
 //   - parent: The cluster (project, location, cluster name) to get the
 //     discovery document for. Specified in the format
@@ -13328,7 +13633,7 @@ func (c *ProjectsLocationsClustersWellKnownGetOpenidConfigurationCall) Do(opts .
 	}
 	return ret, nil
 	// {
-	//   "description": "Gets the OIDC discovery document for the cluster. See the [OpenID Connect Discovery 1.0 specification](https://openid.net/specs/openid-connect-discovery-1_0.html) for details. This API is not yet intended for general use, and is not available for all clusters.",
+	//   "description": "Gets the OIDC discovery document for the cluster. See the [OpenID Connect Discovery 1.0 specification](https://openid.net/specs/openid-connect-discovery-1_0.html) for details.",
 	//   "flatPath": "v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/.well-known/openid-configuration",
 	//   "httpMethod": "GET",
 	//   "id": "container.projects.locations.clusters.well-known.getOpenid-configuration",
