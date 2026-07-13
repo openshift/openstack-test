@@ -52,9 +52,3 @@ func NewRunCommand(streams genericclioptions.IOStreams) *cobra.Command {
 	f.BindFlags(cmd.Flags())
 	return cmd
 }
-
-
-
-
-
-
