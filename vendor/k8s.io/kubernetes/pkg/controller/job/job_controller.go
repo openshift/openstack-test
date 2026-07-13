@@ -750,7 +750,7 @@ func (jm *Controller) syncJob(ctx context.Context, key string) (rErr error) {
 	active := int32(len(activePods))
 	newSucceededPods, newFailedPods := getNewFinishedPods(&job, pods, uncounted, expectedRmFinalizers)
 	succeeded := job.Status.Succeeded + int32(len(newSucceededPods)) + int32(len(uncounted.succeeded))
-	failed := job.Status.Failed + int32(len(newFailedPods)) + int32(len(uncounted.failed))
+	failed := job.Status.Failed + int32(nonIgnoredFailedPodsCount(&job, newFailedPods)) + int32(len(uncounted.failed))
 	var ready *int32
 	if feature.DefaultFeatureGate.Enabled(features.JobReadyPods) {
 		ready = pointer.Int32(countReadyPods(activePods))
@@ -762,17 +762,13 @@ func (jm *Controller) syncJob(ctx context.Context, key string) (rErr error) {
 		job.Status.StartTime = &now
 	}
 
-	newBackoffInfo := jm.backoffRecordStore.newBackoffRecord(jm.clock, key, newSucceededPods, newFailedPods)
+	newBackoffInfo := jm.backoffRecordStore.newBackoffRecord(key, newSucceededPods, newFailedPods)
 
 	var manageJobErr error
 	var finishedCondition *batch.JobCondition
 
 	jobHasNewFailure := failed > job.Status.Failed
-	// new failures happen when status does not reflect the failures and active
-	// is different than parallelism, otherwise the previous controller loop
-	// failed updating status so even if we pick up failure it is not a new one
-	exceedsBackoffLimit := jobHasNewFailure && (active != *job.Spec.Parallelism) &&
-		(failed > *job.Spec.BackoffLimit)
+	exceedsBackoffLimit := failed > *job.Spec.BackoffLimit
 
 	if feature.DefaultFeatureGate.Enabled(features.JobPodFailurePolicy) {
 		if failureTargetCondition := findConditionByType(job.Status.Conditions, batch.JobFailureTarget); failureTargetCondition != nil {
@@ -915,6 +911,19 @@ func (jm *Controller) deleteActivePods(ctx context.Context, job *batch.Job, pods
 	return successfulDeletes, errorFromChannel(errCh)
 }
 
+func nonIgnoredFailedPodsCount(job *batch.Job, failedPods []*v1.Pod) int {
+	result := len(failedPods)
+	if feature.DefaultFeatureGate.Enabled(features.JobPodFailurePolicy) && job.Spec.PodFailurePolicy != nil {
+		for _, p := range failedPods {
+			_, countFailed, _ := matchPodFailurePolicy(job.Spec.PodFailurePolicy, p)
+			if !countFailed {
+				result--
+			}
+		}
+	}
+	return result
+}
+
 // deleteJobPods deletes the pods, returns the number of successful removals
 // and any error.
 func (jm *Controller) deleteJobPods(ctx context.Context, job *batch.Job, jobKey string, pods []*v1.Pod) (int32, error) {
@@ -984,6 +993,7 @@ func (jm *Controller) trackJobStatusAndRemoveFinalizers(ctx context.Context, job
 		needsFlush = true
 	}
 	podFailureCountByPolicyAction := map[string]int{}
+	reachedMaxUncountedPods := false
 	for _, pod := range pods {
 		if !hasJobTrackingFinalizer(pod) || expectedRmFinalizers.Has(string(pod.UID)) {
 			// This pod was processed in a previous sync.
@@ -1048,6 +1058,7 @@ func (jm *Controller) trackJobStatusAndRemoveFinalizers(ctx context.Context, job
 			//
 			// The job will be synced again because the Job status and Pod updates
 			// will put the Job back to the work queue.
+			reachedMaxUncountedPods = true
 			break
 		}
 	}
@@ -1076,7 +1087,7 @@ func (jm *Controller) trackJobStatusAndRemoveFinalizers(ctx context.Context, job
 	if job, needsFlush, err = jm.flushUncountedAndRemoveFinalizers(ctx, job, podsToRemoveFinalizer, uidsWithFinalizer, &oldCounters, podFailureCountByPolicyAction, needsFlush, newBackoffRecord); err != nil {
 		return err
 	}
-	jobFinished := jm.enactJobFinished(job, finishedCond)
+	jobFinished := !reachedMaxUncountedPods && jm.enactJobFinished(job, finishedCond)
 	if jobFinished {
 		needsFlush = true
 	}
@@ -1342,15 +1353,7 @@ func getNewFinishedPods(job *batch.Job, pods []*v1.Pod, uncounted *uncountedTerm
 		return p.Status.Phase == v1.PodSucceeded
 	})
 	failedPods = getValidPodsWithFilter(job, pods, uncounted.Failed(), expectedRmFinalizers, func(p *v1.Pod) bool {
-		if feature.DefaultFeatureGate.Enabled(features.JobPodFailurePolicy) && job.Spec.PodFailurePolicy != nil {
-			if !isPodFailed(p, job) {
-				return false
-			}
-			_, countFailed, _ := matchPodFailurePolicy(job.Spec.PodFailurePolicy, p)
-			return countFailed
-		} else {
-			return isPodFailed(p, job)
-		}
+		return isPodFailed(p, job)
 	})
 	return succeededPods, failedPods
 }

@@ -159,7 +159,7 @@ func (c MetricConditions) Matches(sample *model.Sample) *MetricCondition {
 	return nil
 }
 
-func (c MetricConditions) MatchesInterval(alertInterval monitorapi.EventInterval) *MetricCondition {
+func (c MetricConditions) MatchesInterval(alertInterval monitorapi.Interval) *MetricCondition {
 
 	// Parse out the alertInterval:
 	checkAlertName := monitorapi.AlertFromLocator(alertInterval.Locator)
@@ -193,10 +193,28 @@ func RunQuery(ctx context.Context, prometheusClient prometheusv1.API, query stri
 }
 
 func RunQueryAtTime(ctx context.Context, prometheusClient prometheusv1.API, query string, evaluationTime time.Time) (*PrometheusResponse, error) {
-	result, warnings, err := prometheusClient.Query(ctx, query, evaluationTime)
-	if err != nil {
-		return nil, err
+	var lastErr error
+	var result model.Value
+	var warnings prometheusv1.Warnings
+	for i := 0; i < 5; i++ {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+		result, warnings, lastErr = prometheusClient.Query(ctx, query, evaluationTime)
+		if lastErr == nil {
+			break
+		}
+
+		select {
+		case <-time.After(10 * time.Second):
+		case <-ctx.Done():
+			break
+		}
 	}
+	if lastErr != nil {
+		return nil, lastErr
+	}
+
 	if len(warnings) > 0 {
 		framework.Logf("#### warnings \n\t%v\n", strings.Join(warnings, "\n\t"))
 	}
@@ -349,10 +367,28 @@ func FetchAlertingRules(promURL, bearerToken string) (map[string][]promv1.Alerti
 	return alertingRules, nil
 }
 
-// ValidateURL takes a URL as a string and a timeout.  The URL is
+func ValidateURL(rawURL string) error {
+	var u *url.URL
+	var err error
+	if u, err = url.Parse(rawURL); err != nil {
+		return err
+	}
+
+	if u.Scheme != "http" && u.Scheme != "https" {
+		errstr := fmt.Sprintf("%q: URL scheme is invalid, it should be 'http' or 'https'", rawURL)
+		return fmt.Errorf(errstr)
+	}
+	if u.Host == "" {
+		errstr := fmt.Sprintf("%q: host should not be empty", rawURL)
+		return fmt.Errorf(errstr)
+	}
+	return nil
+}
+
+// QueryURL takes a URL as a string and a timeout.  The URL is
 // parsed, then fetched until a 200 response is received or the timeout
 // is reached.
-func ValidateURL(rawURL string, timeout time.Duration) error {
+func QueryURL(rawURL string, timeout time.Duration) error {
 	if _, err := url.Parse(rawURL); err != nil {
 		return err
 	}
@@ -360,7 +396,7 @@ func ValidateURL(rawURL string, timeout time.Duration) error {
 	return wait.PollImmediate(1*time.Second, timeout, func() (done bool, err error) {
 		resp, err := http.Get(rawURL)
 		if err != nil {
-			framework.Logf("validateURL(%q) error: %v", err)
+			framework.Logf("QueryURL(%q) error: %v", rawURL, err)
 			return false, nil
 		}
 
@@ -370,7 +406,7 @@ func ValidateURL(rawURL string, timeout time.Duration) error {
 			return true, nil
 		}
 
-		framework.Logf("validateURL(%q) got non-200 response: %d", rawURL, resp.StatusCode)
+		framework.Logf("QueryURL(%q) got non-200 response: %d", rawURL, resp.StatusCode)
 		return false, nil
 	})
 }
