@@ -27,11 +27,11 @@ import (
 	"k8s.io/kubernetes/pkg/features"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpumanager/state"
 	"k8s.io/kubernetes/pkg/kubelet/cm/cpumanager/topology"
-	"k8s.io/kubernetes/pkg/kubelet/cm/cpuset"
 	"k8s.io/kubernetes/pkg/kubelet/cm/topologymanager"
 	"k8s.io/kubernetes/pkg/kubelet/cm/topologymanager/bitmask"
 	"k8s.io/kubernetes/pkg/kubelet/managed"
 	"k8s.io/kubernetes/pkg/kubelet/metrics"
+	"k8s.io/utils/cpuset"
 )
 
 const (
@@ -214,7 +214,9 @@ func (p *staticPolicy) validateState(s state.State) error {
 	// 1. Check if the reserved cpuset is not part of default cpuset because:
 	// - kube/system reserved have changed (increased) - may lead to some containers not being able to start
 	// - user tampered with file
-	if !p.reservedCPUs.Intersection(tmpDefaultCPUset).Equals(p.reservedCPUs) {
+	// 2. This only applies when managed mode is disabled. Active workload partitioning feature
+	//    removes the reserved cpus from the default cpu mask on purpose.
+	if !managed.IsEnabled() && !p.reservedCPUs.Intersection(tmpDefaultCPUset).Equals(p.reservedCPUs) {
 		return fmt.Errorf("not all reserved cpus: \"%s\" are present in defaultCpuSet: \"%s\"",
 			p.reservedCPUs.String(), tmpDefaultCPUset.String())
 	}
@@ -245,9 +247,17 @@ func (p *staticPolicy) validateState(s state.State) error {
 		}
 	}
 	totalKnownCPUs = totalKnownCPUs.Union(tmpCPUSets...)
-	if !totalKnownCPUs.Equals(p.topology.CPUDetails.CPUs()) {
+	availableCPUs := p.topology.CPUDetails.CPUs()
+
+	// CPU (workload) partitioning removes reserved cpus
+	// from the default mask intentionally
+	if managed.IsEnabled() {
+		availableCPUs = availableCPUs.Difference(p.reservedCPUs)
+	}
+
+	if !totalKnownCPUs.Equals(availableCPUs) {
 		return fmt.Errorf("current set of available CPUs \"%s\" doesn't match with CPUs in state \"%s\"",
-			p.topology.CPUDetails.CPUs().String(), totalKnownCPUs.String())
+			availableCPUs.String(), totalKnownCPUs.String())
 	}
 
 	return nil
@@ -589,7 +599,7 @@ func (p *staticPolicy) GetPodTopologyHints(s state.State, pod *v1.Pod) map[strin
 	}
 }
 
-// generateCPUtopologyHints generates a set of TopologyHints given the set of
+// generateCPUTopologyHints generates a set of TopologyHints given the set of
 // available CPUs and the number of CPUs being requested.
 //
 // It follows the convention of marking all hints that have the same number of

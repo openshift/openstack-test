@@ -70,9 +70,8 @@ func (fs *DefaultFs) Rename(oldpath, newpath string) error {
 	return os.Rename(oldpath, newpath)
 }
 
-// MkdirAll via os.MkdirAll
 func (fs *DefaultFs) MkdirAll(path string, perm os.FileMode) error {
-	return os.MkdirAll(fs.prefix(path), perm)
+	return MkdirAll(fs.prefix(path), perm)
 }
 
 // Chtimes via os.Chtimes
@@ -85,7 +84,7 @@ func (fs *DefaultFs) RemoveAll(path string) error {
 	return os.RemoveAll(fs.prefix(path))
 }
 
-// Remove via os.RemoveAll
+// Remove via os.Remove
 func (fs *DefaultFs) Remove(name string) error {
 	return os.Remove(fs.prefix(name))
 }

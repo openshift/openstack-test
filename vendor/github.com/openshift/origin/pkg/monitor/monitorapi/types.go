@@ -8,10 +8,36 @@ import (
 	"strings"
 	"time"
 
-	"github.com/openshift/origin/pkg/synthetictests/platformidentification"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
+
+// TODO most consumers only need writers or readers.  switch.
+type Recorder interface {
+	RecorderReader
+	RecorderWriter
+}
+
+type RecorderReader interface {
+	// Intervals returns a sorted snapshot of intervals in the selected timeframe
+	Intervals(from, to time.Time) Intervals
+	// CurrentResourceState returns a list of all known resources of a given type at the instant called.
+	CurrentResourceState() ResourcesMap
+}
+
+type RecorderWriter interface {
+	// RecordResource stores a resource for later serialization.  Deletion is not tracked, so this can be used
+	// to determine the final state of resource that are deleted in a namespace.
+	// Annotations are added to indicate number of updates and the number of recreates.
+	RecordResource(resourceType string, obj runtime.Object)
+
+	Record(conditions ...Condition)
+	RecordAt(t time.Time, conditions ...Condition)
+
+	AddIntervals(eventIntervals ...Interval)
+	StartInterval(t time.Time, condition Condition) int
+	EndInterval(startedInterval int, t time.Time) *Interval
+}
 
 const (
 	// ObservedUpdateCountAnnotation is an annotation added locally (in the monitor only), that tracks how many updates
@@ -24,15 +50,15 @@ const (
 	ObservedRecreationCountAnnotation = "monitor.openshift.io/observed-recreation-count"
 )
 
-type EventLevel int
+type IntervalLevel int
 
 const (
-	Info EventLevel = iota
+	Info IntervalLevel = iota
 	Warning
 	Error
 )
 
-func (e EventLevel) String() string {
+func (e IntervalLevel) String() string {
 	switch e {
 	case Info:
 		return "Info"
@@ -45,7 +71,7 @@ func (e EventLevel) String() string {
 	}
 }
 
-func EventLevelFromString(s string) (EventLevel, error) {
+func ConditionLevelFromString(s string) (IntervalLevel, error) {
 	switch s {
 	case "Info":
 		return Info, nil
@@ -60,35 +86,336 @@ func EventLevelFromString(s string) (EventLevel, error) {
 }
 
 type Condition struct {
-	Level EventLevel
+	Level IntervalLevel
 
-	Locator string
-	Message string
+	// TODO: Goal here is to drop Locator/Message, and rename the structured variants to Locator/Message
+	Locator           string
+	StructuredLocator Locator
+	Message           string
+	StructuredMessage Message
 }
 
-type EventInterval struct {
+type LocatorType string
+
+const (
+	LocatorTypePod               LocatorType = "Pod"
+	LocatorTypeContainer         LocatorType = "Container"
+	LocatorTypeNode              LocatorType = "Node"
+	LocatorTypeAlert             LocatorType = "Alert"
+	LocatorTypeClusterOperator   LocatorType = "ClusterOperator"
+	LocatorTypeOther             LocatorType = "Other"
+	LocatorTypeDisruption        LocatorType = "Disruption"
+	LocatorTypeKubeEvent         LocatorType = "KubeEvent"
+	LocatorTypeE2ETest           LocatorType = "E2ETest"
+	LocatorTypeAPIServerShutdown LocatorType = "APIServerShutdown"
+	LocatorTypeClusterVersion    LocatorType = "ClusterVersion"
+	LocatorTypeKind              LocatorType = "Kind"
+	LocatorTypeCloudMetrics      LocatorType = "CloudMetrics"
+)
+
+type LocatorKey string
+
+const (
+	LocatorServer             LocatorKey = "server"   // TODO this looks like a bad name.  Aggregated apiserver?  Do we even need it?
+	LocatorShutdown           LocatorKey = "shutdown" // TODO this should not exist.  This is a reason and message
+	LocatorClusterOperatorKey LocatorKey = "clusteroperator"
+	LocatorClusterVersionKey  LocatorKey = "clusterversion"
+	LocatorNamespaceKey       LocatorKey = "namespace"
+	LocatorDeploymentKey      LocatorKey = "deployment"
+	LocatorNodeKey            LocatorKey = "node"
+	LocatorEtcdMemberKey      LocatorKey = "etcd-member"
+	LocatorKindKey            LocatorKey = "kind"
+	LocatorNameKey            LocatorKey = "name"
+	LocatorHmsgKey            LocatorKey = "hmsg"
+	LocatorPodKey             LocatorKey = "pod"
+	LocatorUIDKey             LocatorKey = "uid"
+	LocatorMirrorUIDKey       LocatorKey = "mirror-uid"
+	LocatorContainerKey       LocatorKey = "container"
+	LocatorAlertKey           LocatorKey = "alert"
+	LocatorRouteKey           LocatorKey = "route"
+	// LocatorBackendDisruptionNameKey holds the value used to store and locate historical data related to the amount of disruption.
+	LocatorBackendDisruptionNameKey LocatorKey = "backend-disruption-name"
+	LocatorDisruptionKey            LocatorKey = "disruption"
+	LocatorE2ETestKey               LocatorKey = "e2e-test"
+	LocatorLoadBalancerKey          LocatorKey = "load-balancer"
+	LocatorConnectionKey            LocatorKey = "connection"
+	LocatorProtocolKey              LocatorKey = "protocol"
+	LocatorTargetKey                LocatorKey = "target"
+	LocatorRowKey                   LocatorKey = "row"
+	LocatorShutdownKey              LocatorKey = "shutdown"
+	LocatorServerKey                LocatorKey = "server"
+	LocatorMetricKey                LocatorKey = "metric"
+)
+
+type Locator struct {
+	Type LocatorType `json:"type"`
+
+	// annotations will include the Reason and Cause under their respective keys
+	Keys map[LocatorKey]string `json:"keys"`
+}
+
+type IntervalReason string
+
+const (
+	IPTablesNotPermitted IntervalReason = "iptables-operation-not-permitted"
+
+	DisruptionBeganEventReason              IntervalReason = "DisruptionBegan"
+	DisruptionEndedEventReason              IntervalReason = "DisruptionEnded"
+	DisruptionSamplerOutageBeganEventReason IntervalReason = "DisruptionSamplerOutageBegan"
+	GracefulAPIServerShutdown               IntervalReason = "GracefulShutdownWindow"
+
+	HttpClientConnectionLost IntervalReason = "HttpClientConnectionLost"
+
+	PodPendingReason               IntervalReason = "PodIsPending"
+	PodNotPendingReason            IntervalReason = "PodIsNotPending"
+	PodReasonCreated               IntervalReason = "Created"
+	PodReasonGracefulDeleteStarted IntervalReason = "GracefulDelete"
+	PodReasonForceDelete           IntervalReason = "ForceDelete"
+	PodReasonDeleted               IntervalReason = "Deleted"
+	PodReasonScheduled             IntervalReason = "Scheduled"
+	PodReasonEvicted               IntervalReason = "Evicted"
+	PodReasonPreempted             IntervalReason = "Preempted"
+	PodReasonFailed                IntervalReason = "Failed"
+
+	ContainerReasonContainerExit      IntervalReason = "ContainerExit"
+	ContainerReasonContainerStart     IntervalReason = "ContainerStart"
+	ContainerReasonContainerWait      IntervalReason = "ContainerWait"
+	ContainerReasonReadinessFailed    IntervalReason = "ReadinessFailed"
+	ContainerReasonReadinessErrored   IntervalReason = "ReadinessErrored"
+	ContainerReasonStartupProbeFailed IntervalReason = "StartupProbeFailed"
+	ContainerReasonReady              IntervalReason = "Ready"
+	ContainerReasonRestarted          IntervalReason = "Restarted"
+	ContainerReasonNotReady           IntervalReason = "NotReady"
+	TerminationStateCleared           IntervalReason = "TerminationStateCleared"
+
+	PodReasonDeletedBeforeScheduling IntervalReason = "DeletedBeforeScheduling"
+	PodReasonDeletedAfterCompletion  IntervalReason = "DeletedAfterCompletion"
+
+	NodeUpdateReason   IntervalReason = "NodeUpdate"
+	NodeNotReadyReason IntervalReason = "NotReady"
+	NodeFailedLease    IntervalReason = "FailedToUpdateLease"
+
+	MachineConfigChangeReason  IntervalReason = "MachineConfigChange"
+	MachineConfigReachedReason IntervalReason = "MachineConfigReached"
+
+	Timeout IntervalReason = "Timeout"
+
+	E2ETestStarted  IntervalReason = "E2ETestStarted"
+	E2ETestFinished IntervalReason = "E2ETestFinished"
+
+	CloudMetricsExtrenuous IntervalReason = "CloudMetricsExtrenuous"
+)
+
+type AnnotationKey string
+
+const (
+	AnnotationAlertState         AnnotationKey = "alertstate"
+	AnnotationState              AnnotationKey = "state"
+	AnnotationSeverity           AnnotationKey = "severity"
+	AnnotationReason             AnnotationKey = "reason"
+	AnnotationContainerExitCode  AnnotationKey = "code"
+	AnnotationCause              AnnotationKey = "cause"
+	AnnotationConfig             AnnotationKey = "config"
+	AnnotationContainer          AnnotationKey = "container"
+	AnnotationImage              AnnotationKey = "image"
+	AnnotationInteresting        AnnotationKey = "interesting"
+	AnnotationCount              AnnotationKey = "count"
+	AnnotationNode               AnnotationKey = "node"
+	AnnotationEtcdLocalMember    AnnotationKey = "local-member-id"
+	AnnotationEtcdTerm           AnnotationKey = "term"
+	AnnotationEtcdLeader         AnnotationKey = "leader"
+	AnnotationPreviousEtcdLeader AnnotationKey = "prev-leader"
+	AnnotationPathological       AnnotationKey = "pathological"
+	AnnotationConstructed        AnnotationKey = "constructed"
+	AnnotationPhase              AnnotationKey = "phase"
+	AnnotationIsStaticPod        AnnotationKey = "mirrored"
+	// TODO this looks wrong. seems like it ought to be set in the to/from
+	AnnotationDuration       AnnotationKey = "duration"
+	AnnotationRequestAuditID AnnotationKey = "request-audit-id"
+	AnnotationRoles          AnnotationKey = "roles"
+	AnnotationStatus         AnnotationKey = "status"
+	AnnotationCondition      AnnotationKey = "condition"
+)
+
+// ConstructionOwner was originally meant to signify that an interval was derived from other intervals.
+// This allowed for the possibility of testing interval generation by feeding in only source intervals,
+// and checking what was generated.
+// TODO: likely want to drop this concept in favor of Source, plus a flag automatically applied to any
+// intervals coming back from the monitor test call to generate calculated intervals. Source
+// will replace the use of what constructed the interval, and the flag will allow us to see what is derived
+// and what isn't.
+type ConstructionOwner string
+
+const (
+	ConstructionOwnerNodeLifecycle = "node-lifecycle-constructor"
+	ConstructionOwnerPodLifecycle  = "pod-lifecycle-constructor"
+	ConstructionOwnerEtcdLifecycle = "etcd-lifecycle-constructor"
+)
+
+type Message struct {
+	// TODO: reason/cause both fields and annotations...
+	Reason       IntervalReason `json:"reason"`
+	Cause        string         `json:"cause"`
+	HumanMessage string         `json:"humanMessage"`
+
+	// annotations will include the Reason and Cause under their respective keys
+	Annotations map[AnnotationKey]string `json:"annotations"`
+}
+
+// IntervalSource is used to type/categorize all intervals based on what created them.
+// This is intended to be used to group, and when combined with the display flag, signal that
+// they should be visible by default in the UIs that render interval charts.
+type IntervalSource string
+
+const (
+	SourceAlert                   IntervalSource = "Alert"
+	SourceAPIServerShutdown       IntervalSource = "APIServerShutdown"
+	SourceDisruption              IntervalSource = "Disruption"
+	SourceE2ETest                 IntervalSource = "E2ETest"
+	SourceKubeEvent               IntervalSource = "KubeEvent"
+	SourceNetworkManagerLog       IntervalSource = "NetworkMangerLog"
+	SourceNodeMonitor             IntervalSource = "NodeMonitor"
+	SourceSystemJournalScanner    IntervalSource = "KubeletLogScanner"
+	SourcePodLog                  IntervalSource = "PodLog"
+	SourcePodMonitor              IntervalSource = "PodMonitor"
+	APIServerGracefulShutdown     IntervalSource = "APIServerGracefulShutdown"
+	SourceTestData                IntervalSource = "TestData"                // some tests have no real source to assign
+	SourcePathologicalEventMarker IntervalSource = "PathologicalEventMarker" // not sure if this is really helpful since the events all have a different origin
+	SourceClusterOperatorMonitor  IntervalSource = "ClusterOperatorMonitor"
+	SourceOperatorState           IntervalSource = "OperatorState"
+	SourceNodeState                              = "NodeState"
+	SourcePodState                               = "PodState"
+	SourceCloudMetrics                           = "CloudMetrics"
+)
+
+type Interval struct {
+	// Deprecated: We hope to fold this into Interval itself.
 	Condition
+	Source IntervalSource
+
+	// Display is a very coarse hint to any UI that this event was considered important enough to *possibly* be displayed by the source that produced it.
+	// UI may apply further filtering.
+	Display bool
 
 	From time.Time
 	To   time.Time
 }
 
-func (i EventInterval) String() string {
+func (i Interval) String() string {
 	if i.From.Equal(i.To) {
 		return fmt.Sprintf("%s.%03d %s %s %s", i.From.Format("Jan 02 15:04:05"), i.From.Nanosecond()/int(time.Millisecond), i.Level.String()[:1], i.Locator, strings.Replace(i.Message, "\n", "\\n", -1))
 	}
 	duration := i.To.Sub(i.From)
 	if duration < time.Second {
-		return fmt.Sprintf("%s.%03d - %-5s %s %s %s", i.From.Format("Jan 02 15:04:05"), i.From.Nanosecond()/int(time.Millisecond), strconv.Itoa(int(duration/time.Millisecond))+"ms", i.Level.String()[:1], i.Locator, strings.Replace(i.Message, "\n", "\\n", -1))
+		return fmt.Sprintf("%s.%03d - %-5s %s %s %s",
+			i.From.Format("Jan 02 15:04:05"),
+			i.From.Nanosecond()/int(time.Millisecond),
+			strconv.Itoa(int(duration/time.Millisecond))+"ms",
+			i.Level.String()[:1],
+			i.Locator,
+			strings.Replace(i.Message, "\n", "\\n", -1))
 	}
-	return fmt.Sprintf("%s.%03d - %-5s %s %s %s", i.From.Format("Jan 02 15:04:05"), i.From.Nanosecond()/int(time.Millisecond), strconv.Itoa(int(duration/time.Second))+"s", i.Level.String()[:1], i.Locator, strings.Replace(i.Message, "\n", "\\n", -1))
+	return fmt.Sprintf("%s.%03d - %-5s %s %s %s",
+		i.From.Format("Jan 02 15:04:05"),
+		i.From.Nanosecond()/int(time.Millisecond), strconv.Itoa(int(duration/time.Second))+"s",
+		i.Level.String()[:1],
+		i.Locator,
+		strings.Replace(i.Message, "\n", "\\n", -1))
 }
 
-type IntervalFilter func(i EventInterval) bool
+func (i Message) OldMessage() string {
+	keys := sets.NewString()
+	for k := range i.Annotations {
+		keys.Insert(string(k))
+	}
+
+	annotations := []string{}
+	for _, k := range keys.List() {
+		v := i.Annotations[AnnotationKey(k)]
+		annotations = append(annotations, fmt.Sprintf("%v/%v", k, v))
+	}
+	annotationString := strings.Join(annotations, " ")
+
+	if len(i.HumanMessage) == 0 {
+		return annotationString
+	}
+
+	return strings.TrimSpace(fmt.Sprintf("%v %v", annotationString, i.HumanMessage))
+}
+
+func (i Locator) OldLocator() string {
+	keys := []string{}
+	for k := range i.Keys {
+		keys = append(keys, string(k))
+	}
+
+	keys = sortKeys(keys)
+
+	annotations := []string{}
+	for _, k := range keys {
+		v := i.Keys[LocatorKey(k)]
+		if LocatorKey(k) == LocatorE2ETestKey {
+			annotations = append(annotations, fmt.Sprintf("%v/%q", k, v))
+		} else {
+			annotations = append(annotations, fmt.Sprintf("%v/%v", k, v))
+		}
+	}
+
+	annotationString := strings.Join(annotations, " ")
+
+	return annotationString
+}
+
+// sortKeys ensures that some keys appear in the order we require (least specific to most), so rows with locators
+// are grouped together. (i.e. keeping containers within the same pod together, or rows for a specific container)
+// Blindly going through the keys results in alphabetical ordering, container comes first, and then we've
+// got container events separated from their pod events on the intervals chart.
+// This will hopefully eventually go away but for now we need it.
+// Courtesy of ChatGPT but unit tested.
+func sortKeys(keys []string) []string {
+
+	// Ensure these keys appear in this order. Other keys can be mixed in and will appear at the end in alphabetical
+	// order.
+	orderedKeys := []string{"namespace", "node", "pod", "uid", "server", "container", "shutdown", "row"}
+
+	// Create a map to store the indices of keys in the orderedKeys array.
+	// This will allow us to efficiently check if a key is in orderedKeys and find its position.
+	orderedKeyIndices := make(map[string]int)
+
+	for i, key := range orderedKeys {
+		orderedKeyIndices[key] = i
+	}
+
+	// Define a custom sorting function that orders the keys based on the orderedKeys array.
+	sort.Slice(keys, func(i, j int) bool {
+		// Get the indices of keys i and j in orderedKeys.
+		indexI, existsI := orderedKeyIndices[keys[i]]
+		indexJ, existsJ := orderedKeyIndices[keys[j]]
+
+		// If both keys exist in orderedKeys, sort them based on their order.
+		if existsI && existsJ {
+			return indexI < indexJ
+		}
+
+		// If only one of the keys exists in orderedKeys, move it to the front.
+		if existsI {
+			return true
+		} else if existsJ {
+			return false
+		}
+
+		// If neither key is in orderedKeys, sort alphabetically so we have predictable ordering
+		return keys[i] < keys[j]
+	})
+
+	return keys
+}
+
+type IntervalFilter func(i Interval) bool
 
 type IntervalFilters []IntervalFilter
 
-func (filters IntervalFilters) All(i EventInterval) bool {
+func (filters IntervalFilters) All(i Interval) bool {
 	for _, filter := range filters {
 		if !filter(i) {
 			return false
@@ -97,7 +424,7 @@ func (filters IntervalFilters) All(i EventInterval) bool {
 	return true
 }
 
-func (filters IntervalFilters) Any(i EventInterval) bool {
+func (filters IntervalFilters) Any(i Interval) bool {
 	for _, filter := range filters {
 		if filter(i) {
 			return true
@@ -106,11 +433,13 @@ func (filters IntervalFilters) Any(i EventInterval) bool {
 	return false
 }
 
-type Intervals []EventInterval
+type Intervals []Interval
 
 var _ sort.Interface = Intervals{}
 
 func (intervals Intervals) Less(i, j int) bool {
+	// currently synced with https://github.com/openshift/origin/blob/9b001745ec8006eb406bd92e3555d1070b9b656e/pkg/monitor/serialization/serialize.go#L175
+
 	switch d := intervals[i].From.Sub(intervals[j].From); {
 	case d < 0:
 		return true
@@ -123,7 +452,11 @@ func (intervals Intervals) Less(i, j int) bool {
 	case d > 0:
 		return false
 	}
-	return intervals[i].Message < intervals[j].Message
+	if intervals[i].Message != intervals[j].Message {
+		return intervals[i].Message < intervals[j].Message
+	}
+
+	return intervals[i].Locator < intervals[j].Locator
 }
 func (intervals Intervals) Len() int { return len(intervals) }
 func (intervals Intervals) Swap(i, j int) {
@@ -166,33 +499,43 @@ func (intervals Intervals) Duration(minCurrentDuration time.Duration) time.Durat
 }
 
 // EventIntervalMatchesFunc is a function for matching eventIntervales
-type EventIntervalMatchesFunc func(eventInterval EventInterval) bool
+type EventIntervalMatchesFunc func(eventInterval Interval) bool
 
 // IsErrorEvent returns true if the eventInterval is an Error
-func IsErrorEvent(eventInterval EventInterval) bool {
+func IsErrorEvent(eventInterval Interval) bool {
 	return eventInterval.Level == Error
 }
 
 // IsWarningEvent returns true if the eventInterval is an Warning
-func IsWarningEvent(eventInterval EventInterval) bool {
+func IsWarningEvent(eventInterval Interval) bool {
 	return eventInterval.Level == Warning
 }
 
 // IsInfoEvent returns true if the eventInterval is an Info
-func IsInfoEvent(eventInterval EventInterval) bool {
+func IsInfoEvent(eventInterval Interval) bool {
 	return eventInterval.Level == Info
 }
 
 // IsInE2ENamespace returns true if the eventInterval is in an e2e namespace
-func IsInE2ENamespace(eventInterval EventInterval) bool {
+func IsInE2ENamespace(eventInterval Interval) bool {
+	// Old style
 	if strings.Contains(eventInterval.Locator, "ns/e2e-") {
+		return true
+	}
+	// New style
+	if strings.Contains(eventInterval.Locator, "namespace/e2e-") {
 		return true
 	}
 	return false
 }
 
 func IsInNamespaces(namespaces sets.String) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
+		// For new, structured locators:
+		if ns, ok := eventInterval.StructuredLocator.Keys[LocatorNamespaceKey]; ok {
+			return namespaces.Has(ns)
+		}
+		// TODO: For legacy locators, can be removed soon
 		ns := NamespaceFromLocator(eventInterval.Locator)
 		return namespaces.Has(ns)
 	}
@@ -200,7 +543,7 @@ func IsInNamespaces(namespaces sets.String) EventIntervalMatchesFunc {
 
 // ContainsAllParts ensures that all listed key match at least one of the values.
 func ContainsAllParts(matchers map[string][]*regexp.Regexp) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		actualParts := LocatorParts(eventInterval.Locator)
 		for key, possibleValues := range matchers {
 			actualValue := actualParts[key]
@@ -223,7 +566,7 @@ func ContainsAllParts(matchers map[string][]*regexp.Regexp) EventIntervalMatches
 
 // NotContainsAllParts returns a function that returns false if any key matches.
 func NotContainsAllParts(matchers map[string][]*regexp.Regexp) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		actualParts := LocatorParts(eventInterval.Locator)
 		for key, possibleValues := range matchers {
 			actualValue := actualParts[key]
@@ -239,7 +582,7 @@ func NotContainsAllParts(matchers map[string][]*regexp.Regexp) EventIntervalMatc
 }
 
 func And(filters ...EventIntervalMatchesFunc) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		for _, filter := range filters {
 			if !filter(eventInterval) {
 				return false
@@ -250,7 +593,7 @@ func And(filters ...EventIntervalMatchesFunc) EventIntervalMatchesFunc {
 }
 
 func Or(filters ...EventIntervalMatchesFunc) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		for _, filter := range filters {
 			if filter(eventInterval) {
 				return true
@@ -261,68 +604,30 @@ func Or(filters ...EventIntervalMatchesFunc) EventIntervalMatchesFunc {
 }
 
 func Not(filter EventIntervalMatchesFunc) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		return !filter(eventInterval)
 	}
 }
 
 func StartedBefore(limit time.Time) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		return eventInterval.From.Before(limit)
 	}
 }
 
 func EndedAfter(limit time.Time) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		return eventInterval.To.After(limit)
 	}
 }
 
-func NodeUpdate(eventInterval EventInterval) bool {
+func NodeUpdate(eventInterval Interval) bool {
 	reason := ReasonFrom(eventInterval.Message)
-	return "NodeUpdate" == reason
-}
-
-func AlertFiringInNamespace(alertName, namespace string) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
-		return And(
-			func(eventInterval EventInterval) bool {
-				locatorParts := LocatorParts(eventInterval.Locator)
-				eventAlertName := AlertFrom(locatorParts)
-				if eventAlertName != alertName {
-					return false
-				}
-				if strings.Contains(eventInterval.Message, `alertstate="firing"`) {
-					return true
-				}
-				return false
-			},
-			InNamespace(namespace),
-		)(eventInterval)
-	}
-}
-
-func AlertPendingInNamespace(alertName, namespace string) EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
-		return And(
-			func(eventInterval EventInterval) bool {
-				locatorParts := LocatorParts(eventInterval.Locator)
-				eventAlertName := AlertFrom(locatorParts)
-				if eventAlertName != alertName {
-					return false
-				}
-				if strings.Contains(eventInterval.Message, `alertstate="pending"`) {
-					return true
-				}
-				return false
-			},
-			InNamespace(namespace),
-		)(eventInterval)
-	}
+	return NodeUpdateReason == reason
 }
 
 func AlertFiring() EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		if strings.Contains(eventInterval.Message, `alertstate="firing"`) {
 			return true
 		}
@@ -331,28 +636,11 @@ func AlertFiring() EventIntervalMatchesFunc {
 }
 
 func AlertPending() EventIntervalMatchesFunc {
-	return func(eventInterval EventInterval) bool {
+	return func(eventInterval Interval) bool {
 		if strings.Contains(eventInterval.Message, `alertstate="pending"`) {
 			return true
 		}
 		return false
-	}
-}
-
-// InNamespace if namespace == "", then every event matches, same as kube-api
-func InNamespace(namespace string) func(event EventInterval) bool {
-	return func(event EventInterval) bool {
-		switch {
-		case len(namespace) == 0:
-			return true
-
-		case namespace == platformidentification.NamespaceOther:
-			eventNamespace := NamespaceFromLocator(event.Locator)
-			return !platformidentification.KnownNamespaces.Has(eventNamespace)
-		default:
-			eventNamespace := NamespaceFromLocator(event.Locator)
-			return eventNamespace == namespace
-		}
 	}
 }
 
@@ -404,48 +692,39 @@ func (intervals Intervals) Cut(from, to time.Time) Intervals {
 	return copied
 }
 
-// CopyAndSort assumes intervals is unsorted and returns a sorted copy of intervals
-// for all intervals between from and to.
-func (intervals Intervals) CopyAndSort(from, to time.Time) Intervals {
-	copied := make(Intervals, 0, len(intervals))
-
-	if from.IsZero() && to.IsZero() {
-		for _, e := range intervals {
-			copied = append(copied, e)
-		}
-		sort.Sort(copied)
-		return copied
-	}
-
-	for _, e := range intervals {
-		if !e.From.After(from) {
-			continue
-		}
-		if !to.IsZero() && !e.From.Before(to) {
-			continue
-		}
-		copied = append(copied, e)
-	}
-	sort.Sort(copied)
-	return copied
-
-}
-
 // Slice works on a sorted Intervals list and returns the set of intervals
-// that start after from and start before to (if to is set). The zero value will
-// return all elements. If intervals is unsorted the result is undefined. This
+// The intervals start from the first Interval that ends AFTER the argument.From.
+// The last interval is one before the first Interval that starts before the argument.To
+// The zero value will return all elements. If intervals is unsorted the result is undefined. This
 // runs in O(n).
 func (intervals Intervals) Slice(from, to time.Time) Intervals {
 	if from.IsZero() && to.IsZero() {
 		return intervals
 	}
 
-	first := sort.Search(len(intervals), func(i int) bool {
-		return intervals[i].From.After(from)
-	})
-	if first == -1 {
-		return nil
+	// forget being fancy, just iterate from the beginning.
+	first := -1
+	if from.IsZero() {
+		first = 0
+	} else {
+		for i := range intervals {
+			curr := intervals[i]
+			if curr.To.IsZero() {
+				if curr.From.After(from) || curr.From == from {
+					first = i
+					break
+				}
+			}
+			if curr.To.After(from) || curr.To == from {
+				first = i
+				break
+			}
+		}
 	}
+	if first == -1 || len(intervals) == 0 {
+		return Intervals{}
+	}
+
 	if to.IsZero() {
 		return intervals[first:]
 	}
@@ -460,10 +739,13 @@ func (intervals Intervals) Slice(from, to time.Time) Intervals {
 // Clamp sets all zero value From or To fields to from or to.
 func (intervals Intervals) Clamp(from, to time.Time) {
 	for i := range intervals {
-		if intervals[i].From.IsZero() {
+		if intervals[i].From.Before(from) {
 			intervals[i].From = from
 		}
 		if intervals[i].To.IsZero() {
+			intervals[i].To = to
+		}
+		if intervals[i].To.After(to) {
 			intervals[i].To = to
 		}
 	}
