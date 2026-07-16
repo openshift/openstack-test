@@ -77,6 +77,10 @@ type Interface interface {
 
 	// WatchTracker provides the WatchTracker interface.
 	WatchTracker
+
+	// MaxSeatsTracker is invoked from the work estimator to track max seats
+	// that can be occupied by a request for a priority level.
+	MaxSeatsTracker
 }
 
 // This request filter implements https://github.com/kubernetes/enhancements/blob/master/keps/sig-api-machinery/1040-priority-and-fairness/README.md
@@ -86,7 +90,6 @@ func New(
 	informerFactory kubeinformers.SharedInformerFactory,
 	flowcontrolClient flowcontrolclient.FlowcontrolV1beta3Interface,
 	serverConcurrencyLimit int,
-	requestWaitLimit time.Duration,
 ) Interface {
 	clk := eventclock.Real{}
 	return NewTestable(TestableConfig{
@@ -97,7 +100,6 @@ func New(
 		InformerFactory:        informerFactory,
 		FlowcontrolClient:      flowcontrolClient,
 		ServerConcurrencyLimit: serverConcurrencyLimit,
-		RequestWaitLimit:       requestWaitLimit,
 		ReqsGaugeVec:           metrics.PriorityLevelConcurrencyGaugeVec,
 		ExecSeatsGaugeVec:      metrics.PriorityLevelExecutionSeatsGaugeVec,
 		QueueSetFactory:        fqs.NewQueueSetFactory(clk),
@@ -134,9 +136,6 @@ type TestableConfig struct {
 
 	// ServerConcurrencyLimit for the controller to enforce
 	ServerConcurrencyLimit int
-
-	// RequestWaitLimit configured on the server
-	RequestWaitLimit time.Duration
 
 	// GaugeVec for metrics about requests, broken down by phase and priority_level
 	ReqsGaugeVec metrics.RatioedGaugeVec

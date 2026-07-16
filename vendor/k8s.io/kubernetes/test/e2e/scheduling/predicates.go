@@ -38,6 +38,7 @@ import (
 	e2enode "k8s.io/kubernetes/test/e2e/framework/node"
 	e2eruntimeclass "k8s.io/kubernetes/test/e2e/framework/node/runtimeclass"
 	e2epod "k8s.io/kubernetes/test/e2e/framework/pod"
+	e2epv "k8s.io/kubernetes/test/e2e/framework/pv"
 	e2erc "k8s.io/kubernetes/test/e2e/framework/rc"
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 	testutils "k8s.io/kubernetes/test/utils"
@@ -58,7 +59,7 @@ const (
 var localStorageVersion = utilversion.MustParseSemantic("v1.8.0-beta.0")
 
 // variable populated in BeforeEach, never modified afterwards
-var workerNodes = sets.String{}
+var workerNodes = sets.Set[string]{}
 
 type pausePodConfig struct {
 	Name                              string
@@ -84,7 +85,7 @@ var _ = SIGDescribe("SchedulerPredicates [Serial]", func() {
 	var RCName string
 	var ns string
 	f := framework.NewDefaultFramework("sched-pred")
-	f.NamespacePodSecurityEnforceLevel = admissionapi.LevelPrivileged
+	f.NamespacePodSecurityLevel = admissionapi.LevelPrivileged
 
 	ginkgo.AfterEach(func(ctx context.Context) {
 		rc, err := cs.CoreV1().ReplicationControllers(ns).Get(ctx, RCName, metav1.GetOptions{})
@@ -271,7 +272,7 @@ var _ = SIGDescribe("SchedulerPredicates [Serial]", func() {
 			}
 
 			// remove RuntimeClass
-			_ = cs.NodeV1beta1().RuntimeClasses().Delete(ctx, e2eruntimeclass.PreconfiguredRuntimeClassHandler, metav1.DeleteOptions{})
+			_ = cs.NodeV1().RuntimeClasses().Delete(ctx, e2eruntimeclass.PreconfiguredRuntimeClassHandler, metav1.DeleteOptions{})
 		})
 
 		ginkgo.It("verify pod overhead is accounted for", func(ctx context.Context) {
@@ -855,6 +856,78 @@ var _ = SIGDescribe("SchedulerPredicates [Serial]", func() {
 		ginkgo.By("Expect all pods are scheduled and running")
 		framework.ExpectNoError(e2epod.WaitForPodsRunning(cs, ns, replicas, time.Minute))
 	})
+
+	// Regression test for an extended scenario for https://issues.k8s.io/123465
+	ginkgo.It("when PVC has node-affinity to non-existent/illegal nodes, the pod should be scheduled normally if suitable nodes exist", func(ctx context.Context) {
+		nodeName := GetNodeThatCanRunPod(ctx, f)
+		nonExistentNodeName1 := string(uuid.NewUUID())
+		nonExistentNodeName2 := string(uuid.NewUUID())
+		hostLabel := "kubernetes.io/hostname"
+		localPath := "/tmp"
+		podName := "bind-pv-with-non-existent-nodes"
+		pvcName := "pvc-" + string(uuid.NewUUID())
+		_, pvc, err := e2epv.CreatePVPVC(ctx, cs, f.Timeouts, e2epv.PersistentVolumeConfig{
+			PVSource: v1.PersistentVolumeSource{
+				Local: &v1.LocalVolumeSource{
+					Path: localPath,
+				},
+			},
+			Prebind: &v1.PersistentVolumeClaim{
+				ObjectMeta: metav1.ObjectMeta{Name: pvcName, Namespace: ns},
+			},
+			NodeAffinity: &v1.VolumeNodeAffinity{
+				Required: &v1.NodeSelector{
+					NodeSelectorTerms: []v1.NodeSelectorTerm{
+						{
+							MatchExpressions: []v1.NodeSelectorRequirement{
+								{
+									Key:      hostLabel,
+									Operator: v1.NodeSelectorOpIn,
+									// add non-existent nodes to the list
+									Values: []string{nodeName, nonExistentNodeName1, nonExistentNodeName2},
+								},
+							},
+						},
+					},
+				},
+			},
+		}, e2epv.PersistentVolumeClaimConfig{
+			Name: pvcName,
+		}, ns, true)
+		framework.ExpectNoError(err)
+		bindPvPod := &v1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: podName,
+			},
+			Spec: v1.PodSpec{
+				Containers: []v1.Container{
+					{
+						Name:  "pause",
+						Image: imageutils.GetE2EImage(imageutils.Pause),
+						VolumeMounts: []v1.VolumeMount{
+							{
+								Name:      "data",
+								MountPath: "/tmp",
+							},
+						},
+					},
+				},
+				Volumes: []v1.Volume{
+					{
+						Name: "data",
+						VolumeSource: v1.VolumeSource{
+							PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+								ClaimName: pvc.Name,
+							},
+						},
+					},
+				},
+			},
+		}
+		_, err = f.ClientSet.CoreV1().Pods(ns).Create(ctx, bindPvPod, metav1.CreateOptions{})
+		framework.ExpectNoError(err)
+		framework.ExpectNoError(e2epod.WaitForPodNotPending(ctx, f.ClientSet, ns, podName))
+	})
 })
 
 func patchPod(cs clientset.Interface, old, new *v1.Pod) (*v1.Pod, error) {
@@ -1154,7 +1227,7 @@ func createHostPortPodOnNode(ctx context.Context, f *framework.Framework, podNam
 }
 
 // GetPodsScheduled returns a number of currently scheduled and not scheduled Pods on worker nodes.
-func GetPodsScheduled(workerNodes sets.String, pods *v1.PodList) (scheduledPods, notScheduledPods []v1.Pod) {
+func GetPodsScheduled(workerNodes sets.Set[string], pods *v1.PodList) (scheduledPods, notScheduledPods []v1.Pod) {
 	for _, pod := range pods.Items {
 		if pod.Spec.NodeName != "" && workerNodes.Has(pod.Spec.NodeName) {
 			_, scheduledCondition := podutil.GetPodCondition(&pod.Status, v1.PodScheduled)
