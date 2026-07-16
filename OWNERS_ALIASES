@@ -2,22 +2,22 @@
 
 aliases:
   openstack-approvers:
+    - danchild
     - dlaw4608
     - eshulman2
     - gryf
     - mandre
     - stephenfin
+    - winiciusallan
   openstack-reviewers:
+    - danchild
     - dlaw4608
     - eshulman2
     - gryf
     - mandre
     - stephenfin
+    - winiciusallan
   qe-approvers:
-    - eurijon
-    - itzikb-redhat
-    - rlobillo
+    - tusharjadhav3302
   qe-reviewers:
-    - eurijon
-    - itzikb-redhat
-    - rlobillo
+    - tusharjadhav3302
