@@ -47,7 +47,7 @@ func (client *ServiceClient) ServiceURL(parts ...string) string {
 	return client.ResourceBaseURL() + strings.Join(parts, "/")
 }
 
-func (client *ServiceClient) initReqOpts(JSONBody interface{}, JSONResponse interface{}, opts *RequestOpts) {
+func (client *ServiceClient) initReqOpts(url string, JSONBody interface{}, JSONResponse interface{}, opts *RequestOpts) {
 	if v, ok := (JSONBody).(io.Reader); ok {
 		opts.RawBody = v
 	} else if JSONBody != nil {
@@ -57,6 +57,14 @@ func (client *ServiceClient) initReqOpts(JSONBody interface{}, JSONResponse inte
 	if JSONResponse != nil {
 		opts.JSONResponse = JSONResponse
 	}
+
+	if opts.MoreHeaders == nil {
+		opts.MoreHeaders = make(map[string]string)
+	}
+
+	if client.Microversion != "" {
+		client.setMicroversionHeader(opts)
+	}
 }
 
 // Get calls `Request` with the "GET" HTTP verb.
@@ -64,7 +72,7 @@ func (client *ServiceClient) Get(url string, JSONResponse interface{}, opts *Req
 	if opts == nil {
 		opts = new(RequestOpts)
 	}
-	client.initReqOpts(nil, JSONResponse, opts)
+	client.initReqOpts(url, nil, JSONResponse, opts)
 	return client.Request("GET", url, opts)
 }
 
@@ -73,7 +81,7 @@ func (client *ServiceClient) Post(url string, JSONBody interface{}, JSONResponse
 	if opts == nil {
 		opts = new(RequestOpts)
 	}
-	client.initReqOpts(JSONBody, JSONResponse, opts)
+	client.initReqOpts(url, JSONBody, JSONResponse, opts)
 	return client.Request("POST", url, opts)
 }
 
@@ -82,7 +90,7 @@ func (client *ServiceClient) Put(url string, JSONBody interface{}, JSONResponse 
 	if opts == nil {
 		opts = new(RequestOpts)
 	}
-	client.initReqOpts(JSONBody, JSONResponse, opts)
+	client.initReqOpts(url, JSONBody, JSONResponse, opts)
 	return client.Request("PUT", url, opts)
 }
 
@@ -91,7 +99,7 @@ func (client *ServiceClient) Patch(url string, JSONBody interface{}, JSONRespons
 	if opts == nil {
 		opts = new(RequestOpts)
 	}
-	client.initReqOpts(JSONBody, JSONResponse, opts)
+	client.initReqOpts(url, JSONBody, JSONResponse, opts)
 	return client.Request("PATCH", url, opts)
 }
 
@@ -100,7 +108,7 @@ func (client *ServiceClient) Delete(url string, opts *RequestOpts) (*http.Respon
 	if opts == nil {
 		opts = new(RequestOpts)
 	}
-	client.initReqOpts(nil, nil, opts)
+	client.initReqOpts(url, nil, nil, opts)
 	return client.Request("DELETE", url, opts)
 }
 
@@ -109,7 +117,7 @@ func (client *ServiceClient) Head(url string, opts *RequestOpts) (*http.Response
 	if opts == nil {
 		opts = new(RequestOpts)
 	}
-	client.initReqOpts(nil, nil, opts)
+	client.initReqOpts(url, nil, nil, opts)
 	return client.Request("HEAD", url, opts)
 }
 
@@ -134,19 +142,10 @@ func (client *ServiceClient) setMicroversionHeader(opts *RequestOpts) {
 
 // Request carries out the HTTP operation for the service client
 func (client *ServiceClient) Request(method, url string, options *RequestOpts) (*http.Response, error) {
-	if options.MoreHeaders == nil {
-		options.MoreHeaders = make(map[string]string)
-	}
-
-	if client.Microversion != "" {
-		client.setMicroversionHeader(options)
-	}
-
 	if len(client.MoreHeaders) > 0 {
 		if options == nil {
 			options = new(RequestOpts)
 		}
-
 		for k, v := range client.MoreHeaders {
 			options.MoreHeaders[k] = v
 		}

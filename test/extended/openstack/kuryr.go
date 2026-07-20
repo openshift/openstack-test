@@ -13,7 +13,7 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
-var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack][Kuryr] Kuryr", func() {
+var _ = g.Describe("[sig-installer][Suite:openshift/openstack][Kuryr] Kuryr", func() {
 	var clientSet *kubernetes.Clientset
 
 	var ctx context.Context

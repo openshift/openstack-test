@@ -29,7 +29,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 )
 
-var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Machine", func() {
+var _ = g.Describe("[sig-installer][Suite:openshift/openstack] Machine", func() {
 	defer g.GinkgoRecover()
 
 	var ctx context.Context
