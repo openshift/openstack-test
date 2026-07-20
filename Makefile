@@ -22,7 +22,7 @@ TESTS_EXT_BINARY := bin/openstack-test-tests-ext
 tests-ext-build:
 	@echo "Building OTE test extension binary..."
 	@mkdir -p bin
-	cd tests-extension && GOTOOLCHAIN=auto GOSUMDB=sum.golang.org go build -mod=mod -o $(CURDIR)/$(TESTS_EXT_BINARY) ./cmd/extension
+	cd tests-extension && GOTOOLCHAIN=auto GOSUMDB=sum.golang.org go build -o $(CURDIR)/$(TESTS_EXT_BINARY) ./cmd/extension
 	@echo "Extension binary built: $(TESTS_EXT_BINARY)"
 
 .PHONY: extension
