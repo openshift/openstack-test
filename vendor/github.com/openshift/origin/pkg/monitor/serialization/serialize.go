@@ -1,6 +1,7 @@
 package monitorserialization
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -17,6 +18,10 @@ type EventInterval struct {
 
 	Locator string `json:"locator"`
 	Message string `json:"message"`
+
+	// TODO: we're hoping to move these to just locator/message when everything is ready.
+	StructuredLocator monitorapi.Locator `json:"tempStructuredLocator"`
+	StructuredMessage monitorapi.Message `json:"tempStructuredMessage"`
 
 	From metav1.Time `json:"from"`
 	To   metav1.Time `json:"to"`
@@ -50,11 +55,11 @@ func EventsFromJSON(data []byte) (monitorapi.Intervals, error) {
 	}
 	events := make(monitorapi.Intervals, 0, len(list.Items))
 	for _, interval := range list.Items {
-		level, err := monitorapi.EventLevelFromString(interval.Level)
+		level, err := monitorapi.ConditionLevelFromString(interval.Level)
 		if err != nil {
 			return nil, err
 		}
-		events = append(events, monitorapi.EventInterval{
+		events = append(events, monitorapi.Interval{
 			Condition: monitorapi.Condition{
 				Level:   level,
 				Locator: interval.Locator,
@@ -67,6 +72,42 @@ func EventsFromJSON(data []byte) (monitorapi.Intervals, error) {
 	}
 
 	return events, nil
+}
+
+func IntervalFromJSON(data []byte) (*monitorapi.Interval, error) {
+	var serializedInterval EventInterval
+	if err := json.Unmarshal(data, &serializedInterval); err != nil {
+		return nil, err
+	}
+	level, err := monitorapi.ConditionLevelFromString(serializedInterval.Level)
+	if err != nil {
+		return nil, err
+	}
+	return &monitorapi.Interval{
+		Condition: monitorapi.Condition{
+			Level:   level,
+			Locator: serializedInterval.Locator,
+			Message: serializedInterval.Message,
+		},
+
+		From: serializedInterval.From.Time,
+		To:   serializedInterval.To.Time,
+	}, nil
+}
+
+func IntervalToOneLineJSON(interval monitorapi.Interval) ([]byte, error) {
+	outputEvent := monitorEventIntervalToEventInterval(interval)
+
+	spacedBytes, err := json.Marshal(outputEvent)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := &bytes.Buffer{}
+	if err := json.Compact(buf, spacedBytes); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func EventsToJSON(events monitorapi.Intervals) ([]byte, error) {
@@ -102,11 +143,13 @@ func EventsIntervalsToJSON(events monitorapi.Intervals) ([]byte, error) {
 	return json.MarshalIndent(list, "", "    ")
 }
 
-func monitorEventIntervalToEventInterval(interval monitorapi.EventInterval) EventInterval {
+func monitorEventIntervalToEventInterval(interval monitorapi.Interval) EventInterval {
 	ret := EventInterval{
-		Level:   fmt.Sprintf("%v", interval.Level),
-		Locator: interval.Locator,
-		Message: interval.Message,
+		Level:             fmt.Sprintf("%v", interval.Level),
+		Locator:           interval.Locator,
+		Message:           interval.Message,
+		StructuredLocator: interval.StructuredLocator,
+		StructuredMessage: interval.StructuredMessage,
 
 		From: metav1.Time{Time: interval.From},
 		To:   metav1.Time{Time: interval.To},
