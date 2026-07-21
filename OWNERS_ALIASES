@@ -14,10 +14,8 @@ aliases:
     - mandre
     - stephenfin
   qe-approvers:
-    - eurijon
     - itzikb-redhat
     - rlobillo
   qe-reviewers:
-    - eurijon
     - itzikb-redhat
     - rlobillo
