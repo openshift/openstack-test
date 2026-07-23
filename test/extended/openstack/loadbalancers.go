@@ -41,7 +41,7 @@ import (
 	imageutils "k8s.io/kubernetes/test/utils/image"
 )
 
-var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform", func() {
+var _ = g.Describe("[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform", func() {
 	var ctx context.Context
 
 	oc := exutil.NewCLI("openstack")

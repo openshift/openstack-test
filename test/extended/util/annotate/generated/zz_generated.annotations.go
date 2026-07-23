@@ -7,77 +7,77 @@ import (
 )
 
 var Annotations = map[string]string{
-	"[OTP][sig-installer][Suite:openshift/openstack] Bugfix bz_2022627: Machine should report all openstack instance addresses": "",
+	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2022627: Machine should report all openstack instance addresses": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] Bugfix bz_2073398: [Serial] MachineSet scale-in does not leak OpenStack ports": "",
+	"[sig-installer][Suite:openshift/openstack] Bugfix bz_2073398: [Serial] MachineSet scale-in does not leak OpenStack ports": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] ControlPlane MachineSet ProviderSpec template is correctly applied to Machines": "",
+	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet ProviderSpec template is correctly applied to Machines": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] ControlPlane MachineSet has role master": "",
+	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet has role master": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] ControlPlane MachineSet replica number corresponds to the number of Machines": "",
+	"[sig-installer][Suite:openshift/openstack] ControlPlane MachineSet replica number corresponds to the number of Machines": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] Machine ProviderSpec is correctly applied to OpenStack instances": "",
+	"[sig-installer][Suite:openshift/openstack] Machine ProviderSpec is correctly applied to OpenStack instances": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] Machine are in phase Running": "",
+	"[sig-installer][Suite:openshift/openstack] Machine are in phase Running": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] MachineSet ProviderSpec template is correctly applied to Machines": "",
+	"[sig-installer][Suite:openshift/openstack] MachineSet ProviderSpec template is correctly applied to Machines": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] MachineSet replica number corresponds to the number of Machines": "",
+	"[sig-installer][Suite:openshift/openstack] MachineSet replica number corresponds to the number of Machines": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes in a server group": "",
+	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes in a server group": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity": "",
+	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Control plane nodes on separate hosts when serverGroupPolicy is anti-affinity": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform creates Worker nodes in a server group": "",
+	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Worker nodes in a server group": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity": "",
+	"[sig-installer][Suite:openshift/openstack] The OpenStack platform creates Worker nodes on separate hosts when serverGroupPolicy is anti-affinity": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should follow PVC specs during resizing for prometheus": "",
+	"[sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should follow PVC specs during resizing for prometheus": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should haul the user config to the expected config maps": "",
+	"[sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should haul the user config to the expected config maps": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should set enabled property in [LoadBalancer] section in CCM depending on the NetworkType": "",
+	"[sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should set enabled property in [LoadBalancer] section in CCM depending on the NetworkType": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should store cloud credentials on secrets": "",
+	"[sig-installer][Suite:openshift/openstack] The Openshift on cloud provider configuration should store cloud credentials on secrets": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "",
+	"[sig-installer][Suite:openshift/openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][egressip] An egressIP attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType": "",
+	"[sig-installer][Suite:openshift/openstack][egressip] An egressIP attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on TCP Amphora LoadBalancer when a TCP svc with monitors and ETP:Local is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on TCP Amphora LoadBalancer when a TCP svc with monitors and ETP:Local is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on TCP OVN LoadBalancer when a TCP svc with monitors and ETP:Local is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on TCP OVN LoadBalancer when a TCP svc with monitors and ETP:Local is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP Amphora LoadBalancer when a UDP svc with monitors and ETP:Local is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP Amphora LoadBalancer when a UDP svc with monitors and ETP:Local is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP OVN LoadBalancer when a UDP svc with monitors and ETP:Local is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should apply lb-method on UDP OVN LoadBalancer when a UDP svc with monitors and ETP:Local is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when LoadBalancerService ingressController is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when LoadBalancerService ingressController is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP Amphora LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when LoadBalancerService ingressController is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when LoadBalancerService ingressController is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a TCP OVN LoadBalancer when a TCP svc with type:LoadBalancer is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a UDP Amphora LoadBalancer when a UDP svc with type:LoadBalancer is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a UDP Amphora LoadBalancer when a UDP svc with type:LoadBalancer is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a UDP OVN LoadBalancer when a UDP svc with type:LoadBalancer is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create a UDP OVN LoadBalancer when a UDP svc with type:LoadBalancer is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP Amphora LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP Amphora LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP OVN LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should create an UDP OVN LoadBalancer using a pre-created FIP when an UDP LoadBalancer svc setting the LoadBalancerIP spec is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should limit service access on an UDP Amphora LoadBalancer when an UDP LoadBalancer svc setting the loadBalancerSourceRanges spec is created on Openshift": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should limit service access on an UDP Amphora LoadBalancer when an UDP LoadBalancer svc setting the loadBalancerSourceRanges spec is created on Openshift": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should not re-use an existing UDP Amphora LoadBalancer if shared internal svc is created": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should not re-use an existing UDP Amphora LoadBalancer if shared internal svc is created": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should not re-use an existing UDP OVN LoadBalancer if shared internal svc is created": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should not re-use an existing UDP OVN LoadBalancer if shared internal svc is created": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should re-use an existing UDP Amphora LoadBalancer when new svc is created on Openshift with the proper annotation": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should re-use an existing UDP Amphora LoadBalancer when new svc is created on Openshift with the proper annotation": "",
 
-	"[OTP][sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should re-use an existing UDP OVN LoadBalancer when new svc is created on Openshift with the proper annotation": "",
+	"[sig-installer][Suite:openshift/openstack][lb][Serial] The Openstack platform should re-use an existing UDP OVN LoadBalancer when new svc is created on Openshift with the proper annotation": "",
 }
 
 func init() {
