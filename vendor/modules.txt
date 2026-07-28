@@ -119,9 +119,6 @@ github.com/Azure/go-autorest/logger
 # github.com/Azure/go-autorest/tracing v0.6.0
 ## explicit; go 1.12
 github.com/Azure/go-autorest/tracing
-# github.com/Azure/go-ntlmssp v0.0.0-20211209120228-48547f28849e
-## explicit
-github.com/Azure/go-ntlmssp
 # github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2
 ## explicit; go 1.18
 github.com/AzureAD/microsoft-authentication-library-for-go/apps/cache
@@ -169,18 +166,12 @@ github.com/Microsoft/hnslib/internal/interop
 # github.com/NYTimes/gziphandler v1.1.1
 ## explicit; go 1.11
 github.com/NYTimes/gziphandler
-# github.com/RangelReale/osincli v0.0.0-20160924135400-fababb0555f2
-## explicit
-github.com/RangelReale/osincli
 # github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 ## explicit; go 1.15
 github.com/ajstarks/svgo
 # github.com/antlr4-go/antlr/v4 v4.13.0
 ## explicit; go 1.20
 github.com/antlr4-go/antlr/v4
-# github.com/apparentlymart/go-cidr v1.1.0
-## explicit
-github.com/apparentlymart/go-cidr/cidr
 # github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2
 ## explicit
 github.com/armon/circbuf
@@ -276,9 +267,6 @@ github.com/containerd/log
 # github.com/containerd/ttrpc v1.2.5
 ## explicit; go 1.19
 github.com/containerd/ttrpc
-# github.com/coreos/go-oidc v2.2.1+incompatible
-## explicit
-github.com/coreos/go-oidc
 # github.com/coreos/go-semver v0.3.1
 ## explicit; go 1.8
 github.com/coreos/go-semver/semver
@@ -293,13 +281,6 @@ github.com/cyphar/filepath-securejoin
 # github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/distribution/distribution/v3 v3.0.0-20230530204932-ba46c769b3d1
-## explicit; go 1.18
-github.com/distribution/distribution/v3
-github.com/distribution/distribution/v3/manifest
-github.com/distribution/distribution/v3/manifest/schema1
-github.com/distribution/distribution/v3/manifest/schema2
-github.com/distribution/distribution/v3/reference
 # github.com/distribution/reference v0.6.0
 ## explicit; go 1.20
 github.com/distribution/reference
@@ -330,27 +311,13 @@ github.com/docker/go-connections/nat
 # github.com/docker/go-units v0.5.0
 ## explicit
 github.com/docker/go-units
-# github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7
-## explicit
-github.com/docker/libtrust
 # github.com/emicklei/go-restful/v3 v3.12.1
 ## explicit; go 1.13
 github.com/emicklei/go-restful/v3
 github.com/emicklei/go-restful/v3/log
-# github.com/emirpasic/gods v1.12.0
-## explicit
-github.com/emirpasic/gods/containers
-github.com/emirpasic/gods/lists
-github.com/emirpasic/gods/lists/arraylist
-github.com/emirpasic/gods/trees
-github.com/emirpasic/gods/trees/binaryheap
-github.com/emirpasic/gods/utils
 # github.com/euank/go-kmsg-parser v2.0.0+incompatible
 ## explicit
 github.com/euank/go-kmsg-parser/kmsgparser
-# github.com/evanphx/json-patch v5.9.0+incompatible
-## explicit
-github.com/evanphx/json-patch
 # github.com/evanphx/json-patch/v5 v5.9.0
 ## explicit; go 1.18
 github.com/evanphx/json-patch/v5
@@ -361,9 +328,6 @@ github.com/exponent-io/jsonpath
 # github.com/fatih/camelcase v1.0.0
 ## explicit
 github.com/fatih/camelcase
-# github.com/felixge/fgprof v0.9.4
-## explicit; go 1.14
-github.com/felixge/fgprof
 # github.com/felixge/httpsnoop v1.0.4
 ## explicit; go 1.13
 github.com/felixge/httpsnoop
@@ -380,9 +344,6 @@ github.com/fxamacker/cbor/v2
 # github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 ## explicit
 github.com/ghodss/yaml
-# github.com/go-asn1-ber/asn1-ber v1.5.4
-## explicit; go 1.13
-github.com/go-asn1-ber/asn1-ber
 # github.com/go-errors/errors v1.4.2
 ## explicit; go 1.14
 github.com/go-errors/errors
@@ -412,9 +373,6 @@ github.com/go-latex/latex/mtex
 github.com/go-latex/latex/mtex/symbols
 github.com/go-latex/latex/tex
 github.com/go-latex/latex/token
-# github.com/go-ldap/ldap/v3 v3.4.3
-## explicit; go 1.13
-github.com/go-ldap/ldap/v3
 # github.com/go-logr/logr v1.4.2
 ## explicit; go 1.18
 github.com/go-logr/logr
@@ -548,16 +506,10 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/goexpect v0.0.0-20210430020637-ab937bf7fd6f
-## explicit; go 1.12
-github.com/google/goexpect
 # github.com/google/gofuzz v1.2.0
 ## explicit; go 1.12
 github.com/google/gofuzz
 github.com/google/gofuzz/bytesource
-# github.com/google/goterm v0.0.0-20190703233501-fc88cf888a3f
-## explicit
-github.com/google/goterm/term
 # github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad
 ## explicit; go 1.22
 github.com/google/pprof/profile
@@ -614,24 +566,9 @@ github.com/grpc-ecosystem/go-grpc-prometheus
 github.com/grpc-ecosystem/grpc-gateway/v2/internal/httprule
 github.com/grpc-ecosystem/grpc-gateway/v2/runtime
 github.com/grpc-ecosystem/grpc-gateway/v2/utilities
-# github.com/hashicorp/hcl v1.0.0
-## explicit
-github.com/hashicorp/hcl
-github.com/hashicorp/hcl/hcl/ast
-github.com/hashicorp/hcl/hcl/parser
-github.com/hashicorp/hcl/hcl/printer
-github.com/hashicorp/hcl/hcl/scanner
-github.com/hashicorp/hcl/hcl/strconv
-github.com/hashicorp/hcl/hcl/token
-github.com/hashicorp/hcl/json/parser
-github.com/hashicorp/hcl/json/scanner
-github.com/hashicorp/hcl/json/token
 # github.com/inconshreveable/mousetrap v1.1.0
 ## explicit; go 1.18
 github.com/inconshreveable/mousetrap
-# github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
-## explicit
-github.com/jbenet/go-context/io
 # github.com/jmespath/go-jmespath v0.4.0
 ## explicit; go 1.14
 github.com/jmespath/go-jmespath
@@ -641,19 +578,9 @@ github.com/josharian/intern
 # github.com/json-iterator/go v1.1.12
 ## explicit; go 1.12
 github.com/json-iterator/go
-# github.com/k8snetworkplumbingwg/network-attachment-definition-client v1.6.0
-## explicit; go 1.21
-github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io
-github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1
-github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/client/clientset/versioned
-github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/client/clientset/versioned/scheme
-github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/client/clientset/versioned/typed/k8s.cni.cncf.io/v1
 # github.com/karrick/godirwalk v1.17.0
 ## explicit; go 1.13
 github.com/karrick/godirwalk
-# github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd
-## explicit
-github.com/kevinburke/ssh_config
 # github.com/klauspost/compress v1.17.9
 ## explicit; go 1.20
 github.com/klauspost/compress
@@ -679,32 +606,17 @@ github.com/libopenstorage/openstorage/volume
 # github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 ## explicit
 github.com/liggitt/tabwriter
-# github.com/lithammer/dedent v1.1.0
-## explicit
-github.com/lithammer/dedent
-# github.com/magiconair/properties v1.8.7
-## explicit; go 1.19
-github.com/magiconair/properties
 # github.com/mailru/easyjson v0.7.7
 ## explicit; go 1.12
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
-# github.com/metallb/frr-k8s v0.0.15
-## explicit; go 1.22.0
-github.com/metallb/frr-k8s/api/v1beta1
 # github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible
 ## explicit
 github.com/mistifyio/go-zfs
-# github.com/mitchellh/go-homedir v1.1.0
-## explicit
-github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-wordwrap v1.0.1
 ## explicit; go 1.14
 github.com/mitchellh/go-wordwrap
-# github.com/mitchellh/mapstructure v1.5.0
-## explicit; go 1.14
-github.com/mitchellh/mapstructure
 # github.com/moby/docker-image-spec v1.3.1
 ## explicit; go 1.18
 github.com/moby/docker-image-spec/specs-go/v1
@@ -808,7 +720,6 @@ github.com/opencontainers/runc/libcontainer/cgroups/systemd
 github.com/opencontainers/runc/libcontainer/configs
 github.com/opencontainers/runc/libcontainer/devices
 github.com/opencontainers/runc/libcontainer/intelrdt
-github.com/opencontainers/runc/libcontainer/user
 github.com/opencontainers/runc/libcontainer/utils
 # github.com/opencontainers/runtime-spec v1.2.0
 ## explicit
@@ -908,36 +819,10 @@ github.com/openshift/api/sharedresource
 github.com/openshift/api/sharedresource/v1alpha1
 github.com/openshift/api/template
 github.com/openshift/api/template/v1
-github.com/openshift/api/unidling/v1alpha1
 github.com/openshift/api/user
 github.com/openshift/api/user/v1
-# github.com/openshift/apiserver-library-go v0.0.0-20250127121756-dc9a973f14ce
-## explicit; go 1.23.0
-github.com/openshift/apiserver-library-go/pkg/admission/imagepolicy
-github.com/openshift/apiserver-library-go/pkg/admission/imagepolicy/apis/imagepolicy/v1
-github.com/openshift/apiserver-library-go/pkg/admission/imagepolicy/apis/imagepolicy/validation
-github.com/openshift/apiserver-library-go/pkg/admission/imagepolicy/imagereferencemutators
-github.com/openshift/apiserver-library-go/pkg/admission/imagepolicy/rules
-github.com/openshift/apiserver-library-go/pkg/admission/quota/clusterresourcequota
-github.com/openshift/apiserver-library-go/pkg/authorization/scope
-github.com/openshift/apiserver-library-go/pkg/configflags
-github.com/openshift/apiserver-library-go/pkg/labelselector
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/capabilities
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/group
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/sccadmission
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/sccmatching
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/seccomp
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/selinux
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/sysctl
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/user
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/util
-github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints/util/sort
 # github.com/openshift/client-go v0.0.0-20250513150353-9ea84fa6431b
 ## explicit; go 1.23.0
-github.com/openshift/client-go/apiserver/applyconfigurations/apiserver/v1
-github.com/openshift/client-go/apiserver/applyconfigurations/internal
-github.com/openshift/client-go/apiserver/clientset/versioned/scheme
-github.com/openshift/client-go/apiserver/clientset/versioned/typed/apiserver/v1
 github.com/openshift/client-go/apps/applyconfigurations/apps/v1
 github.com/openshift/client-go/apps/applyconfigurations/internal
 github.com/openshift/client-go/apps/clientset/versioned
@@ -969,28 +854,11 @@ github.com/openshift/client-go/config/clientset/versioned/typed/config/v1
 github.com/openshift/client-go/config/clientset/versioned/typed/config/v1/fake
 github.com/openshift/client-go/config/clientset/versioned/typed/config/v1alpha1
 github.com/openshift/client-go/config/clientset/versioned/typed/config/v1alpha1/fake
-github.com/openshift/client-go/config/informers/externalversions
-github.com/openshift/client-go/config/informers/externalversions/config
-github.com/openshift/client-go/config/informers/externalversions/config/v1
-github.com/openshift/client-go/config/informers/externalversions/config/v1alpha1
-github.com/openshift/client-go/config/informers/externalversions/internalinterfaces
-github.com/openshift/client-go/config/listers/config/v1
-github.com/openshift/client-go/config/listers/config/v1alpha1
-github.com/openshift/client-go/console/applyconfigurations/console/v1
-github.com/openshift/client-go/console/applyconfigurations/internal
-github.com/openshift/client-go/console/clientset/versioned
-github.com/openshift/client-go/console/clientset/versioned/scheme
-github.com/openshift/client-go/console/clientset/versioned/typed/console/v1
 github.com/openshift/client-go/image/applyconfigurations/image/v1
 github.com/openshift/client-go/image/applyconfigurations/internal
 github.com/openshift/client-go/image/clientset/versioned
 github.com/openshift/client-go/image/clientset/versioned/scheme
 github.com/openshift/client-go/image/clientset/versioned/typed/image/v1
-github.com/openshift/client-go/imageregistry/applyconfigurations/imageregistry/v1
-github.com/openshift/client-go/imageregistry/applyconfigurations/internal
-github.com/openshift/client-go/imageregistry/clientset/versioned
-github.com/openshift/client-go/imageregistry/clientset/versioned/scheme
-github.com/openshift/client-go/imageregistry/clientset/versioned/typed/imageregistry/v1
 github.com/openshift/client-go/machine/applyconfigurations/internal
 github.com/openshift/client-go/machine/applyconfigurations/machine/v1
 github.com/openshift/client-go/machine/applyconfigurations/machine/v1beta1
@@ -1005,10 +873,6 @@ github.com/openshift/client-go/machineconfiguration/clientset/versioned
 github.com/openshift/client-go/machineconfiguration/clientset/versioned/scheme
 github.com/openshift/client-go/machineconfiguration/clientset/versioned/typed/machineconfiguration/v1
 github.com/openshift/client-go/machineconfiguration/clientset/versioned/typed/machineconfiguration/v1alpha1
-github.com/openshift/client-go/network/applyconfigurations/internal
-github.com/openshift/client-go/network/applyconfigurations/network/v1
-github.com/openshift/client-go/network/clientset/versioned/scheme
-github.com/openshift/client-go/network/clientset/versioned/typed/network/v1
 github.com/openshift/client-go/oauth/applyconfigurations/internal
 github.com/openshift/client-go/oauth/applyconfigurations/oauth/v1
 github.com/openshift/client-go/oauth/clientset/versioned
@@ -1036,11 +900,6 @@ github.com/openshift/client-go/quota/applyconfigurations/quota/v1
 github.com/openshift/client-go/quota/clientset/versioned
 github.com/openshift/client-go/quota/clientset/versioned/scheme
 github.com/openshift/client-go/quota/clientset/versioned/typed/quota/v1
-github.com/openshift/client-go/quota/informers/externalversions
-github.com/openshift/client-go/quota/informers/externalversions/internalinterfaces
-github.com/openshift/client-go/quota/informers/externalversions/quota
-github.com/openshift/client-go/quota/informers/externalversions/quota/v1
-github.com/openshift/client-go/quota/listers/quota/v1
 github.com/openshift/client-go/route/applyconfigurations/internal
 github.com/openshift/client-go/route/applyconfigurations/route/v1
 github.com/openshift/client-go/route/clientset/versioned
@@ -1051,11 +910,6 @@ github.com/openshift/client-go/security/applyconfigurations/security/v1
 github.com/openshift/client-go/security/clientset/versioned
 github.com/openshift/client-go/security/clientset/versioned/scheme
 github.com/openshift/client-go/security/clientset/versioned/typed/security/v1
-github.com/openshift/client-go/security/informers/externalversions
-github.com/openshift/client-go/security/informers/externalversions/internalinterfaces
-github.com/openshift/client-go/security/informers/externalversions/security
-github.com/openshift/client-go/security/informers/externalversions/security/v1
-github.com/openshift/client-go/security/listers/security/v1
 github.com/openshift/client-go/template/applyconfigurations/internal
 github.com/openshift/client-go/template/applyconfigurations/template/v1
 github.com/openshift/client-go/template/clientset/versioned
@@ -1066,11 +920,6 @@ github.com/openshift/client-go/user/applyconfigurations/user/v1
 github.com/openshift/client-go/user/clientset/versioned
 github.com/openshift/client-go/user/clientset/versioned/scheme
 github.com/openshift/client-go/user/clientset/versioned/typed/user/v1
-github.com/openshift/client-go/user/informers/externalversions
-github.com/openshift/client-go/user/informers/externalversions/internalinterfaces
-github.com/openshift/client-go/user/informers/externalversions/user
-github.com/openshift/client-go/user/informers/externalversions/user/v1
-github.com/openshift/client-go/user/listers/user/v1
 # github.com/openshift/cluster-api-actuator-pkg v0.0.0-20250401133953-e7e157c4c1fe
 ## explicit; go 1.23.0
 github.com/openshift/cluster-api-actuator-pkg/pkg/framework
@@ -1083,63 +932,21 @@ github.com/openshift/cluster-api-actuator-pkg/testutils/resourcebuilder/core/v1
 # github.com/openshift/cluster-autoscaler-operator v0.0.1-0.20241204142113-43631b045675
 ## explicit; go 1.22.0
 github.com/openshift/cluster-autoscaler-operator/pkg/apis/autoscaling/v1
-# github.com/openshift/cluster-network-operator v0.0.0-20240708200319-1cd8678b38fb
-## explicit; go 1.22.0
-github.com/openshift/cluster-network-operator/pkg/names
 # github.com/openshift/library-go v0.0.0-20250129210218-fe56c2cf5d70
 ## explicit; go 1.23.0
-github.com/openshift/library-go/pkg/apiserver/admission/admissionrestconfig
-github.com/openshift/library-go/pkg/apiserver/admission/admissiontimeout
-github.com/openshift/library-go/pkg/apiserver/apiserverconfig
-github.com/openshift/library-go/pkg/apiserver/jsonpatch
-github.com/openshift/library-go/pkg/apiserver/node
 github.com/openshift/library-go/pkg/apps/appsserialization
 github.com/openshift/library-go/pkg/apps/appsutil
-github.com/openshift/library-go/pkg/authorization/authorizationutil
 github.com/openshift/library-go/pkg/authorization/hardcodedauthorizer
-github.com/openshift/library-go/pkg/authorization/scopemetadata
 github.com/openshift/library-go/pkg/build/naming
-github.com/openshift/library-go/pkg/certs/cert-inspection/certgraphanalysis
-github.com/openshift/library-go/pkg/certs/cert-inspection/certgraphapi
-github.com/openshift/library-go/pkg/certs/cert-inspection/certgraphutils
 github.com/openshift/library-go/pkg/client/openshiftrestmapper
-github.com/openshift/library-go/pkg/config/client
 github.com/openshift/library-go/pkg/config/clusteroperator/v1helpers
-github.com/openshift/library-go/pkg/config/configdefaults
-github.com/openshift/library-go/pkg/config/helpers
-github.com/openshift/library-go/pkg/config/validation
 github.com/openshift/library-go/pkg/crypto
 github.com/openshift/library-go/pkg/git
-github.com/openshift/library-go/pkg/image/dockerv1client
 github.com/openshift/library-go/pkg/image/imageutil
 github.com/openshift/library-go/pkg/image/internal/digest
 github.com/openshift/library-go/pkg/image/internal/reference
 github.com/openshift/library-go/pkg/image/reference
-github.com/openshift/library-go/pkg/markdown
-github.com/openshift/library-go/pkg/network
-github.com/openshift/library-go/pkg/network/networkutils
-github.com/openshift/library-go/pkg/oauth/oauthdiscovery
-github.com/openshift/library-go/pkg/oauth/tokenrequest
-github.com/openshift/library-go/pkg/oauth/tokenrequest/challengehandlers
-github.com/openshift/library-go/pkg/operator/events
-github.com/openshift/library-go/pkg/operator/resource/resourceapply
-github.com/openshift/library-go/pkg/operator/resource/resourcehelper
-github.com/openshift/library-go/pkg/operator/resource/resourcemerge
 github.com/openshift/library-go/pkg/operator/resource/resourceread
-github.com/openshift/library-go/pkg/operator/v1helpers
-github.com/openshift/library-go/pkg/quota/clusterquotamapping
-github.com/openshift/library-go/pkg/quota/quotautil
-github.com/openshift/library-go/pkg/route
-github.com/openshift/library-go/pkg/route/defaulting
-github.com/openshift/library-go/pkg/route/hostassignment
-github.com/openshift/library-go/pkg/route/validation
-github.com/openshift/library-go/pkg/security/ldapclient
-github.com/openshift/library-go/pkg/security/ldaputil
-github.com/openshift/library-go/pkg/security/uid
-github.com/openshift/library-go/pkg/serviceability
-github.com/openshift/library-go/pkg/template/templateprocessingclient
-github.com/openshift/library-go/test/library
-github.com/openshift/library-go/test/library/apiserver
 github.com/openshift/library-go/test/library/metrics
 # github.com/openshift/machine-api-operator v0.2.1-0.20250122132849-b397e885dafb
 ## explicit; go 1.22.5
@@ -1148,53 +955,14 @@ github.com/openshift/machine-api-operator/pkg/webhooks
 # github.com/openshift/origin v1.5.0-alpha.3.0.20250613125118-140c6726a606
 ## explicit; go 1.23.0
 github.com/openshift/origin/pkg/alerts
-github.com/openshift/origin/pkg/certs
 github.com/openshift/origin/pkg/clioptions/clusterdiscovery
 github.com/openshift/origin/pkg/clioptions/clusterinfo
 github.com/openshift/origin/pkg/clioptions/imagesetup
 github.com/openshift/origin/pkg/clioptions/iooptions
 github.com/openshift/origin/pkg/clioptions/kubeconfig
 github.com/openshift/origin/pkg/clioptions/suiteselection
-github.com/openshift/origin/pkg/clioptions/upgradeoptions
-github.com/openshift/origin/pkg/clusterversion
-github.com/openshift/origin/pkg/cmd
-github.com/openshift/origin/pkg/cmd/openshift-tests/collect-disk-certificates
-github.com/openshift/origin/pkg/cmd/openshift-tests/dev
-github.com/openshift/origin/pkg/cmd/openshift-tests/disruption
-github.com/openshift/origin/pkg/cmd/openshift-tests/disruption/poll-service
-github.com/openshift/origin/pkg/cmd/openshift-tests/disruption/watch-endpointslice
-github.com/openshift/origin/pkg/cmd/openshift-tests/images
-github.com/openshift/origin/pkg/cmd/openshift-tests/monitor
-github.com/openshift/origin/pkg/cmd/openshift-tests/monitor/run
-github.com/openshift/origin/pkg/cmd/openshift-tests/monitor/summarize-audit-logs
-github.com/openshift/origin/pkg/cmd/openshift-tests/monitor/timeline
-github.com/openshift/origin/pkg/cmd/openshift-tests/render
-github.com/openshift/origin/pkg/cmd/openshift-tests/render/test-report
-github.com/openshift/origin/pkg/cmd/openshift-tests/risk-analysis
-github.com/openshift/origin/pkg/cmd/openshift-tests/run-disruption
-github.com/openshift/origin/pkg/cmd/openshift-tests/run-test
-github.com/openshift/origin/pkg/cmd/openshift-tests/run-upgrade
-github.com/openshift/origin/pkg/cmd/openshift-tests/run_resource_watch
-github.com/openshift/origin/pkg/cmd/openshift-tests/version
-github.com/openshift/origin/pkg/cmd/update-tls-artifacts/ensure-no-violation-regression
-github.com/openshift/origin/pkg/cmd/update-tls-artifacts/generate-owners/tlsmetadata/autoregenerate_after_expiry
-github.com/openshift/origin/pkg/cmd/update-tls-artifacts/generate-owners/tlsmetadata/descriptions
-github.com/openshift/origin/pkg/cmd/update-tls-artifacts/generate-owners/tlsmetadata/ownership
-github.com/openshift/origin/pkg/cmd/update-tls-artifacts/generate-owners/tlsmetadata/refresh_period
-github.com/openshift/origin/pkg/cmd/update-tls-artifacts/generate-owners/tlsmetadata/testcase
-github.com/openshift/origin/pkg/cmd/update-tls-artifacts/generate-owners/tlsmetadatadefaults
-github.com/openshift/origin/pkg/cmd/update-tls-artifacts/generate-owners/tlsmetadatainterfaces
 github.com/openshift/origin/pkg/dataloader
 github.com/openshift/origin/pkg/defaultmonitortests
-github.com/openshift/origin/pkg/disruption/backend
-github.com/openshift/origin/pkg/disruption/backend/disruption
-github.com/openshift/origin/pkg/disruption/backend/logger
-github.com/openshift/origin/pkg/disruption/backend/roundtripper
-github.com/openshift/origin/pkg/disruption/backend/sampler
-github.com/openshift/origin/pkg/disruption/backend/shutdown
-github.com/openshift/origin/pkg/disruption/backend/transport
-github.com/openshift/origin/pkg/disruption/ci
-github.com/openshift/origin/pkg/disruption/sampler
 github.com/openshift/origin/pkg/monitor
 github.com/openshift/origin/pkg/monitor/apiserveravailability
 github.com/openshift/origin/pkg/monitor/backenddisruption
@@ -1268,122 +1036,30 @@ github.com/openshift/origin/pkg/monitortests/testframework/trackedresourcesseria
 github.com/openshift/origin/pkg/monitortests/testframework/watchclusteroperators
 github.com/openshift/origin/pkg/monitortests/testframework/watchevents
 github.com/openshift/origin/pkg/monitortests/testframework/watchnamespaces
-github.com/openshift/origin/pkg/resourcewatch/controller/configmonitor
-github.com/openshift/origin/pkg/resourcewatch/operator
-github.com/openshift/origin/pkg/resourcewatch/storage
 github.com/openshift/origin/pkg/riskanalysis
 github.com/openshift/origin/pkg/test
 github.com/openshift/origin/pkg/test/extensions
 github.com/openshift/origin/pkg/test/ginkgo
 github.com/openshift/origin/pkg/test/ginkgo/junitapi
 github.com/openshift/origin/pkg/test/ginkgo/result
-github.com/openshift/origin/pkg/testsuites
 github.com/openshift/origin/pkg/version
-github.com/openshift/origin/test/e2e/upgrade
-github.com/openshift/origin/test/e2e/upgrade/adminack
-github.com/openshift/origin/test/e2e/upgrade/dns
-github.com/openshift/origin/test/e2e/upgrade/manifestdelete
-github.com/openshift/origin/test/extended
-github.com/openshift/origin/test/extended/adminack
-github.com/openshift/origin/test/extended/apiserver
-github.com/openshift/origin/test/extended/authentication
-github.com/openshift/origin/test/extended/authorization
-github.com/openshift/origin/test/extended/authorization/rbac
-github.com/openshift/origin/test/extended/baremetal
-github.com/openshift/origin/test/extended/bootstrap_user
-github.com/openshift/origin/test/extended/builds
-github.com/openshift/origin/test/extended/ci
-github.com/openshift/origin/test/extended/cli
-github.com/openshift/origin/test/extended/cloud_controller_manager
-github.com/openshift/origin/test/extended/cluster
-github.com/openshift/origin/test/extended/cluster/metrics
-github.com/openshift/origin/test/extended/clusterversion
-github.com/openshift/origin/test/extended/cmd
-github.com/openshift/origin/test/extended/controller_manager
-github.com/openshift/origin/test/extended/coreos
-github.com/openshift/origin/test/extended/cpu_partitioning
-github.com/openshift/origin/test/extended/crdvalidation
-github.com/openshift/origin/test/extended/csrapprover
-github.com/openshift/origin/test/extended/deployments
-github.com/openshift/origin/test/extended/dns
-github.com/openshift/origin/test/extended/dr
-github.com/openshift/origin/test/extended/etcd
-github.com/openshift/origin/test/extended/etcd/helpers
-github.com/openshift/origin/test/extended/idling
-github.com/openshift/origin/test/extended/image_ecosystem
-github.com/openshift/origin/test/extended/imageapis
-github.com/openshift/origin/test/extended/imagepolicy
-github.com/openshift/origin/test/extended/images
-github.com/openshift/origin/test/extended/images/trigger
-github.com/openshift/origin/test/extended/kernel
-github.com/openshift/origin/test/extended/kubevirt
-github.com/openshift/origin/test/extended/machine_config
-github.com/openshift/origin/test/extended/machines
-github.com/openshift/origin/test/extended/networking
-github.com/openshift/origin/test/extended/networking/kubevirt
-github.com/openshift/origin/test/extended/node
-github.com/openshift/origin/test/extended/node_tuning
-github.com/openshift/origin/test/extended/oauth
-github.com/openshift/origin/test/extended/olm
-github.com/openshift/origin/test/extended/operators
-github.com/openshift/origin/test/extended/poddisruptionbudget
-github.com/openshift/origin/test/extended/pods
-github.com/openshift/origin/test/extended/project
-github.com/openshift/origin/test/extended/prometheus
-github.com/openshift/origin/test/extended/prometheus/client
-github.com/openshift/origin/test/extended/quota
-github.com/openshift/origin/test/extended/router
-github.com/openshift/origin/test/extended/router/certgen
-github.com/openshift/origin/test/extended/router/grpc-interop
-github.com/openshift/origin/test/extended/router/h2spec
-github.com/openshift/origin/test/extended/router/shard
-github.com/openshift/origin/test/extended/scheduling
-github.com/openshift/origin/test/extended/scheme
-github.com/openshift/origin/test/extended/security
-github.com/openshift/origin/test/extended/single_node
-github.com/openshift/origin/test/extended/storage
 github.com/openshift/origin/test/extended/storage/csi
-github.com/openshift/origin/test/extended/tbr_health
-github.com/openshift/origin/test/extended/templates
 github.com/openshift/origin/test/extended/testdata
-github.com/openshift/origin/test/extended/two_node
-github.com/openshift/origin/test/extended/user
 github.com/openshift/origin/test/extended/util
 github.com/openshift/origin/test/extended/util/alibabacloud
 github.com/openshift/origin/test/extended/util/annotate/generated
 github.com/openshift/origin/test/extended/util/azure
 github.com/openshift/origin/test/extended/util/baremetal
-github.com/openshift/origin/test/extended/util/db
-github.com/openshift/origin/test/extended/util/disruption
-github.com/openshift/origin/test/extended/util/disruption/controlplane
 github.com/openshift/origin/test/extended/util/external
-github.com/openshift/origin/test/extended/util/ibmcloud
 github.com/openshift/origin/test/extended/util/image
 github.com/openshift/origin/test/extended/util/imageregistryutil
-github.com/openshift/origin/test/extended/util/jenkins
 github.com/openshift/origin/test/extended/util/kubevirt
 github.com/openshift/origin/test/extended/util/nutanix
-github.com/openshift/origin/test/extended/util/oauthserver
-github.com/openshift/origin/test/extended/util/openshift/clusterversionoperator
-github.com/openshift/origin/test/extended/util/operator
 github.com/openshift/origin/test/extended/util/ovirt
 github.com/openshift/origin/test/extended/util/prometheus
-github.com/openshift/origin/test/extended/util/url
-github.com/openshift/origin/test/extended/windows
-github.com/openshift/origin/tls
-# github.com/ovn-org/ovn-kubernetes/go-controller v0.0.0-20250118001652-a8b9c3c31417
-## explicit; go 1.22.0
-github.com/ovn-org/ovn-kubernetes/go-controller/pkg/crd/routeadvertisements/v1
 # github.com/pborman/uuid v1.2.0
 ## explicit
 github.com/pborman/uuid
-# github.com/pelletier/go-toml/v2 v2.2.3
-## explicit; go 1.21.0
-github.com/pelletier/go-toml/v2
-github.com/pelletier/go-toml/v2/internal/characters
-github.com/pelletier/go-toml/v2/internal/danger
-github.com/pelletier/go-toml/v2/internal/tracker
-github.com/pelletier/go-toml/v2/unstable
 # github.com/peterbourgon/diskv v2.0.1+incompatible
 ## explicit
 github.com/peterbourgon/diskv
@@ -1393,27 +1069,9 @@ github.com/pkg/browser
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
-# github.com/pkg/profile v1.7.0
-## explicit; go 1.13
-github.com/pkg/profile
 # github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/pquerna/cachecontrol v0.1.0
-## explicit; go 1.16
-github.com/pquerna/cachecontrol
-github.com/pquerna/cachecontrol/cacheobject
-# github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.74.0
-## explicit; go 1.21
-github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring
-github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1
-github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1alpha1
-github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1beta1
-# github.com/prometheus-operator/prometheus-operator/pkg/client v0.74.0
-## explicit; go 1.21
-github.com/prometheus-operator/prometheus-operator/pkg/client/applyconfiguration/monitoring/v1
-github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/scheme
-github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1
 # github.com/prometheus/client_golang v1.20.5
 ## explicit; go 1.20
 github.com/prometheus/client_golang/api
@@ -1439,62 +1097,18 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/robfig/cron/v3 v3.0.1
-## explicit; go 1.12
-github.com/robfig/cron/v3
 # github.com/russross/blackfriday/v2 v2.1.0
 ## explicit
 github.com/russross/blackfriday/v2
-# github.com/sagikazarmark/locafero v0.4.0
-## explicit; go 1.20
-github.com/sagikazarmark/locafero
-# github.com/sagikazarmark/slog-shim v0.1.0
-## explicit; go 1.20
-github.com/sagikazarmark/slog-shim
-# github.com/sergi/go-diff v1.2.0
-## explicit; go 1.12
-github.com/sergi/go-diff/diffmatchpatch
 # github.com/sirupsen/logrus v1.9.3
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# github.com/sourcegraph/conc v0.3.0
-## explicit; go 1.19
-github.com/sourcegraph/conc
-github.com/sourcegraph/conc/internal/multierror
-github.com/sourcegraph/conc/iter
-github.com/sourcegraph/conc/panics
-# github.com/spf13/afero v1.11.0
-## explicit; go 1.19
-github.com/spf13/afero
-github.com/spf13/afero/internal/common
-github.com/spf13/afero/mem
-# github.com/spf13/cast v1.7.0
-## explicit; go 1.19
-github.com/spf13/cast
 # github.com/spf13/cobra v1.8.1
 ## explicit; go 1.15
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.6-0.20210604193023-d5e0c0615ace
 ## explicit; go 1.12
 github.com/spf13/pflag
-# github.com/spf13/viper v1.19.0
-## explicit; go 1.20
-github.com/spf13/viper
-github.com/spf13/viper/internal/encoding
-github.com/spf13/viper/internal/encoding/dotenv
-github.com/spf13/viper/internal/encoding/hcl
-github.com/spf13/viper/internal/encoding/ini
-github.com/spf13/viper/internal/encoding/javaproperties
-github.com/spf13/viper/internal/encoding/json
-github.com/spf13/viper/internal/encoding/toml
-github.com/spf13/viper/internal/encoding/yaml
-github.com/spf13/viper/internal/features
-# github.com/src-d/gcfg v1.4.0
-## explicit
-github.com/src-d/gcfg
-github.com/src-d/gcfg/scanner
-github.com/src-d/gcfg/token
-github.com/src-d/gcfg/types
 # github.com/stoewer/go-strcase v1.3.0
 ## explicit; go 1.11
 github.com/stoewer/go-strcase
@@ -1506,10 +1120,6 @@ github.com/stretchr/objx
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/mock
-github.com/stretchr/testify/require
-# github.com/subosito/gotenv v1.6.0
-## explicit; go 1.18
-github.com/subosito/gotenv
 # github.com/tidwall/gjson v1.18.0
 ## explicit; go 1.12
 github.com/tidwall/gjson
@@ -1522,9 +1132,6 @@ github.com/tidwall/pretty
 # github.com/x448/float16 v0.8.4
 ## explicit; go 1.11
 github.com/x448/float16
-# github.com/xanzy/ssh-agent v0.2.1
-## explicit
-github.com/xanzy/ssh-agent
 # github.com/xlab/treeprint v1.2.0
 ## explicit; go 1.13
 github.com/xlab/treeprint
@@ -1620,10 +1227,6 @@ go.opentelemetry.io/proto/otlp/trace/v1
 # go.uber.org/atomic v1.11.0
 ## explicit; go 1.18
 go.uber.org/atomic
-# go.uber.org/goleak v1.3.0
-## explicit; go 1.20
-go.uber.org/goleak
-go.uber.org/goleak/internal/stack
 # go.uber.org/mock v0.4.0
 ## explicit; go 1.20
 go.uber.org/mock/gomock
@@ -1644,9 +1247,7 @@ go.uber.org/zap/zapcore
 go.uber.org/zap/zapgrpc
 # golang.org/x/crypto v0.36.0
 ## explicit; go 1.23.0
-golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
-golang.org/x/crypto/cast5
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/cryptobyte
 golang.org/x/crypto/cryptobyte/asn1
@@ -1655,30 +1256,18 @@ golang.org/x/crypto/ed25519
 golang.org/x/crypto/hkdf
 golang.org/x/crypto/internal/alias
 golang.org/x/crypto/internal/poly1305
-golang.org/x/crypto/md4
 golang.org/x/crypto/nacl/secretbox
-golang.org/x/crypto/openpgp
-golang.org/x/crypto/openpgp/armor
-golang.org/x/crypto/openpgp/elgamal
-golang.org/x/crypto/openpgp/errors
-golang.org/x/crypto/openpgp/packet
-golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
 golang.org/x/crypto/salsa20/salsa
 golang.org/x/crypto/ssh
-golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
-golang.org/x/crypto/ssh/knownhosts
 # golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
 ## explicit; go 1.22.0
 golang.org/x/exp/constraints
 golang.org/x/exp/maps
 golang.org/x/exp/slices
-golang.org/x/exp/slog
-golang.org/x/exp/slog/internal
-golang.org/x/exp/slog/internal/buffer
 # golang.org/x/image v0.11.0
 ## explicit; go 1.12
 golang.org/x/image/ccitt
@@ -1770,7 +1359,6 @@ golang.org/x/text/unicode/norm
 golang.org/x/time/rate
 # golang.org/x/tools v0.28.0
 ## explicit; go 1.22.0
-golang.org/x/tools/container/intsets
 golang.org/x/tools/cover
 golang.org/x/tools/go/ast/inspector
 # gomodules.xyz/jsonpatch/v2 v2.4.0
@@ -1792,6 +1380,8 @@ gonum.org/v1/plot/vg/vgimg
 gonum.org/v1/plot/vg/vgpdf
 gonum.org/v1/plot/vg/vgsvg
 gonum.org/v1/plot/vg/vgtex
+# google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9
+## explicit; go 1.19
 # google.golang.org/genproto/googleapis/api v0.0.0-20240826202546-f6391c0de4c7
 ## explicit; go 1.21
 google.golang.org/genproto/googleapis/api
@@ -1851,8 +1441,6 @@ google.golang.org/grpc/internal/status
 google.golang.org/grpc/internal/syscall
 google.golang.org/grpc/internal/transport
 google.golang.org/grpc/internal/transport/networktype
-google.golang.org/grpc/interop/grpc_testing
-google.golang.org/grpc/interop/grpc_testing/core
 google.golang.org/grpc/keepalive
 google.golang.org/grpc/mem
 google.golang.org/grpc/metadata
@@ -1927,59 +1515,6 @@ gopkg.in/square/go-jose.v2
 gopkg.in/square/go-jose.v2/cipher
 gopkg.in/square/go-jose.v2/json
 gopkg.in/square/go-jose.v2/jwt
-# gopkg.in/src-d/go-billy.v4 v4.3.2
-## explicit
-gopkg.in/src-d/go-billy.v4
-gopkg.in/src-d/go-billy.v4/helper/chroot
-gopkg.in/src-d/go-billy.v4/helper/polyfill
-gopkg.in/src-d/go-billy.v4/osfs
-gopkg.in/src-d/go-billy.v4/util
-# gopkg.in/src-d/go-git.v4 v4.13.1
-## explicit
-gopkg.in/src-d/go-git.v4
-gopkg.in/src-d/go-git.v4/config
-gopkg.in/src-d/go-git.v4/internal/revision
-gopkg.in/src-d/go-git.v4/internal/url
-gopkg.in/src-d/go-git.v4/plumbing
-gopkg.in/src-d/go-git.v4/plumbing/cache
-gopkg.in/src-d/go-git.v4/plumbing/filemode
-gopkg.in/src-d/go-git.v4/plumbing/format/config
-gopkg.in/src-d/go-git.v4/plumbing/format/diff
-gopkg.in/src-d/go-git.v4/plumbing/format/gitignore
-gopkg.in/src-d/go-git.v4/plumbing/format/idxfile
-gopkg.in/src-d/go-git.v4/plumbing/format/index
-gopkg.in/src-d/go-git.v4/plumbing/format/objfile
-gopkg.in/src-d/go-git.v4/plumbing/format/packfile
-gopkg.in/src-d/go-git.v4/plumbing/format/pktline
-gopkg.in/src-d/go-git.v4/plumbing/object
-gopkg.in/src-d/go-git.v4/plumbing/protocol/packp
-gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/capability
-gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/sideband
-gopkg.in/src-d/go-git.v4/plumbing/revlist
-gopkg.in/src-d/go-git.v4/plumbing/storer
-gopkg.in/src-d/go-git.v4/plumbing/transport
-gopkg.in/src-d/go-git.v4/plumbing/transport/client
-gopkg.in/src-d/go-git.v4/plumbing/transport/file
-gopkg.in/src-d/go-git.v4/plumbing/transport/git
-gopkg.in/src-d/go-git.v4/plumbing/transport/http
-gopkg.in/src-d/go-git.v4/plumbing/transport/internal/common
-gopkg.in/src-d/go-git.v4/plumbing/transport/server
-gopkg.in/src-d/go-git.v4/plumbing/transport/ssh
-gopkg.in/src-d/go-git.v4/storage
-gopkg.in/src-d/go-git.v4/storage/filesystem
-gopkg.in/src-d/go-git.v4/storage/filesystem/dotgit
-gopkg.in/src-d/go-git.v4/storage/memory
-gopkg.in/src-d/go-git.v4/utils/binary
-gopkg.in/src-d/go-git.v4/utils/diff
-gopkg.in/src-d/go-git.v4/utils/ioutil
-gopkg.in/src-d/go-git.v4/utils/merkletrie
-gopkg.in/src-d/go-git.v4/utils/merkletrie/filesystem
-gopkg.in/src-d/go-git.v4/utils/merkletrie/index
-gopkg.in/src-d/go-git.v4/utils/merkletrie/internal/frame
-gopkg.in/src-d/go-git.v4/utils/merkletrie/noder
-# gopkg.in/warnings.v0 v0.1.2
-## explicit
-gopkg.in/warnings.v0
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2
@@ -2186,13 +1721,6 @@ k8s.io/apiserver/pkg/admission/plugin/policy/mutating
 k8s.io/apiserver/pkg/admission/plugin/policy/mutating/patch
 k8s.io/apiserver/pkg/admission/plugin/policy/validating
 k8s.io/apiserver/pkg/admission/plugin/policy/validating/metrics
-k8s.io/apiserver/pkg/admission/plugin/resourcequota
-k8s.io/apiserver/pkg/admission/plugin/resourcequota/apis/resourcequota
-k8s.io/apiserver/pkg/admission/plugin/resourcequota/apis/resourcequota/install
-k8s.io/apiserver/pkg/admission/plugin/resourcequota/apis/resourcequota/v1
-k8s.io/apiserver/pkg/admission/plugin/resourcequota/apis/resourcequota/v1alpha1
-k8s.io/apiserver/pkg/admission/plugin/resourcequota/apis/resourcequota/v1beta1
-k8s.io/apiserver/pkg/admission/plugin/resourcequota/apis/resourcequota/validation
 k8s.io/apiserver/pkg/admission/plugin/webhook
 k8s.io/apiserver/pkg/admission/plugin/webhook/config
 k8s.io/apiserver/pkg/admission/plugin/webhook/config/apis/webhookadmission
@@ -2200,7 +1728,6 @@ k8s.io/apiserver/pkg/admission/plugin/webhook/config/apis/webhookadmission/v1
 k8s.io/apiserver/pkg/admission/plugin/webhook/config/apis/webhookadmission/v1alpha1
 k8s.io/apiserver/pkg/admission/plugin/webhook/errors
 k8s.io/apiserver/pkg/admission/plugin/webhook/generic
-k8s.io/apiserver/pkg/admission/plugin/webhook/initializer
 k8s.io/apiserver/pkg/admission/plugin/webhook/matchconditions
 k8s.io/apiserver/pkg/admission/plugin/webhook/mutating
 k8s.io/apiserver/pkg/admission/plugin/webhook/predicates/namespace
@@ -2211,7 +1738,6 @@ k8s.io/apiserver/pkg/admission/plugin/webhook/validating
 k8s.io/apiserver/pkg/apis/apidiscovery/v2
 k8s.io/apiserver/pkg/apis/apiserver
 k8s.io/apiserver/pkg/apis/apiserver/install
-k8s.io/apiserver/pkg/apis/apiserver/load
 k8s.io/apiserver/pkg/apis/apiserver/v1
 k8s.io/apiserver/pkg/apis/apiserver/v1alpha1
 k8s.io/apiserver/pkg/apis/apiserver/v1beta1
@@ -2238,12 +1764,10 @@ k8s.io/apiserver/pkg/authentication/serviceaccount
 k8s.io/apiserver/pkg/authentication/token/cache
 k8s.io/apiserver/pkg/authentication/token/jwt
 k8s.io/apiserver/pkg/authentication/token/tokenfile
-k8s.io/apiserver/pkg/authentication/token/union
 k8s.io/apiserver/pkg/authentication/user
 k8s.io/apiserver/pkg/authorization/authorizer
 k8s.io/apiserver/pkg/authorization/authorizerfactory
 k8s.io/apiserver/pkg/authorization/cel
-k8s.io/apiserver/pkg/authorization/metrics
 k8s.io/apiserver/pkg/authorization/path
 k8s.io/apiserver/pkg/authorization/union
 k8s.io/apiserver/pkg/cel
@@ -2276,10 +1800,8 @@ k8s.io/apiserver/pkg/endpoints/warning
 k8s.io/apiserver/pkg/features
 k8s.io/apiserver/pkg/quota/v1
 k8s.io/apiserver/pkg/quota/v1/generic
-k8s.io/apiserver/pkg/reconcilers
 k8s.io/apiserver/pkg/registry/generic
 k8s.io/apiserver/pkg/registry/generic/registry
-k8s.io/apiserver/pkg/registry/generic/rest
 k8s.io/apiserver/pkg/registry/rest
 k8s.io/apiserver/pkg/server
 k8s.io/apiserver/pkg/server/dynamiccertificates
@@ -2290,8 +1812,6 @@ k8s.io/apiserver/pkg/server/healthz
 k8s.io/apiserver/pkg/server/httplog
 k8s.io/apiserver/pkg/server/mux
 k8s.io/apiserver/pkg/server/options
-k8s.io/apiserver/pkg/server/options/authenticationconfig/metrics
-k8s.io/apiserver/pkg/server/options/authorizationconfig/metrics
 k8s.io/apiserver/pkg/server/options/encryptionconfig
 k8s.io/apiserver/pkg/server/options/encryptionconfig/controller
 k8s.io/apiserver/pkg/server/options/encryptionconfig/metrics
@@ -2332,13 +1852,10 @@ k8s.io/apiserver/pkg/util/flowcontrol/format
 k8s.io/apiserver/pkg/util/flowcontrol/metrics
 k8s.io/apiserver/pkg/util/flowcontrol/request
 k8s.io/apiserver/pkg/util/flushwriter
-k8s.io/apiserver/pkg/util/notfoundhandler
 k8s.io/apiserver/pkg/util/openapi
-k8s.io/apiserver/pkg/util/peerproxy
 k8s.io/apiserver/pkg/util/peerproxy/metrics
 k8s.io/apiserver/pkg/util/proxy
 k8s.io/apiserver/pkg/util/proxy/metrics
-k8s.io/apiserver/pkg/util/responsewriter
 k8s.io/apiserver/pkg/util/shufflesharding
 k8s.io/apiserver/pkg/util/webhook
 k8s.io/apiserver/pkg/util/x509metrics
@@ -2347,7 +1864,6 @@ k8s.io/apiserver/plugin/pkg/audit/buffered
 k8s.io/apiserver/plugin/pkg/audit/log
 k8s.io/apiserver/plugin/pkg/audit/truncate
 k8s.io/apiserver/plugin/pkg/audit/webhook
-k8s.io/apiserver/plugin/pkg/authenticator/token/oidc
 k8s.io/apiserver/plugin/pkg/authenticator/token/webhook
 k8s.io/apiserver/plugin/pkg/authorizer/webhook
 k8s.io/apiserver/plugin/pkg/authorizer/webhook/metrics
@@ -2743,13 +2259,9 @@ k8s.io/cloud-provider/volume/helpers
 # k8s.io/cluster-bootstrap v0.31.3 => github.com/openshift/kubernetes/staging/src/k8s.io/cluster-bootstrap v0.0.0-20250527023356-4cd5657aac98
 ## explicit; go 1.23.0
 k8s.io/cluster-bootstrap/token/api
-k8s.io/cluster-bootstrap/token/util
-k8s.io/cluster-bootstrap/util/secrets
-k8s.io/cluster-bootstrap/util/tokens
 # k8s.io/component-base v0.32.5 => github.com/openshift/kubernetes/staging/src/k8s.io/component-base v0.0.0-20250527023356-4cd5657aac98
 ## explicit; go 1.23.0
 k8s.io/component-base/cli/flag
-k8s.io/component-base/cli/globalflag
 k8s.io/component-base/codec
 k8s.io/component-base/config
 k8s.io/component-base/config/options
@@ -2779,12 +2291,9 @@ k8s.io/component-base/version
 k8s.io/component-base/version/verflag
 k8s.io/component-base/zpages/features
 k8s.io/component-base/zpages/flagz
-k8s.io/component-base/zpages/statusz
 # k8s.io/component-helpers v0.32.5 => github.com/openshift/kubernetes/staging/src/k8s.io/component-helpers v0.0.0-20250527023356-4cd5657aac98
 ## explicit; go 1.23.0
 k8s.io/component-helpers/apimachinery/lease
-k8s.io/component-helpers/apps/poddisruptionbudget
-k8s.io/component-helpers/auth/rbac/reconciliation
 k8s.io/component-helpers/auth/rbac/validation
 k8s.io/component-helpers/node/topology
 k8s.io/component-helpers/node/util
@@ -2829,9 +2338,6 @@ k8s.io/dynamic-resource-allocation/kubeletplugin
 k8s.io/dynamic-resource-allocation/resourceclaim
 k8s.io/dynamic-resource-allocation/resourceslice
 k8s.io/dynamic-resource-allocation/structured
-# k8s.io/externaljwt v0.0.0 => github.com/openshift/kubernetes/staging/src/k8s.io/externaljwt v0.0.0-20250527023356-4cd5657aac98
-## explicit; go 1.23.0
-k8s.io/externaljwt/apis/v1alpha1
 # k8s.io/klog v1.0.0
 ## explicit; go 1.12
 k8s.io/klog
@@ -2845,7 +2351,6 @@ k8s.io/klog/v2/internal/serialize
 k8s.io/klog/v2/internal/severity
 k8s.io/klog/v2/internal/sloghandler
 k8s.io/klog/v2/internal/verbosity
-k8s.io/klog/v2/ktesting
 k8s.io/klog/v2/textlogger
 # k8s.io/kms v0.32.1 => github.com/openshift/kubernetes/staging/src/k8s.io/kms v0.0.0-20250527023356-4cd5657aac98
 ## explicit; go 1.23.0
@@ -2856,36 +2361,12 @@ k8s.io/kms/pkg/util
 # k8s.io/kube-aggregator v0.32.5 => github.com/openshift/kubernetes/staging/src/k8s.io/kube-aggregator v0.0.0-20250527023356-4cd5657aac98
 ## explicit; go 1.23.0
 k8s.io/kube-aggregator/pkg/apis/apiregistration
-k8s.io/kube-aggregator/pkg/apis/apiregistration/install
 k8s.io/kube-aggregator/pkg/apis/apiregistration/v1
-k8s.io/kube-aggregator/pkg/apis/apiregistration/v1/helper
 k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1
-k8s.io/kube-aggregator/pkg/apis/apiregistration/validation
-k8s.io/kube-aggregator/pkg/apiserver
-k8s.io/kube-aggregator/pkg/apiserver/scheme
 k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset
 k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/scheme
 k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/typed/apiregistration/v1
 k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset/typed/apiregistration/v1beta1
-k8s.io/kube-aggregator/pkg/client/informers/externalversions
-k8s.io/kube-aggregator/pkg/client/informers/externalversions/apiregistration
-k8s.io/kube-aggregator/pkg/client/informers/externalversions/apiregistration/v1
-k8s.io/kube-aggregator/pkg/client/informers/externalversions/apiregistration/v1beta1
-k8s.io/kube-aggregator/pkg/client/informers/externalversions/internalinterfaces
-k8s.io/kube-aggregator/pkg/client/listers/apiregistration/v1
-k8s.io/kube-aggregator/pkg/client/listers/apiregistration/v1beta1
-k8s.io/kube-aggregator/pkg/controllers
-k8s.io/kube-aggregator/pkg/controllers/autoregister
-k8s.io/kube-aggregator/pkg/controllers/openapi
-k8s.io/kube-aggregator/pkg/controllers/openapi/aggregator
-k8s.io/kube-aggregator/pkg/controllers/openapiv3
-k8s.io/kube-aggregator/pkg/controllers/openapiv3/aggregator
-k8s.io/kube-aggregator/pkg/controllers/status/local
-k8s.io/kube-aggregator/pkg/controllers/status/metrics
-k8s.io/kube-aggregator/pkg/controllers/status/remote
-k8s.io/kube-aggregator/pkg/registry/apiservice
-k8s.io/kube-aggregator/pkg/registry/apiservice/etcd
-k8s.io/kube-aggregator/pkg/registry/apiservice/rest
 # k8s.io/kube-openapi v0.0.0-20241105132330-32ad38e42d3f
 ## explicit; go 1.20
 k8s.io/kube-openapi/pkg/aggregator
@@ -2899,7 +2380,6 @@ k8s.io/kube-openapi/pkg/handler
 k8s.io/kube-openapi/pkg/handler3
 k8s.io/kube-openapi/pkg/internal
 k8s.io/kube-openapi/pkg/internal/third_party/go-json-experiment/json
-k8s.io/kube-openapi/pkg/openapiconv
 k8s.io/kube-openapi/pkg/schemaconv
 k8s.io/kube-openapi/pkg/schemamutation
 k8s.io/kube-openapi/pkg/spec3
@@ -2965,151 +2445,24 @@ k8s.io/kubelet/pkg/cri/streaming/remotecommand
 k8s.io/kubelet/pkg/types
 # k8s.io/kubernetes v1.32.5 => github.com/openshift/kubernetes v1.30.1-0.20250527023356-4cd5657aac98
 ## explicit; go 1.23.0
-k8s.io/kubernetes/cmd/kube-apiserver/app
-k8s.io/kubernetes/cmd/kube-apiserver/app/options
 k8s.io/kubernetes/cmd/kubelet/app
 k8s.io/kubernetes/cmd/kubelet/app/options
 k8s.io/kubernetes/openshift-hack/e2e
 k8s.io/kubernetes/openshift-hack/e2e/annotate
 k8s.io/kubernetes/openshift-hack/e2e/annotate/generated
-k8s.io/kubernetes/openshift-kube-apiserver/admission/admissionenablement
-k8s.io/kubernetes/openshift-kube-apiserver/admission/authorization/restrictusers
-k8s.io/kubernetes/openshift-kube-apiserver/admission/authorization/restrictusers/usercache
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/apis/clusterresourceoverride
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/apis/clusterresourceoverride/v1
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/apis/clusterresourceoverride/validation
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/apis/runonceduration
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/apis/runonceduration/v1
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/apis/runonceduration/validation
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/clusterresourceoverride
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/managednode
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/managementcpusoverride
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/mixedcpus
-k8s.io/kubernetes/openshift-kube-apiserver/admission/autoscaling/runonceduration
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/apirequestcount
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/apiserver
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/authentication
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/clusterresourcequota
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/clusterresourcequota/validation
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/config
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/console
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/customresourcevalidationregistration
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/dns
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/features
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/image
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/kubecontrollermanager
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/network
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/node
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/oauth
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/operator
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/project
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/rolebindingrestriction
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/rolebindingrestriction/validation
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/route
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/scheduler
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/securitycontextconstraints
-k8s.io/kubernetes/openshift-kube-apiserver/admission/customresourcevalidation/securitycontextconstraints/validation
-k8s.io/kubernetes/openshift-kube-apiserver/admission/namespaceconditions
-k8s.io/kubernetes/openshift-kube-apiserver/admission/network/apis/externalipranger
-k8s.io/kubernetes/openshift-kube-apiserver/admission/network/apis/externalipranger/v1
-k8s.io/kubernetes/openshift-kube-apiserver/admission/network/apis/restrictedendpoints
-k8s.io/kubernetes/openshift-kube-apiserver/admission/network/apis/restrictedendpoints/v1
-k8s.io/kubernetes/openshift-kube-apiserver/admission/network/externalipranger
-k8s.io/kubernetes/openshift-kube-apiserver/admission/network/restrictedendpoints
-k8s.io/kubernetes/openshift-kube-apiserver/admission/route
-k8s.io/kubernetes/openshift-kube-apiserver/admission/route/apis/hostassignment
-k8s.io/kubernetes/openshift-kube-apiserver/admission/route/apis/hostassignment/v1
-k8s.io/kubernetes/openshift-kube-apiserver/admission/route/apis/ingressadmission
-k8s.io/kubernetes/openshift-kube-apiserver/admission/route/apis/ingressadmission/v1
-k8s.io/kubernetes/openshift-kube-apiserver/admission/route/hostassignment
-k8s.io/kubernetes/openshift-kube-apiserver/admission/scheduler/apis/podnodeconstraints
-k8s.io/kubernetes/openshift-kube-apiserver/admission/scheduler/apis/podnodeconstraints/v1
-k8s.io/kubernetes/openshift-kube-apiserver/admission/scheduler/nodeenv
-k8s.io/kubernetes/openshift-kube-apiserver/admission/scheduler/podnodeconstraints
-k8s.io/kubernetes/openshift-kube-apiserver/admission/storage/csiinlinevolumesecurity
-k8s.io/kubernetes/openshift-kube-apiserver/authorization/browsersafe
-k8s.io/kubernetes/openshift-kube-apiserver/authorization/minimumkubeletversion
-k8s.io/kubernetes/openshift-kube-apiserver/authorization/scopeauthorizer
-k8s.io/kubernetes/openshift-kube-apiserver/configdefault
-k8s.io/kubernetes/openshift-kube-apiserver/enablement
-k8s.io/kubernetes/openshift-kube-apiserver/filters
-k8s.io/kubernetes/openshift-kube-apiserver/filters/apirequestcount
-k8s.io/kubernetes/openshift-kube-apiserver/filters/apirequestcount/v1helpers
-k8s.io/kubernetes/openshift-kube-apiserver/openshiftkubeapiserver
-k8s.io/kubernetes/pkg/api/job
 k8s.io/kubernetes/pkg/api/legacyscheme
 k8s.io/kubernetes/pkg/api/node
-k8s.io/kubernetes/pkg/api/persistentvolume
 k8s.io/kubernetes/pkg/api/persistentvolumeclaim
 k8s.io/kubernetes/pkg/api/pod
 k8s.io/kubernetes/pkg/api/service
-k8s.io/kubernetes/pkg/api/servicecidr
-k8s.io/kubernetes/pkg/api/storage
-k8s.io/kubernetes/pkg/api/v1/endpoints
-k8s.io/kubernetes/pkg/api/v1/persistentvolume
 k8s.io/kubernetes/pkg/api/v1/pod
 k8s.io/kubernetes/pkg/api/v1/resource
 k8s.io/kubernetes/pkg/api/v1/service
-k8s.io/kubernetes/pkg/apis/abac
-k8s.io/kubernetes/pkg/apis/abac/latest
-k8s.io/kubernetes/pkg/apis/abac/v0
-k8s.io/kubernetes/pkg/apis/abac/v1beta1
-k8s.io/kubernetes/pkg/apis/admission
-k8s.io/kubernetes/pkg/apis/admission/install
-k8s.io/kubernetes/pkg/apis/admission/v1
-k8s.io/kubernetes/pkg/apis/admission/v1beta1
-k8s.io/kubernetes/pkg/apis/admissionregistration
-k8s.io/kubernetes/pkg/apis/admissionregistration/install
-k8s.io/kubernetes/pkg/apis/admissionregistration/v1
-k8s.io/kubernetes/pkg/apis/admissionregistration/v1alpha1
-k8s.io/kubernetes/pkg/apis/admissionregistration/v1beta1
-k8s.io/kubernetes/pkg/apis/admissionregistration/validation
-k8s.io/kubernetes/pkg/apis/apiserverinternal
-k8s.io/kubernetes/pkg/apis/apiserverinternal/install
-k8s.io/kubernetes/pkg/apis/apiserverinternal/v1alpha1
-k8s.io/kubernetes/pkg/apis/apiserverinternal/validation
 k8s.io/kubernetes/pkg/apis/apps
-k8s.io/kubernetes/pkg/apis/apps/install
 k8s.io/kubernetes/pkg/apis/apps/v1
-k8s.io/kubernetes/pkg/apis/apps/v1beta1
-k8s.io/kubernetes/pkg/apis/apps/v1beta2
 k8s.io/kubernetes/pkg/apis/apps/validation
-k8s.io/kubernetes/pkg/apis/authentication
-k8s.io/kubernetes/pkg/apis/authentication/install
-k8s.io/kubernetes/pkg/apis/authentication/v1
-k8s.io/kubernetes/pkg/apis/authentication/v1alpha1
-k8s.io/kubernetes/pkg/apis/authentication/v1beta1
-k8s.io/kubernetes/pkg/apis/authentication/validation
-k8s.io/kubernetes/pkg/apis/authorization
-k8s.io/kubernetes/pkg/apis/authorization/install
-k8s.io/kubernetes/pkg/apis/authorization/v1
-k8s.io/kubernetes/pkg/apis/authorization/v1beta1
-k8s.io/kubernetes/pkg/apis/authorization/validation
 k8s.io/kubernetes/pkg/apis/autoscaling
-k8s.io/kubernetes/pkg/apis/autoscaling/install
-k8s.io/kubernetes/pkg/apis/autoscaling/v1
-k8s.io/kubernetes/pkg/apis/autoscaling/v2
-k8s.io/kubernetes/pkg/apis/autoscaling/v2beta1
-k8s.io/kubernetes/pkg/apis/autoscaling/v2beta2
-k8s.io/kubernetes/pkg/apis/autoscaling/validation
 k8s.io/kubernetes/pkg/apis/batch
-k8s.io/kubernetes/pkg/apis/batch/install
-k8s.io/kubernetes/pkg/apis/batch/v1
-k8s.io/kubernetes/pkg/apis/batch/v1beta1
-k8s.io/kubernetes/pkg/apis/batch/validation
-k8s.io/kubernetes/pkg/apis/certificates
-k8s.io/kubernetes/pkg/apis/certificates/install
-k8s.io/kubernetes/pkg/apis/certificates/v1
-k8s.io/kubernetes/pkg/apis/certificates/v1alpha1
-k8s.io/kubernetes/pkg/apis/certificates/v1beta1
-k8s.io/kubernetes/pkg/apis/certificates/validation
-k8s.io/kubernetes/pkg/apis/coordination
-k8s.io/kubernetes/pkg/apis/coordination/install
-k8s.io/kubernetes/pkg/apis/coordination/v1
-k8s.io/kubernetes/pkg/apis/coordination/v1alpha2
-k8s.io/kubernetes/pkg/apis/coordination/v1beta1
-k8s.io/kubernetes/pkg/apis/coordination/validation
 k8s.io/kubernetes/pkg/apis/core
 k8s.io/kubernetes/pkg/apis/core/helper
 k8s.io/kubernetes/pkg/apis/core/helper/qos
@@ -3120,77 +2473,17 @@ k8s.io/kubernetes/pkg/apis/core/v1/helper
 k8s.io/kubernetes/pkg/apis/core/v1/helper/qos
 k8s.io/kubernetes/pkg/apis/core/v1/validation
 k8s.io/kubernetes/pkg/apis/core/validation
-k8s.io/kubernetes/pkg/apis/discovery
-k8s.io/kubernetes/pkg/apis/discovery/install
-k8s.io/kubernetes/pkg/apis/discovery/v1
-k8s.io/kubernetes/pkg/apis/discovery/v1beta1
-k8s.io/kubernetes/pkg/apis/discovery/validation
-k8s.io/kubernetes/pkg/apis/events
-k8s.io/kubernetes/pkg/apis/events/install
-k8s.io/kubernetes/pkg/apis/events/v1
-k8s.io/kubernetes/pkg/apis/events/v1beta1
 k8s.io/kubernetes/pkg/apis/extensions
-k8s.io/kubernetes/pkg/apis/extensions/install
-k8s.io/kubernetes/pkg/apis/extensions/v1beta1
-k8s.io/kubernetes/pkg/apis/flowcontrol
-k8s.io/kubernetes/pkg/apis/flowcontrol/install
-k8s.io/kubernetes/pkg/apis/flowcontrol/internalbootstrap
-k8s.io/kubernetes/pkg/apis/flowcontrol/util
-k8s.io/kubernetes/pkg/apis/flowcontrol/v1
-k8s.io/kubernetes/pkg/apis/flowcontrol/v1beta1
-k8s.io/kubernetes/pkg/apis/flowcontrol/v1beta2
-k8s.io/kubernetes/pkg/apis/flowcontrol/v1beta3
-k8s.io/kubernetes/pkg/apis/flowcontrol/validation
-k8s.io/kubernetes/pkg/apis/imagepolicy
-k8s.io/kubernetes/pkg/apis/imagepolicy/install
-k8s.io/kubernetes/pkg/apis/imagepolicy/v1alpha1
 k8s.io/kubernetes/pkg/apis/networking
-k8s.io/kubernetes/pkg/apis/networking/install
-k8s.io/kubernetes/pkg/apis/networking/v1
-k8s.io/kubernetes/pkg/apis/networking/v1alpha1
-k8s.io/kubernetes/pkg/apis/networking/v1beta1
-k8s.io/kubernetes/pkg/apis/networking/validation
 k8s.io/kubernetes/pkg/apis/node
-k8s.io/kubernetes/pkg/apis/node/install
-k8s.io/kubernetes/pkg/apis/node/v1
-k8s.io/kubernetes/pkg/apis/node/v1alpha1
-k8s.io/kubernetes/pkg/apis/node/v1beta1
-k8s.io/kubernetes/pkg/apis/node/validation
 k8s.io/kubernetes/pkg/apis/policy
-k8s.io/kubernetes/pkg/apis/policy/install
-k8s.io/kubernetes/pkg/apis/policy/v1
-k8s.io/kubernetes/pkg/apis/policy/v1beta1
 k8s.io/kubernetes/pkg/apis/policy/validation
 k8s.io/kubernetes/pkg/apis/rbac
-k8s.io/kubernetes/pkg/apis/rbac/install
 k8s.io/kubernetes/pkg/apis/rbac/v1
-k8s.io/kubernetes/pkg/apis/rbac/v1alpha1
-k8s.io/kubernetes/pkg/apis/rbac/v1beta1
-k8s.io/kubernetes/pkg/apis/rbac/validation
 k8s.io/kubernetes/pkg/apis/resource
-k8s.io/kubernetes/pkg/apis/resource/install
-k8s.io/kubernetes/pkg/apis/resource/v1alpha3
 k8s.io/kubernetes/pkg/apis/resource/v1beta1
-k8s.io/kubernetes/pkg/apis/resource/validation
 k8s.io/kubernetes/pkg/apis/scheduling
-k8s.io/kubernetes/pkg/apis/scheduling/install
-k8s.io/kubernetes/pkg/apis/scheduling/v1
-k8s.io/kubernetes/pkg/apis/scheduling/v1alpha1
-k8s.io/kubernetes/pkg/apis/scheduling/v1beta1
-k8s.io/kubernetes/pkg/apis/scheduling/validation
-k8s.io/kubernetes/pkg/apis/storage
-k8s.io/kubernetes/pkg/apis/storage/install
 k8s.io/kubernetes/pkg/apis/storage/util
-k8s.io/kubernetes/pkg/apis/storage/v1
-k8s.io/kubernetes/pkg/apis/storage/v1alpha1
-k8s.io/kubernetes/pkg/apis/storage/v1beta1
-k8s.io/kubernetes/pkg/apis/storage/validation
-k8s.io/kubernetes/pkg/apis/storagemigration
-k8s.io/kubernetes/pkg/apis/storagemigration/install
-k8s.io/kubernetes/pkg/apis/storagemigration/v1alpha1
-k8s.io/kubernetes/pkg/apis/storagemigration/validation
-k8s.io/kubernetes/pkg/auth/authorizer/abac
-k8s.io/kubernetes/pkg/auth/nodeidentifier
 k8s.io/kubernetes/pkg/capabilities
 k8s.io/kubernetes/pkg/client/conditions
 k8s.io/kubernetes/pkg/cluster/ports
@@ -3199,42 +2492,15 @@ k8s.io/kubernetes/pkg/controller/daemon
 k8s.io/kubernetes/pkg/controller/daemon/util
 k8s.io/kubernetes/pkg/controller/deployment/util
 k8s.io/kubernetes/pkg/controller/job/util
-k8s.io/kubernetes/pkg/controller/nodelifecycle
-k8s.io/kubernetes/pkg/controller/nodelifecycle/scheduler
 k8s.io/kubernetes/pkg/controller/replicaset
 k8s.io/kubernetes/pkg/controller/replicaset/metrics
 k8s.io/kubernetes/pkg/controller/replication
-k8s.io/kubernetes/pkg/controller/serviceaccount
-k8s.io/kubernetes/pkg/controller/tainteviction
-k8s.io/kubernetes/pkg/controller/tainteviction/metrics
-k8s.io/kubernetes/pkg/controller/util/node
 k8s.io/kubernetes/pkg/controller/volume/events
-k8s.io/kubernetes/pkg/controlplane
-k8s.io/kubernetes/pkg/controlplane/apiserver
-k8s.io/kubernetes/pkg/controlplane/apiserver/admission
-k8s.io/kubernetes/pkg/controlplane/apiserver/options
-k8s.io/kubernetes/pkg/controlplane/controller/apiserverleasegc
-k8s.io/kubernetes/pkg/controlplane/controller/clusterauthenticationtrust
-k8s.io/kubernetes/pkg/controlplane/controller/crdregistration
-k8s.io/kubernetes/pkg/controlplane/controller/defaultservicecidr
-k8s.io/kubernetes/pkg/controlplane/controller/kubernetesservice
-k8s.io/kubernetes/pkg/controlplane/controller/leaderelection
-k8s.io/kubernetes/pkg/controlplane/controller/legacytokentracking
-k8s.io/kubernetes/pkg/controlplane/controller/systemnamespaces
-k8s.io/kubernetes/pkg/controlplane/reconcilers
 k8s.io/kubernetes/pkg/credentialprovider
 k8s.io/kubernetes/pkg/credentialprovider/plugin
 k8s.io/kubernetes/pkg/credentialprovider/secrets
 k8s.io/kubernetes/pkg/features
 k8s.io/kubernetes/pkg/fieldpath
-k8s.io/kubernetes/pkg/generated/openapi
-k8s.io/kubernetes/pkg/kubeapiserver
-k8s.io/kubernetes/pkg/kubeapiserver/admission
-k8s.io/kubernetes/pkg/kubeapiserver/admission/exclusion
-k8s.io/kubernetes/pkg/kubeapiserver/authenticator
-k8s.io/kubernetes/pkg/kubeapiserver/authorizer
-k8s.io/kubernetes/pkg/kubeapiserver/authorizer/modes
-k8s.io/kubernetes/pkg/kubeapiserver/options
 k8s.io/kubernetes/pkg/kubelet
 k8s.io/kubernetes/pkg/kubelet/apis/config
 k8s.io/kubernetes/pkg/kubelet/apis/config/scheme
@@ -3250,7 +2516,6 @@ k8s.io/kubernetes/pkg/kubelet/certificate/bootstrap
 k8s.io/kubernetes/pkg/kubelet/checkpointmanager
 k8s.io/kubernetes/pkg/kubelet/checkpointmanager/checksum
 k8s.io/kubernetes/pkg/kubelet/checkpointmanager/errors
-k8s.io/kubernetes/pkg/kubelet/client
 k8s.io/kubernetes/pkg/kubelet/cloudresource
 k8s.io/kubernetes/pkg/kubelet/clustertrustbundle
 k8s.io/kubernetes/pkg/kubelet/cm
@@ -3342,9 +2607,6 @@ k8s.io/kubernetes/pkg/kubelet/volumemanager/reconciler
 k8s.io/kubernetes/pkg/kubelet/watchdog
 k8s.io/kubernetes/pkg/kubelet/winstats
 k8s.io/kubernetes/pkg/kubemark
-k8s.io/kubernetes/pkg/printers
-k8s.io/kubernetes/pkg/printers/internalversion
-k8s.io/kubernetes/pkg/printers/storage
 k8s.io/kubernetes/pkg/probe
 k8s.io/kubernetes/pkg/probe/exec
 k8s.io/kubernetes/pkg/probe/grpc
@@ -3352,174 +2614,8 @@ k8s.io/kubernetes/pkg/probe/http
 k8s.io/kubernetes/pkg/probe/tcp
 k8s.io/kubernetes/pkg/proxy/apis/config
 k8s.io/kubernetes/pkg/quota/v1/evaluator/core
-k8s.io/kubernetes/pkg/quota/v1/install
-k8s.io/kubernetes/pkg/registry/admissionregistration/mutatingadmissionpolicy
-k8s.io/kubernetes/pkg/registry/admissionregistration/mutatingadmissionpolicy/storage
-k8s.io/kubernetes/pkg/registry/admissionregistration/mutatingadmissionpolicybinding
-k8s.io/kubernetes/pkg/registry/admissionregistration/mutatingadmissionpolicybinding/storage
-k8s.io/kubernetes/pkg/registry/admissionregistration/mutatingwebhookconfiguration
-k8s.io/kubernetes/pkg/registry/admissionregistration/mutatingwebhookconfiguration/storage
-k8s.io/kubernetes/pkg/registry/admissionregistration/resolver
-k8s.io/kubernetes/pkg/registry/admissionregistration/rest
-k8s.io/kubernetes/pkg/registry/admissionregistration/validatingadmissionpolicy
-k8s.io/kubernetes/pkg/registry/admissionregistration/validatingadmissionpolicy/storage
-k8s.io/kubernetes/pkg/registry/admissionregistration/validatingadmissionpolicybinding
-k8s.io/kubernetes/pkg/registry/admissionregistration/validatingadmissionpolicybinding/storage
-k8s.io/kubernetes/pkg/registry/admissionregistration/validatingwebhookconfiguration
-k8s.io/kubernetes/pkg/registry/admissionregistration/validatingwebhookconfiguration/storage
-k8s.io/kubernetes/pkg/registry/apiserverinternal/rest
-k8s.io/kubernetes/pkg/registry/apiserverinternal/storageversion
-k8s.io/kubernetes/pkg/registry/apiserverinternal/storageversion/storage
-k8s.io/kubernetes/pkg/registry/apps/controllerrevision
-k8s.io/kubernetes/pkg/registry/apps/controllerrevision/storage
-k8s.io/kubernetes/pkg/registry/apps/daemonset
-k8s.io/kubernetes/pkg/registry/apps/daemonset/storage
-k8s.io/kubernetes/pkg/registry/apps/deployment
-k8s.io/kubernetes/pkg/registry/apps/deployment/storage
-k8s.io/kubernetes/pkg/registry/apps/replicaset
-k8s.io/kubernetes/pkg/registry/apps/replicaset/storage
-k8s.io/kubernetes/pkg/registry/apps/rest
-k8s.io/kubernetes/pkg/registry/apps/statefulset
-k8s.io/kubernetes/pkg/registry/apps/statefulset/storage
-k8s.io/kubernetes/pkg/registry/authentication/rest
-k8s.io/kubernetes/pkg/registry/authentication/selfsubjectreview
-k8s.io/kubernetes/pkg/registry/authentication/tokenreview
-k8s.io/kubernetes/pkg/registry/authorization/localsubjectaccessreview
-k8s.io/kubernetes/pkg/registry/authorization/rest
-k8s.io/kubernetes/pkg/registry/authorization/selfsubjectaccessreview
-k8s.io/kubernetes/pkg/registry/authorization/selfsubjectrulesreview
-k8s.io/kubernetes/pkg/registry/authorization/subjectaccessreview
-k8s.io/kubernetes/pkg/registry/authorization/util
-k8s.io/kubernetes/pkg/registry/autoscaling/horizontalpodautoscaler
-k8s.io/kubernetes/pkg/registry/autoscaling/horizontalpodautoscaler/storage
-k8s.io/kubernetes/pkg/registry/autoscaling/rest
-k8s.io/kubernetes/pkg/registry/batch/cronjob
-k8s.io/kubernetes/pkg/registry/batch/cronjob/storage
-k8s.io/kubernetes/pkg/registry/batch/job
-k8s.io/kubernetes/pkg/registry/batch/job/storage
-k8s.io/kubernetes/pkg/registry/batch/rest
-k8s.io/kubernetes/pkg/registry/certificates/certificates
-k8s.io/kubernetes/pkg/registry/certificates/certificates/storage
-k8s.io/kubernetes/pkg/registry/certificates/clustertrustbundle
-k8s.io/kubernetes/pkg/registry/certificates/clustertrustbundle/storage
-k8s.io/kubernetes/pkg/registry/certificates/rest
-k8s.io/kubernetes/pkg/registry/coordination/lease
-k8s.io/kubernetes/pkg/registry/coordination/lease/storage
-k8s.io/kubernetes/pkg/registry/coordination/leasecandidate
-k8s.io/kubernetes/pkg/registry/coordination/leasecandidate/storage
-k8s.io/kubernetes/pkg/registry/coordination/rest
-k8s.io/kubernetes/pkg/registry/core/componentstatus
-k8s.io/kubernetes/pkg/registry/core/configmap
-k8s.io/kubernetes/pkg/registry/core/configmap/storage
-k8s.io/kubernetes/pkg/registry/core/endpoint
-k8s.io/kubernetes/pkg/registry/core/endpoint/storage
-k8s.io/kubernetes/pkg/registry/core/event
-k8s.io/kubernetes/pkg/registry/core/event/storage
-k8s.io/kubernetes/pkg/registry/core/limitrange
-k8s.io/kubernetes/pkg/registry/core/limitrange/storage
-k8s.io/kubernetes/pkg/registry/core/namespace
-k8s.io/kubernetes/pkg/registry/core/namespace/storage
-k8s.io/kubernetes/pkg/registry/core/node
-k8s.io/kubernetes/pkg/registry/core/node/rest
-k8s.io/kubernetes/pkg/registry/core/node/storage
-k8s.io/kubernetes/pkg/registry/core/persistentvolume
-k8s.io/kubernetes/pkg/registry/core/persistentvolume/storage
-k8s.io/kubernetes/pkg/registry/core/persistentvolumeclaim
-k8s.io/kubernetes/pkg/registry/core/persistentvolumeclaim/storage
-k8s.io/kubernetes/pkg/registry/core/pod
-k8s.io/kubernetes/pkg/registry/core/pod/rest
-k8s.io/kubernetes/pkg/registry/core/pod/storage
-k8s.io/kubernetes/pkg/registry/core/podtemplate
-k8s.io/kubernetes/pkg/registry/core/podtemplate/storage
-k8s.io/kubernetes/pkg/registry/core/rangeallocation
-k8s.io/kubernetes/pkg/registry/core/replicationcontroller
-k8s.io/kubernetes/pkg/registry/core/replicationcontroller/storage
-k8s.io/kubernetes/pkg/registry/core/resourcequota
-k8s.io/kubernetes/pkg/registry/core/resourcequota/storage
-k8s.io/kubernetes/pkg/registry/core/rest
-k8s.io/kubernetes/pkg/registry/core/secret
-k8s.io/kubernetes/pkg/registry/core/secret/storage
-k8s.io/kubernetes/pkg/registry/core/service
 k8s.io/kubernetes/pkg/registry/core/service/allocator
-k8s.io/kubernetes/pkg/registry/core/service/allocator/storage
-k8s.io/kubernetes/pkg/registry/core/service/ipallocator
-k8s.io/kubernetes/pkg/registry/core/service/ipallocator/controller
-k8s.io/kubernetes/pkg/registry/core/service/portallocator
-k8s.io/kubernetes/pkg/registry/core/service/portallocator/controller
-k8s.io/kubernetes/pkg/registry/core/service/storage
-k8s.io/kubernetes/pkg/registry/core/serviceaccount
-k8s.io/kubernetes/pkg/registry/core/serviceaccount/storage
-k8s.io/kubernetes/pkg/registry/discovery/endpointslice
-k8s.io/kubernetes/pkg/registry/discovery/endpointslice/storage
-k8s.io/kubernetes/pkg/registry/discovery/rest
-k8s.io/kubernetes/pkg/registry/events/rest
-k8s.io/kubernetes/pkg/registry/flowcontrol/ensurer
-k8s.io/kubernetes/pkg/registry/flowcontrol/flowschema
-k8s.io/kubernetes/pkg/registry/flowcontrol/flowschema/storage
-k8s.io/kubernetes/pkg/registry/flowcontrol/prioritylevelconfiguration
-k8s.io/kubernetes/pkg/registry/flowcontrol/prioritylevelconfiguration/storage
-k8s.io/kubernetes/pkg/registry/flowcontrol/rest
-k8s.io/kubernetes/pkg/registry/networking/ingress
-k8s.io/kubernetes/pkg/registry/networking/ingress/storage
-k8s.io/kubernetes/pkg/registry/networking/ingressclass
-k8s.io/kubernetes/pkg/registry/networking/ingressclass/storage
-k8s.io/kubernetes/pkg/registry/networking/ipaddress
-k8s.io/kubernetes/pkg/registry/networking/ipaddress/storage
-k8s.io/kubernetes/pkg/registry/networking/networkpolicy
-k8s.io/kubernetes/pkg/registry/networking/networkpolicy/storage
-k8s.io/kubernetes/pkg/registry/networking/rest
-k8s.io/kubernetes/pkg/registry/networking/servicecidr
-k8s.io/kubernetes/pkg/registry/networking/servicecidr/storage
-k8s.io/kubernetes/pkg/registry/node/rest
-k8s.io/kubernetes/pkg/registry/node/runtimeclass
-k8s.io/kubernetes/pkg/registry/node/runtimeclass/storage
-k8s.io/kubernetes/pkg/registry/policy/poddisruptionbudget
-k8s.io/kubernetes/pkg/registry/policy/poddisruptionbudget/storage
-k8s.io/kubernetes/pkg/registry/policy/rest
-k8s.io/kubernetes/pkg/registry/rbac
-k8s.io/kubernetes/pkg/registry/rbac/clusterrole
-k8s.io/kubernetes/pkg/registry/rbac/clusterrole/policybased
-k8s.io/kubernetes/pkg/registry/rbac/clusterrole/storage
-k8s.io/kubernetes/pkg/registry/rbac/clusterrolebinding
-k8s.io/kubernetes/pkg/registry/rbac/clusterrolebinding/policybased
-k8s.io/kubernetes/pkg/registry/rbac/clusterrolebinding/storage
-k8s.io/kubernetes/pkg/registry/rbac/rest
-k8s.io/kubernetes/pkg/registry/rbac/role
-k8s.io/kubernetes/pkg/registry/rbac/role/policybased
-k8s.io/kubernetes/pkg/registry/rbac/role/storage
-k8s.io/kubernetes/pkg/registry/rbac/rolebinding
-k8s.io/kubernetes/pkg/registry/rbac/rolebinding/policybased
-k8s.io/kubernetes/pkg/registry/rbac/rolebinding/storage
 k8s.io/kubernetes/pkg/registry/rbac/validation
-k8s.io/kubernetes/pkg/registry/resource/deviceclass
-k8s.io/kubernetes/pkg/registry/resource/deviceclass/storage
-k8s.io/kubernetes/pkg/registry/resource/resourceclaim
-k8s.io/kubernetes/pkg/registry/resource/resourceclaim/storage
-k8s.io/kubernetes/pkg/registry/resource/resourceclaimtemplate
-k8s.io/kubernetes/pkg/registry/resource/resourceclaimtemplate/storage
-k8s.io/kubernetes/pkg/registry/resource/resourceslice
-k8s.io/kubernetes/pkg/registry/resource/resourceslice/storage
-k8s.io/kubernetes/pkg/registry/resource/rest
-k8s.io/kubernetes/pkg/registry/scheduling/priorityclass
-k8s.io/kubernetes/pkg/registry/scheduling/priorityclass/storage
-k8s.io/kubernetes/pkg/registry/scheduling/rest
-k8s.io/kubernetes/pkg/registry/storage/csidriver
-k8s.io/kubernetes/pkg/registry/storage/csidriver/storage
-k8s.io/kubernetes/pkg/registry/storage/csinode
-k8s.io/kubernetes/pkg/registry/storage/csinode/storage
-k8s.io/kubernetes/pkg/registry/storage/csistoragecapacity
-k8s.io/kubernetes/pkg/registry/storage/csistoragecapacity/storage
-k8s.io/kubernetes/pkg/registry/storage/rest
-k8s.io/kubernetes/pkg/registry/storage/storageclass
-k8s.io/kubernetes/pkg/registry/storage/storageclass/storage
-k8s.io/kubernetes/pkg/registry/storage/volumeattachment
-k8s.io/kubernetes/pkg/registry/storage/volumeattachment/storage
-k8s.io/kubernetes/pkg/registry/storage/volumeattributesclass
-k8s.io/kubernetes/pkg/registry/storage/volumeattributesclass/storage
-k8s.io/kubernetes/pkg/registry/storagemigration/rest
-k8s.io/kubernetes/pkg/registry/storagemigration/storagemigration
-k8s.io/kubernetes/pkg/registry/storagemigration/storagemigration/storage
-k8s.io/kubernetes/pkg/routes
 k8s.io/kubernetes/pkg/scheduler
 k8s.io/kubernetes/pkg/scheduler/apis/config
 k8s.io/kubernetes/pkg/scheduler/apis/config/scheme
@@ -3564,10 +2660,6 @@ k8s.io/kubernetes/pkg/scheduler/util/queue
 k8s.io/kubernetes/pkg/security/apparmor
 k8s.io/kubernetes/pkg/securitycontext
 k8s.io/kubernetes/pkg/serviceaccount
-k8s.io/kubernetes/pkg/serviceaccount/externaljwt/metrics
-k8s.io/kubernetes/pkg/serviceaccount/externaljwt/plugin
-k8s.io/kubernetes/pkg/util/async
-k8s.io/kubernetes/pkg/util/env
 k8s.io/kubernetes/pkg/util/filesystem
 k8s.io/kubernetes/pkg/util/flag
 k8s.io/kubernetes/pkg/util/flock
@@ -3586,7 +2678,6 @@ k8s.io/kubernetes/pkg/util/rlimit
 k8s.io/kubernetes/pkg/util/slice
 k8s.io/kubernetes/pkg/util/tail
 k8s.io/kubernetes/pkg/util/taints
-k8s.io/kubernetes/pkg/util/tolerations
 k8s.io/kubernetes/pkg/volume
 k8s.io/kubernetes/pkg/volume/configmap
 k8s.io/kubernetes/pkg/volume/csi
@@ -3618,48 +2709,8 @@ k8s.io/kubernetes/pkg/volume/util/types
 k8s.io/kubernetes/pkg/volume/util/volumepathhandler
 k8s.io/kubernetes/pkg/volume/validation
 k8s.io/kubernetes/pkg/windows/service
-k8s.io/kubernetes/plugin/pkg/admission/admit
-k8s.io/kubernetes/plugin/pkg/admission/alwayspullimages
-k8s.io/kubernetes/plugin/pkg/admission/antiaffinity
-k8s.io/kubernetes/plugin/pkg/admission/certificates
-k8s.io/kubernetes/plugin/pkg/admission/certificates/approval
-k8s.io/kubernetes/plugin/pkg/admission/certificates/ctbattest
-k8s.io/kubernetes/plugin/pkg/admission/certificates/signing
-k8s.io/kubernetes/plugin/pkg/admission/certificates/subjectrestriction
-k8s.io/kubernetes/plugin/pkg/admission/defaulttolerationseconds
-k8s.io/kubernetes/plugin/pkg/admission/deny
-k8s.io/kubernetes/plugin/pkg/admission/eventratelimit
-k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit
-k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit/install
-k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit/v1alpha1
-k8s.io/kubernetes/plugin/pkg/admission/eventratelimit/apis/eventratelimit/validation
-k8s.io/kubernetes/plugin/pkg/admission/extendedresourcetoleration
-k8s.io/kubernetes/plugin/pkg/admission/gc
-k8s.io/kubernetes/plugin/pkg/admission/imagepolicy
-k8s.io/kubernetes/plugin/pkg/admission/limitranger
-k8s.io/kubernetes/plugin/pkg/admission/namespace/autoprovision
-k8s.io/kubernetes/plugin/pkg/admission/namespace/exists
-k8s.io/kubernetes/plugin/pkg/admission/network/defaultingressclass
-k8s.io/kubernetes/plugin/pkg/admission/network/denyserviceexternalips
-k8s.io/kubernetes/plugin/pkg/admission/noderestriction
-k8s.io/kubernetes/plugin/pkg/admission/nodetaint
-k8s.io/kubernetes/plugin/pkg/admission/podnodeselector
-k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction
-k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction/apis/podtolerationrestriction
-k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction/apis/podtolerationrestriction/install
-k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction/apis/podtolerationrestriction/v1alpha1
-k8s.io/kubernetes/plugin/pkg/admission/podtolerationrestriction/apis/podtolerationrestriction/validation
-k8s.io/kubernetes/plugin/pkg/admission/priority
-k8s.io/kubernetes/plugin/pkg/admission/runtimeclass
-k8s.io/kubernetes/plugin/pkg/admission/security/podsecurity
 k8s.io/kubernetes/plugin/pkg/admission/serviceaccount
-k8s.io/kubernetes/plugin/pkg/admission/storage/persistentvolume/resize
-k8s.io/kubernetes/plugin/pkg/admission/storage/storageclass/setdefault
-k8s.io/kubernetes/plugin/pkg/admission/storage/storageobjectinuseprotection
-k8s.io/kubernetes/plugin/pkg/auth/authenticator/token/bootstrap
-k8s.io/kubernetes/plugin/pkg/auth/authorizer/node
 k8s.io/kubernetes/plugin/pkg/auth/authorizer/rbac
-k8s.io/kubernetes/plugin/pkg/auth/authorizer/rbac/bootstrappolicy
 k8s.io/kubernetes/test/conformance/testdata
 k8s.io/kubernetes/test/e2e
 k8s.io/kubernetes/test/e2e/apimachinery
@@ -3766,24 +2817,14 @@ k8s.io/kubernetes/test/e2e/upgrades/node
 k8s.io/kubernetes/test/e2e/upgrades/storage
 k8s.io/kubernetes/test/e2e/windows
 k8s.io/kubernetes/test/fixtures
-k8s.io/kubernetes/test/integration
-k8s.io/kubernetes/test/integration/etcd
-k8s.io/kubernetes/test/integration/framework
 k8s.io/kubernetes/test/utils
 k8s.io/kubernetes/test/utils/crd
 k8s.io/kubernetes/test/utils/format
 k8s.io/kubernetes/test/utils/image
 k8s.io/kubernetes/test/utils/junit
-k8s.io/kubernetes/test/utils/ktesting
-k8s.io/kubernetes/test/utils/ktesting/initoption
-k8s.io/kubernetes/test/utils/ktesting/internal
 k8s.io/kubernetes/test/utils/kubeconfig
 k8s.io/kubernetes/third_party/forked/golang/expansion
 k8s.io/kubernetes/third_party/forked/golang/net
-k8s.io/kubernetes/third_party/forked/gonum/graph
-k8s.io/kubernetes/third_party/forked/gonum/graph/internal/linear
-k8s.io/kubernetes/third_party/forked/gonum/graph/simple
-k8s.io/kubernetes/third_party/forked/gonum/graph/traverse
 k8s.io/kubernetes/third_party/forked/libcontainer/apparmor
 k8s.io/kubernetes/third_party/forked/libcontainer/utils
 # k8s.io/mount-utils v0.0.0 => github.com/openshift/kubernetes/staging/src/k8s.io/mount-utils v0.0.0-20250527023356-4cd5657aac98
@@ -3791,16 +2832,7 @@ k8s.io/kubernetes/third_party/forked/libcontainer/utils
 k8s.io/mount-utils
 # k8s.io/pod-security-admission v0.32.5 => github.com/openshift/kubernetes/staging/src/k8s.io/pod-security-admission v0.0.0-20250527023356-4cd5657aac98
 ## explicit; go 1.23.0
-k8s.io/pod-security-admission/admission
-k8s.io/pod-security-admission/admission/api
-k8s.io/pod-security-admission/admission/api/load
-k8s.io/pod-security-admission/admission/api/scheme
-k8s.io/pod-security-admission/admission/api/v1
-k8s.io/pod-security-admission/admission/api/v1alpha1
-k8s.io/pod-security-admission/admission/api/v1beta1
-k8s.io/pod-security-admission/admission/api/validation
 k8s.io/pod-security-admission/api
-k8s.io/pod-security-admission/metrics
 k8s.io/pod-security-admission/policy
 # k8s.io/sample-apiserver v0.0.0 => github.com/openshift/kubernetes/staging/src/k8s.io/sample-apiserver v0.0.0-20250527023356-4cd5657aac98
 ## explicit; go 1.23.0
@@ -4018,9 +3050,7 @@ sigs.k8s.io/json/internal/golang/encoding/json
 # sigs.k8s.io/kube-storage-version-migrator v0.0.6-0.20230721195810-5c8923c5ff96
 ## explicit; go 1.20
 sigs.k8s.io/kube-storage-version-migrator/pkg/apis/migration/v1alpha1
-sigs.k8s.io/kube-storage-version-migrator/pkg/clients/clientset
 sigs.k8s.io/kube-storage-version-migrator/pkg/clients/clientset/scheme
-sigs.k8s.io/kube-storage-version-migrator/pkg/clients/clientset/typed/migration/v1alpha1
 # sigs.k8s.io/kustomize/api v0.18.0
 ## explicit; go 1.22.7
 sigs.k8s.io/kustomize/api/filters/annotations
