@@ -70,7 +70,7 @@ func main() {
 			spec.Include(et.PlatformEquals(platform))
 		}
 
-		spec.Lifecycle = et.LifecycleBlocking
+		spec.Lifecycle = et.LifecycleInforming
 	})
 
 	ext.AddSpecs(componentSpecs)
