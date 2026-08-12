@@ -1,4 +1,7 @@
 
+openstack-tests: test/extended/openstack/* cmd/openshift-tests/*
+	go build -o $@ ./cmd/openshift-tests
+
 # Update generated artifacts.
 update:
 	mkdir -p ./test/extented/util/annotate/generated
@@ -9,12 +12,12 @@ verify:
 	./hack/verify.sh
 .PHONY: verify
 
+run: openstack-tests
+	./$< run openshift/openstack
+.PHONY: run
+
 # OTE test extension binary configuration
 TESTS_EXT_BINARY := bin/openstack-test-tests-ext
-
-run: tests-ext-build
-	./$(TESTS_EXT_BINARY) run-suite openstack-test/all
-.PHONY: run
 
 .PHONY: tests-ext-build
 tests-ext-build:
