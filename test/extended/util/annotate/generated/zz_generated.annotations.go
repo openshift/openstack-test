@@ -49,6 +49,8 @@ var Annotations = map[string]string{
 
 	"[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should create a cinder volume when using cinder default storage class": "",
 
+	"[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should create a cinder volume with specified metadata when using cinder storage class with appendVolumeMetadata": "",
+
 	"[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should create a manila share when using manila storage class": "",
 
 	"[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform on volume creation should follow PVC specs during resizing for prometheus": "",

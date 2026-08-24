@@ -2,11 +2,13 @@ package openstack
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"github.com/gophercloud/gophercloud/v2"
 	"github.com/gophercloud/gophercloud/v2/openstack"
 	"github.com/gophercloud/gophercloud/v2/openstack/blockstorage/v3/volumes"
@@ -18,6 +20,7 @@ import (
 	"github.com/stretchr/objx"
 	yaml "gopkg.in/yaml.v3"
 	v1 "k8s.io/api/core/v1"
+	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -319,6 +322,68 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(out).To(o.Equal(fileContent))
 
+		})
+
+		g.It("should create a cinder volume with specified metadata when using cinder storage class with appendVolumeMetadata", func(ctx g.SpecContext) {
+			constraint, err := semver.NewConstraint(">=5.1.0-0")
+			o.Expect(err).Should(o.BeNil())
+
+			clusterVersion, err := exutil.GetCurrentVersion(ctx, oc.AdminConfig())
+			o.Expect(err).Should(o.BeNil())
+			o.Expect(clusterVersion).ShouldNot(o.BeEmpty())
+
+			latestVer, err := semver.NewVersion(clusterVersion)
+			o.Expect(err).Should(o.BeNil())
+
+			if !constraint.Check(latestVer) {
+				e2eskipper.Skipf("appendVolumeMetadata is only available on >= 5.1.0")
+			}
+
+			metadata := map[string]string{
+				"environment": "production",
+				"team":        "storage",
+			}
+
+			metadataStr, err := json.Marshal(metadata)
+			o.Expect(err).Should(o.BeNil())
+
+			g.By("creating a storage class with appendVolumeMetadata specified")
+			sc := &storagev1.StorageClass{
+				Provisioner: "cinder.csi.openstack.org",
+				Parameters: map[string]string{
+					"appendVolumeMetadata": string(metadataStr),
+				},
+			}
+			sc.GenerateName = "cinder-csi-metadata-"
+
+			sc, err = clientSet.StorageV1().StorageClasses().Create(ctx, sc, metav1.CreateOptions{})
+			o.Expect(err).Should(o.BeNil())
+
+			g.DeferCleanup(func(ctx g.SpecContext) {
+				o.Expect(clientSet.StorageV1().StorageClasses().Delete(ctx, sc.Name, metav1.DeleteOptions{})).Should(o.BeNil())
+			})
+
+			g.By("creating a persistent volume claim referencing the storage class")
+			ns := oc.Namespace()
+			pvc := CreatePVC(ctx, clientSet, "pvc-cinder-metadata", ns, sc.Name, "1Gi")
+			g.DeferCleanup(func(ctx g.SpecContext) {
+				o.Expect(clientSet.CoreV1().PersistentVolumeClaims(pvc.Namespace).Delete(ctx, pvc.Name, metav1.DeleteOptions{})).Should(o.BeNil())
+			})
+
+			volName, err := waitPvcVolume(ctx, clientSet, pvc.Name, ns)
+			o.Expect(err).Should(o.BeNil())
+
+			g.By("fetching the volume created for the PVC")
+			vols, err := getVolumesFromName(ctx, volumeClient, volName)
+			o.Expect(err).Should(o.BeNil())
+			o.Expect(len(vols)).Should(o.Equal(1))
+
+			g.By("validating specified metadata exists in the provisioned volume")
+			volMetadata := vols[0].Metadata
+			e2e.Logf("volume metadata %q", volMetadata)
+			for k, v := range metadata {
+				o.Expect(volMetadata).Should(o.HaveKeyWithValue(k, v))
+			}
 		})
 	})
 })
