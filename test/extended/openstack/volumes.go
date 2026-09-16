@@ -32,7 +32,7 @@ import (
 const (
 	prometheusResizePodReadyTimeout = 3 * time.Minute
 	// Cinder/API propagation can lag under full-suite load; align with pod ready wait.
-	prometheusResizeCinderTimeout = 3 * time.Minute
+	prometheusResizeCinderTimeout   = 3 * time.Minute
 	prometheusResizePollInterval    = 5 * time.Second
 )
 
