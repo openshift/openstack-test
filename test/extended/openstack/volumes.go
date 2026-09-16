@@ -29,9 +29,9 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
+// Cinder/API propagation can lag under full-suite load; align with pod ready wait.
 const (
 	prometheusResizePodReadyTimeout = 3 * time.Minute
-	// Cinder/API propagation can lag under full-suite load; align with pod ready wait.
 	prometheusResizeCinderTimeout   = 3 * time.Minute
 	prometheusResizePollInterval    = 5 * time.Second
 )
@@ -87,7 +87,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 
 			g.By("Wait until prometheus-k8s is stable before resizing")
 			_, err = exutil.WaitForPods(clientSet.CoreV1().Pods("openshift-monitoring"),
-				exutil.ParseLabelsOrDie("prometheus=k8s"), exutil.CheckPodIsRunning, len(initial_pvcs), prometheusResizePodReadyTimeout)
+				exutil.ParseLabelsOrDie("prometheus=k8s"), exutil.CheckPodIsReady, len(initial_pvcs), prometheusResizePodReadyTimeout)
 			o.Expect(err).NotTo(o.HaveOccurred(), "timeout waiting for stable prometheus=k8s pods before resize")
 
 			g.By("Resize PVCs increasing by 1Gi")
@@ -133,8 +133,8 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 
 			g.By("Wait until prometheus-k8s pods are ready again")
 			_, err = exutil.WaitForPods(clientSet.CoreV1().Pods("openshift-monitoring"),
-				exutil.ParseLabelsOrDie("prometheus=k8s"), exutil.CheckPodIsRunning, len(initial_pvcs), prometheusResizePodReadyTimeout)
-			o.Expect(err).NotTo(o.HaveOccurred(), "timeout waiting for prometheus=k8s pods going to running state after the resize")
+				exutil.ParseLabelsOrDie("prometheus=k8s"), exutil.CheckPodIsReady, len(initial_pvcs), prometheusResizePodReadyTimeout)
+			o.Expect(err).NotTo(o.HaveOccurred(), "timeout waiting for prometheus=k8s pods going to ready state after the resize")
 
 			g.By(fmt.Sprintf("Active wait checking resize propagated to Cinder (max %s)", prometheusResizeCinderTimeout))
 			o.Eventually(func() error {
