@@ -29,6 +29,13 @@ import (
 	e2eskipper "k8s.io/kubernetes/test/e2e/framework/skipper"
 )
 
+// Cinder/API propagation can lag under full-suite load; align with pod ready wait.
+const (
+	prometheusResizePodReadyTimeout = 3 * time.Minute
+	prometheusResizeCinderTimeout   = 3 * time.Minute
+	prometheusResizePollInterval    = 5 * time.Second
+)
+
 var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStack platform", func() {
 	defer g.GinkgoRecover()
 
@@ -78,6 +85,11 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 			err = checkSizeConsistency(initial_pvcs, initial_volumes)
 			o.Expect(err).NotTo(o.HaveOccurred())
 
+			g.By("Wait until prometheus-k8s is stable before resizing")
+			_, err = exutil.WaitForPods(clientSet.CoreV1().Pods("openshift-monitoring"),
+				exutil.ParseLabelsOrDie("prometheus=k8s"), exutil.CheckPodIsReady, len(initial_pvcs), prometheusResizePodReadyTimeout)
+			o.Expect(err).NotTo(o.HaveOccurred(), "timeout waiting for stable prometheus=k8s pods before resize")
+
 			g.By("Resize PVCs increasing by 1Gi")
 			prometheus_schema := schema.GroupVersionResource{Group: "monitoring.coreos.com", Version: "v1", Resource: "prometheuses"}
 			prometheus_interface := dc.Resource(prometheus_schema).Namespace("openshift-monitoring")
@@ -118,14 +130,13 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 			_, err = stateful_interface.Patch(ctx, "prometheus-k8s",
 				types.MergePatchType, replicas_spec, metav1.PatchOptions{})
 			o.Expect(err).NotTo(o.HaveOccurred(), "failure scaling up prometheus-k8s")
-			time.Sleep(5 * time.Second) // Give time to the cluster to apply the changes
 
 			g.By("Wait until prometheus-k8s pods are ready again")
 			_, err = exutil.WaitForPods(clientSet.CoreV1().Pods("openshift-monitoring"),
-				exutil.ParseLabelsOrDie("prometheus=k8s"), exutil.CheckPodIsRunning, 2, 3*time.Minute)
-			o.Expect(err).NotTo(o.HaveOccurred(), "timeout waiting for prometheus=k8s pods going to running state after the resize")
+				exutil.ParseLabelsOrDie("prometheus=k8s"), exutil.CheckPodIsReady, len(initial_pvcs), prometheusResizePodReadyTimeout)
+			o.Expect(err).NotTo(o.HaveOccurred(), "timeout waiting for prometheus=k8s pods going to ready state after the resize")
 
-			g.By("Active wait checking that the status after resizing is expected (max 1 minute)")
+			g.By(fmt.Sprintf("Active wait checking resize propagated to Cinder (max %s)", prometheusResizeCinderTimeout))
 			o.Eventually(func() error {
 				e2e.Logf("Gather prometheus PVCs after resizing")
 				resized_pvcs, err := GetPVCsFromNamespace(ctx, dc, "openshift-monitoring")
@@ -164,11 +175,13 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 					for _, rszvol := range resized_volumes {
 						if !found && initvol.Name == rszvol.Name {
 							found = true
-							if initvol.Size+1 != rszvol.Size {
-								return fmt.Errorf("unexpected size on resized volume: %d", initvol.Size+1)
+							expectedSize := initvol.Size + 1
+							if expectedSize != rszvol.Size {
+								return fmt.Errorf("cinder volume %q resize incomplete: expected size %d GiB, got %d GiB (was %d GiB before resize)",
+									initvol.Name, expectedSize, rszvol.Size, initvol.Size)
 							}
 							if rszvol.Status != "in-use" {
-								return fmt.Errorf("cinder volume not in-use Status")
+								return fmt.Errorf("cinder volume %q not in-use after resize (status %q)", initvol.Name, rszvol.Status)
 							}
 							e2e.Logf("Cinder Volume '%q' has been successfully resized from %d to %d",
 								initvol.Name, initvol.Size, rszvol.Size)
@@ -180,7 +193,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 					}
 				}
 				return nil
-			}, "60s", "10s").Should(o.BeNil())
+			}, prometheusResizeCinderTimeout, prometheusResizePollInterval).Should(o.BeNil())
 		})
 
 		g.It("should create a manila share when using manila storage class", func(ctx g.SpecContext) {
