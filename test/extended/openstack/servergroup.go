@@ -40,7 +40,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 	var workerAZGroupNameMap map[string]string
 	var machineList []objx.Map
 
-	oc = exutil.NewCLI("openstack")
+	oc = exutil.NewCLIWithoutNamespace("openstack")
 
 	g.BeforeEach(func(ctx g.SpecContext) {
 		g.By("preparing a dynamic client")
