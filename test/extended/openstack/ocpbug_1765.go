@@ -130,8 +130,9 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Bugfix", fun
 
 			ms, err := framework.CreateMachineSet(rclient, newMachinesetParams)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to create a Machineset")
-
-			defer DeleteMachinesetsDefer(rclient, ms)
+			g.DeferCleanup(func(ctx context.Context) {
+				DeleteMachineSetAndWaitCleanup(ctx, rclient, dc, ms)
+			})
 			err = GetMachinesetRetry(ctx, rclient, ms, true)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to get the new Machineset")
 			err = waitUntilNMachinesPrefix(ctx, dc, ms.Name, 1)

@@ -1,6 +1,7 @@
 package openstack
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -95,7 +96,9 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Bugfix", fun
 			g.By("Create a new machineSet with bogus server group ID")
 			ms, err := framework.CreateMachineSet(rclient, newMachinesetParams)
 			o.Expect(err).NotTo(o.HaveOccurred(), "Failed to create a Machineset")
-			defer DeleteMachinesetsDefer(rclient, ms)
+			g.DeferCleanup(func(ctx context.Context) {
+				DeleteMachineSetAndWaitCleanup(ctx, rclient, dc, ms)
+			})
 
 			err = GetMachinesetRetry(ctx, rclient, ms, true)
 
