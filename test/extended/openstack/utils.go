@@ -31,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -323,10 +324,47 @@ func CreatePod(ctx context.Context, clientSet *kubernetes.Clientset, nsName stri
 	return p, err
 }
 
-func DeleteMachinesetsDefer(client runtimeclient.Client, ms *machinev1.MachineSet) {
-	err := framework.DeleteMachineSets(client, ms)
+// DeleteMachineSetAndWaitCleanup deletes a MachineSet and waits until no Machines
+// remain with that name prefix. On wait timeout, force-deletes remaining Machines
+// and re-waits. Safe to call when the MachineSet was already deleted in-test.
+func DeleteMachineSetAndWaitCleanup(ctx context.Context, client runtimeclient.Client, dc dynamic.Interface, ms *machinev1.MachineSet) {
+	if ms == nil {
+		return
+	}
+	prefix := ms.Name
+
+	if err := framework.DeleteMachineSets(client, ms); err != nil && !errors.IsNotFound(err) {
+		e2e.Logf("Error deleting MachineSet %s: %v", prefix, err)
+	}
+
+	if err := waitUntilNMachinesPrefix(ctx, dc, prefix, 0); err == nil {
+		return
+	}
+	e2e.Logf("Timed out waiting for Machines with prefix %s to go away; force-deleting stragglers", prefix)
+	forceDeleteMachinesByPrefix(ctx, dc, prefix)
+	if err := waitUntilNMachinesPrefix(ctx, dc, prefix, 0); err != nil {
+		e2e.Logf("Machines with prefix %s still present after force-delete: %v", prefix, err)
+	}
+}
+
+func forceDeleteMachinesByPrefix(ctx context.Context, dc dynamic.Interface, prefix string) {
+	machinesList, err := getMachinesByPrefix(prefix, ctx, dc)
 	if err != nil {
-		e2e.Logf("Error occured: %v", err)
+		e2e.Logf("Error listing Machines with prefix %s: %v", prefix, err)
+		return
+	}
+	machineClient := dc.Resource(schema.GroupVersionResource{
+		Group:    "machine.openshift.io",
+		Version:  "v1beta1",
+		Resource: "machines",
+	}).Namespace("openshift-machine-api")
+	grace := int64(0)
+	for _, m := range machinesList {
+		name := m.Get("metadata.name").String()
+		e2e.Logf("Force-deleting Machine %s", name)
+		if delErr := machineClient.Delete(ctx, name, metav1.DeleteOptions{GracePeriodSeconds: &grace}); delErr != nil && !errors.IsNotFound(delErr) {
+			e2e.Logf("Error force-deleting Machine %s: %v", name, delErr)
+		}
 	}
 }
 
