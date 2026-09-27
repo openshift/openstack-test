@@ -61,6 +61,10 @@ var Annotations = map[string]string{
 
 	"[OTP][sig-installer][Suite:openshift/openstack][Kuryr] Kuryr should create a subnet for a namespace only when a pod without hostNetwork is created in the namespace": "",
 
+	"[OTP][sig-installer][Suite:openshift/openstack][cloud-network-config] The cloud-network-config ConfigMap should configure CNCC with custom max_allowed_address_pairs and update on change": "",
+
+	"[OTP][sig-installer][Suite:openshift/openstack][cloud-network-config] The cloud-network-config ConfigMap should degrade the network operator for invalid ConfigMap values": "",
+
 	"[OTP][sig-installer][Suite:openshift/openstack][egressip] An egressIP attached to a floating IP should be kept after EgressIP node failover with OVN-Kubernetes NetworkType": "",
 
 	"[OTP][sig-installer][Suite:openshift/openstack][egressip] An egressIP with IPv6 format should be created on dualstack or ssipv6 cluster with OVN-Kubernetes NetworkType and dhcpv6-stateful mode": "",
