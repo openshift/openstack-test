@@ -35,6 +35,36 @@ const (
 	egressAssignableLabelKey    = "k8s.ovn.org/egress-assignable"
 )
 
+type ifAddr struct {
+	IPv4 string `json:"ipv4,omitempty"`
+	IPv6 string `json:"ipv6,omitempty"`
+}
+
+type capacity struct {
+	IPv4 int `json:"ipv4,omitempty"`
+	IPv6 int `json:"ipv6,omitempty"`
+	IP   int `json:"ip,omitempty"`
+}
+
+type NodeEgressIPConfiguration struct {
+	Interface string   `json:"interface"`
+	IFAddr    ifAddr   `json:"ifaddr"`
+	Capacity  capacity `json:"capacity"`
+}
+
+func parseEgressIPAnnotation(node corev1.Node) ([]*NodeEgressIPConfiguration, error) {
+	annotation, ok := node.Annotations[egressIPConfigAnnotationKey]
+	if !ok {
+		e2e.Logf("Annotation %q not found on node %q", egressIPConfigAnnotationKey, node.Name)
+		return nil, fmt.Errorf("failed to get egress IP config annotation key from node %q", node.Name)
+	}
+	var configs []*NodeEgressIPConfiguration
+	if err := json.Unmarshal([]byte(annotation), &configs); err != nil {
+		return nil, fmt.Errorf("failed to parse %s annotation on node %q: %w", egressIPConfigAnnotationKey, node.Name, err)
+	}
+	return configs, nil
+}
+
 var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack][egressip] An egressIP", func() {
 	var networkClient *gophercloud.ServiceClient
 	var clientSet *kubernetes.Clientset
@@ -315,29 +345,7 @@ func getNotInUseEgressIP(ctx context.Context, client *gophercloud.ServiceClient,
 
 // getEgressNetworkInfo returns the IP address CIDR and openstack portId from the node egress-ipconfig annotation
 func getEgressNetworkInfo(node corev1.Node, ipVersion string) (string, string, error) {
-	type ifAddr struct {
-		IPv4 string `json:"ipv4,omitempty"`
-		IPv6 string `json:"ipv6,omitempty"`
-	}
-	type capacity struct {
-		IPv4 int `json:"ipv4,omitempty"`
-		IPv6 int `json:"ipv6,omitempty"`
-		IP   int `json:"ip,omitempty"`
-	}
-	type NodeEgressIPConfiguration struct {
-		Interface string   `json:"interface"`
-		IFAddr    ifAddr   `json:"ifaddr"`
-		Capacity  capacity `json:"capacity"`
-	}
-
-	annotation, ok := node.Annotations[egressIPConfigAnnotationKey]
-	if !ok {
-		e2e.Logf("Annotation '%s' not found in '%s' node", egressIPConfigAnnotationKey, node.Name)
-		return "", "", nil
-	}
-	e2e.Logf("Found '%s' annotation in '%s': %s", egressIPConfigAnnotationKey, node.Name, annotation)
-	var nodeEgressIPConfigs []*NodeEgressIPConfiguration
-	err := json.Unmarshal([]byte(annotation), &nodeEgressIPConfigs)
+	nodeEgressIPConfigs, err := parseEgressIPAnnotation(node)
 	if err != nil {
 		return "", "", err
 	}
