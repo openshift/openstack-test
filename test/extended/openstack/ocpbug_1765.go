@@ -90,7 +90,6 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Bugfix", fun
 			o.Expect(err).NotTo(o.HaveOccurred(), "Error creating a runtime client")
 
 			workerUUID := getFirstWorkerID(clientSet, ctx)
-			workerAddressPairs := getInstancePortsAllowedAddressPairs(ctx, networkClient, workerUUID)
 
 			g.By("Create an additional OpenStack Network")
 			extraNetworkName := fmt.Sprintf("%v-%v", "foonet", RandomSuffix())
@@ -149,8 +148,18 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Bugfix", fun
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			instanceUUID := strings.TrimPrefix(newMachine.Get("spec.providerID").String(), "openstack:///")
-			instanceAddressPairs := getInstancePortsAllowedAddressPairs(ctx, networkClient, instanceUUID)
-			o.Expect(len(instanceAddressPairs)).To(o.Equal(len(workerAddressPairs) + 1))
+			var instanceAddressPairs map[string]int
+			ctx1, cancel1 := context.WithTimeout(ctx, time.Second*30)
+			defer cancel1()
+			o.Eventually(func(og o.Gomega, ctx context.Context) {
+				workerAddressPairs, err := getInstancePortsAllowedAddressPairs(ctx, networkClient, workerUUID)
+				og.Expect(err).NotTo(o.HaveOccurred())
+
+				instanceAddressPairs, err = getInstancePortsAllowedAddressPairs(ctx, networkClient, instanceUUID)
+				og.Expect(err).NotTo(o.HaveOccurred())
+
+				og.Expect(len(instanceAddressPairs)).To(o.Equal(len(workerAddressPairs) + 1))
+			}).WithContext(ctx1).Should(o.Succeed())
 
 			g.By("Verify that the new machine has the extra network")
 			_, ok := instanceAddressPairs[extraNetwork.ID]
@@ -191,7 +200,7 @@ func getFirstWorkerID(clientSet *kubernetes.Clientset, ctx context.Context) stri
 
 // getInstancePortsAllowedAddressPairs returns a map where the the key is a network ID and the value is
 // the length of the port's allowed_address_pairs field in that network attached to instance with ID uuid
-func getInstancePortsAllowedAddressPairs(ctx context.Context, client *gophercloud.ServiceClient, uuid string) map[string]int {
+func getInstancePortsAllowedAddressPairs(ctx context.Context, client *gophercloud.ServiceClient, uuid string) (map[string]int, error) {
 	portList := make(map[string]int)
 
 	portListOpts := ports.ListOpts{
@@ -199,16 +208,16 @@ func getInstancePortsAllowedAddressPairs(ctx context.Context, client *gopherclou
 	}
 	allPages, err := ports.List(client, portListOpts).AllPages(ctx)
 	if err != nil {
-		return portList
+		return nil, fmt.Errorf("list ports: %w", err)
 	}
 	allPorts, err := ports.ExtractPorts(allPages)
 	if err != nil {
-		return portList
+		return nil, fmt.Errorf("extract all ports: %w", err)
 	}
 	for _, port := range allPorts {
 		portList[port.NetworkID] = len(port.AllowedAddressPairs)
 	}
-	return portList
+	return portList, nil
 }
 
 // waitUntilMachinePhase waits until a machine phase is the desired one or a timeout is reached
