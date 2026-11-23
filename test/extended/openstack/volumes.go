@@ -260,7 +260,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			ns := oc.Namespace()
-			pvc := CreatePVC(ctx, clientSet, "cinder-pvc", ns, cinderSc.Name, "1Gi")
+			pvc := CreatePVC(ctx, clientSet, "cinder-pvc", ns, cinderSc.Name, cinderPVCSize)
 			fileContent := "hello"
 
 			// Creating a deployment with the volumes attached
