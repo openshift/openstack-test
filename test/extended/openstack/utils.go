@@ -48,6 +48,7 @@ const (
 	NetworkTypeOpenShiftSDN  = "OpenShiftSDN"
 	NetworkTypeOVNKubernetes = "OVNKubernetes"
 	NetworkTypeKuryr         = "Kuryr"
+	cinderPVCSize            = "10Gi"
 )
 
 type KuryrNetwork struct {
