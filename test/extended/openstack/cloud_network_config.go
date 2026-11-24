@@ -26,6 +26,13 @@ const (
 	cnccDeploymentName        = "cloud-network-config-controller"
 	cnccNamespace             = "openshift-cloud-network-config-controller"
 	cnccContainerName         = "controller"
+
+	// cnccRolloutTimeout bounds how long we wait for CNO to re-render
+	// the CNCC Deployment after an Infrastructure change. CNO's
+	// operconfig controller does not watch Infrastructure, so the
+	// change is only picked up on its periodic resync.
+	pollTimeout  = "5m"
+	pollInterval = "5s"
 )
 
 var infraGVR = schema.GroupVersionResource{Group: "config.openshift.io", Version: "v1", Resource: "infrastructures"}
@@ -70,14 +77,14 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack][cloud-networ
 			}
 			g.Expect(degraded).To(o.BeFalse(), "network operator still Degraded")
 			g.Expect(available).To(o.BeTrue(), "network operator not yet Available")
-		}, "1m", "1s").WithContext(ctx).Should(o.Succeed())
+		}, pollTimeout, pollInterval).WithContext(ctx).Should(o.Succeed())
 
 		g.By("Cleaning up: waiting for CNCC to be available")
 		o.Eventually(func(g o.Gomega) {
 			dep, err := clientSet.AppsV1().Deployments(cnccNamespace).Get(ctx, cnccDeploymentName, metav1.GetOptions{})
 			g.Expect(err).NotTo(o.HaveOccurred())
 			g.Expect(dep.Status.AvailableReplicas).To(o.BeNumerically(">=", 1))
-		}, "1m", "1s").WithContext(ctx).Should(o.Succeed())
+		}, pollTimeout, pollInterval).WithContext(ctx).Should(o.Succeed())
 	})
 
 	g.It("should configure CNCC with custom max_allowed_address_pairs and update on change", func(ctx g.SpecContext) {
@@ -128,7 +135,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack][cloud-networ
 			g.Expect(err).NotTo(o.HaveOccurred())
 			g.Expect(capacity).To(o.Equal(newCapacity),
 				fmt.Sprintf("node egress IP capacity should be %d", newCapacity))
-		}, "1m", "1s").WithContext(ctx).Should(o.Succeed())
+		}, pollTimeout, pollInterval).WithContext(ctx).Should(o.Succeed())
 
 		g.By("Recording CNCC deployment generation before restoring Infrastructure")
 		dep, err = getCNCCDeployment(ctx, clientSet)
@@ -156,7 +163,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack][cloud-networ
 			capacity, err := getEgressIPCapacityFromNode(*node)
 			g.Expect(err).NotTo(o.HaveOccurred())
 			g.Expect(capacity).To(o.Equal(baselineCapacity))
-		}, "1m", "1s").WithContext(ctx).Should(o.Succeed())
+		}, pollTimeout, pollInterval).WithContext(ctx).Should(o.Succeed())
 	})
 })
 
@@ -186,7 +193,7 @@ func waitForCNCCRolloutAfter(ctx context.Context, clientSet *kubernetes.Clientse
 		g.Expect(dep.Generation).To(o.BeNumerically(">", prevGeneration), "deployment generation has not incremented yet")
 		g.Expect(dep.Status.ObservedGeneration).To(o.Equal(dep.Generation), "deployment rollout not yet observed by controller")
 		g.Expect(dep.Status.AvailableReplicas).To(o.BeNumerically(">=", 1), "no available replicas yet")
-	}, "1m", "1s").WithContext(ctx).Should(o.Succeed())
+	}, pollTimeout, pollInterval).WithContext(ctx).Should(o.Succeed())
 }
 
 // getEgressIPCapacityFromNode parses the egress-ipconfig annotation and returns capacity.ip.
