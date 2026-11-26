@@ -142,7 +142,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenShif
 		// Create a PVC
 		g.By("Creating a PVC")
 		ns := oc.Namespace()
-		pvc := CreatePVC(ctx, clientSet, "cinder-pvc", ns, cinderSc.Name, "1Gi")
+		pvc := CreatePVC(ctx, clientSet, "cinder-pvc", ns, cinderSc.Name, cinderPVCSize)
 
 		// Create a deployment with the volume attached
 		g.By("Creating Openshift deployment with 1 replica and cinder volume attached")

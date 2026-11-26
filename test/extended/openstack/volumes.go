@@ -276,7 +276,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			ns := oc.Namespace()
-			pvc := CreatePVC(ctx, clientSet, "cinder-pvc", ns, cinderSc.Name, "1Gi")
+			pvc := CreatePVC(ctx, clientSet, "cinder-pvc", ns, cinderSc.Name, cinderPVCSize)
 			fileContent := "hello"
 
 			// Creating a deployment with the volumes attached
@@ -378,7 +378,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] The OpenStac
 
 			g.By("creating a persistent volume claim referencing the storage class")
 			ns := oc.Namespace()
-			pvc := CreatePVC(ctx, clientSet, "pvc-cinder-metadata", ns, sc.Name, "1Gi")
+			pvc := CreatePVC(ctx, clientSet, "pvc-cinder-metadata", ns, sc.Name, cinderPVCSize)
 			g.DeferCleanup(func(ctx g.SpecContext) {
 				o.Expect(clientSet.CoreV1().PersistentVolumeClaims(pvc.Namespace).Delete(ctx, pvc.Name, metav1.DeleteOptions{})).Should(o.BeNil())
 			})
