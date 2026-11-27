@@ -2,17 +2,17 @@
 
 aliases:
   openstack-approvers:
+    - chenwng
     - danchild
     - dlaw4608
-    - eshulman2
     - gryf
     - mandre
     - stephenfin
     - winiciusallan
   openstack-reviewers:
+    - chenwng
     - danchild
     - dlaw4608
-    - eshulman2
     - gryf
     - mandre
     - stephenfin
