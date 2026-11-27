@@ -239,7 +239,7 @@ var _ = g.Describe("[OTP][sig-installer][Suite:openshift/openstack] Check shift-
 		g.By(fmt.Sprintf("Creating a PVC for a cinder volume in '%v' namespace in the shiftstack cluster", ns))
 		cinderSc := FindStorageClassByProvider(oc, "cinder.csi.openstack.org", true)
 		o.Expect(cinderSc).NotTo(o.BeNil(), "default cinder-csi storageClass not found.")
-		pvc := CreatePVC(ctx, shiftstackClientSet, "cinder-pvc", ns, cinderSc.Name, "1Gi")
+		pvc := CreatePVC(ctx, shiftstackClientSet, "cinder-pvc", ns, cinderSc.Name, cinderPVCSize)
 
 		// Create a deployment with the volume attached
 		g.By(fmt.Sprintf("Creating Openshift deployment with 1 replica and cinder volume '%v' attached", pvc.Name))
